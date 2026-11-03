@@ -14,6 +14,10 @@ DATA_DIR="${DATA_DIR:-/var/lib/akkoordkast}"
 GEBRUIKER="${GEBRUIKER:-akkoordkast}"
 POORT="${POORT:-80}"
 SRC="${SRC:-/opt/akkoordkast-pakket}"
+# De map met muziek. De app stelt dit pad voor bij 'Muziekmap scannen', dus het scheelt
+# typen als hij meteen bestaat en van de app-gebruiker is. Een NAS- of Drive-koppeling
+# zet MUSIC_DIR later naar het koppelpunt.
+MUZIEKMAP="${MUZIEKMAP:-/home/$GEBRUIKER/muziek}"
 
 if [ "$(id -u)" != "0" ]; then
   echo "Draai dit als root op de Proxmox-host." >&2
@@ -95,7 +99,7 @@ echo "   $(binnen_bash "node --version")"
 
 echo "== Gebruiker en mappen"
 binnen_bash "id -u $GEBRUIKER >/dev/null 2>&1 || useradd --system --create-home --shell /usr/sbin/nologin $GEBRUIKER"
-binnen_bash "install -d -o $GEBRUIKER -g $GEBRUIKER $APP_DIR $APP_DIR/lib $APP_DIR/public $APP_DIR/song-data $APP_DIR/scripts $DATA_DIR $DATA_DIR/media $DATA_DIR/media/audio $DATA_DIR/media/preview"
+binnen_bash "install -d -o $GEBRUIKER -g $GEBRUIKER $APP_DIR $APP_DIR/lib $APP_DIR/public $APP_DIR/song-data $APP_DIR/scripts $DATA_DIR $DATA_DIR/media $DATA_DIR/media/audio $DATA_DIR/media/preview $MUZIEKMAP"
 
 echo "== Bestanden naar de container sturen"
 for f in "${RUNTIME[@]}"; do pct push "$CTID" "$SRC/$f" "$APP_DIR/$f" --perms 644; done
@@ -123,6 +127,8 @@ else
   echo "   pct exec $CTID -- bash -c 'apt-get install -y python3-venv && python3 -m venv $APP_DIR/venv && $APP_DIR/venv/bin/pip install pychromecast'"
 fi
 
+echo "   muziekmap: $MUZIEKMAP"
+
 echo "== Systemd-dienst"
 UNIT="$(mktemp)"
 cat > "$UNIT" <<UNITEOF
@@ -143,6 +149,7 @@ Environment=MEDIA_DIR=$DATA_DIR/media
 Environment=DB_PATH=$DATA_DIR/akkoordkast.db
 Environment=CAST_PYTHON=$APP_DIR/venv/bin/python
 Environment=FFMPEG=/usr/bin/ffmpeg
+Environment=MUSIC_DIR=$MUZIEKMAP
 AmbientCapabilities=CAP_NET_BIND_SERVICE
 CapabilityBoundingSet=CAP_NET_BIND_SERVICE
 NoNewPrivileges=yes

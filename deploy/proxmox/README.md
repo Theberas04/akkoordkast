@@ -36,12 +36,15 @@ De installer doet vier dingen:
    de bridge niet, dan noemt hij de bridges die er wel zijn.
 3. `provision-akkoordkast.sh` installeert Node.js 22, ffmpeg en de Chromecast-hulp, stuurt de
    bestanden naar `/opt/akkoordkast`, zet de gegevens in `/var/lib/akkoordkast` en start de
-   systemd-dienst `akkoordkast`.
+   systemd-dienst `akkoordkast`. Hij maakt ook de muziekmap (`MUZIEKMAP`, standaard
+   `/home/akkoordkast/muziek`) en geeft hem als `MUSIC_DIR` aan de dienst mee, zodat de app dat
+   pad zelf voorstelt bij *Muziekmap scannen*. Een NAS- of Drive-koppeling zet `MUSIC_DIR` later
+   in een drop-in (`/etc/systemd/system/akkoordkast.service.d/music-dir.conf`) en dat wint.
 4. De gezondheidscontrole eist de app-marker (`x-akkoordkast: app` op `/healthz`) **en** dat
    node op de poort luistert, en print het adres van de container.
 
 Instellingen die je kunt meegeven: `CTID`, `GEHEUGEN`, `SCHIJF`, `CORES`, `BRIDGE`, `OPSLAG`,
-`SJABLOON_OPSLAG`, `DEBIAN_MAJOR`, `CTID_VANAF`, `POORT`, `hostname`. Voorbeeld:
+`SJABLOON_OPSLAG`, `DEBIAN_MAJOR`, `CTID_VANAF`, `POORT`, `MUZIEKMAP`, `hostname`. Voorbeeld:
 
 ```bash
 CTID=225 GEHEUGEN=2048 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Theberas04/akkoordkast/main/deploy/proxmox/install.sh)"

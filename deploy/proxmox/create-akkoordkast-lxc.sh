@@ -11,9 +11,22 @@ SCHIJF="${SCHIJF:-8}"
 CORES="${CORES:-2}"
 BRIDGE="${BRIDGE:-vmbr0}"
 OPSLAG="${OPSLAG:-local-lvm}"
+SJABLOON_OPSLAG="${SJABLOON_OPSLAG:-}"
 DEBIAN_MAJOR="${DEBIAN_MAJOR:-12}"
 
 melding() { echo "$@" >&2; }
+
+# Kiest uit een lijst sjabloonnamen de Debian-variant die we willen: de ingestelde
+# hoofdversie, en anders de nieuwste die de host aanbiedt. Zo werkt het ook op een host
+# waar Debian 13 inmiddels de standaard is.
+kies_sjabloon() {
+  # De invoer één keer lezen: twee keer van dezelfde pijp lezen levert de tweede keer niets op.
+  local alles eerste
+  alles="$(cat)"
+  eerste="$(printf '%s\n' "$alles" | grep "debian-$DEBIAN_MAJOR-standard" | sort -V | tail -1 || true)"
+  if [ -n "$eerste" ]; then printf '%s\n' "$eerste"; return 0; fi
+  printf '%s\n' "$alles" | grep -E "debian-[0-9]+-standard" | sort -V | tail -1 || true
+}
 
 if [ "$(id -u)" != "0" ]; then
   melding "Draai dit als root op de Proxmox-host."
@@ -53,19 +66,36 @@ if ! ip -o link show "$BRIDGE" >/dev/null 2>&1; then
   exit 1
 fi
 
-# Sjabloon zoeken of downloaden.
-SJABLOON="$(pveam list "$OPSLAG" 2>/dev/null | awk '{print $1}' | grep "debian-$DEBIAN_MAJOR-standard" | sort | tail -1 || true)"
+# Sjablonen staan op een opslag met 'vztmpl', en dat is op een standaardinstallatie 'local'
+# terwijl de containerschijf op 'local-lvm' hoort. Eén opslagnaam voor allebei werkt dus niet:
+# 'local-lvm' kan geen sjablonen aan.
+SJABLOON_OPSLAGGEN="${SJABLOON_OPSLAG:-$(pvesm status --content vztmpl 2>/dev/null | awk 'NR>1 {print $1}')}"
+if [ -z "$SJABLOON_OPSLAGGEN" ]; then
+  melding "Geen opslag gevonden die sjablonen kan bewaren."
+  melding "Kijk met 'pvesm status' welke opslag je hebt en zet die aan voor sjablonen met"
+  melding "'pvesm set <naam> --content vztmpl', of geef hem mee: SJABLOON_OPSLAG=<naam> ..."
+  exit 1
+fi
+
+# Sjabloon zoeken op elke opslag die sjablonen aankan, en anders downloaden.
+SJABLOON=""
+for opslag in $SJABLOON_OPSLAGGEN; do
+  GEVONDEN="$(pveam list "$opslag" 2>/dev/null | awk '{print $1}' | kies_sjabloon || true)"
+  if [ -n "$GEVONDEN" ]; then SJABLOON="$GEVONDEN"; break; fi
+done
 if [ -z "$SJABLOON" ]; then
-  melding "Debian $DEBIAN_MAJOR-sjabloon wordt gedownload..."
+  DOWNLOAD_OPSLAG="$(echo "$SJABLOON_OPSLAGGEN" | awk '{print $1}')"
+  melding "Debian $DEBIAN_MAJOR-sjabloon wordt gedownload naar $DOWNLOAD_OPSLAG..."
   pveam update >/dev/null 2>&1 || true
-  NAAM="$(pveam available --section system | awk '{print $2}' | grep "debian-$DEBIAN_MAJOR-standard" | sort | tail -1 || true)"
+  NAAM="$(pveam available --section system | awk '{print $2}' | kies_sjabloon || true)"
   if [ -z "$NAAM" ]; then
     melding "Geen Debian $DEBIAN_MAJOR-sjabloon gevonden. Download er handmatig een met 'pveam download'."
     exit 1
   fi
-  pveam download "$OPSLAG" "$NAAM"
-  SJABLOON="$OPSLAG:vztmpl/$NAAM"
+  pveam download "$DOWNLOAD_OPSLAG" "$NAAM"
+  SJABLOON="$DOWNLOAD_OPSLAG:vztmpl/$NAAM"
 fi
+melding "Containerschijf op: $OPSLAG   sjabloon op: ${SJABLOON%%:*}"
 melding "Sjabloon: $SJABLOON"
 
 pct create "$CTID" "$SJABLOON" \

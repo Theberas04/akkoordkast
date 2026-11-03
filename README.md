@@ -87,7 +87,8 @@ Draai dit op de Proxmox-host zelf, als root:
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Theberas04/akkoordkast/main/deploy/proxmox/install.sh)"
 ```
 
-Het script maakt een Debian-container, installeert Node.js 22, ffmpeg en de Chromecast-hulp,
+Het script print eerst zijn eigen versie, haalt alle bestanden op, maakt een Debian-container,
+installeert Node.js 22, ffmpeg en de Chromecast-hulp,
 zet de app als systemd-dienst op poort 80 en print het adres. Bijwerken later:
 
 ```bash

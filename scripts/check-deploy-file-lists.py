@@ -44,7 +44,7 @@ def arrays(pad: Path) -> dict[str, list[str]]:
     tekst = pad.read_text()
     uit = {}
     for treffer in re.finditer(r'^([A-Za-z_][A-Za-z0-9_]*)=\((.*?)^\)[ ]*$', tekst, re.S | re.M):
-        uit[treffer.group(1)] = shlex.split(treffer.group(2).replace('\\\n', ' '))
+        uit[treffer.group(1)] = shlex.split(treffer.group(2).replace('\\\n', ' '), comments=True)
     return uit
 
 
@@ -61,10 +61,10 @@ def bestandslijsten(pad: Path) -> list[list[str]]:
     lijsten = []
     bekend = arrays(pad)
     for treffer in re.finditer(r'^FILES=\((.*?)^\)[ ]*$', tekst, re.S | re.M):
-        lijsten.append(shlex.split(klap_uit(treffer.group(1).replace('\\\n', ' '), bekend)))
+        lijsten.append(shlex.split(klap_uit(treffer.group(1).replace('\\\n', ' '), bekend), comments=True))
     # De lus moet op één regel staan; anders slokt de regex de tussenliggende code op.
     for treffer in re.finditer(r'for f in ([^\n]*); do[^\n]*pct push', tekst):
-        lijsten.append(shlex.split(klap_uit(treffer.group(1), bekend)))
+        lijsten.append(shlex.split(klap_uit(treffer.group(1), bekend), comments=True))
     return lijsten
 
 
@@ -75,8 +75,13 @@ def aangeroepen_bestanden(pad: Path) -> list[str]:
     niet in zijn eigen FILES-lijst, dan valt dat pas op de host op met
     "No such file or directory" — precies de fout die deze controle moet voorkomen.
     """
-    return [t.group(1) for t in
-            re.finditer(r'\bbash\s+"?\$\{?(?:TARGET_DIR|STAGING)\}?/([\w./-]+)"?', pad.read_text())]
+    uit = []
+    for regel in pad.read_text().split('\n'):
+        if regel.lstrip().startswith('#'):   # commentaar noemt de aanroep als voorbeeld
+            continue
+        uit += [t.group(1) for t in
+                re.finditer(r'\bbash\s+"?\$\{?(?:TARGET_DIR|STAGING)\}?/([\w./-]+)"?', regel)]
+    return uit
 
 
 def naar_repo_pad(element: str) -> str:

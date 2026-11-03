@@ -11,12 +11,29 @@ Op de Proxmox-host zelf, als root:
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Theberas04/akkoordkast/main/deploy/proxmox/install.sh)"
 ```
 
+De uitvoer begint met de versie van de installer, bijvoorbeeld `== AkkoordKast-installer
+2026-11-03.3`. Zie je een oudere versie, dan kwam het script uit de schijfcache van GitHub
+(die houdt een bestand vijf minuten vast) of uit een bewaard bestand. Forceer dan een verse
+kopie met `?cb=`:
+
+```bash
+bash -c "$(curl -fsSL "https://raw.githubusercontent.com/Theberas04/akkoordkast/main/deploy/proxmox/install.sh?cb=$(date +%s)")"
+```
+
 De installer doet vier dingen:
 
 1. `install.sh` haalt de app-bestanden op naar `/opt/akkoordkast-pakket` op de host.
-   Zet `TARGET_DIR` als je een andere map wilt, of `BRANCH` voor een andere branch.
+   Zet `TARGET_DIR` als je een andere map wilt, of `BRANCH` voor een andere branch. Elk script
+   dat de installer zelf uitvoert staat in die lijst; ontbreekt er toch een, dan haalt hij het
+   op het moment van gebruik alsnog op in plaats van te stoppen.
 2. `create-akkoordkast-lxc.sh` maakt een Debian-container (standaard 2 cores, 1 GB, 8 GB schijf,
-   DHCP op `vmbr0`) en print alleen het container-id.
+   DHCP op `vmbr0`) en print alleen het container-id. Hij zoekt zelf een vrije id (vanaf 100,
+   `CTID_VANAF`), een opslag die een containerschijf aankan (`OPSLAG`, standaard `local-lvm`, en
+   anders de eerste opslag met `rootdir`) en een opslag die sjablonen aankan (`SJABLOON_OPSLAG`).
+   Dat laatste is niet hetzelfde: een standaardinstallatie bewaart sjablonen op `local`
+   (`vztmpl`) en containerschijven op `local-lvm` (`rootdir`). Vandaar de fout
+   `storage 'local-lvm' does not support templates` als je die twee door elkaar haalt. Bestaat
+   de bridge niet, dan noemt hij de bridges die er wel zijn.
 3. `provision-akkoordkast.sh` installeert Node.js 22, ffmpeg en de Chromecast-hulp, stuurt de
    bestanden naar `/opt/akkoordkast`, zet de gegevens in `/var/lib/akkoordkast` en start de
    systemd-dienst `akkoordkast`.
@@ -24,7 +41,7 @@ De installer doet vier dingen:
    node op de poort luistert, en print het adres van de container.
 
 Instellingen die je kunt meegeven: `CTID`, `GEHEUGEN`, `SCHIJF`, `CORES`, `BRIDGE`, `OPSLAG`,
-`POORT`, `hostname`. Voorbeeld:
+`SJABLOON_OPSLAG`, `DEBIAN_MAJOR`, `CTID_VANAF`, `POORT`, `hostname`. Voorbeeld:
 
 ```bash
 CTID=225 GEHEUGEN=2048 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Theberas04/akkoordkast/main/deploy/proxmox/install.sh)"
@@ -43,6 +60,13 @@ SRC=/tmp/akkoordkast bash /tmp/akkoordkast/deploy/proxmox/provision-akkoordkast.
 
 ```bash
 FETCH_ONLY=1 RAW_BASE=file:///tmp/akkoordkast TARGET_DIR=/tmp/pakket bash deploy/proxmox/install.sh
+```
+
+En er is een controle die het pakket nakijkt zonder een container te maken (die werkt ook op een
+gewone machine, zonder Proxmox):
+
+```bash
+CONTROLEER_PAKKET=1 TARGET_DIR=/tmp/pakket bash deploy/proxmox/install.sh
 ```
 
 ## Bijwerken
@@ -97,4 +121,6 @@ python3 scripts/check-deploy-file-lists.py --remote
 ```
 
 De tweede controleert elke naam in elke lijst: één pad, geen spatie, bestaat in de repo, en
-optioneel HTTP 200 op de ruwe URL die het script zelf bouwt.
+optioneel HTTP 200 op de ruwe URL die het script zelf bouwt. Sinds de fout waarbij `install.sh`
+de container-maker niet ophaalde, controleert hij ook dat elk script dat een deploy-script zelf
+uitvoert (`bash "$TARGET_DIR/..."`) in zijn eigen lijst staat; de testsuite bewaakt hetzelfde.

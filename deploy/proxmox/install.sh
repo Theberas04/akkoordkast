@@ -20,8 +20,16 @@ BRANCH="${BRANCH:-main}"
 RAW_BASE="${RAW_BASE:-https://raw.githubusercontent.com/$REPO_OWNER/$REPO_NAAM/$BRANCH}"
 TARGET_DIR="${TARGET_DIR:-/opt/akkoordkast-pakket}"
 FETCH_ONLY="${FETCH_ONLY:-0}"
+CONTROLEER_PAKKET="${CONTROLEER_PAKKET:-0}"
+# Stempel van deze installer. Staat bovenaan de uitvoer, zodat je meteen ziet welke versie
+# er draait: een oude kopie (uit de schijfcache van GitHub, of een bewaard bestand) valt zo op.
+PAKKET_VERSIE="2026-11-03.3"
 
+# Let op: hier hoort ELK script in te staan dat hieronder met 'bash "$TARGET_DIR/..."'
+# wordt uitgevoerd (dus ook create-akkoordkast-lxc.sh). Staat het er niet in, dan stopt de
+# installatie met 'No such file or directory'. scripts/check-deploy-file-lists.py bewaakt dit.
 FILES=(
+
   "server.js"
   "liedjes-bron.js"
   "lib/theorie.js"
@@ -59,12 +67,20 @@ FILES=(
   "deploy/proxmox/update-from-github.sh"
 )
 
-if [ "$(id -u)" != "0" ]; then
+if [ "$(id -u)" != "0" ] && [ "$FETCH_ONLY" != "1" ] && [ "$CONTROLEER_PAKKET" != "1" ]; then
   echo "Draai dit als root op de Proxmox-host." >&2
   exit 1
 fi
 
-for nodig in pct pvesm curl; do
+# Alleen bij een echte installatie is Proxmox-gereedschap nodig; het ophalen van de
+# bestanden (FETCH_ONLY=1) en het controleren van het pakket (CONTROLEER_PAKKET=1) werken
+# overal, zodat je die vooraf kunt proberen.
+NODIG="pct pvesm curl"
+if [ "$FETCH_ONLY" = "1" ] || [ "$CONTROLEER_PAKKET" = "1" ]; then
+  NODIG="curl"
+  if [ "${RAW_BASE#file://}" != "$RAW_BASE" ]; then NODIG=""; fi
+fi
+for nodig in $NODIG; do
   if ! command -v "$nodig" >/dev/null 2>&1; then
     echo "Dit lijkt geen Proxmox-host: $nodig ontbreekt." >&2
     exit 1
@@ -75,10 +91,9 @@ PROEF="$(mktemp)"
 KOPPEN="$(mktemp)"
 trap 'rm -f "$PROEF" "$KOPPEN"' EXIT
 
-echo "== Bestanden ophalen van $RAW_BASE naar $TARGET_DIR"
-rm -rf "$TARGET_DIR"
-mkdir -p "$TARGET_DIR"
-for f in "${FILES[@]}"; do
+haal_bestand() {
+  # $1 = het pad binnen de repository
+  local f="$1"
   case "$f" in
     *" "*|"") echo "Interne fout: bestandsnaam met een spatie ($f)." >&2; exit 1 ;;
   esac
@@ -86,14 +101,41 @@ for f in "${FILES[@]}"; do
   if [ "${RAW_BASE#file://}" != "$RAW_BASE" ]; then
     cp "${RAW_BASE#file://}/$f" "$TARGET_DIR/$f"
   else
+    # ?cb= erachter: de schijfcache van GitHub houdt een bestand vijf minuten vast.
     if ! curl -fsSL --max-time 60 "$RAW_BASE/$f?cb=$(date +%s)" -o "$TARGET_DIR/$f"; then
       echo "Download mislukt: $f" >&2
       echo "Controleer of de repository openbaar is en of $f echt bestaat." >&2
       exit 1
     fi
   fi
+}
+
+zorg_voor() {
+  # Vangnet: een script dat uitgevoerd moet worden hoort in FILES te staan. Staat het er
+  # niet in (of is het weg), dan halen we het hier alsnog op in plaats van te stoppen met
+  # 'No such file or directory'.
+  local f="$1"
+  if [ -s "$TARGET_DIR/$f" ]; then return 0; fi
+  echo "   $f ontbrak in het pakket; alsnog opgehaald" >&2
+  haal_bestand "$f"
+}
+
+echo "== AkkoordKast-installer $PAKKET_VERSIE"
+echo "== Bestanden ophalen van $RAW_BASE naar $TARGET_DIR"
+rm -rf "$TARGET_DIR"
+mkdir -p "$TARGET_DIR"
+for f in "${FILES[@]}"; do
+  haal_bestand "$f"
   echo "   $f"
 done
+
+if [ "$CONTROLEER_PAKKET" = "1" ]; then
+  for nodig in deploy/proxmox/create-akkoordkast-lxc.sh deploy/proxmox/provision-akkoordkast.sh; do
+    zorg_voor "$nodig"
+  done
+  echo "== Pakket compleet in $TARGET_DIR (controle zonder container)"
+  exit 0
+fi
 
 if [ "$FETCH_ONLY" = "1" ]; then
   echo "== Alleen ophalen gevraagd (FETCH_ONLY=1): klaar in $TARGET_DIR"
@@ -101,6 +143,7 @@ if [ "$FETCH_ONLY" = "1" ]; then
 fi
 
 echo "== Container aanmaken"
+zorg_voor deploy/proxmox/create-akkoordkast-lxc.sh
 CTID="$(bash "$TARGET_DIR/deploy/proxmox/create-akkoordkast-lxc.sh")"
 if ! echo "$CTID" | grep -qE '^[0-9]+$'; then
   echo "Kon geen container-id bepalen (kreeg: '$CTID')." >&2
@@ -109,6 +152,7 @@ fi
 echo "   container $CTID"
 
 echo "== Container inrichten"
+zorg_voor deploy/proxmox/provision-akkoordkast.sh
 bash "$TARGET_DIR/deploy/proxmox/provision-akkoordkast.sh" "$CTID"
 
 IP="$(pct exec "$CTID" -- bash -c "ip -4 -o addr show dev eth0 | awk '{print \$4}' | cut -d/ -f1" 2>/dev/null || true)"

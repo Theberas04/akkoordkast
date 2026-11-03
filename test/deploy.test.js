@@ -23,7 +23,10 @@ function bestaatInRepo(pad) {
 function shellArray(tekst, titel) {
   const m = tekst.match(new RegExp(titel + '=\\(\\n([\\s\\S]*?)\\n\\)', 'm'));
   if (!m) return null;
-  return m[1].split('\n').map(r => r.trim()).filter(Boolean).map(r => r.replace(/^["']|["']$/g, ''));
+  return m[1].split('\n')
+    .map(r => r.trim())
+    .filter(r => r && !r.startsWith('#'))   // commentaar in een lijst is geen bestandsnaam
+    .map(r => r.replace(/^["']|["']$/g, ''));
 }
 
 // Leest de paden die naar de container worden gestuurd: pct push ... "$APP_DIR/$f".
@@ -89,7 +92,8 @@ test('de installer haalt elk script op dat hij zelf aanroept', () => {
   // pas op de host van de gebruiker, na het ophalen van alle andere bestanden.
   const install = lees('install.sh');
   const files = shellArray(install, 'FILES');
-  const aangeroepen = [...install.matchAll(/bash\s+"?\$\{?(?:TARGET_DIR|STAGING)\}?\/([\w./-]+)"?/g)].map(m => m[1]);
+  const zonderCommentaar = install.split('\n').filter(r => !r.trim().startsWith('#')).join('\n');
+  const aangeroepen = [...zonderCommentaar.matchAll(/bash\s+"?\$\{?(?:TARGET_DIR|STAGING)\}?\/([\w./-]+)"?/g)].map(m => m[1]);
   assert.ok(aangeroepen.length >= 2, 'geen aangeroepen scripts gevonden in install.sh: ' + aangeroepen.join(', '));
   for (const rel of aangeroepen) {
     assert.ok(files.includes(rel), `install.sh roept ${rel} aan maar haalt het niet op`);
@@ -160,6 +164,24 @@ test('elk bestand dat server.js requiret, staat in de downloadlijsten', () => {
   }
   assert.ok(install.includes('scripts/cast-helper.py'), 'install.sh mist de cast-hulp');
   assert.ok(install.includes('song-data/liedjes.json'), 'install.sh mist de liedjes-dataset');
+});
+
+test('de container-maker haalt sjablonen van een opslag die sjablonen aankan', () => {
+  // Deze fout kostte een echte installatie: 'pveam list local-lvm' stopt met
+  // "storage 'local-lvm' does not support templates". Sjablonen (vztmpl) en de
+  // containerschijf (rootdir) zitten op een standaardinstallatie op verschillende opslag.
+  const tekst = lees('create-akkoordkast-lxc.sh');
+  assert.doesNotMatch(tekst, /pveam (list|download) "\$OPSLAG"/,
+    'sjablonen mogen niet op de containerschijf-opslag gezocht worden');
+  assert.match(tekst, /--content vztmpl/, 'de sjabloonopslag wordt niet op vztmpl gezocht');
+  assert.match(tekst, /--content rootdir/, 'de containerschijf-opslag wordt niet op rootdir gezocht');
+  assert.match(tekst, /SJABLOON_OPSLAG=/, 'de sjabloonopslag is niet instelbaar');
+  assert.match(tekst, /^OPSLAG="\$\{OPSLAG:-/m, 'de containerschijf-opslag is niet instelbaar');
+  assert.match(tekst, /kies_sjabloon/, 'geen keuze uit de aangeboden sjablonen');
+  assert.match(tekst, /alles="\$\(cat\)"/, 'de sjabloonkeuze leest de invoer niet één keer in');
+  assert.match(tekst, /pct create "\$CTID"/, 'de container wordt niet aangemaakt');
+  assert.match(tekst, /bridge=\$BRIDGE/, 'de bridge is niet instelbaar');
+  assert.match(tekst, /--net0/, 'er wordt geen netwerk aan de container gegeven');
 });
 
 test('de installatie laat het apparaat zijn eigen bestanden serveren, zonder proxy', () => {

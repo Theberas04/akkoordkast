@@ -107,6 +107,75 @@
   .leeg{height:9px}
   .speler{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
   audio{width:100%;max-width:420px;height:40px}
+  /* meespelen: notenbalk, tabulatuur en hals lopen mee met de audio */
+  .mees-kop{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin:8px 0 2px}
+  .mees-nu{display:flex;align-items:baseline;gap:8px}
+  .mees-label{color:var(--tekst2);font-size:.68rem;text-transform:uppercase;letter-spacing:.1em}
+  .mees-akkoord{font-size:2.1rem;font-weight:800;color:var(--amber);line-height:1}
+  .mees-vorm{color:var(--gitaar);font-size:.88rem;font-weight:600}
+  .mees-noot{font-size:1.5rem;font-weight:700;color:#e2e8f0}
+  .mees-noot .klein{font-size:.78rem;color:var(--tekst2);font-weight:500}
+  .mees-volgende{color:var(--tekst2);font-size:.86rem}
+  .mees-teller{display:flex;gap:6px;align-items:center;margin-left:auto}
+  .mees-tel{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;line-height:1;
+    background:#0d1526;border:1px solid var(--lijn);color:var(--tekst2);font-weight:700;font-size:.85rem}
+  .mees-tel .pijl{font-size:.72rem}
+  .mees-tel.aan{background:var(--amber);color:#241a03;border-color:var(--amber)}
+  .mees-beeld{position:relative;margin-top:8px}
+  .mees-aftel{position:absolute;inset:0;display:grid;place-items:center;background:rgba(11,17,32,.86);
+    border-radius:12px;z-index:3}
+  .mees-aftel div{font-size:3.4rem;font-weight:800;color:var(--amber);text-align:center}
+  .mees-aftel span{display:block;font-size:.8rem;color:var(--tekst2);letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+  .notenbalk{overflow-x:auto;background:#0d1526;border:1px solid var(--lijn);border-radius:12px;padding:6px}
+  .notenbalk svg{display:block}
+  .nb-lijn{stroke:#3b4a63;stroke-width:1}
+  .nb-maat{stroke:#54637d;stroke-width:1}
+  .nb-maatnummer{fill:#54637d;font-size:8px}
+  .nb-akkoord{fill:var(--amber2);font-size:12px;font-weight:700}
+  .nb-ledger{stroke:#3b4a63;stroke-width:1}
+  .nb-noot{fill:#cbd5e1}
+  .nb-noot.aan{fill:var(--amber)}
+  .nb-naam{fill:#64748b;font-size:8px}
+  .nb-naam.aan{fill:var(--amber);font-weight:700}
+  .nb-tik{stroke:#54637d;stroke-width:1}
+  .nb-slag{fill:#64748b;font-size:9px}
+  .nb-slag.aan{fill:var(--amber);font-weight:700}
+  .nb-cursor{stroke:#f87171;stroke-width:2}
+  .tab2{margin-top:8px;background:#0d1526;border:1px solid var(--lijn);border-radius:12px;padding:8px;overflow-x:auto}
+  .tab2-rijen{display:flex;gap:10px}
+  .tabmaat{border-right:1px dashed #334155;padding-right:10px}
+  .tabmaat:last-child{border-right:0}
+  .tabmaat .kop{color:var(--tekst2);font-size:.66rem;margin-bottom:2px}
+  .tabmaat .kop .ak{color:var(--amber2);font-weight:700}
+  .tabsnaar{display:flex;align-items:center;gap:4px}
+  .tabsnaar .snaam{color:#64748b;font-family:ui-monospace,Menlo,monospace;font-size:.7rem;width:9px}
+  .tabcellen{display:grid;gap:0}
+  .tabcel{font-family:ui-monospace,Menlo,monospace;font-size:.72rem;color:#3b4a63;text-align:center;min-width:17px}
+  .tabcel.noot{color:#e2e8f0;font-weight:700}
+  .tabcel.aan{color:#241a03;background:var(--amber);border-radius:3px}
+  .tabcel.niet{color:#f87171;text-decoration:underline dotted}
+  .mees-noten .klein{color:var(--tekst2);font-size:.78rem}
+  .hals-rij{display:flex;gap:12px;align-items:flex-start;margin-top:10px;flex-wrap:wrap}
+  .hals{background:#0d1526;border:1px solid var(--lijn);border-radius:12px;padding:6px}
+  .hals svg{display:block}
+  .hs-snaar{stroke:#64748b;stroke-width:1.4}
+  .hs-fret{stroke:#3b4a63;stroke-width:1}
+  .hs-kam{stroke:#94a3b8;stroke-width:2.4}
+  .hs-stip{fill:#334155}
+  .hs-stip.klinkt{fill:var(--amber)}
+  .hs-open{fill:#64748b;font-size:9px}
+  .hs-open.klinkt{fill:var(--amber);font-weight:700}
+  .hs-capo{fill:var(--amber);font-size:7px}
+  .hs-vinger{fill:#04263a;font-size:7px;font-weight:700}
+  .mees-noten{font-size:.9rem;color:#94a3b8}
+  .mees-noten b{color:#e2e8f0;font-weight:700}
+  .mees-noten b.klinkt{color:var(--amber)}
+  .grepen figure[data-akkoord].klinkt{outline:2px solid var(--amber);outline-offset:2px;border-radius:10px}
+  .seg .ak.klinkt{background:var(--amber);color:#241a03;border-radius:4px;padding:0 3px}
+  .rij.mees-knoppen{margin-top:10px;align-items:center}
+  .rij.mees-knoppen input[type=range]{width:120px;min-height:auto;background:transparent;border:0;padding:0}
+  label.mees-schakel{display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--tekst2);min-height:auto;margin:0}
+  label.mees-schakel input{min-height:auto;width:auto}
   .apparaten{display:grid;gap:8px}
   .apparaat{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;
     background:var(--pane);border:1px solid var(--lijn);border-radius:12px;padding:10px 12px}
@@ -440,6 +509,7 @@ function openLiedje(id, opties) {
 }
 
 function tekenLiedje(l) {
+  if (MEES.loop || staat.meespelen) meespelStop();   // het oude liedje stopt met meespelen
   $('spelen-leeg').hidden = true;
   var c = $('spelen-inhoud');
   c.hidden = false;
@@ -449,7 +519,7 @@ function tekenLiedje(l) {
     capoKnoppen += '<button data-capo="' + i + '"' + (i === l.capo ? ' class="actief"' : '') + '>' + i + '</button>';
   }
   var grepen = l.akkoorden.map(function (a) {
-    return '<figure>' + a.svg + '<figcaption>' + esc(a.naam) + (a.vorm !== a.naam ? ' = ' + esc(a.vorm) + '-greep' : '') + '</figcaption></figure>';
+    return '<figure data-akkoord="' + esc(a.naam) + '">' + a.svg + '<figcaption>' + esc(a.naam) + (a.vorm !== a.naam ? ' = ' + esc(a.vorm) + '-greep' : '') + '</figcaption></figure>';
   }).join('');
 
   c.innerHTML =
@@ -498,6 +568,36 @@ function tekenLiedje(l) {
       '<h3>Bladmuziek</h3>' +
       '<div class="songtekst" id="songtekst">' + tekenSongtekst(l.model) + '</div>' +
 
+      '<h3>Meespelen</h3>' +
+      '<p class="melding">Druk op <strong>Meespelen</strong> en speel mee: de noten, de tabulatuur, de hals en de grepen lopen mee met de audio.' +
+        (l.heeftMelodie ? ' Dit liedje heeft een volledige melodie, dus je ziet elke noot langskomen.' : ' Dit liedje heeft alleen akkoorden: je ziet de maat, de slagen en de noten van elk akkoord.') +
+        ' Het tempo kun je trager zetten om mee te oefenen.</p>' +
+      '<div class="mees-kop">' +
+        '<div class="mees-nu"><span class="mees-label">Nu</span>' +
+          '<span class="mees-akkoord" id="mees-akkoord">–</span>' +
+          '<span class="mees-vorm" id="mees-vorm"></span></div>' +
+        '<div class="mees-noot" id="mees-noot">–</div>' +
+        '<div class="mees-volgende">straks <strong id="mees-volgende">–</strong></div>' +
+        '<div class="mees-teller" id="mees-teller"></div>' +
+      '</div>' +
+      '<div class="mees-beeld">' +
+        '<div class="notenbalk" id="mees-notenbalk"></div>' +
+        '<div id="mees-tab"></div>' +
+        '<div class="hals-rij"><div class="hals" id="mees-hals"></div><div id="mees-noten" class="mees-noten"></div></div>' +
+        '<div class="mees-aftel" id="mees-aftel" hidden><div><span>Aftellen</span><em id="mees-aftel-nummer">4</em></div></div>' +
+      '</div>' +
+      '<div class="rij mees-knoppen">' +
+        '<button class="knop" id="mees-start">Meespelen</button>' +
+        '<button class="knop zacht" id="mees-stop" hidden>Stoppen</button>' +
+        '<button class="knop zacht" id="mees-herhaal">Herhalen</button>' +
+        '<label class="mees-schakel">tempo <input id="mees-tempo" type="range" min="40" max="160" value="100" step="5"><span id="mees-tempo-waarde">100%</span></label>' +
+        '<label class="mees-schakel"><input id="mees-aftellen" type="checkbox" checked> aftellen</label>' +
+        '<label class="mees-schakel"><input id="mees-klik" type="checkbox"> klik mee</label>' +
+        '<button class="knop zacht" id="mees-cast">Cast de meespeelversie</button>' +
+      '</div>' +
+      '<audio id="mees-audio" preload="none"></audio>' +
+      '<div class="melding" id="mees-melding" hidden></div>' +
+
       '<h3>Begeleiding</h3>' +
       '<div class="veld2">' +
         '<div><label for="speler-reeks">Akkoordenreeks</label>' +
@@ -535,6 +635,22 @@ function tekenLiedje(l) {
   $('beluister').addEventListener('click', function () { maakBegeleiding(l); });
   $('speler-tempo').addEventListener('change', function () { maakBegeleiding(l); });
   $('cast-dit').addEventListener('click', function () { castLiedje(l); });
+  // meespelen
+  $('mees-start').addEventListener('click', function () { meespelStart(l); });
+  $('mees-stop').addEventListener('click', function () { meespelStop(); });
+  $('mees-herhaal').addEventListener('click', function () { this.classList.toggle('actief'); });
+  $('mees-tempo').addEventListener('input', function () { $('mees-tempo-waarde').textContent = this.value + '%'; });
+  $('mees-tempo').addEventListener('change', function () { if (staat.meespelen) meespelHerlaad(l); });
+  $('mees-aftellen').addEventListener('change', function () { if (staat.meespelen) meespelHerlaad(l); });
+  $('mees-klik').addEventListener('change', function () { if (staat.meespelen) meespelHerlaad(l); });
+  $('mees-cast').addEventListener('click', function () {
+    castLiedje(l, {
+      bron: 'meespelen',
+      tempo: Math.round(l.tempo * (Number($('mees-tempo').value) / 100)),
+      klik: $('mees-klik').checked,
+      aftellen: $('mees-aftellen').checked
+    });
+  });
   if ($('kopie-liedje')) {
     $('kopie-liedje').addEventListener('click', function () {
       api('/api/liedjes/' + l.id + '/kopie', { method: 'POST' }).then(function (r) {
@@ -554,6 +670,8 @@ function tekenLiedje(l) {
   if ($('opname-upload')) {
     $('opname-upload').addEventListener('click', function () { uploadOpname(l); });
   }
+  // de notenbalk, de tabulatuur en de hals staan er al voordat je op Meespelen drukt
+  meespelLaad(l, false);
   if ($('opname-weg')) {
     $('opname-weg').addEventListener('click', function () {
       api('/api/liedjes/' + l.id + '/audio', { method: 'DELETE' }).then(function () { openLiedje(l.id); })
@@ -628,6 +746,432 @@ function uploadOpname(l) {
     .catch(function (e) { toonMelding('speler-melding', e.message, 'fout'); });
 }
 
+// ---------------------------------------------------------------- meespelen ---
+// Het plan van de server stuurt zowel het geluid als het beeld. Hier wordt dat plan
+// een notenbalk, een tabulatuur en een hals die met de audiotijd meelopen: zo zie je
+// welke noot en welk akkoord je op dit moment hoort.
+
+var MEES = { loop: false, audioEl: null, marge: 12, maatBreedte: 120, vorig: null };
+var NB_HALF = 5;   // halve notenbalk-afstand in pixels
+
+function nbTrap(midi) {
+  var namen = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  var naam = namen[((midi % 12) + 12) % 12];
+  var trap = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 }[naam.charAt(0)];
+  return (Math.floor(midi / 12) - 1) * 7 + trap;
+}
+// De onderste lijn van de notenbalk is de E4 (midi 64).
+function nbY(midi) { return 66 - (nbTrap(midi) - nbTrap(64)) * NB_HALF; }
+
+// Hulplijntjes voor noten buiten de balk.
+function nbLedgers(y, x) {
+  var uit = '';
+  var stap = 2 * NB_HALF;
+  var ly;
+  if (y > 66) for (ly = 66 + stap; ly <= y + 1; ly += stap) uit += '<line class="nb-ledger" x1="' + (x - 9) + '" y1="' + ly + '" x2="' + (x + 9) + '" y2="' + ly + '"/>';
+  if (y < 26) for (ly = 26 - stap; ly >= y - 1; ly -= stap) uit += '<line class="nb-ledger" x1="' + (x - 9) + '" y1="' + ly + '" x2="' + (x + 9) + '" y2="' + ly + '"/>';
+  return uit;
+}
+
+// De notenbalk: vijf lijnen, de maten met hun akkoord, de achtste tellen met de
+// slagrichting eronder, en de noten van de melodie met hun naam erboven.
+function tekenNotenbalk(tl) {
+  var marge = 12;
+  var maatBreedte = Math.max(104, tl.maatsoort * 32 + 20);
+  var totaal = marge * 2 + tl.maten.length * maatBreedte;
+  var yBoven = 26;
+  var per = {};
+  tl.noten.forEach(function (n, i) { (per[n.maat] = per[n.maat] || []).push(n); });
+  var slagPerMaat = {};
+  tl.slagen.forEach(function (s) { (slagPerMaat[s.maat] = slagPerMaat[s.maat] || []).push(s); });
+
+  var svg = '<svg width="' + totaal + '" height="132" viewBox="0 0 ' + totaal + ' 132" role="img" aria-label="notenbalk met de melodie">';
+  for (var l = 0; l < 5; l++) {
+    var ly = yBoven + l * 2 * NB_HALF;
+    svg += '<line class="nb-lijn" x1="0" y1="' + ly + '" x2="' + totaal + '" y2="' + ly + '"/>';
+  }
+  tl.maten.forEach(function (m, mi) {
+    var x = marge + mi * maatBreedte;
+    svg += '<line class="nb-maat" x1="' + x + '" y1="' + (yBoven - 14) + '" x2="' + x + '" y2="82"/>';
+    svg += '<text class="nb-maatnummer" x="' + (x + 3) + '" y="' + (yBoven - 4) + '">' + m.nummer + '</text>';
+    svg += '<text class="nb-akkoord" x="' + (x + 18) + '" y="' + (yBoven - 4) + '">' + esc(m.akkoord) + '</text>';
+    var achtsten = tl.maatsoort * 2;
+    for (var a = 0; a < achtsten; a++) {
+      var ax = x + 8 + (a + 0.5) * (maatBreedte - 16) / achtsten;
+      svg += '<line class="nb-tik" x1="' + ax + '" y1="66" x2="' + ax + '" y2="' + (66 + (a % 2 === 0 ? 12 : 7)) + '"/>';
+      var slag = (slagPerMaat[m.nummer] || []).filter(function (s) { return s.achtste === a; })[0];
+      if (slag) {
+        svg += '<text class="nb-slag" data-slag="' + m.nummer + '-' + a + '" x="' + ax + '" y="94" text-anchor="middle">' +
+          (slag.richting === 'D' ? '\u2193' : '\u2191') + '</text>';
+      }
+    }
+    (per[m.nummer] || []).forEach(function (n) {
+      var nx = x + 8 + ((n.startSeconden - m.startSeconden) / m.duurSeconden) * (maatBreedte - 16);
+      var ny = nbY(n.midi);
+      svg += nbLedgers(ny, nx);
+      svg += '<ellipse class="nb-noot" data-noot="' + n.maat + '-' + n.midi + '-' + n.startSeconden + '" cx="' + nx + '" cy="' + ny +
+        '" rx="5.2" ry="3.8" transform="rotate(-18 ' + nx + ' ' + ny + ')"/>';
+      svg += '<text class="nb-naam" data-nootnaam="' + n.maat + '-' + n.midi + '-' + n.startSeconden + '" x="' + nx + '" y="' + (ny - 9) +
+        '" text-anchor="middle">' + esc(n.naam) + '</text>';
+    });
+  });
+  svg += '<line class="nb-cursor" id="mees-cursor" x1="' + marge + '" y1="' + (yBoven - 12) + '" x2="' + marge + '" y2="80" opacity="0"/>';
+  svg += '</svg>';
+  return { svg: svg, marge: marge, maatBreedte: maatBreedte };
+}
+
+function nootSleutel(n) { return n.maat + '-' + n.midi + '-' + n.startSeconden; }
+
+// Tabulatuur: per maat alle zes snaren met het fretnummer op de tel waarop de noot valt.
+function tekenTab(tl) {
+  if (!tl.heeftMelodie || !tl.noten.length) return '';
+  var per = {};
+  tl.noten.forEach(function (n) { (per[n.maat] = per[n.maat] || []).push(n); });
+  var snaren = ['E', 'A', 'D', 'G', 'B', 'e'];  // index 0 = de dikke E-snaar
+  var capo = Number(tl.capo) || 0;
+  void capo;
+  var uit = '<div class="tab2"><div class="tab2-rijen">';
+  tl.maten.slice(0, 64).forEach(function (m) {
+    var achtsten = tl.maatsoort * 2;
+    var noten = per[m.nummer] || [];
+    var rijen = '';
+    for (var s = 5; s >= 0; s--) {
+      var cellen = '';
+      for (var a = 0; a < achtsten; a++) {
+        var noot = noten.filter(function (n) {
+          return n.snaar === s && Math.round((n.startSeconden - m.startSeconden) / (m.duurSeconden / achtsten)) === a;
+        })[0];
+        if (noot) {
+          // noot.fret is de positie zoals je hem onder de capo speelt
+          cellen += '<span class="tabcel noot' + (noot.onderCapo === false ? ' niet' : '') + '" title="klinkt ' + esc(noot.naam) +
+            (noot.onderCapo === false ? ' — onder de capo niet te spelen' : '') +
+            '" data-tabnoot="' + nootSleutel(noot) + '">' + noot.fret + '</span>';
+        } else {
+          cellen += '<span class="tabcel">\u00b7</span>';
+        }
+      }
+      rijen += '<div class="tabsnaar"><span class="snaam">' + snaren[s] + '</span>' +
+        '<div class="tabcellen" style="grid-template-columns:repeat(' + achtsten + ',1fr)">' + cellen + '</div></div>';
+    }
+    uit += '<div class="tabmaat"><div class="kop">maat ' + m.nummer + ' <span class="ak">' + esc(m.akkoord) + '</span></div>' + rijen + '</div>';
+  });
+  uit += '</div></div>';
+  return uit;
+}
+
+// De hals met de greep van het akkoord dat nu klinkt.
+function tekenHals(info, capo) {
+  if (!info || !info.frets || !info.frets.length) return '<p class="melding">Geen greep bekend voor dit akkoord.</p>';
+  var frets = info.frets;
+  var vingers = info.vingers || [];
+  var x0 = 20, y0 = 34, snaarAfstand = 17, fretHoogte = 19;
+  var gespeeld = frets.filter(function (f) { return f > 0; });
+  var hoogste = gespeeld.length ? Math.max.apply(null, gespeeld) : 0;
+  var laagste = gespeeld.length ? Math.min.apply(null, gespeeld) : 1;
+  var vanaf = hoogste > 4 ? laagste : 1;
+  var svg = '<svg width="140" height="164" viewBox="0 0 140 164" role="img" aria-label="hals met de greep">';
+  for (var i = 0; i <= 5; i++) {
+    var y = y0 + i * fretHoogte;
+    svg += '<line class="hs-fret" x1="' + x0 + '" y1="' + y + '" x2="' + (x0 + 5 * snaarAfstand) + '" y2="' + y + '"/>';
+  }
+  for (var s = 0; s < 6; s++) {
+    var x = x0 + s * snaarAfstand;
+    svg += '<line class="hs-snaar" x1="' + x + '" y1="' + y0 + '" x2="' + x + '" y2="' + (y0 + 5 * fretHoogte) + '"/>';
+  }
+  svg += '<line class="hs-kam" x1="' + x0 + '" y1="' + y0 + '" x2="' + (x0 + 5 * snaarAfstand) + '" y2="' + y0 + '"/>';
+  if (vanaf > 1) svg += '<text class="hs-capo" x="' + (x0 - 8) + '" y="' + (y0 + 14) + '" text-anchor="end">' + vanaf + '</text>';
+  frets.forEach(function (f, s) {
+    var x = x0 + s * snaarAfstand;
+    if (f === -1) {
+      svg += '<text class="hs-open" data-snaar="' + s + '" x="' + x + '" y="' + (y0 - 9) + '" text-anchor="middle">\u00d7</text>';
+    } else if (f === 0) {
+      svg += '<text class="hs-open" data-snaar="' + s + '" x="' + x + '" y="' + (y0 - 9) + '" text-anchor="middle">O</text>';
+    } else {
+      var fy = y0 + (f - vanaf + 0.5) * fretHoogte;
+      svg += '<circle class="hs-stip" data-snaar="' + s + '" cx="' + x + '" cy="' + fy + '" r="6.4"/>';
+      if (vingers[s] > 0) svg += '<text class="hs-vinger" x="' + x + '" y="' + (fy + 2.6) + '" text-anchor="middle">' + vingers[s] + '</text>';
+    }
+  });
+  if (capo > 0) {
+    svg += '<rect x="' + (x0 - 4) + '" y="' + (y0 - 16) + '" width="' + (5 * snaarAfstand + 8) + '" height="7" rx="3.5" fill="#f59e0b"/>';
+    svg += '<text class="hs-capo" x="' + (x0 + 5 * snaarAfstand + 9) + '" y="' + (y0 - 10) + '">capo ' + capo + '</text>';
+  }
+  svg += '<text class="hs-open" x="' + (x0 + 2.5 * snaarAfstand) + '" y="' + (y0 + 5 * fretHoogte + 17) + '" text-anchor="middle">grepen onder de capo</text>';
+  svg += '</svg>';
+  return svg;
+}
+
+function tekenTeller(tl) {
+  var uit = '';
+  for (var t = 1; t <= tl.maatsoort; t++) uit += '<div class="mees-tel" data-tel="' + t + '">' + t + '</div>';
+  return uit;
+}
+
+function akkoordInfo(l, naam) {
+  for (var i = 0; i < l.akkoorden.length; i++) {
+    if (l.akkoorden[i].naam === naam || l.akkoorden[i].vorm === naam) return l.akkoorden[i];
+  }
+  return null;
+}
+
+function meesVolgendeAkkoord(tl, akkoord) {
+  var gezien = false;
+  for (var i = 0; i < tl.maten.length; i++) {
+    if (tl.maten[i].akkoord === akkoord) { gezien = true; continue; }
+    if (gezien) return tl.maten[i].akkoord;
+  }
+  return akkoord;
+}
+
+function meesMarkeer(el, aan, klasse) {
+  if (!el) return;
+  el.classList.toggle(klasse || 'aan', !!aan);
+}
+
+function tekenMeespeelBeeld(l, tl) {
+  var nb = tekenNotenbalk(tl);
+  MEES.marge = nb.marge;
+  MEES.maatBreedte = nb.maatBreedte;
+  $('mees-notenbalk').innerHTML = nb.svg;
+  $('mees-tab').innerHTML = tekenTab(tl);
+  $('mees-teller').innerHTML = tekenTeller(tl);
+  var eerste = tl.maten.length ? tl.maten[0].akkoord : null;
+  $('mees-hals').innerHTML = tekenHals(akkoordInfo(l, eerste), tl.capo);
+  MEES.halsAkkoord = eerste;
+  MEES.nootEls = {};
+  MEES.naamEls = {};
+  MEES.tabEls = {};
+  Array.prototype.forEach.call($('mees-notenbalk').querySelectorAll('[data-noot]'), function (e) { MEES.nootEls[e.getAttribute('data-noot')] = e; });
+  Array.prototype.forEach.call($('mees-notenbalk').querySelectorAll('[data-nootnaam]'), function (e) { MEES.naamEls[e.getAttribute('data-nootnaam')] = e; });
+  Array.prototype.forEach.call($('mees-tab').querySelectorAll('[data-tabnoot]'), function (e) { MEES.tabEls[e.getAttribute('data-tabnoot')] = e; });
+  MEES.vorig = null;
+  MEES.actieveNoot = null;
+  MEES.actieveTab = null;
+  $('mees-akkoord').textContent = eerste || '\u2013';
+  $('mees-vorm').textContent = '';
+  $('mees-noot').textContent = tl.heeftMelodie ? 'klaar' : 'akkoorden';
+  $('mees-volgende').textContent = tl.maten.length ? meesVolgendeAkkoord(tl, eerste) : '\u2013';
+}
+
+function meespelStop() {
+  var a = $('mees-audio');
+  if (a) { try { a.pause(); a.currentTime = 0; } catch (e) {} }
+  var cursor = $('mees-cursor');
+  if (cursor) cursor.setAttribute('opacity', '0');
+  if ($('mees-stop')) $('mees-stop').hidden = true;
+  if ($('mees-aftel')) $('mees-aftel').hidden = true;
+  if ($('mees-teller')) {
+    Array.prototype.forEach.call($('mees-teller').querySelectorAll('.mees-tel'), function (t) { t.classList.remove('aan'); t.textContent = t.getAttribute('data-tel'); });
+  }
+  if (MEES.actieveNoot) meesMarkeer(MEES.actieveNoot, false);
+  if (MEES.actieveTab) meesMarkeer(MEES.actieveTab, false);
+  MEES.actieveNoot = null;
+  MEES.actieveTab = null;
+  MEES.vorig = null;
+  staat.meespelen = null;
+}
+
+function meespeelParams(l) {
+  var p = new URLSearchParams();
+  p.set('liedje', l.id);
+  p.set('capo', l.capo);
+  p.set('transpose', l.transpositie);
+  p.set('tempo', Math.round(l.tempo * (Number($('mees-tempo').value) / 100)));
+  p.set('aftellen', $('mees-aftellen').checked ? '1' : '0');
+  p.set('klik', $('mees-klik').checked ? '1' : '0');
+  return p;
+}
+
+// De tijdlijn ophalen en het beeld tekenen. Met spelen=true begint de audio ook:
+// bij het openen van een liedje staat het beeld er dus al, zonder geluid.
+function meespelLaad(l, spelen) {
+  var p = meespeelParams(l);
+  if (spelen) toonMelding('mees-melding', 'De meespeelversie wordt gemaakt\u2026 dit duurt een paar seconden.', '');
+  fetch('/api/meespelen?' + p.toString()).then(function (r) {
+    return r.json().then(function (d) { if (!r.ok) throw new Error(d.fout || 'maken mislukt'); return d; });
+  }).then(function (data) {
+    var tl = data.tijdlijn;
+    if (!staat.meespelen || staat.meespelen.lied.id !== l.id) meespelStop();
+    staat.meespelen = { lied: l, tijdlijn: tl, audio: data.audio };
+    tekenMeespeelBeeld(l, tl);
+    var a = $('mees-audio');
+    MEES.audioEl = a;
+    if (a.getAttribute('src') !== data.audio) a.src = data.audio;
+    if (!spelen) {
+      toonMelding('mees-melding', tl.heeftMelodie
+        ? 'Dit liedje heeft een volledige melodie: druk op Meespelen en je ziet elke noot langskomen.'
+        : 'Dit liedje heeft alleen akkoorden: druk op Meespelen voor de maat, de slagen en de akkoordnoten.', '');
+      return;
+    }
+    a.currentTime = 0;
+    a.onended = function () {
+      if ($('mees-herhaal') && $('mees-herhaal').classList.contains('actief')) {
+        a.currentTime = 0;
+        a.play().catch(function () {});
+        return;
+      }
+      meespelStop();
+      toonMelding('mees-melding', 'Klaar. Druk op Meespelen om het nog eens te doen.', 'goed');
+    };
+    a.play().then(function () {
+      toonMelding('mees-melding', 'Meespelen gestart \u2014 speel mee met de noten, de tabulatuur en de grepen.', 'goed');
+    }).catch(function () {
+      toonMelding('mees-melding', 'De browser houdt het geluid tegen tot je zelf klikt: druk nog eens op Meespelen.', 'fout');
+    });
+    $('mees-stop').hidden = false;
+    if (!MEES.loop) {
+      MEES.loop = true;
+      requestAnimationFrame(meespelTik);
+    }
+  }).catch(function (e) { toonMelding('mees-melding', e.message, 'fout'); });
+}
+
+function meespelStart(l) {
+  meespelLaad(l, true);
+}
+
+// Tempo, aftellen of klik veranderd: opnieuw opbouwen en doorspelen als het al speelde.
+function meespelHerlaad(l) {
+  var a = $('mees-audio');
+  meespelLaad(l, !!(a && !a.paused && staat.meespelen));
+}
+
+
+// De animatielus: leest de audiotijd en zet het beeld op dezelfde plek.
+function meespelTik() {
+  var s = staat.meespelen;
+  var a = $('mees-audio');
+  if (!s || !a || !MEES.audioEl || a !== MEES.audioEl) { MEES.loop = false; return; }
+  var tl = s.tijdlijn;
+  var t = a.currentTime;
+  var i, iMaat = 0, iSlag = -1, iNoot = -1;
+  for (i = 0; i < tl.maten.length; i++) if (tl.maten[i].startSeconden <= t) iMaat = i;
+  for (i = 0; i < tl.slagen.length; i++) if (tl.slagen[i].startSeconden <= t) iSlag = i;
+  for (i = 0; i < tl.noten.length; i++) if (tl.noten[i].startSeconden <= t) iNoot = i;
+  var maat = tl.maten[iMaat];
+  var slag = iSlag >= 0 ? tl.slagen[iSlag] : null;
+  var noot = iNoot >= 0 ? tl.noten[iNoot] : null;
+  var nootAan = !!(noot && t < noot.startSeconden + Math.max(0.15, noot.duurSeconden));
+  var inAftellen = tl.aftellen.aan && t < tl.aftellen.seconden;
+
+  // cursor en meetlat
+  var cursor = $('mees-cursor');
+  if (cursor) {
+    var x = Math.max(MEES.marge, MEES.marge + iMaat * MEES.maatBreedte + ((t - maat.startSeconden) / maat.duurSeconden) * MEES.maatBreedte);
+    cursor.setAttribute('x1', x);
+    cursor.setAttribute('x2', x);
+    cursor.setAttribute('opacity', '1');
+    var nb = $('mees-notenbalk');
+    if (nb && (x < nb.scrollLeft + 70 || x > nb.scrollLeft + nb.clientWidth - 90)) {
+      nb.scrollLeft = Math.max(0, x - nb.clientWidth * 0.35);
+    }
+  }
+
+  // aftellen
+  var aftel = $('mees-aftel');
+  if (aftel) {
+    if (inAftellen) {
+      aftel.hidden = false;
+      var nummer = Math.min(tl.aftellen.tikken, Math.floor(t / tl.telSeconden) + 1);
+      var el = $('mees-aftel-nummer');
+      if (el.textContent !== String(nummer)) el.textContent = String(nummer);
+    } else if (!aftel.hidden) {
+      aftel.hidden = true;
+    }
+  }
+
+  var sleutel = iMaat + '|' + iSlag + '|' + (nootAan ? iNoot : -1) + '|' + (inAftellen ? 1 : 0);
+  if (MEES.vorig === sleutel) {
+    requestAnimationFrame(meespelTik);
+    return;
+  }
+  MEES.vorig = sleutel;
+
+  // akkoord, greep en wat er straks komt
+  $('mees-akkoord').textContent = maat.akkoord;
+  var info = akkoordInfo(s.lied, maat.akkoord);
+  $('mees-vorm').textContent = info && info.vorm && info.vorm !== maat.akkoord ? 'greep ' + info.vorm : '';
+  $('mees-volgende').textContent = meesVolgendeAkkoord(tl, maat.akkoord);
+
+  // de tellen met de slagrichting
+  var richting = slag ? slag.richting : '';
+  var tel = slag ? slag.tel : Math.floor((t - maat.startSeconden) / tl.telSeconden) + 1;
+  Array.prototype.forEach.call($('mees-teller').querySelectorAll('.mees-tel'), function (el) {
+    var eigen = Number(el.getAttribute('data-tel')) === Math.max(1, Math.min(tl.maatsoort, tel));
+    el.classList.toggle('aan', eigen && !inAftellen);
+    var tekst = String(el.getAttribute('data-tel'));
+    if (eigen && richting && !inAftellen) tekst += '<span class="pijl">' + (richting === 'D' ? '\u2193' : '\u2191') + '</span>';
+    if (el.innerHTML !== tekst) el.innerHTML = tekst;
+  });
+
+  // de noot die nu klinkt
+  var sleutelNoot = nootAan ? nootSleutel(noot) : null;
+  if (MEES.actieveNoot && (!sleutelNoot || MEES.actieveNoot !== MEES.nootEls[sleutelNoot])) {
+    meesMarkeer(MEES.actieveNoot, false);
+    if (MEES.actieveNaam) meesMarkeer(MEES.actieveNaam, false);
+    MEES.actieveNoot = null;
+    MEES.actieveNaam = null;
+  }
+  if (MEES.actieveTab && (!sleutelNoot || MEES.actieveTab !== MEES.tabEls[sleutelNoot])) {
+    meesMarkeer(MEES.actieveTab, false);
+    MEES.actieveTab = null;
+  }
+  if (sleutelNoot) {
+    var elNoot = MEES.nootEls[sleutelNoot];
+    if (elNoot && elNoot !== MEES.actieveNoot) {
+      meesMarkeer(elNoot, true);
+      MEES.actieveNoot = elNoot;
+      MEES.actieveNaam = MEES.naamEls[sleutelNoot] || null;
+      meesMarkeer(MEES.actieveNaam, true);
+    }
+    var elTab = MEES.tabEls[sleutelNoot];
+    if (elTab && elTab !== MEES.actieveTab) {
+      meesMarkeer(elTab, true);
+      MEES.actieveTab = elTab;
+      if (elTab.scrollIntoView) elTab.scrollIntoView({ block: 'nearest', inline: 'center' });
+    }
+  }
+  var snaarnamen = ['E', 'A', 'D', 'G', 'B', 'e'];
+  $('mees-noot').innerHTML = noot
+    ? '<b>' + esc(noot.naam) + '</b> <span class="klein">snaar ' + snaarnamen[noot.snaar] + ' \u00b7 fret ' + noot.fret +
+      (tl.capo ? ' (capo ' + tl.capo + ')' : '') + (noot.onderCapo === false ? ' \u00b7 onder de capo niet te spelen' : '') +
+      (tl.noten[iNoot + 1] ? ' \u00b7 straks ' + esc(tl.noten[iNoot + 1].naam) : '') + '</span>'
+    : 'akkoorden';
+
+  // de grepen en de bladmuziek lichten mee
+  Array.prototype.forEach.call(document.querySelectorAll('#spelen-inhoud .grepen figure'), function (f) {
+    f.classList.toggle('klinkt', f.getAttribute('data-akkoord') === maat.akkoord);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('#songtekst .seg .ak'), function (el) {
+    el.classList.toggle('klinkt', el.textContent.trim() === maat.akkoord);
+  });
+
+  // de hals: nieuwe greep bij een nieuw akkoord, en de snaren die nu aanslaan
+  if (MEES.halsAkkoord !== maat.akkoord) {
+    $('mees-hals').innerHTML = tekenHals(akkoordInfo(s.lied, maat.akkoord), tl.capo);
+    MEES.halsAkkoord = maat.akkoord;
+  }
+  var verstreken = slag ? t - slag.startSeconden : 0;
+  var geslagen = {};
+  var namen = [];
+  if (slag) {
+    slag.noten.forEach(function (n) {
+      if (verstreken >= (n.offset || 0)) geslagen[n.snaar] = true;
+      namen.push({ naam: n.naam, klinkt: verstreken >= (n.offset || 0) });
+    });
+  }
+  Array.prototype.forEach.call($('mees-hals').querySelectorAll('[data-snaar]'), function (el) {
+    var eigen = !!geslagen[el.getAttribute('data-snaar')];
+    el.classList.toggle('klinkt', eigen && !inAftellen);
+  });
+  var lijst = namen.map(function (n) { return '<b class="' + (n.klinkt && !inAftellen ? 'klinkt' : '') + '">' + esc(n.naam) + '</b>'; }).join(' ');
+  var extra = 'akkoordnoten ' + maat.akkoord + ': ' + lijst +
+    (slag ? '<br><span class="klein">' + (slag.richting === 'D' ? 'neerslag' : 'opslag') + ' \u00b7 maat ' + maat.nummer + ' \u00b7 tel ' + slag.tel + '</span>' : '');
+  if ($('mees-noten').innerHTML !== extra) $('mees-noten').innerHTML = extra;
+
+  requestAnimationFrame(meespelTik);
+}
+
 // ------------------------------------------------------------------- casten ---
 function laadApparaten(stil) {
   if (!stil) toonMelding('cast-melding', 'Zoeken naar Chromecasts…', '');
@@ -669,24 +1213,31 @@ $('cast-verbind-ip').addEventListener('click', function () {
   if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(ip)) { toonMelding('cast-melding', 'Dat lijkt geen IP-adres.', 'fout'); return; }
   kiesApparaat(ip, ip);
 });
-function castLiedje(l) {
+function castLiedje(l, extra) {
   var apparaat = staat.apparaat || $('cast-handmatig').value.trim();
   if (!apparaat) { toonMelding('cast-melding', 'Kies eerst een apparaat in het tabblad Casten.', 'fout'); toonTab('casten'); return; }
   var gebruikOpname = l.audio.opname && (!l.eigen ? false : true);
+  var lichaam = {
+    apparaat: apparaat,
+    naam: staat.apparaatNaam,
+    liedje: l.id,
+    bron: gebruikOpname ? 'opname' : 'preview',
+    capo: l.capo,
+    transpose: l.transpositie,
+    titel: l.titel,
+    artiest: l.artiest,
+    basis: location.origin
+  };
+  if (extra) {
+    lichaam.bron = gebruikOpname ? 'opname' : extra.bron;
+    if (extra.tempo) lichaam.tempo = extra.tempo;
+    if (extra.klik !== undefined) lichaam.klik = extra.klik;
+    if (extra.aftellen !== undefined) lichaam.aftellen = extra.aftellen;
+  }
   toonMelding('cast-melding', 'Casten naar ' + (staat.apparaatNaam || apparaat) + '…', '');
   api('/api/cast/start', {
     method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      apparaat: apparaat,
-      naam: staat.apparaatNaam,
-      liedje: l.id,
-      bron: gebruikOpname ? 'opname' : 'preview',
-      capo: l.capo,
-      transpose: l.transpositie,
-      titel: l.titel,
-      artiest: l.artiest,
-      basis: location.origin
-    })
+    body: JSON.stringify(lichaam)
   }).then(function (r) {
     if (r.fout) throw new Error(r.fout);
     toonMelding('cast-melding', 'Nu aan het casten: ' + l.titel + ' naar ' + (r.apparaat && r.apparaat.naam ? r.apparaat.naam : apparaat) + '.', 'goed');

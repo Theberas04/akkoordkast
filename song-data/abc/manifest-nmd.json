@@ -1,0 +1,1809 @@
+{
+  "bron": "https://abc.sourceforge.net/NMD/",
+  "licentie": "Geen expliciete licentie op de bronpagina; de enige vermelde rechtennotie betreft de IPR van de Ashover-collectie (Mick Peat). De opgenomen wijsjes zijn traditionele Engelse/Amerikaanse volksmuziek.",
+  "licentie_bewijs": "Ashover collection (46 tunes) - the IPR associated with the original NMD format collection reside with Mick Peat (address available from Nottingham Music Database Home Page).",
+  "opgehaald": "2026-11-03",
+  "aantal": 300,
+  "bestanden": [
+    {
+      "bestand": "raw/hpps-0001.abc",
+      "titel": "Aunt Hessie's White Horse",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0002.abc",
+      "titel": "Barn Dance 1",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0003.abc",
+      "titel": "Barn Dance 2",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0004.abc",
+      "titel": "The Blackbird",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0005.abc",
+      "titel": "Blue Bell Polka",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0006.abc",
+      "titel": "Beaux of Oakhill",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0007.abc",
+      "titel": "Caber Feigh",
+      "toonsoort": "C",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0008.abc",
+      "titel": "Castles in the Air",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0009.abc",
+      "titel": "Colosseum",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0010.abc",
+      "titel": "The Cuckoo",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0011.abc",
+      "titel": "Cuckoo's Nest",
+      "toonsoort": "Dm",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0012.abc",
+      "titel": "Down the Glen",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0013.abc",
+      "titel": "Fisher's Hornpipe",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0014.abc",
+      "titel": "The Friendly Visit",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0015.abc",
+      "titel": "Gilderoy",
+      "toonsoort": "Am",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0016.abc",
+      "titel": "Gipsy's Hornpipe",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0017.abc",
+      "titel": "Green Grow the Rushes",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0018.abc",
+      "titel": "Greencastle Hornpipe",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0019.abc",
+      "titel": "Humours of California",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0020.abc",
+      "titel": "Hamish",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0021.abc",
+      "titel": "Harvest Home",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0022.abc",
+      "titel": "The High Level",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0023.abc",
+      "titel": "Jenny's Bawbee",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0024.abc",
+      "titel": "John Peel",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0025.abc",
+      "titel": "John Peel Variations",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0026.abc",
+      "titel": "Kafoozalum",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0027.abc",
+      "titel": "Keel Row",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0028.abc",
+      "titel": "King of the Fairies",
+      "toonsoort": "Em",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0029.abc",
+      "titel": "King of the Fairies",
+      "toonsoort": "Em",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0030.abc",
+      "titel": "Kitty O'Niel",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0031.abc",
+      "titel": "Kitty O'Niel's Champion",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0032.abc",
+      "titel": "The Lad with the Plaidie",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0033.abc",
+      "titel": "Liverpool Hornpipe",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0034.abc",
+      "titel": "Londonderry Hornpipe",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0035.abc",
+      "titel": "Lord Moira",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0036.abc",
+      "titel": "Marquis of Lorne",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0038.abc",
+      "titel": "Madame Bonaparte",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0039.abc",
+      "titel": "Madame Bonaparte Variation",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0040.abc",
+      "titel": "Maggie Pickens",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0041.abc",
+      "titel": "Man from Newry",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0042.abc",
+      "titel": "Manchester",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0043.abc",
+      "titel": "McCusker",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0044.abc",
+      "titel": "Millicent's Favourite",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0045.abc",
+      "titel": "Crossing the Minch",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0046.abc",
+      "titel": "Mrs Willis",
+      "toonsoort": "F",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0047.abc",
+      "titel": "Navvie on the Line",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0048.abc",
+      "titel": "City of Savannah",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0049.abc",
+      "titel": "Orange and Blue",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0050.abc",
+      "titel": "Penny on the H2O",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0051.abc",
+      "titel": "Phillibelula",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0052.abc",
+      "titel": "Proudlocks's Variation",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0053.abc",
+      "titel": "Proudlocks's Hornpipe",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0054.abc",
+      "titel": "Puddlegum's Misery",
+      "toonsoort": "Am",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0055.abc",
+      "titel": "Redesdale Hornpipe",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0056.abc",
+      "titel": "Rights of Man",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0057.abc",
+      "titel": "Roxburgh Castle",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0058.abc",
+      "titel": "Sheffield Hornpipe",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0059.abc",
+      "titel": "Shetland Polka",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0060.abc",
+      "titel": "Steam-boat Hornpipe",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0061.abc",
+      "titel": "Thames Hornpipe",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0062.abc",
+      "titel": "Three Little Blackberries",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0063.abc",
+      "titel": "Tom Howard's",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0064.abc",
+      "titel": "Trumpet",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/hpps-0065.abc",
+      "titel": "Croen y Ddeted Felan",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0001.abc",
+      "titel": "A and D",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0002.abc",
+      "titel": "Abacus",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0003.abc",
+      "titel": "The American Dwarf",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0004.abc",
+      "titel": "Ap Shenkin",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0005.abc",
+      "titel": "Armstrongs",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0007.abc",
+      "titel": "As Luck Will Have It",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0008.abc",
+      "titel": "Atholl Highlanders",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0009.abc",
+      "titel": "Aunt Mary's Canadian Jig",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0010.abc",
+      "titel": "Avon Jig",
+      "toonsoort": "Em",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0011.abc",
+      "titel": "Backstairs Jig",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0012.abc",
+      "titel": "The Leaking Bagpipe",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0013.abc",
+      "titel": "Ballybunion",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0014.abc",
+      "titel": "Barbary Bell",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0015.abc",
+      "titel": "The Barley Mow",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0016.abc",
+      "titel": "Bean Setting (North Skelton)",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0017.abc",
+      "titel": "Belfast Almanac",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0018.abc",
+      "titel": "Bell's Favourite",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0019.abc",
+      "titel": "Squire of Bensham",
+      "toonsoort": "C",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0020.abc",
+      "titel": "The Bent Pin",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0021.abc",
+      "titel": "Biddy The Bowl Wife",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0022.abc",
+      "titel": "Bill Charlton's Fancy",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0023.abc",
+      "titel": "Blackberry Quadrille",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0024.abc",
+      "titel": "Blackthorne Stick",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0025.abc",
+      "titel": "Blarney Pilgrim",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0026.abc",
+      "titel": "Blaydon Races",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0027.abc",
+      "titel": "Bonnets So Blue",
+      "toonsoort": "C",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0028.abc",
+      "titel": "Bonnets So Blue",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0029.abc",
+      "titel": "Brian Borouhme",
+      "toonsoort": "Am",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0030.abc",
+      "titel": "Bridal Jig",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0031.abc",
+      "titel": "The Mug of Brown Ale",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0032.abc",
+      "titel": "St. Bruno",
+      "toonsoort": "Dm",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0033.abc",
+      "titel": "Buggy Ride Jig",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0034.abc",
+      "titel": "Bung Your Eye",
+      "toonsoort": "Am",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0035.abc",
+      "titel": "The Burdett",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0036.abc",
+      "titel": "Cadeau's Jig",
+      "toonsoort": "Bb",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0037.abc",
+      "titel": "There Came A Young Man",
+      "toonsoort": "Am",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0038.abc",
+      "titel": "Captain White",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0039.abc",
+      "titel": "Crossing The Cascades",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0040.abc",
+      "titel": "The Castle",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0041.abc",
+      "titel": "Cat in the Kitchen",
+      "toonsoort": "Bm",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0042.abc",
+      "titel": "Cavan Buck",
+      "toonsoort": "Bm",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0043.abc",
+      "titel": "Champion Jig",
+      "toonsoort": "Em",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0044.abc",
+      "titel": "Charlbytown Two-Step",
+      "toonsoort": "C",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0045.abc",
+      "titel": "Charlie Hunter",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0046.abc",
+      "titel": "Chuntering Charlie",
+      "toonsoort": "C",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0047.abc",
+      "titel": "Chelmsford Races",
+      "toonsoort": "Bb",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0048.abc",
+      "titel": "Cherish The Ladies",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0049.abc",
+      "titel": "Jig For Chris",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0050.abc",
+      "titel": "Circle Around",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0051.abc",
+      "titel": "The Cobbler",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0052.abc",
+      "titel": "Cock of the North",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0053.abc",
+      "titel": "Coleraine",
+      "toonsoort": "Am",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0054.abc",
+      "titel": "The Connaught Man's Rambles",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0055.abc",
+      "titel": "Top of the Cork Road",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0056.abc",
+      "titel": "The Corner House Jig",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0057.abc",
+      "titel": "Cumberland Reel",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0058.abc",
+      "titel": "Cupid's Dart",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0059.abc",
+      "titel": "Da Brigg",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0060.abc",
+      "titel": "Lass O' Dallogill",
+      "toonsoort": "C",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0061.abc",
+      "titel": "Dan Powrie's Farewell",
+      "toonsoort": "F",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0062.abc",
+      "titel": "Danbury Hill",
+      "toonsoort": "Am",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0063.abc",
+      "titel": "The Dancing Dustman",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0064.abc",
+      "titel": "Dancing Tailor",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0065.abc",
+      "titel": "Danny MacPhail's Dilemma",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0066.abc",
+      "titel": "Danse De Chez Nous",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0067.abc",
+      "titel": "My Darling Asleep",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0068.abc",
+      "titel": "Davie's Brae",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0069.abc",
+      "titel": "Davie's Brae",
+      "toonsoort": "F",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0070.abc",
+      "titel": "Dance 'Til Dawn",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0071.abc",
+      "titel": "Debbie's Jig",
+      "toonsoort": "Bb",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0072.abc",
+      "titel": "Denis Murphy's",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0073.abc",
+      "titel": "Go to the Devil and Shake Yourself",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0074.abc",
+      "titel": "The Devil Among the Taylors",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0075.abc",
+      "titel": "Dingle Regatta",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0076.abc",
+      "titel": "Dinny O'Keefe's",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0077.abc",
+      "titel": "The Director",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0078.abc",
+      "titel": "Dixden",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0079.abc",
+      "titel": "Doc Boyd",
+      "toonsoort": "C",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0080.abc",
+      "titel": "Donald Ian Rankine",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0081.abc",
+      "titel": "Double Rise",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0082.abc",
+      "titel": "Drummond Castle",
+      "toonsoort": "Am",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0083.abc",
+      "titel": "Earl Bley's Jig",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0084.abc",
+      "titel": "Easter Chick",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0085.abc",
+      "titel": "Edmund MacKenzie of Plockton",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0086.abc",
+      "titel": "Wee Emma",
+      "toonsoort": "F",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0087.abc",
+      "titel": "The Family's Pride",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0088.abc",
+      "titel": "Farewell",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0089.abc",
+      "titel": "Farewell To Joe",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0090.abc",
+      "titel": "Farmer's Jamboree",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0091.abc",
+      "titel": "Feathers",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0092.abc",
+      "titel": "Fiddle Hill Jig",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0093.abc",
+      "titel": "Fiery Clock Fyece",
+      "toonsoort": "C",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0094.abc",
+      "titel": "Fifty Not Out",
+      "toonsoort": "C",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0095.abc",
+      "titel": "First Western Change",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0096.abc",
+      "titel": "The Flight",
+      "toonsoort": "C",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0097.abc",
+      "titel": "Flirtation !!!",
+      "toonsoort": "Am",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0098.abc",
+      "titel": "My Favourite Flute",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0099.abc",
+      "titel": "Footy Aygen The Wa'",
+      "toonsoort": "Em",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0100.abc",
+      "titel": "French Canadian Four-step",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0101.abc",
+      "titel": "Father Kelly's Jig",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0102.abc",
+      "titel": "Fram Apon Him",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0103.abc",
+      "titel": "Freds Frolics",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0104.abc",
+      "titel": "Garry Owen",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0105.abc",
+      "titel": "Garster's Dream",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0106.abc",
+      "titel": "The General Gathering 1745",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0107.abc",
+      "titel": "George's Corkscrew",
+      "toonsoort": "C",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0108.abc",
+      "titel": "The Giant's Silver",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0109.abc",
+      "titel": "Glendaruel Highlanders",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0110.abc",
+      "titel": "Goat on the Hill",
+      "toonsoort": "Am",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0111.abc",
+      "titel": "Goat on the Hill",
+      "toonsoort": "Am",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0112.abc",
+      "titel": "The Gobby O",
+      "toonsoort": "Am",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0113.abc",
+      "titel": "Grandfather's Pet",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0114.abc",
+      "titel": "Greenholm",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0115.abc",
+      "titel": "The Grindstone",
+      "toonsoort": "F",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0116.abc",
+      "titel": "Happy Meeting",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0117.abc",
+      "titel": "Harmonica",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0118.abc",
+      "titel": "Haste To The Wedding",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0119.abc",
+      "titel": "Haymaker's Jig",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0120.abc",
+      "titel": "White Heather Jig",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/jigs-0121.abc",
+      "titel": "Hexham Quadrille",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0001.abc",
+      "titel": "Abbotts Bromley Horn Dance",
+      "toonsoort": "Gm",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0002.abc",
+      "titel": "Abram Circle",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0007.abc",
+      "titel": "Highland Mary",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0008.abc",
+      "titel": "Mrs Casey",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0009.abc",
+      "titel": "Orange in Bloom",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0010.abc",
+      "titel": "Bonny Green Garters",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0011.abc",
+      "titel": "Cuckoo's Nest",
+      "toonsoort": "Gm",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0012.abc",
+      "titel": "Cuckoo's Nest",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0013.abc",
+      "titel": "Cuckoo's Nest",
+      "toonsoort": "F",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0014.abc",
+      "titel": "The Forester",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0015.abc",
+      "titel": "Jockey to the Fair",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0016.abc",
+      "titel": "Leapfrog",
+      "toonsoort": "Bb",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0017.abc",
+      "titel": "Morning Star",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0018.abc",
+      "titel": "Morris Off",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0019.abc",
+      "titel": "Morris Off",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0020.abc",
+      "titel": "Princess Royal",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0021.abc",
+      "titel": "Princess Royal",
+      "toonsoort": "Gm",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0022.abc",
+      "titel": "Princess Royal",
+      "toonsoort": "Am",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0023.abc",
+      "titel": "Fieldtown Processional",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0024.abc",
+      "titel": "Gisburn Processional",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0025.abc",
+      "titel": "Tideswell Processional",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0026.abc",
+      "titel": "Wheatley Processional",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0027.abc",
+      "titel": "Winster Processional",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0029.abc",
+      "titel": "Singing of the Travels",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0030.abc",
+      "titel": "Valentine",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/morris-0031.abc",
+      "titel": "William and Nancy",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/playford-0001.abc",
+      "titel": "The Alderman's Hat",
+      "toonsoort": "Gm",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/playford-0002.abc",
+      "titel": "CAL 1",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/playford-0003.abc",
+      "titel": "CAL 2",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/playford-0004.abc",
+      "titel": "Dick's Maggot",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/playford-0005.abc",
+      "titel": "Hole in the Wall",
+      "toonsoort": "Bb",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/playford-0006.abc",
+      "titel": "The Indian Queen",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/playford-0007.abc",
+      "titel": "Mr Beveridge's Maggot",
+      "toonsoort": "Gm",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/playford-0008.abc",
+      "titel": "Nancy's Fancy",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/playford-0009.abc",
+      "titel": "Never Love Thee More",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/playford-0010.abc",
+      "titel": "Nonesuch",
+      "toonsoort": "Dm",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/playford-0011.abc",
+      "titel": "The Queen's Jig",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/playford-0012.abc",
+      "titel": "Rufty Tufty",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/playford-0013.abc",
+      "titel": "Sadlers Wells",
+      "toonsoort": "Dm",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/playford-0014.abc",
+      "titel": "St Hugh's Jig",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/playford-0015.abc",
+      "titel": "Staines Morris",
+      "toonsoort": "Dm",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/slip-0001.abc",
+      "titel": "Drops of Brandy",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/slip-0002.abc",
+      "titel": "Dublin Streets",
+      "toonsoort": "Em",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/slip-0003.abc",
+      "titel": "Gingerhog's No.2",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/slip-0004.abc",
+      "titel": "The Glass Of Stout",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/slip-0005.abc",
+      "titel": "Kid on the Mountain",
+      "toonsoort": "Em",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/slip-0006.abc",
+      "titel": "The Lamppost",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/slip-0007.abc",
+      "titel": "The Racehorse",
+      "toonsoort": "Bb",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/slip-0008.abc",
+      "titel": "The Rocky Road To Dublin",
+      "toonsoort": "Am",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/slip-0009.abc",
+      "titel": "Sir Roger de Coverley",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/slip-0010.abc",
+      "titel": "Slip Jig",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/slip-0011.abc",
+      "titel": "Staggering Home",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0001.abc",
+      "titel": "Alnwick Castle",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0002.abc",
+      "titel": "April Waltz",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0003.abc",
+      "titel": "Ye Banks and Braes",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0004.abc",
+      "titel": "I Went to Pick Some Blaeberries",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0005.abc",
+      "titel": "Blaenwern",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0006.abc",
+      "titel": "Blodau'r Drain",
+      "toonsoort": "Am",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0007.abc",
+      "titel": "Blow the Wind Southerly",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0008.abc",
+      "titel": "Bonnie Dundee",
+      "toonsoort": "F",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0009.abc",
+      "titel": "Caerdroea",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0010.abc",
+      "titel": "Cairn on the Moor",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0011.abc",
+      "titel": "Daisy Daisy",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0012.abc",
+      "titel": "Down in the Mines",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0013.abc",
+      "titel": "Dreaming",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0014.abc",
+      "titel": "All Those Endearing Young Charms",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0015.abc",
+      "titel": "Ffarwel Ir Marian",
+      "toonsoort": "Dm",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0016.abc",
+      "titel": "I Belong to Glasgow",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0017.abc",
+      "titel": "Great is Thy Faithfulness",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0018.abc",
+      "titel": "The Greenwood Tree",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0019.abc",
+      "titel": "Hector the Hero",
+      "toonsoort": "Bb",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0020.abc",
+      "titel": "Close Every Door",
+      "toonsoort": "Am",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0021.abc",
+      "titel": "Kelvingrove",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0022.abc",
+      "titel": "Logie O'Buchan",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0023.abc",
+      "titel": "Lord of all Hopefulness",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0024.abc",
+      "titel": "Louis Waltz",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0025.abc",
+      "titel": "Lullaby",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0026.abc",
+      "titel": "M.T.B.",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0027.abc",
+      "titel": "Maid of GlenConnel",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0028.abc",
+      "titel": "Merch Megan",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0029.abc",
+      "titel": "Mexican Waltz",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0030.abc",
+      "titel": "Mist on the Marsh",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0031.abc",
+      "titel": "My Home",
+      "toonsoort": "A",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0032.abc",
+      "titel": "My Love is Like a Red Red Frog",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0033.abc",
+      "titel": "Nan's Waltz",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0034.abc",
+      "titel": "Northern Lights",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0035.abc",
+      "titel": "Pam's Fancy",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0036.abc",
+      "titel": "Planxty Irwin",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0037.abc",
+      "titel": "Plodder Seam",
+      "toonsoort": "C",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0038.abc",
+      "titel": "Road to Dundee",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0039.abc",
+      "titel": "Rope Waltz",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0040.abc",
+      "titel": "Scots Wha Hae",
+      "toonsoort": "F",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0041.abc",
+      "titel": "Seamus O'Brien",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0042.abc",
+      "titel": "She Was a ...",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0044.abc",
+      "titel": "So Long",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0045.abc",
+      "titel": "Starry Nights of Shetland",
+      "toonsoort": "C",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0046.abc",
+      "titel": "Just as the Sun was Setting",
+      "toonsoort": "Am",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0047.abc",
+      "titel": "Sunset Over Ayr",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0048.abc",
+      "titel": "Twickenham Ferry",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0049.abc",
+      "titel": "Waters of Tyne",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0050.abc",
+      "titel": "Weeping and Wailing",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0051.abc",
+      "titel": "Wind on the Heath",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/waltzes-0052.abc",
+      "titel": "Young Jane",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/xmas-0001.abc",
+      "titel": "The Boar's Head",
+      "toonsoort": "C",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/xmas-0002.abc",
+      "titel": "Ding Dong",
+      "toonsoort": "Bb",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/xmas-0003.abc",
+      "titel": "GKW",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/xmas-0004.abc",
+      "titel": "God rest you, merry gentlemen",
+      "toonsoort": "Em",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/xmas-0005.abc",
+      "titel": "Good Christian Men Rejoice",
+      "toonsoort": "F",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/xmas-0006.abc",
+      "titel": "The Holly and the Ivy",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/xmas-0007.abc",
+      "titel": "Jubilate Deo (round)",
+      "toonsoort": "C",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/xmas-0008.abc",
+      "titel": "Nos Galan",
+      "toonsoort": "F",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/xmas-0009.abc",
+      "titel": "On Christmas Night",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/xmas-0010.abc",
+      "titel": "Wassail 1",
+      "toonsoort": "Dm",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/xmas-0011.abc",
+      "titel": "Wassail 2",
+      "toonsoort": "D",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/xmas-0012.abc",
+      "titel": "Wassail 3",
+      "toonsoort": "G",
+      "akkoorden": true
+    },
+    {
+      "bestand": "raw/xmas-0013.abc",
+      "titel": "W3KOOA",
+      "toonsoort": "Em",
+      "akkoorden": true
+    }
+  ]
+}

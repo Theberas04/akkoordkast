@@ -41,6 +41,7 @@ FILES=(
   "lib/chordpro.js"
   "lib/capo.js"
   "lib/gitaar.js"
+  "lib/tijdlijn.js"
   "public/index.html"
   "public/favicon.svg"
   "public/manifest.webmanifest"
@@ -50,6 +51,8 @@ FILES=(
   "public/icon-512-maskable.png"
   "public/apple-touch-icon.png"
   "song-data/liedjes.json"
+  "song-data/volkswijsjes.json"
+  "song-data/kerkwijsjes.json"
   "scripts/cast-helper.py"
 )
 
@@ -61,6 +64,7 @@ RUNTIME=(
   "lib/chordpro.js"
   "lib/capo.js"
   "lib/gitaar.js"
+  "lib/tijdlijn.js"
 )
 PAGINA=(
   "public/index.html"
@@ -74,6 +78,8 @@ PAGINA=(
 )
 DATA=(
   "song-data/liedjes.json"
+  "song-data/volkswijsjes.json"
+  "song-data/kerkwijsjes.json"
   "scripts/cast-helper.py"
 )
 

@@ -1,0 +1,16 @@
+X: 10
+T:Wassail 1
+% Nottingham Music Database
+S:Trad
+M:6/8
+L:1/8
+K:Dm
+D|"Dm"D2A A2G|"Dm"F2F F2E|"Dm"D2E F2G|"A7"A3 -A2D|"Dm"D2A A2G|"Dm"F2F F2E|\
+"Dm"D2E F2G|"A7"A3 ||
+M:4/4
+L:1/4
+"C7"AB "F"c"Bb"d|"F"c2 AG|"F"FG "Bb"FD|"C"C2 FG|\
+M:6/8
+L:1/8
+"Dm"A3B2c |"Dm"D3F2F |"Dm"FA2"C"GE2 |"Dm"D3-D2:|
+

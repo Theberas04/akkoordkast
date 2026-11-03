@@ -36,6 +36,7 @@ RUNTIME=(
   "lib/chordpro.js"
   "lib/capo.js"
   "lib/gitaar.js"
+  "lib/tijdlijn.js"
 )
 PAGINA=(
   "public/index.html"
@@ -49,6 +50,8 @@ PAGINA=(
 )
 DATA=(
   "song-data/liedjes.json"
+  "song-data/volkswijsjes.json"
+  "song-data/kerkwijsjes.json"
   "scripts/cast-helper.py"
 )
 

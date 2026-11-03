@@ -12,6 +12,7 @@ const chordpro = require('./lib/chordpro');
 const capo = require('./lib/capo');
 const grepen = require('./lib/grepen');
 const gitaar = require('./lib/gitaar');
+const tijdlijn = require('./lib/tijdlijn');
 const theorie = require('./lib/theorie');
 const bron = require('./liedjes-bron');
 
@@ -149,11 +150,14 @@ function weergave(lied, opties) {
 
   const akkoorden = theorie.uniek(model.akkoorden).map(naam => {
     const vorm = theorie.transponeer(naam, -gekozenCapo, false);
+    const greepInfo = grepen.greep(vorm);
     return {
       naam,
       vorm,
       barre: grepen.isBarre(vorm),
       heeftDiagram: grepen.heeftGreep(vorm),
+      frets: greepInfo ? greepInfo.frets : [],
+      vingers: greepInfo ? greepInfo.vingers : [],
       svg: grepen.svgDiagram(vorm, { capo: gekozenCapo, toonNaam: naam === vorm ? naam : `${vorm} → ${naam}` })
     };
   });
@@ -180,6 +184,10 @@ function weergave(lied, opties) {
     akkoorden,
     akkoordenReeks: reeks,
     model,
+    heeftMelodie: !!(lied.noten && lied.noten.length),
+    melodie: lied.noten || [],
+    maatsoort: lied.maatsoort || 4,
+    licentie: lied.licentie || '',
     audio: {
       opname: lied.audio_bestand ? `/media/audio/${lied.audio_bestand}` : '',
       opnameTitel: lied.audio_titel || '',
@@ -379,6 +387,107 @@ function previewVoorLiedje(lied, query) {
     strum: query.get('strum') || lied.strum || 'D DU UDU',
     rondes: Math.max(1, Math.min(6, parseInt(query.get('rondes'), 10) || 2))
   });
+}
+
+// ---------------------------------------------------------------- meespelen ---
+// Eén plan bepaalt zowel de audio als de tijdlijn: het beeld kan daardoor niet
+// losraken van het geluid.
+
+// Zet een WAV-buffer om naar mp3 (met ffmpeg) en bewaar hem in de cache.
+function bewaarAudio(sleutel, wavBuffer) {
+  const mp3 = path.join(MEDIA_DIR, 'preview', `${sleutel}.mp3`);
+  const wav = path.join(MEDIA_DIR, 'preview', `${sleutel}.wav`);
+  if (fs.existsSync(mp3)) return { bestand: mp3, type: 'audio/mpeg' };
+  if (fs.existsSync(wav)) return { bestand: wav, type: 'audio/wav' };
+  fs.writeFileSync(wav, wavBuffer);
+  const omzetten = spawnSync(FFMPEG, ['-v', 'error', '-y', '-i', wav, '-codec:a', 'libmp3lame', '-b:a', '128k', mp3], { timeout: 30000 });
+  if (omzetten.status === 0 && fs.existsSync(mp3)) {
+    try { fs.unlinkSync(wav); } catch (e) {}
+    return { bestand: mp3, type: 'audio/mpeg' };
+  }
+  return { bestand: wav, type: 'audio/wav' };
+}
+
+function waarheidsgetrouw(query, naam, standaard, min, max) {
+  const waarde = query.get(naam);
+  if (waarde === null || waarde === '') return standaard;
+  return Math.max(min, Math.min(max, parseInt(waarde, 10) || standaard));
+}
+
+// Het plan van een liedje in de meespeelstand.
+function meespeelPlan(lied, query) {
+  const stappen = parseInt(query.get('transpose'), 10) || 0;
+  const mol = theorie.toonsoortVoorkeur(lied.toonsoort || 'C', stappen);
+  const model = stappen ? chordpro.transponeerModel(lied.model, stappen, mol) : lied.model;
+  const advies = capo.advies(model.akkoorden, theorie.transponeerToonsoort(lied.toonsoort || 'C', stappen));
+  const capoRuw = query.get('capo');
+  const gebruikCapo = capoRuw === null || capoRuw === '' || capoRuw === 'auto'
+    ? advies.capo
+    : Math.max(0, Math.min(12, parseInt(capoRuw, 10) || 0));
+  const tempo = waarheidsgetrouw(query, 'tempo', lied.tempo || 84, 40, 200);
+  const maatsoort = waarheidsgetrouw(query, 'maatsoort', lied.maatsoort || 4, 2, 8);
+  const strum = query.get('strum') || lied.strum || 'D DU UDU';
+  const heeftMelodie = !!(lied.noten && lied.noten.length);
+
+  // Akkoorden per maat: bij een liedje met melodie liggen de akkoorden vast per maat,
+  // anders speelt elk akkoord van de reeks één maat en herhaalt het aantal rondes.
+  const perMaat = (lied.akkoordenPerMaat && lied.akkoordenPerMaat.length)
+    ? lied.akkoordenPerMaat.map(a => theorie.transponeer(a, stappen, mol))
+    : chordpro.akkoordenReeks(model, 8);
+  const rondes = heeftMelodie ? 1 : waarheidsgetrouw(query, 'rondes', 3, 1, 8);
+
+  const plan = tijdlijn.maakPlan({
+    akkoorden: perMaat,
+    rondes: rondes,
+    capo: gebruikCapo,
+    bpm: tempo,
+    maatsoort: maatsoort,
+    strum: strum,
+    // de melodie schuift mee met de transpose, niet met de capo: je zingt even hoog
+    noten: (lied.noten || []).map(n => ({ start: n.start, duur: n.duur, midi: n.midi + stappen })),
+    aftellen: query.get('aftellen') !== '0',
+    klik: query.get('klik') === '1'
+  });
+  return plan;
+}
+
+function meespeelVoorLiedje(lied, query) {
+  return meespeelPlan(lied, query);
+}
+
+// Dezelfde query, maar dan voor het audio-adres onder de tijdlijn.
+function meespeelQuery(query) {
+  const params = new URLSearchParams();
+  for (const sleutel of ['liedje', 'capo', 'transpose', 'tempo', 'maatsoort', 'strum', 'rondes', 'aftellen', 'klik']) {
+    const waarde = query.get(sleutel);
+    if (waarde !== null && waarde !== '') params.set(sleutel, waarde);
+  }
+  return params.toString();
+}
+
+function maakMeespeelAudio(lied, query) {
+  const plan = meespeelPlan(lied, query);
+  const sleutel = hashVan({
+    soort: 'meespelen',
+    liedje: lied.id,
+    capo: plan.capo,
+    bpm: plan.bpm,
+    maatsoort: plan.maatsoort,
+    strum: plan.strum,
+    aftellen: plan.aftellen.aan,
+    klik: plan.klik,
+    maten: plan.maten.map(m => m.akkoord),
+    noten: plan.noten.map(n => [n.midi, n.startSeconden, n.duurSeconden]),
+    duur: plan.duurSeconden
+  });
+  const mp3 = path.join(MEDIA_DIR, 'preview', `${sleutel}.mp3`);
+  const wav = path.join(MEDIA_DIR, 'preview', `${sleutel}.wav`);
+  if (fs.existsSync(mp3)) return { bestand: mp3, type: 'audio/mpeg' };
+  if (fs.existsSync(wav)) return { bestand: wav, type: 'audio/wav' };
+  if (audioBezig.has(sleutel)) return audioBezig.get(sleutel);
+  const resultaat = bewaarAudio(sleutel, gitaar.maakPlanWav(plan));
+  audioBezig.set(sleutel, resultaat);
+  return resultaat;
 }
 
 // ---------------------------------------------------------------------- cast ---
@@ -633,6 +742,38 @@ async function verwerk(req, res) {
     return;
   }
 
+  // --- meespelen: de tijdlijn die het beeld met het geluid laat meelopen ---
+  if (pad === '/api/meespelen' && methode === 'GET') {
+    const lied = vindLiedje(query.get('liedje'));
+    if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    let plan;
+    try {
+      plan = meespeelVoorLiedje(lied, query);
+    } catch (e) {
+      json(res, 400, { fout: e.message });
+      return;
+    }
+    json(res, 200, {
+      liedje: { id: lied.id, titel: lied.titel, artiest: lied.artiest, heeftMelodie: !!(lied.noten && lied.noten.length) },
+      tijdlijn: tijdlijn.tijdlijnVanPlan(plan),
+      audio: `/api/meespelen/audio?${meespeelQuery(query)}`
+    });
+    return;
+  }
+  if (pad === '/api/meespelen/audio' && methode === 'GET') {
+    const lied = vindLiedje(query.get('liedje'));
+    if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    let resultaat;
+    try {
+      resultaat = maakMeespeelAudio(lied, query);
+    } catch (e) {
+      json(res, 400, { fout: e.message });
+      return;
+    }
+    stuurBestand(req, res, resultaat.bestand, resultaat.type);
+    return;
+  }
+
   // --- instellingen ---
   if (pad === '/api/instellingen' && methode === 'GET') {
     json(res, 200, alleInstellingen());
@@ -667,6 +808,18 @@ async function verwerk(req, res) {
       if (body.bron === 'opname' && lied.audio_bestand) {
         mediaUrl = `/media/audio/${lied.audio_bestand}`;
         type = lied.audio_bestand.endsWith('.mp3') ? 'audio/mpeg' : 'audio/wav';
+      } else if (body.bron === 'meespelen') {
+        const params = new URLSearchParams({
+          liedje: String(lied.id),
+          capo: String(body.capo == null ? '' : body.capo),
+          transpose: String(body.transpose || 0),
+          tempo: String(body.tempo || lied.tempo || 84),
+          aftellen: body.aftellen === false ? '0' : '1',
+          klik: body.klik ? '1' : '0'
+        });
+        const resultaat = maakMeespeelAudio(lied, params);
+        type = resultaat.type;
+        mediaUrl = `/api/meespelen/audio?${params.toString()}`;
       } else {
         const resultaat = previewVoorLiedje(lied, new URLSearchParams({
           capo: String(body.capo == null ? '' : body.capo),

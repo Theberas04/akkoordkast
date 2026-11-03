@@ -7,6 +7,7 @@ const grepen = require('../lib/grepen');
 const chordpro = require('../lib/chordpro');
 const capo = require('../lib/capo');
 const gitaar = require('../lib/gitaar');
+const tijdlijn = require('../lib/tijdlijn');
 const bron = require('../liedjes-bron');
 
 const WHITELIST = ['C', 'C7', 'Cm', 'Cmaj7', 'D', 'D7', 'Dm', 'Dm7', 'E', 'E7', 'Em', 'Em7',
@@ -149,22 +150,102 @@ test('de meegeleverde liedjes-dataset is compleet en houdt zich aan de whitelist
   const liedjes = bron.alle();
   assert.ok(liedjes.length >= 20, 'te weinig liedjes: ' + liedjes.length);
   const titels = new Set();
+  // Elk databestand heeft zijn eigen id-bereik; titels mogen tussen bestanden
+  // samenvallen (twee keer 'Amazing Grace' is een andere bewerking), binnen één
+  // bestand niet.
+  const perBestand = new Map();
   for (const lied of liedjes) {
     assert.ok(lied.titel && lied.titel.length > 1, 'titel ontbreekt');
-    assert.ok(!titels.has(lied.titel), 'dubbele titel: ' + lied.titel);
+    const vak = Math.floor(lied.id / 100000);
+    if (!perBestand.has(vak)) perBestand.set(vak, new Set());
+    // twee versies van dezelfde wijs mogen naast elkaar bestaan; een exacte
+    // herhaling (zelfde titel én zelfde noten) is een fout in de omzetting
+    const vingerafdruk = lied.titel + '|' + lied.noten.map(n => n.midi).join(',');
+    assert.ok(!perBestand.get(vak).has(vingerafdruk), 'dubbel liedje in hetzelfde bestand: ' + lied.titel);
+    perBestand.get(vak).add(vingerafdruk);
     titels.add(lied.titel);
-    assert.ok(['nl', 'en', 'de', 'af'].includes(lied.taal), 'taal onbekend: ' + lied.taal);
+    assert.ok(['nl', 'en', 'de', 'af', 'instrumentaal'].includes(lied.taal), 'taal onbekend: ' + lied.taal);
     assert.ok(lied.moeilijkheid >= 1 && lied.moeilijkheid <= 5, 'moeilijkheid buiten bereik');
     assert.ok(lied.tempo >= 40 && lied.tempo <= 200, 'tempo onrealistisch');
-    assert.ok(lied.model.regels.length >= 10, 'te weinig regels: ' + lied.titel);
-    assert.ok(lied.model.akkoorden.length >= 2, 'te weinig akkoorden: ' + lied.titel);
+    assert.ok(lied.maatsoort >= 2 && lied.maatsoort <= 12, 'maatsoort onrealistisch: ' + lied.titel);
+    if (lied.noten.length) {
+      assert.ok(lied.noten.length >= 8, 'te weinig noten: ' + lied.titel);
+    } else {
+      assert.ok(lied.model.regels.length >= 8, 'te weinig regels: ' + lied.titel);
+    }
+    // een instrumentaal wijsje mag één akkoord hebben (een ronde bijvoorbeeld),
+    // een liedje met tekst hoort er minstens twee te hebben
+    assert.ok(lied.model.akkoorden.length >= (lied.noten.length ? 1 : 2), 'te weinig akkoorden: ' + lied.titel);
     for (const akkoord of lied.model.akkoorden) {
-      assert.ok(WHITELIST.includes(akkoord), `${lied.titel}: akkoord buiten whitelist: ${akkoord}`);
+      const toegestaan = lied.noten.length ? grepen.heeftGreep(akkoord) : WHITELIST.includes(akkoord);
+      assert.ok(toegestaan, `${lied.titel}: akkoord zonder greep: ${akkoord}`);
     }
     assert.ok(lied.bron && lied.bron.length > 2, 'bronvermelding ontbreekt: ' + lied.titel);
   }
   // ids van meegeleverde liedjes blijven onder het bereik van eigen liedjes
   assert.ok(Math.max(...liedjes.map(l => l.id)) < 900000);
+});
+
+test('elk liedje met een melodie heeft per maat een speelbaar akkoord en nette noten', () => {
+  const metMelodie = bron.alle().filter(l => l.noten.length);
+  assert.ok(metMelodie.length >= 100, 'te weinig liedjes met melodie: ' + metMelodie.length);
+  for (const lied of metMelodie) {
+    const laatste = lied.noten[lied.noten.length - 1];
+    const maten = Math.ceil((laatste.start + laatste.duur) / lied.maatsoort - 1e-6);
+    assert.equal(lied.akkoordenPerMaat.length, maten, `${lied.titel}: ${lied.akkoordenPerMaat.length} akkoorden voor ${maten} maten`);
+    for (const akkoord of lied.akkoordenPerMaat) {
+      assert.ok(grepen.heeftGreep(akkoord), `${lied.titel}: maatakkoord zonder greep: ${akkoord}`);
+    }
+    const vorigeStart = -1;
+    let start = vorigeStart;
+    for (const noot of lied.noten) {
+      assert.ok(Number.isFinite(noot.midi) && noot.midi >= 36 && noot.midi <= 96, `${lied.titel}: noot buiten bereik: ${noot.midi}`);
+      // een noot mag over de maatstreep heen doorlopen (verbindingsboog), maar niet eindeloos
+      assert.ok(noot.duur > 0 && noot.duur <= lied.maatsoort * 2, `${lied.titel}: rare nootduur: ${noot.duur}`);
+      assert.ok(noot.start >= start, `${lied.titel}: noten niet op volgorde`);
+      start = noot.start;
+    }
+  }
+});
+
+test('de tijdlijn van een liedje met melodie past bij de maten en de noten', () => {
+  const lied = bron.alle().find(l => l.noten.length && l.noten.length > 12);
+  assert.ok(lied, 'geen liedje met melodie gevonden');
+  const plan = tijdlijn.maakPlan({
+    akkoorden: lied.akkoordenPerMaat,
+    rondes: 1,
+    capo: 0,
+    bpm: lied.tempo,
+    maatsoort: lied.maatsoort,
+    strum: lied.strum,
+    noten: lied.noten
+  });
+  assert.equal(plan.maten.length, lied.akkoordenPerMaat.length);
+  assert.equal(plan.rondes, 1, 'een liedje met melodie wordt één keer gespeeld');
+  assert.equal(plan.aftellen.seconden, plan.maatSeconden, 'het aftellen duurt precies één maat');
+  for (const slag of plan.slagen) {
+    assert.ok(slag.startSeconden < plan.duurSeconden, 'slag valt buiten het liedje');
+    assert.ok(slag.noten.length >= 3, 'een slag zonder akkoordnoten');
+    for (const noot of slag.noten) assert.ok(noot.snaar >= 0 && noot.snaar <= 5, 'snaar buiten bereik');
+  }
+  for (const noot of plan.noten) {
+    assert.ok(noot.startSeconden >= plan.aftellen.seconden - 1e-6, 'melodienoot valt in het aftellen');
+    assert.ok(noot.startSeconden + noot.duurSeconden <= plan.duurSeconden + 1e-6);
+    assert.ok(noot.snaar >= 0 && noot.snaar <= 5 && noot.fret >= 0, 'melodienoot zonder halspositie');
+  }
+  const wav = gitaar.maakPlanWav(plan);
+  const verwacht = Math.round((plan.duurSeconden + 1.2) * gitaar.SAMPLE_RATE);
+  assert.ok(Math.abs(wav.length - (44 + verwacht * 2)) <= 2, 'audiobuffer heeft niet de lengte van het plan');
+});
+
+test('grepen zijn speelbaar: elke greep heeft frets en vingers van dezelfde lengte', () => {
+  for (const naam of grepen.alleGrepen()) {
+    const g = grepen.greep(naam);
+    assert.ok(g, 'geen greep voor ' + naam);
+    assert.equal(g.frets.length, 6, naam + ': geen zes snaren');
+    assert.equal(g.vingers.length, 6, naam + ': geen zes vingerposities');
+    for (const fret of g.frets) assert.ok(fret >= -1 && fret <= 14, naam + ': fret buiten bereik');
+  }
 });
 
 test('zoekindex van de meegeleverde liedjes bevat akkoorden en tekst', () => {

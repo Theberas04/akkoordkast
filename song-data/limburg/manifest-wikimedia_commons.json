@@ -1,0 +1,58 @@
+{
+  "bron": "Wikimedia Commons",
+  "bron_url": "https://commons.wikimedia.org/wiki/Category:Kun_je_nog_zingen,_zing_dan_mee",
+  "sittard_limburg_band": "Bevat o.a. 'In 't bronsgroen eikenhout' / 'Limburg, mijn Vaderland' (Limburgs volkslied, melodie Henri Tijssen). Meestal scans (JPG) van 'Kun je nog zingen, zing dan mee' (1906).",
+  "bestandsformaat": "JPG-scans (niet machineleesbaar) + enkele .mid en .ogg",
+  "kandidaten_en_licenties": [
+    {
+      "bestand": "File:In 't bronsgroen eikenhout.PNG",
+      "band": "Limburgs volkslied melodie",
+      "formaat": "PNG (afbeelding, NIET machineleesbaar)",
+      "licentie_literaal": "I, the copyright holder of this work, release this work into the public domain. This applies worldwide. In some countries this may not be legally possible; if so: I grant anyone the right to use this work for any purpose, without any conditions, unless such conditions are required by law.",
+      "toegestaan": false,
+      "reden": "Publiek domein, maar PNG is geen machineleesbaar notatieformaat (geen ABC/MusicXML/MIDI/LilyPond)."
+    },
+    {
+      "bestand": "File:Limburgs volkslied.ogg",
+      "band": "Limburgs volkslied",
+      "formaat": "OGG audio",
+      "licentie_literaal": "This file is licensed under the Creative Commons Attribution-Share Alike 4.0 International license. ... share alike - If you remix, transform, or build upon the material, you must distribute your contributions under the same or compatible license as the original.",
+      "toegestaan": false,
+      "reden": "CC BY-SA (share-alike) is verboden; en audio is geen notatievorm."
+    },
+    {
+      "bestand": "File:Ferme-jongens-stoere-knapen-muziek.mid",
+      "band": "Nederlands volksliedje (geen Limburg)",
+      "formaat": "MIDI",
+      "licentie_literaal": "Creative Commons Attribution-Share Alike 4.0 International ... share alike - If you remix, transform, or build upon the material, you must distribute your contributions under the same or compatible license as the original.",
+      "toegestaan": false,
+      "reden": "CC BY-SA (share-alike) verboden; ook geen Limburg-band."
+    },
+    {
+      "bestand": "File:Heije-Beltjens-in-groene-dal-stille-dal-muziek.mid",
+      "band": "Nederlands volksliedje (geen Limburg)",
+      "formaat": "MIDI",
+      "licentie_literaal": "Creative Commons Attribution-Share Alike 4.0 International ... share alike ...",
+      "toegestaan": false,
+      "reden": "CC BY-SA verboden; geen Limburg-band."
+    },
+    {
+      "bestand": "File:Groot-zonnetje-schijnt-heerlijk-schoon-canon.mid",
+      "band": "Nederlands kinderliedje (geen Limburg)",
+      "formaat": "MIDI",
+      "licentie_literaal": "Creative Commons Attribution-Share Alike 4.0 International ... share alike ...",
+      "toegestaan": false,
+      "reden": "CC BY-SA verboden; geen Limburg-band."
+    },
+    {
+      "bestand": "File:98 Limburg, mijn Vaderland, pagina 132 & 133.jpg",
+      "band": "Limburgs volkslied",
+      "formaat": "JPG-scan (niet machineleesbaar)",
+      "licentie_literaal": "Publiek domein (muziek en teksten origineel gepubliceerd voor 1900). Auteur onbekend, eigen werk / scan.",
+      "toegestaan": false,
+      "reden": "Publiek domein maar scan-afbeelding, niet machineleesbaar."
+    }
+  ],
+  "aantal_stukken": 0,
+  "bestanden": []
+}

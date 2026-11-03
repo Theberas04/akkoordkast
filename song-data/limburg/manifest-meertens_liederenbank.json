@@ -1,0 +1,11 @@
+{
+  "bron": "Nederlandse Liederenbank (Meertens Instituut / KNAW)",
+  "bron_url": "https://www.liederenbank.nl/",
+  "sittard_limburg_band": "Bevat o.a. 'Limburg mijn vaderland' en talrijke volksliederen met bronvermelding; alleen metadata/verwijzingen, geen vrij gelicenseerde notatiebestanden.",
+  "bestandsformaat": "Webdatabase (metadata); geen ABC/MusicXML/MIDI/LilyPond met open licentie",
+  "licentie_literaal": "(c) 2026 KNAW/Meertens Instituut. Geen expliciete vrije licentie (PD/CC0/CC-BY) vermeld op de site voor de transcripties.",
+  "toegestaan": false,
+  "reden_afwijzing": "Geen expliciete licentieverklaring die PD/CC0/CC-BY toestaat; bron zonder licentie mag niet worden opgenomen.",
+  "aantal_stukken": 0,
+  "bestanden": []
+}

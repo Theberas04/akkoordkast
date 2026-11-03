@@ -75,10 +75,11 @@ def hero():
         <h1>Akkoord<span class="amber">Kast</span></h1>
         <p class="sub">Bladmuziek voor gitaar met akkoorden,<br>capo-advies, grepen, noten en audio.</p>
         <div class="doos">
-          <span class="sterk">1.325 liedjes uit publiek domein</span>
+          <span class="sterk">8.679 liedjes, vrij van rechten</span>
           <span class="pil">capo-advies &amp; grepen</span>
           <span class="pil">meespelen met de noten</span>
           <span class="pil">eigen muziekmap in &eacute;&eacute;n keer</span>
+          <span class="pil">314 liedjes met tekst</span>
           <span class="pil">Spotify</span>
           <span class="pil">Chromecast</span>
         </div>

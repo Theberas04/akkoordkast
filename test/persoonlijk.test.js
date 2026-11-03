@@ -200,3 +200,52 @@ test('de pagina heeft de profielkiezer, de sterren, de labels en de oefencijfers
   assert.match(html, /chip label/);
   assert.match(html, /laadProfielen\(\);\s*\nlaadLabels\(\);/);
 });
+
+test('de app vertelt welke versie er draait en hoe je bijwerkt', async () => {
+  const versie = await haal(omgeving.basis, '/api/versie');
+  assert.equal(versie.status, 200);
+  assert.ok(versie.data.versie, 'de versie ontbreekt');
+  assert.ok(versie.data.liedjes > 1000, 'het aantal liedjes ontbreekt');
+  assert.ok(versie.data.gestart, 'het startmoment ontbreekt');
+  assert.equal(versie.data.updateMogelijk, false, 'zonder update-script hoort bijwerken niet te kunnen');
+  assert.match(versie.data.updateCommando, /update-from-github\.sh/);
+  assert.match(versie.data.updateCommando, /CTID/);
+
+  // bijwerken zonder script: uitleg plus het commando, geen halve poging
+  const update = await post(omgeving.basis, '/api/update', {});
+  assert.equal(update.status, 400);
+  assert.match(update.data.fout, /Proxmox-host/);
+  assert.match(update.data.commando, /update-from-github\.sh/);
+
+  // en de controle op GitHub mag best mislukken: dan zeggen we dat gewoon
+  const controle = await haal(omgeving.basis, '/api/versie/controle');
+  assert.equal(controle.status, 200);
+  assert.ok(controle.data.laatste.sha || controle.data.laatste.fout, 'geen sha en geen foutmelding');
+  assert.equal(typeof controle.data.nieuwer, 'boolean');
+});
+
+test('de pagina heeft meescrollen, podiummodus, oefentempo, de lus, de microfoon en beheer', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  for (const id of ['scroll-knop', 'scroll-sneller', 'scroll-langzamer', 'scroll-terug', 'scroll-verder',
+    'podium-knop', 'boek-printen', 'boek-nu-printen', 'boek-sluiten', 'oefen-tempo', 'lus-a', 'lus-b', 'lus-aan',
+    'trein-luister', 'trein-gehoord', 'versie-nummer', 'versie-controle', 'versie-update', 'printboek']) {
+    assert.ok(html.includes('id="' + id + '"'), 'id ontbreekt: ' + id);
+  }
+  assert.match(html, /function startScroll\(\)/);
+  assert.match(html, /function zetPodium\(aan\)/);
+  assert.match(html, /function maakBoek\(\)/);
+  assert.match(html, /function pasOefenTempoToe\(l, herstart\)/);
+  assert.match(html, /function zetLusPunt\(welk\)/);
+  assert.match(html, /function gehoordAkkoord\(analyser, ctx, akkoorden\)/);
+  assert.match(html, /getUserMedia\(\{ audio:/);
+  assert.match(html, /function controleerVersie\(\)/);
+  // de meescrollen bewaart de halve pixels, anders schuift de pagina nooit
+  assert.match(html, /scroll\.rest = \(scroll\.rest \|\| 0\) \+ scroll\.snelheid \* seconden/);
+  // de lus springt in de animatielus terug
+  assert.match(html, /a\.currentTime = lus\.a\.seconden/);
+  // het boek is het enige wat op papier komt
+  assert.match(html, /html\.boek-zichtbaar #printboek\{display:block!important/);
+  // de akkoordherkenning gebruikt de grepen uit de API
+  assert.match(html, /greepVan\(naam\)/);
+  assert.match(html, /toonklassenVanMidi/);
+});

@@ -1,0 +1,42 @@
+[
+  {
+    "beeld": "docs/img/mijn-lijstjes.png",
+    "stem": "v1.mp3",
+    "tekst": "Je eigen favorieten, labels en speelgeschiedenis — per profiel"
+  },
+  {
+    "beeld": "docs/img/podium.png",
+    "stem": "v2.mp3",
+    "tekst": "Podiummodus: alleen het liedje, groot op het scherm"
+  },
+  {
+    "beeld": "docs/img/meescrollen.png",
+    "stem": "v3.mp3",
+    "tekst": "Meescrollen op jouw tempo, met spatie starten en stoppen"
+  },
+  {
+    "beeld": "docs/img/oefenen.png",
+    "stem": "v4.mp3",
+    "tekst": "Vertragen naar zestig procent en een lus over twee maten"
+  },
+  {
+    "beeld": "docs/img/microfoon.png",
+    "stem": "v5.mp3",
+    "tekst": "De app luistert mee of je het juiste akkoord pakt"
+  },
+  {
+    "beeld": "docs/img/oefencijfers.png",
+    "stem": "v6.mp3",
+    "tekst": "Je oefencijfers: minuten, dagen op een rij en je akkoorden"
+  },
+  {
+    "beeld": "docs/img/boek.png",
+    "stem": "v7.mp3",
+    "tekst": "Van je hele selectie een liedjesboek maken om te printen"
+  },
+  {
+    "beeld": "docs/img/beheer.png",
+    "stem": "v8.mp3",
+    "tekst": "Zien welke versie er draait en in één klik bijwerken"
+  }
+]

@@ -401,6 +401,11 @@
   @media (max-width:760px){
     body.podium .blad .regel{font-size:1.22rem;line-height:2}
   }
+  .code-klein{margin-top:8px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.74rem;
+    color:var(--tekst2);background:#0a1020;border:1px solid var(--lijn);border-radius:10px;padding:9px 11px;
+    overflow-wrap:anywhere;line-height:1.5}
+  .pilletje.goed{background:#34d39922;border-color:#34d39966;color:#9df3cd}
+  .pilletje.half{background:#f5a52422;border-color:#f5a52466;color:var(--amber2)}
   /* ------- leermodus ------- */
   .leren-kop{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
   .voortgang{flex:1 1 240px;min-width:200px}
@@ -608,6 +613,11 @@
             <input id="trein-set" type="text" list="trein-sets" value="Em Am C" autocomplete="off"
               placeholder="Em Am C">
             <div class="les-klein" id="trein-set-melding" style="margin-top:4px"></div>
+            <div class="rij" style="margin-top:8px">
+              <button class="knop zacht" id="trein-luister">🎤 Luister mee</button>
+              <span class="pilletje" id="trein-gehoord">nog niets gehoord</span>
+              <span class="les-klein" id="trein-luister-stand">De app luistert via je microfoon en zegt welk akkoord hij hoort.</span>
+            </div>
             <datalist id="trein-sets">
               <option value="Em Am C">Beginner: Em · Am · C</option>
               <option value="C G D7">Eerste liedjes: C · G · D7</option>
@@ -754,6 +764,24 @@
         <p>Plak of kies een bestand met meerdere liedjes die elk met <code>{title: …}</code> beginnen. Elk liedje wordt apart opgeslagen.
           Deze app levert zelf publiek-domein liedjes mee; liedjes met auteursrecht voeg je toe als eigen invoer, net als de audio.</p>
       </details>
+    </div>
+
+    <div class="kaart">
+      <h2>Beheer en bijwerken</h2>
+      <div class="chips">
+        <span class="chip">versie <span id="versie-nummer">…</span></span>
+        <span class="chip">laatste aanpassing <span id="versie-commit">…</span></span>
+        <span class="chip"><span id="versie-liedjes">…</span> liedjes</span>
+      </div>
+      <div class="rij" style="margin-top:10px">
+        <button class="knop zacht" id="versie-controle">Controleer op een nieuwe versie</button>
+        <button class="knop zacht" id="versie-update">Bijwerken</button>
+      </div>
+      <div class="melding" id="versie-melding" hidden></div>
+      <div class="les-klein" style="margin-top:8px">Staat er iets nieuws op GitHub, dan meldt de app dat hier.
+        Bijwerken zelf gebeurt op je Proxmox-host, want daar horen de rechten bij te zitten; de app kan het
+        wel doen als er op deze machine een update-script klaarstaat.</div>
+      <div class="code-klein" id="versie-commando"></div>
     </div>
   </section>
 
@@ -1100,6 +1128,49 @@ function debounce(fn, ms) {
   return function () { clearTimeout(t); t = setTimeout(fn, ms); };
 }
 
+// -------------------------------------------------------- beheer en versie ---
+function laadVersie() {
+  api('/api/versie').then(function (data) {
+    $('versie-nummer').textContent = data.versie;
+    $('versie-commit').textContent = data.commit || 'onbekend';
+    $('versie-liedjes').textContent = data.liedjes;
+    $('versie-commando').textContent = data.updateMogelijk
+      ? 'Bijwerken kan hier: ' + data.updateScript
+      : 'Op de Proxmox-host: ' + data.updateCommando;
+    $('versie-update').disabled = !data.updateMogelijk;
+    $('versie-update').title = data.updateMogelijk
+      ? 'Werkt deze installatie bij en herstart de dienst'
+      : 'Draai het bijwerk-commando op je Proxmox-host';
+  }).catch(function () {});
+}
+
+function controleerVersie() {
+  toonMelding('versie-melding', 'Even kijken wat er op GitHub staat…');
+  api('/api/versie/controle').then(function (data) {
+    if (data.laatste.fout) { toonMelding('versie-melding', data.laatste.fout, 'fout'); return; }
+    if (data.nieuwer) {
+      toonMelding('versie-melding', 'Er staat iets nieuws klaar: "' + data.laatste.boodschap + '" (' +
+        data.laatste.sha + '). ' + (data.updateMogelijk
+          ? 'Druk op Bijwerken om het te halen.'
+          : 'Draai het commando hieronder op je host.'), 'goed');
+    } else {
+      toonMelding('versie-melding', 'Je draait de nieuwste versie (' + data.hier + ').', 'goed');
+    }
+  }).catch(function (e) { toonMelding('versie-melding', e.message, 'fout'); });
+}
+
+function werkBij() {
+  toonMelding('versie-melding', 'Bezig met bijwerken…');
+  api('/api/update', { method: 'POST' }).then(function (data) {
+    toonMelding('versie-melding', 'Bijgewerkt. ' + (data.uitvoer || '').split('\n').slice(-3).join(' '), 'goed');
+    setTimeout(function () { location.reload(); }, 2500);
+  }).catch(function (e) { toonMelding('versie-melding', e.message, 'fout'); laadVersie(); });
+}
+
+$('versie-controle').addEventListener('click', controleerVersie);
+$('versie-update').addEventListener('click', werkBij);
+laadVersie();
+
 // ------------------------------------------------------------ liedjesboek ---
 // Van de huidige selectie één document maken: titelblad, inhoudsopgave en elk liedje
 // op een eigen pagina, met de grepen en de bladmuziek. Printen doet de browser zelf
@@ -1221,6 +1292,22 @@ function tekenLiedje(l) {
         '<button class="knop zacht" id="scroll-terug">Halve pagina terug</button>' +
         '<button class="knop zacht" id="scroll-verder">Halve pagina verder</button>' +
         '<span class="les-klein" id="scroll-hint">Spatie start en stopt, de pijltjes schuiven een halve pagina.</span>' +
+      '</div>' +
+
+      '<div class="rij oefen-gereedschap">' +
+        '<label for="oefen-tempo">Oefentempo</label>' +
+        '<select id="oefen-tempo">' +
+          '<option value="1">100% — gewoon tempo</option>' +
+          '<option value="0.8">80% — rustiger</option>' +
+          '<option value="0.7">70% — oefentempo</option>' +
+          '<option value="0.6">60% — langzaam</option>' +
+          '<option value="0.5">50% — heel langzaam</option>' +
+        '</select>' +
+        '<span class="pilletje" id="oefen-stand"></span>' +
+        '<button class="knop zacht" id="lus-a" title="Beginpunt van de lus op deze maat">A</button>' +
+        '<button class="knop zacht" id="lus-b" title="Eindpunt van de lus op deze maat">B</button>' +
+        '<button class="knop zacht" id="lus-aan">Lus aan</button>' +
+        '<span class="les-klein" id="lus-stand">Speel het liedje en zet A en B op de maten waar je aan werkt.</span>' +
       '</div>' +
 
       '<h3>Capostand</h3>' +
@@ -1346,6 +1433,20 @@ function tekenLiedje(l) {
   // meescrollen en podium: knoppen koppelen en de stand van dit toestel terugzetten
   zetScrollSnelheid(scrollSnelheid());
   stopScroll();
+  // oefentempo en lus: het liedje onthoudt zijn eigen basistempo, zodat het percentage
+  // klopt als je eerder al een keer langzamer hebt gespeeld
+  l.basisTempo = l.basisTempo || l.tempo;
+  MEES.lus = { a: null, b: null, aan: false };
+  MEES.loop = false;
+  $('oefen-tempo').value = '1';
+  toonOefenStand(l, l.basisTempo, 1);
+  toonLusStand();
+  $('oefen-tempo').addEventListener('change', function () {
+    pasOefenTempoToe(l, !!(staat.meespelen && staat.meespelen.speelt));
+  });
+  $('lus-a').addEventListener('click', function () { zetLusPunt('a'); });
+  $('lus-b').addEventListener('click', function () { zetLusPunt('b'); });
+  $('lus-aan').addEventListener('click', wisselLus);
   $('scroll-knop').addEventListener('click', wisselScroll);
   $('scroll-sneller').addEventListener('click', function () { zetScrollSnelheid(scroll.snelheid + 4); });
   $('scroll-langzamer').addEventListener('click', function () { zetScrollSnelheid(scroll.snelheid - 4); });
@@ -1432,6 +1533,204 @@ function tekenLiedje(l) {
         .catch(function (e) { toonMelding('speler-melding', e.message, 'fout'); });
     });
   }
+}
+
+// ----------------------------------------------- meeluisteren met de microfoon ---
+// De microfoon horen welke noten er klinken en daar het akkoord bij zoeken. We doen
+// dat met de frequentiebank die de browser zelf al heeft: elke toon krijgt een
+// toonklasse (C, C#, D, ...) en we vergelijken dat met de klassen van elk akkoord uit
+// de reeks. Geen server, geen bibliotheek, geen opname die bewaard wordt.
+var LUISTER = { aan: false, stream: null, ctx: null, analyser: null, timer: null, goed: 0, fout: 0, laatst: '' };
+
+function toonklassenVanMidi(midiLijst) {
+  var klassen = {};
+  midiLijst.forEach(function (m) { klassen[((m % 12) + 12) % 12] = true; });
+  return Object.keys(klassen).map(Number);
+}
+
+function kiesAnalyserNode(stream) {
+  var ctx = leerCtx() || new (window.AudioContext || window.webkitAudioContext)();
+  var bron = ctx.createMediaStreamSource(stream);
+  var analyser = ctx.createAnalyser();
+  analyser.fftSize = 4096;
+  analyser.smoothingTimeConstant = 0.35;
+  bron.connect(analyser);
+  return { ctx: ctx, analyser: analyser };
+}
+
+// Welk akkoord klinkt er? Uit het spectrum halen we per toonklasse de sterkste
+// uitslag, en die vergelijken we met de akkoorden uit de reeks.
+function gehoordAkkoord(analyser, ctx, akkoorden) {
+  var data = new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(data);
+  var perKlasse = new Array(12).fill(0);
+  var laagste = Math.round(70 * analyser.fftSize / ctx.sampleRate);
+  var hoogste = Math.round(1200 * analyser.fftSize / ctx.sampleRate);
+  for (var i = Math.max(1, laagste); i < Math.min(data.length, hoogste); i++) {
+    var waarde = data[i];
+    if (waarde < 40) continue;                     // ruis overslaan
+    var freq = i * ctx.sampleRate / analyser.fftSize;
+    var midi = Math.round(69 + 12 * Math.log2(freq / 440));
+    var klasse = ((midi % 12) + 12) % 12;
+    if (waarde > perKlasse[klasse]) perKlasse[klasse] = waarde;
+  }
+  var hoogsteWaarde = Math.max.apply(null, perKlasse);
+  if (!hoogsteWaarde) return null;
+  var genormaliseerd = perKlasse.map(function (v) { return v / hoogsteWaarde; });
+
+  var beste = null;
+  akkoorden.forEach(function (naam) {
+    var g = greepVan(naam);
+    if (!g || !g.noten) return;
+    var klassen = toonklassenVanMidi(g.noten);
+    var som = 0;
+    klassen.forEach(function (k) { som += genormaliseerd[k]; });
+    var score = som / klassen.length;
+    // tonen die niet in het akkoord horen, trekken de score omlaag
+    genormaliseerd.forEach(function (v, k) {
+      if (klassen.indexOf(k) < 0) score -= v * 0.12;
+    });
+    if (!beste || score > beste.score) beste = { naam: naam, score: score };
+  });
+  if (!beste || beste.score < 0.35) return null;
+  return beste;
+}
+
+function startLuisteren() {
+  if (LUISTER.aan) return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    toonMelding('trein-luister-melding', 'Deze browser kan niet bij de microfoon.', 'fout');
+    return;
+  }
+  navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } })
+    .then(function (stream) {
+      var knoppen = kiesAnalyserNode(stream);
+      LUISTER.aan = true;
+      LUISTER.stream = stream;
+      LUISTER.ctx = knoppen.ctx;
+      LUISTER.analyser = knoppen.analyser;
+      LUISTER.goed = 0;
+      LUISTER.fout = 0;
+      LUISTER.laatst = '';
+      $('trein-luister').textContent = '🎤 Stop met luisteren';
+      $('trein-luister').className = 'knop goed';
+      $('trein-luister-stand').textContent = 'Ik luister. Pak het akkoord dat in beeld staat en sla de snaren aan.';
+      var tik = function () {
+        if (!LUISTER.aan) return;
+        var gehoord = gehoordAkkoord(LUISTER.analyser, LUISTER.ctx, trainer.akkoorden.length ? trainer.akkoorden : ['Em']);
+        var doel = trainer.akkoorden[trainer.index % Math.max(1, trainer.akkoorden.length)];
+        if (gehoord) {
+          var goed = gehoord.naam === doel;
+          if (gehoord.naam !== LUISTER.laatst) {
+            LUISTER.laatst = gehoord.naam;
+            if (goed) LUISTER.goed++; else LUISTER.fout++;
+          }
+          $('trein-gehoord').textContent = 'gehoord: ' + gehoord.naam +
+            (goed ? ' — dat is hem!' : ' (in beeld: ' + doel + ')');
+          $('trein-gehoord').className = 'pilletje ' + (goed ? 'goed' : 'half');
+        }
+        LUISTER.timer = requestAnimationFrame(tik);
+      };
+      tik();
+    })
+    .catch(function (e) {
+      toonMelding('trein-luister-melding', 'Geen toegang tot de microfoon: ' + e.message, 'fout');
+    });
+}
+
+function stopLuisteren() {
+  if (!LUISTER.aan) return;
+  LUISTER.aan = false;
+  cancelAnimationFrame(LUISTER.timer);
+  try { LUISTER.stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+  LUISTER.stream = null;
+  $('trein-luister').textContent = '🎤 Luister mee';
+  $('trein-luister').className = 'knop zacht';
+  if (LUISTER.goed || LUISTER.fout) {
+    $('trein-luister-stand').innerHTML = 'Klaar: <strong>' + LUISTER.goed + ' keer goed</strong>' +
+      (LUISTER.fout ? ' en ' + LUISTER.fout + ' keer ernaast' : '') + '.';
+    $('trein-gehoord').textContent = 'gestopt';
+    $('trein-gehoord').className = 'pilletje';
+  } else {
+    $('trein-luister-stand').textContent = 'De app luistert via je microfoon en zegt welk akkoord hij hoort.';
+  }
+}
+
+// --------------------------------------------------- oefentempo en A/B-lus ---
+// Vertragen: de begeleiding wordt op een lager tempo opnieuw gemaakt, dus de noten
+// klinken even hoog en alleen het tempo zakt. De gekozen stand hoort bij het liedje
+// dat je open hebt.
+function oefenFactor() {
+  var sel = $('oefen-tempo');
+  return sel ? Math.max(0.4, Math.min(1, Number(sel.value) || 1)) : 1;
+}
+
+function pasOefenTempoToe(l, herstart) {
+  var factor = oefenFactor();
+  var tempo = Math.max(40, Math.min(200, Math.round((l.basisTempo || l.tempo) * factor)));
+  var veld = $('speler-tempo');
+  if (veld) veld.value = String(tempo);
+  toonOefenStand(l, tempo, factor);
+  if (herstart) meespelHerlaad(Object.assign({}, l, { tempo: tempo }));
+}
+
+function toonOefenStand(l, tempo, factor) {
+  var stand = $('oefen-stand');
+  if (stand) {
+    stand.textContent = Math.round(factor * 100) + '% · ' + tempo + ' BPM' +
+      (factor < 1 ? ' (was ' + (l.basisTempo || l.tempo) + ')' : '');
+  }
+}
+
+// De maat waar de cursor nu staat, met de tijd waarop die begint. Daar zetten we de
+// luspunten neer: A waar je begint, B waar hij terugspringt.
+function huidigeMaat() {
+  var s = staat.meespelen;
+  if (!s || !s.tijdlijn) return null;
+  var t = meespeelTijd();
+  var maten = s.tijdlijn.maten;
+  var gekozen = maten[0];
+  for (var i = 0; i < maten.length; i++) if (maten[i].startSeconden <= t) gekozen = maten[i];
+  return gekozen;
+}
+
+function zetLusPunt(welk) {
+  var maat = huidigeMaat();
+  if (!maat) { toonMelding('speler-melding', 'Zet eerst de begeleiding of het meespelen aan.', 'fout'); return; }
+  MEES.lus = MEES.lus || { a: null, b: null, aan: false };
+  if (welk === 'a') {
+    MEES.lus.a = { maat: maat.nummer, seconden: maat.startSeconden };
+    if (MEES.lus.b && MEES.lus.b.seconden <= MEES.lus.a.seconden + 0.2) MEES.lus.b = null;
+  } else {
+    MEES.lus.b = { maat: maat.nummer + 1, seconden: maat.startSeconden + (maat.duurSeconden || 0) };
+  }
+  toonLusStand();
+}
+
+function toonLusStand() {
+  var vak = $('lus-stand');
+  if (!vak) return;
+  var l = MEES.lus || {};
+  if (l.a && l.b) {
+    vak.innerHTML = '<strong>Lus:</strong> maat ' + l.a.maat + ' → ' + l.b.maat + ' ' +
+      (l.aan ? '· speelt rondjes' : '· zet hem aan met de knop');
+  } else {
+    vak.textContent = 'Speel het liedje en zet A en B op de maten waar je aan werkt.';
+  }
+  var knop = $('lus-aan');
+  if (knop) knop.className = 'knop ' + (l.aan ? 'goed' : 'zacht');
+  if (knop) knop.textContent = l.aan ? 'Lus uit' : 'Lus aan';
+}
+
+function wisselLus() {
+  MEES.lus = MEES.lus || { a: null, b: null, aan: false };
+  if (!MEES.lus.a || !MEES.lus.b) {
+    toonMelding('speler-melding', 'Zet eerst A (begin) en B (eind) met de knoppen.', 'fout');
+    return;
+  }
+  MEES.lus.aan = !MEES.lus.aan;
+  MEES.loop = MEES.lus.aan;
+  toonLusStand();
 }
 
 // --------------------------------------------------- meescrollen en podium ---
@@ -2077,6 +2376,13 @@ function meespelTik() {
   if (!s || !a || !MEES.audioEl || a !== MEES.audioEl) { MEES.loop = false; return; }
   var tl = s.tijdlijn;
   var t = meespeelTijd();
+  // de A/B-lus: voorbij B springen we terug naar A, zodat je dat ene stukje blijft
+  // herhalen tot het zit
+  var lus = MEES.lus;
+  if (lus && lus.aan && lus.a && lus.b && t >= lus.b.seconden) {
+    try { a.currentTime = lus.a.seconden; } catch (e) {}
+    t = lus.a.seconden;
+  }
   if (t > tl.duurSeconden + 3) { MEES.loop = false; return; }
   var i, iMaat = 0, iSlag = -1, iNoot = -1;
   for (i = 0; i < tl.maten.length; i++) if (tl.maten[i].startSeconden <= t) iMaat = i;
@@ -3139,6 +3445,7 @@ function stopTrainer(zonderMelding) {
   var seconden = Math.round((Date.now() - trainer.start) / 1000);
   if (seconden >= 3 && !zonderMelding) {
     bewaarOefensessie('trainer', seconden, trainer.wissels, trainer.akkoorden);
+    if (LUISTER.aan) stopLuisteren();
     leerBij('minuten', Math.max(0, Math.round(seconden / 60)));
     leerBij('oefeningen', 1);
     leerBij('wissels', trainer.wissels);
@@ -3364,9 +3671,13 @@ function laadLeren() {
   $('trein-set').addEventListener('blur', function () { kiesTrainerSet(); });
   $('ritme-start').addEventListener('click', startRitme);
   $('ritme-stop').addEventListener('click', stopRitme);
+  $('trein-luister').addEventListener('click', function () {
+    if (LUISTER.aan) stopLuisteren(); else startLuisteren();
+  });
 }
 
 document.addEventListener('visibilitychange', function () {
+  if (document.hidden && LUISTER.aan) stopLuisteren();
   if (document.hidden) { stopTrainer(true); stopRitme(); }
 });
 

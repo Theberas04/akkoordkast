@@ -26,6 +26,12 @@ const CAST_PYTHON = process.env.CAST_PYTHON || 'python3';
 const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
+const GESTART = new Date().toISOString();
+const VERSIE = '1.1';
+// Een update-script binnen de container mag alleen als het er echt staat en
+// uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
+// gebeuren (daar zit pct en systemctl).
+const UPDATE_SCRIPT = process.env.UPDATE_SCRIPT || '';
 
 fs.mkdirSync(MEDIA_DIR, { recursive: true });
 fs.mkdirSync(path.join(MEDIA_DIR, 'audio'), { recursive: true });
@@ -244,6 +250,49 @@ function oefenstatistieken(profielId, dagen) {
     reeksDagen,
     geoefendeAkkoorden: lastige
   };
+}
+
+// ------------------------------------------------------------------- versie ---
+function korteCommit() {
+  const r = spawnSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: __dirname, encoding: 'utf8', timeout: 5000 });
+  return r && r.status === 0 ? String(r.stdout || '').trim() : '';
+}
+
+function updateMogelijk() {
+  if (!UPDATE_SCRIPT) return false;
+  try {
+    return fs.existsSync(UPDATE_SCRIPT) && !!(fs.statSync(UPDATE_SCRIPT).mode & 0o111);
+  } catch (e) { return false; }
+}
+
+// De opdracht die de gebruiker op de host moet draaien als bijwerken vanuit de app
+// niet kan. Bewust letterlijk, zodat hij hem kan kopiëren.
+function updateCommando() {
+  return 'bash -c "$(curl -fsSL https://raw.githubusercontent.com/Theberas04/akkoordkast/main/deploy/proxmox/update-from-github.sh)" <CTID>';
+}
+
+// Wat staat er op GitHub? Alleen om te melden dat er iets nieuws is; lukt het niet
+// (geen internet), dan zeggen we dat gewoon.
+async function laatsteVersieOpGitHub() {
+  const controller = new AbortController();
+  const stop = setTimeout(() => controller.abort(), 6000);
+  try {
+    const antwoord = await fetch('https://api.github.com/repos/Theberas04/akkoordkast/commits/main', {
+      headers: { 'accept': 'application/vnd.github+json', 'user-agent': 'akkoordkast' },
+      signal: controller.signal
+    });
+    if (!antwoord.ok) throw new Error('GitHub antwoordde ' + antwoord.status);
+    const data = await antwoord.json();
+    return {
+      sha: String(data.sha || '').slice(0, 7),
+      boodschap: String((data.commit && data.commit.message) || '').split('\n')[0].slice(0, 120),
+      datum: String((data.commit && data.commit.author && data.commit.author.date) || '')
+    };
+  } catch (e) {
+    return { fout: 'Kon GitHub niet bereiken: ' + e.message };
+  } finally {
+    clearTimeout(stop);
+  }
 }
 
 // ------------------------------------------------------------ eigen liedjes ---
@@ -1226,6 +1275,54 @@ async function verwerk(req, res) {
       aantalFavorieten: p.favorieten.length,
       aantalLabels: p.labels.length
     });
+    return;
+  }
+
+  // --- versie en bijwerken ---
+  if (pad === '/api/versie' && methode === 'GET') {
+    json(res, 200, {
+      versie: VERSIE,
+      commit: korteCommit(),
+      gestart: GESTART,
+      liedjes: bron.alle().length,
+      updateMogelijk: updateMogelijk(),
+      updateScript: updateMogelijk() ? UPDATE_SCRIPT : '',
+      updateCommando: updateCommando()
+    });
+    return;
+  }
+  if (pad === '/api/versie/controle' && methode === 'GET') {
+    const laatste = await laatsteVersieOpGitHub();
+    const hier = korteCommit();
+    const nieuwer = !!(laatste.sha && hier && laatste.sha !== hier && !hier.startsWith(laatste.sha));
+    json(res, 200, {
+      hier: hier,
+      laatste: laatste,
+      nieuwer: nieuwer,
+      updateMogelijk: updateMogelijk(),
+      updateCommando: updateCommando()
+    });
+    return;
+  }
+  if (pad === '/api/update' && methode === 'POST') {
+    if (!updateMogelijk()) {
+      json(res, 400, {
+        fout: 'Bijwerken vanuit de app staat niet aan op deze machine. Draai de opdracht hieronder op je Proxmox-host.',
+        commando: updateCommando()
+      });
+      return;
+    }
+    const r = spawnSync('bash', [UPDATE_SCRIPT], { cwd: __dirname, encoding: 'utf8', timeout: 180000 });
+    const uitvoer = ((r.stdout || '') + (r.stderr || '')).slice(-4000);
+    if (r.status === 0) {
+      json(res, 200, { ok: true, uitvoer: uitvoer, commando: UPDATE_SCRIPT });
+    } else {
+      json(res, 500, {
+        fout: 'Het bijwerken stopte met code ' + r.status + '. De oude versie blijft draaien.',
+        uitvoer: uitvoer,
+        commando: UPDATE_SCRIPT
+      });
+    }
     return;
   }
 

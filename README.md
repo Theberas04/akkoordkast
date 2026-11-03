@@ -21,6 +21,8 @@ Die begeleiding cast je naar een Chromecast in je netwerk.
 [installeren op Proxmox](#installeren-op-je-proxmox-host) · [zelf draaien](#zelf-draaien-zonder-container) ·
 [wat zit erin](#wat-zit-erin) · [de liedjes](#de-liedjes) · [gitaar leren spelen](#gitaar-leren-spelen) ·
 [muziek erbij zoeken](#muziek-of-video-erbij-zoeken) · [een muziekmap in één keer](#een-hele-muziekmap-in-één-keer) ·
+[spelen op het podium](#spelen-op-het-podium) · [oefenen met moeilijke stukken](#oefenen-met-moeilijke-stukken) ·
+[jouw eigen lijstjes](#jouw-eigen-lijstjes) · [beheer en bijwerken](#beheer-en-bijwerken) ·
 [Spotify](#spotify) · [hoe het werkt](#hoe-het-werkt) · [tests](#tests) · [licentie](#licentie)
 
 | Scherm | Wat je ziet |
@@ -37,6 +39,12 @@ Die begeleiding cast je naar een Chromecast in je netwerk.
 | ![muziekmap](docs/img/muziekmap-klaar.png) | **Een hele muziekmap in één keer** — geef een map op deze machine op en elk nummer erin wordt een eigen liedje met akkoordschema, tempo en toonsoort. |
 | ![leren](docs/img/leren-cursus.png) | **Gitaar leren spelen** — zesentwintig lessen in vier delen, van "hoe houd ik hem vast" tot een oefenplan dat je volhoudt, met per les een oefening in de app en je voortgang bewaard op je toestel. |
 | ![akkoordentrainer](docs/img/leren-trainer.png) | **Akkoordentrainer** — metronoom, een set akkoorden naar keuze en het volgende akkoord alvast in beeld, want daar gaat het bij leren wisselen om. |
+| ![podium](docs/img/podium.png) | **Podiummodus en meescrollen** — alleen het liedje op het scherm, groot en rustig, terwijl de pagina zelf meeschuift op jouw tempo; met spatie start en stop je het schuiven en met de pijltjes ga je een halve pagina verder. |
+| ![mijn lijstjes](docs/img/mijn-lijstjes.png) | **Profielen, favorieten en labels** — elk gezinslid heeft eigen favorieten, eigen labels (bruiloft, kroeg, kerk) en een eigen speelgeschiedenis; filter met één klik op je eigen lijstje. |
+| ![oefenen](docs/img/oefenen.png) | **Vertragen en een stukje herhalen** — zet het liedje op 60% zodat het rustig blijft klinken (de tonen blijven even hoog), zet met A en B een lus over juist die twee maten en speel ze tot ze zitten. |
+| ![meeluisteren](docs/img/microfoon.png) | **De app luistert mee** — met de microfoon hoort de app welk akkoord je pakt en zegt of dat het akkoord is dat in beeld staat. Alles in de browser, er wordt niets opgenomen of verstuurd. |
+| ![liedjesboek](docs/img/boek.png) | **Een liedjesboek maken** — van je hele selectie één document met titelblad, inhoudsopgave en elk liedje op een eigen pagina met de grepen en de bladmuziek; printen doe je met de printknop van de browser (Bewaar als PDF). |
+| ![beheer](docs/img/beheer.png) | **Beheer en bijwerken** — welke versie er draait, of er iets nieuws klaarstaat op GitHub, en in één klik bijwerken als deze machine daarop is ingericht. |
 | ![start/stop](docs/img/start-stop.png) | **Start en stop bij het spelen** — naast de speler staan twee gewone knoppen (Start en Stop) met de stand ernaast; Stop zet de muziek ook echt terug naar het begin. |
 | ![tekst](docs/img/liedjestekst-bij-opname.png) | **De liedjestekst erbij** — lijkt de bestandsnaam op een liedje uit de bibliotheek, dan krijg je de tekst van dat liedje erbij te lezen, met de akkoorden uit jouw opname erboven. |
 
@@ -249,6 +257,48 @@ Wil je ook *in* Spotify zoeken, vul dan bij **Casten → Spotify** een eigen Cli
 op `developer.spotify.com/dashboard`). Die sleutels blijven in de database van deze server staan. Afspelen op afstand
 (Spotify Connect) vraagt daarnaast een accountkoppeling met inlog; daar is nog geen knop voor.
 
+## Spelen op het podium
+
+Voor het echte werk — repetitie of optreden — zit er een **podiummodus** in. Eén klik en het menu, de kop en alle
+uitleg verdwijnen; de bladmuziek staat op anderhalve regelafstand en de grepen worden groter. Met **meescrollen**
+schuift de pagina zelf door terwijl je speelt: de snelheid stel je in en blijft per toestel bewaard, spatie start en
+stopt, PageUp en PageDown schuiven een halve pagina. Escape (of de p) brengt je terug in de gewone weergave.
+
+En wil je een **liedjesboek** meenemen naar de repetitie, dan maakt de app van je huidige selectie (tot veertig
+liedjes) één document: een titelblad, een inhoudsopgave en elk liedje op een eigen pagina met de grepen en de
+bladmuziek erbij. Op het scherm zie je eerst een voorbeeld, waarna de printknop van de browser er een PDF van maakt.
+
+## Oefenen met moeilijke stukken
+
+- **Vertragen**: het liedje op 80%, 70%, 60% of 50% van het tempo. De begeleiding wordt op dat lagere tempo
+  opnieuw gemaakt, dus de noten blijven even hoog — alleen het tempo zakt.
+- **Een stukje herhalen**: zet met **A** en **B** een lus over de maten die je onder de knie wilt krijgen. De speler
+  springt steeds terug naar A, zodat je dat ene stukje blijft doen in plaats van het hele liedje opnieuw.
+- **Meeluisteren**: in het tabblad Leren kan de app via je microfoon horen welk akkoord je pakt en zeggen of dat
+  het akkoord is dat in beeld staat. Dat gebeurt allemaal in je browser met de frequentiebank van Web Audio; er
+  wordt niets opgenomen en niets verstuurd. Het is een hulpmiddel, geen scheidsrechter — een versterker of een
+  rammelende tafel kan de meting in de war sturen.
+
+## Jouw eigen lijstjes
+
+De app werkt met **profielen**: elk profiel heeft zijn eigen favorieten, zijn eigen labels en zijn eigen cijfers.
+Onderaan de kop kies je met wie je meekijkt (het toestel onthoudt die keuze). Daar hoort bij:
+
+- een **sterretje** bij elk liedje, in de lijst en in het spelscherm, en het filter *alleen mijn favorieten*;
+- **labels** die je zelf maakt (bruiloft, kroeg, kerk, kerst) en aan liedjes hangt, met een filter per label;
+- **laatst gespeeld**: de app onthoudt wat je wanneer opende, met een sortering *laatst gespeeld* en een lijstje in
+  het tabblad Leren;
+- **oefencijfers** in datzelfde tabblad: minuten geoefend, dagen op een rij, akkoordwissels, een grafiek van de
+  laatste veertien dagen en de akkoorden waar je het meest mee bezig bent. De trainer en de tik sturen hun sessie
+  naar de server, dus je hoeft niets bij te houden.
+
+## Beheer en bijwerken
+
+Onderaan het tabblad Toevoegen staat welke **versie** er draait en welke aanpassing daarbij hoort. Met één knop
+vraagt de app aan GitHub of er iets nieuws is; is dat zo, dan staat de titel van die aanpassing erbij. Bijwerken
+gebeurt op je Proxmox-host (daar horen de rechten bij te zitten) — de app laat het precieze commando zien, en kan
+het zelf doen als er op die machine een uitvoerbaar update-script klaarstaat (`UPDATE_SCRIPT=/pad/script`).
+
 ## Hoe het werkt
 
 | Onderdeel | Keuze |
@@ -263,7 +313,7 @@ op `developer.spotify.com/dashboard`). Die sleutels blijven in de database van d
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 94 tests: muziektheorie, API, pagina, datasets, deploy-scripts
+node --test test/*.test.js          # 102 tests: muziektheorie, API, pagina, datasets, persoonlijke laag, deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL
 ```

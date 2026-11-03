@@ -75,13 +75,12 @@ def hero():
         <h1>Akkoord<span class="amber">Kast</span></h1>
         <p class="sub">Bladmuziek voor gitaar met akkoorden,<br>capo-advies, grepen, noten en audio.</p>
         <div class="doos">
-          <span class="sterk">8.680 liedjes, vrij van rechten</span>
+          <span class="sterk">8.701 liedjes, vrij van rechten</span>
           <span class="pil">capo-advies &amp; grepen</span>
-          <span class="pil">meespelen met de noten</span>
+          <span class="pil">meespelen met noten en tab</span>
+          <span class="pil">cursus: 26 gitaarlessen</span>
           <span class="pil">eigen muziekmap in &eacute;&eacute;n keer</span>
-          <span class="pil">314 liedjes met tekst</span>
-          <span class="pil">Spotify</span>
-          <span class="pil">Chromecast</span>
+          <span class="pil">Spotify &amp; Chromecast</span>
         </div>
         <p class="sub" style="font-size:20px;margin-top:20px">Draait op je eigen Proxmox&#8209;server &middot; mobiel en op de pc</p>
       </div>

@@ -51,7 +51,10 @@ def maak_scene(index, scene, stem_dir, werk):
     if scene.get('telefoon'):
         schaal = "scale=-2:600,pad=1280:720:(ow-iw)/2:(oh-ih)/2:color=0x0b1120"
     else:
-        schaal = "scale=1280:-2,crop=1280:720"
+        # altijd precies 1280x720: eerst vergroten tot het beeld beide kanten vult,
+        # dan bijsnijden. Met scale=1280:-2 kan de hoogte net onder de 720 uitkomen
+        # en dan weigert crop.
+        schaal = "scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720"
     keten = ("[0:v]%s,setsar=1,fps=%d,"
              "drawbox=y=ih-104:h=104:color=0x0b1120@0.93:t=fill,"
              "drawtext=fontfile=%s:textfile=%s:fontsize=29:fontcolor=white:x=(w-text_w)/2:y=h-66,"

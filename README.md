@@ -55,6 +55,12 @@ Die begeleiding cast je naar een Chromecast in je netwerk.
 Een diashow van de echte schermen met Nederlandse voice-over:
 [`docs/img/rondleiding.mp4`](docs/img/rondleiding.mp4) (56 s, 1280x720, met geluid, demo-gegevens).
 
+En een tweede filmpje over wat er daarna bijgekomen is — de eigen lijstjes, de podiummodus, het
+meescrollen, het oefenen met een lus, het meeluisteren met de microfoon, de oefencijfers, het
+liedjesboek en het bijwerken:
+[`docs/img/nieuwe-functies.mp4`](docs/img/nieuwe-functies.mp4) (1 min 51, 1280x720, met geluid).
+Zo'n filmpje maak je opnieuw met `python3 scripts/maak-filmpje.py --scenes filmpjes/nieuwe-functies.json`.
+
 ## Installeren op je Proxmox-host
 
 Draai dit op de Proxmox-host zelf, als root:

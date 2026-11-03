@@ -41,7 +41,7 @@ def sh(*args):
 
 SCENES = [
     {'beeld': DOCS / 'liedjes-desktop.png', 'stem': 'n1.mp3',
-     'tekst': '26 publiek-domein liedjes, doorzoekbaar'},
+     'tekst': 'Meer dan duizend publiek-domein liedjes, doorzoekbaar'},
     {'beeld': DOCS / 'spelen-desktop.png', 'stem': 'n2.mp3',
      'tekst': 'Capo-advies en grepen per liedje'},
     {'beeld': DOCS / 'grepen-desktop.png', 'stem': 'n3.mp3',

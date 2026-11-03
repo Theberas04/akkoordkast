@@ -1,1809 +1,3076 @@
 {
   "bron": "http://openhymnal.org/Abc/",
   "licentie": "Public Domain",
-  "licentie_bewijs": "All hymns or hymn parts listed as \"public domain\" are not under copyright protection in the United States of America. In other words there is absolutely no ownership of the intellectual property that the words, translation, music, or setting represents.",
+  "licentie_bewijs": "All hymns or hymn parts listed as \"public domain\" are not under \ncopyright protection in the United States of America.  In other words \nthere is absolutely no ownership of the intellectual property that the \nwords, translation, music, or setting represents.\n\nNo one may restrict you from using these hymn parts in any way (in the \nUSA).  Similarly, you may not restrict others from using them in any \nway.  If you change a portion of the public domain work, you may only \nclaim copyright on the portion which you have changed.\n",
+  "licentie_bewijs_bron": "http://openhymnal.org/Abc/COPYING.public_domain",
+  "pd_verklaring_in_bestanden": "copyright: public domain.  This score is a part of the Open Hymnal Project, <jaar> Revision.",
   "opgehaald": "2026-11-03",
-  "aantal": 300,
+  "aantal_beschikbaar": 353,
+  "aantal": 330,
   "bestanden": [
     {
-      "bestand": "raw/A_Child_of_The_King-Binghamton.abc",
+      "bestand": "raw/a_child_of_the_king-binghamton.abc",
       "titel": "A Child of The King",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 268,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/A_Great_And_Mighty_Wonder-Es_Ist_Ein_Ros_Entsprungen.abc",
+      "bestand": "raw/a_great_and_mighty_wonder-es_ist_ein_ros_entsprungen.abc",
       "titel": "A Great and Mighty Wonder",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 184,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/A_Hymn_of_Glory_Let_Us_Sing-Lasst_Uns_Erfreuen.abc",
+      "bestand": "raw/a_hymn_of_glory_let_us_sing-lasst_uns_erfreuen.abc",
       "titel": "A Hymn of Glory Let Us Sing",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 322,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/A_Lamb_Goes_Uncomplaining_Forth-An_Wasserfluessen_Babylon.abc",
+      "bestand": "raw/a_lamb_goes_uncomplaining_forth-an_wasserfluessen_babylon.abc",
       "titel": "A Lamb Goes Uncomplaining Forth",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 703,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/A_Mighty_Fortress_Is_Our_God-Ein_Feste_Burg_Isorhythmic.abc",
+      "bestand": "raw/a_mighty_fortress_is_our_god-ein_feste_burg_isorhythmic.abc",
       "titel": "A Mighty Fortress Is Our God",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 270,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/A_Mighty_Fortress_Is_Our_God-Ein_Feste_Burg_Rhythmic.abc",
+      "bestand": "raw/a_mighty_fortress_is_our_god-ein_feste_burg_rhythmic.abc",
       "titel": "A Mighty Fortress Is Our God",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 280,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/A_Pilgrim_and_a_Stranger-Passion_Chorale-Herzlich_Tut_Mich_Verlangen.abc",
+      "bestand": "raw/a_pilgrim_and_a_stranger-passion_chorale-herzlich_tut_mich_verlangen.abc",
       "titel": "A Pilgrim and a Stranger",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 258,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Abide_O_Dearest_Jesus-Christus_Der_Ist_Mein_Leben.abc",
+      "bestand": "raw/abide_o_dearest_jesus-christus_der_ist_mein_leben.abc",
       "titel": "Abide, O Dearest Jesus",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 134,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Abide_With_Me-Eventide.abc",
+      "bestand": "raw/abide_with_me-eventide.abc",
       "titel": "Abide With Me",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 300,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/All_Creatures_Of_Our_God_And_King-Lasst_Uns_Erfreuen.abc",
+      "bestand": "raw/all_creatures_of_our_god_and_king-lasst_uns_erfreuen.abc",
       "titel": "All Creatures of Our God and King",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 348,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/All_Depends_On_Our_Possessing-Alles_ist_an_Gottes_Segen.abc",
+      "bestand": "raw/all_depends_on_our_possessing-alles_ist_an_gottes_segen.abc",
       "titel": "All Depends On Our Possessing",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 229,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/All_Glory_Laud_And_Honor-Valet_Will_Ich_Dir_Geben-St_Theodulph.abc",
+      "bestand": "raw/all_glory_laud_and_honor-valet_will_ich_dir_geben-st_theodulph.abc",
       "titel": "All Glory, Laud, and Honor",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 223,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/All_Hail_The_Power_Of_Jesus_Name-Coronation.abc",
+      "bestand": "raw/all_hail_the_power_of_jesus_name-coronation.abc",
       "titel": "All Hail The Power Of Jesus' Name",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 325,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/All_My_Heart_This_Night_Rejoices-Ebeling-Bonn-Warum_Sollt_Ich-All_My_Heart_This_Night.abc",
+      "bestand": "raw/all_my_heart_this_night_rejoices-ebeling-bonn-warum_sollt_ich-all_my_heart_this_night.abc",
       "titel": "All My Heart This Night Rejoices",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 376,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/All_People_That_On_Earth_Do_Dwell-Old_100th.abc",
+      "bestand": "raw/all_people_that_on_earth_do_dwell-old_100th.abc",
       "titel": "All People That On Earth Do Dwell",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 132,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/All_Praise_To_Thee_My_God_This_Night-Tallis_Canon.abc",
+      "bestand": "raw/all_praise_to_thee_my_god_this_night-tallis_canon.abc",
       "titel": "All Praise To Thee, My God, This Night",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 203,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/All_Praise_to_Jesus_Hallowed_Name-Gelobet_Seist_Du.abc",
+      "bestand": "raw/all_praise_to_jesus_hallowed_name-gelobet_seist_du.abc",
       "titel": "All Praise to Jesus' Hallowed Name",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 219,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/All_Who_Believe_And_Are_Baptized-Es_ist_das_Heil_uns_Kommen_her.abc",
+      "bestand": "raw/all_who_believe_and_are_baptized-es_ist_das_heil_uns_kommen_her.abc",
       "titel": "All Who Believe and Are Baptized",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 225,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Alleluia_Alleluia_Hearts_to_Heaven_and_Voices_Raise-Ode_To_Joy.abc",
+      "bestand": "raw/alleluia_alleluia_hearts_to_heaven_and_voices_raise-ode_to_joy.abc",
       "titel": "Alleluia, Alleluia! Hearts to Heaven and Voices Raise",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 248,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Alleluia_Sing_To_Jesus-Hyfrydol.abc",
+      "bestand": "raw/alleluia_sing_to_jesus-hyfrydol.abc",
       "titel": "Alleluia, Sing To Jesus!",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 308,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Almighty_God_Your_Word_Is_Cast-St_Anne.abc",
+      "bestand": "raw/almighty_god_your_word_is_cast-st_anne.abc",
       "titel": "Almighty God Your Word Is Cast",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 141,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Almighty_Lord_Before_Thy_Throne-Burford_Purcell.abc",
+      "bestand": "raw/almighty_lord_before_thy_throne-burford_purcell.abc",
       "titel": "Almighty Lord, Before Thy Throne",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 133,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Amazing_Grace-New_Britain.abc",
+      "bestand": "raw/amazing_grace-new_britain.abc",
       "titel": "Amazing Grace",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 203,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/And_Can_It_Be-Fillmore.abc",
+      "bestand": "raw/and_can_it_be-fillmore.abc",
       "titel": "And Can It Be",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 254,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Angel_Voices_Ever_Singing-Angel_Voices_Monk.abc",
+      "bestand": "raw/angel_voices_ever_singing-angel_voices_monk.abc",
       "titel": "Angel Voices, Ever Singing",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 171,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Angels_From_The_Realms_Of_Glory-Regent_Square.abc",
+      "bestand": "raw/angels_from_the_realms_of_glory-regent_square.abc",
       "titel": "Angels From the Realms of Glory",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 240,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Angels_We_Have_Heard_On_High-Gloria.abc",
+      "bestand": "raw/angels_we_have_heard_on_high-gloria.abc",
       "titel": "Angels We Have Heard On High",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 273,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/As_With_Gladness_Men_Of_Old-Dix.abc",
+      "bestand": "raw/as_with_gladness_men_of_old-dix.abc",
       "titel": "As With Gladness Men of Old",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 175,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Awake_My_Heart_With_Gladness-Auf_Auf_Mein_Herz_mit_Freuden.abc",
+      "bestand": "raw/awake_my_heart_with_gladness-auf_auf_mein_herz_mit_freuden.abc",
       "titel": "Awake, My Heart, With Gladness",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 226,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Awake_My_Soul_And_With_The_Sun-Old_100th.abc",
+      "bestand": "raw/awake_my_soul_and_with_the_sun-old_100th.abc",
       "titel": "Awake, My Soul, And With The Sun",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 132,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Away_In_A_Manger-Mueller.abc",
+      "bestand": "raw/away_in_a_manger-mueller.abc",
       "titel": "Away In A Manger",
+      "toonsoort": "F",
+      "aantal_stemmen": 2,
+      "aantal_noten": 131,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Baptized_Into_Your_Name_Most_Holy-O_Dass_Ich_Tausend_Zungen_Hatte_Dretzel.abc",
+      "bestand": "raw/baptized_into_your_name_most_holy-o_dass_ich_tausend_zungen_hatte_dretzel.abc",
       "titel": "Baptized Into Thy Name Most Holy",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 201,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Be_Still_My_Soul-Finlandia.abc",
+      "bestand": "raw/be_still_my_soul-finlandia.abc",
       "titel": "Be Still My Soul",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 275,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Be_Thou_My_Vision-Slane.abc",
+      "bestand": "raw/be_thou_my_vision-slane.abc",
       "titel": "Be Thou My Vision",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 188,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Beautiful_Savior-Crusaders_Hymn.abc",
+      "bestand": "raw/beautiful_savior-crusaders_hymn.abc",
       "titel": "Beautiful Savior",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 165,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Behold_A_Host_Arrayed_In_White-Den_Store_Hvide_Flok-Great_White_Host.abc",
+      "bestand": "raw/behold_a_host_arrayed_in_white-den_store_hvide_flok-great_white_host.abc",
       "titel": "Behold, A Host, Arrayed in White",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 444,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Beneath_The_Cross_Of_Jesus-St_Christopher.abc",
+      "bestand": "raw/beneath_the_cross_of_jesus-st_christopher.abc",
       "titel": "Beneath The Cross Of Jesus",
+      "toonsoort": "Db",
+      "aantal_stemmen": 4,
+      "aantal_noten": 228,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Blessed_Assurance-Blessed_Assurance-Assurance.abc",
+      "bestand": "raw/blessed_assurance-blessed_assurance-assurance.abc",
       "titel": "Blessed Assurance",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 292,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Blessed_Jesus_At_Thy_Word-Liebster_Jesu_wir_Sind_Hier.abc",
+      "bestand": "raw/blessed_jesus_at_thy_word-liebster_jesu_wir_sind_hier.abc",
       "titel": "Blessed Jesus at Thy Word",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 184,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Blest_Be_The_Tie_That_Binds-Boylston.abc",
+      "bestand": "raw/blest_be_the_tie_that_binds-boylston.abc",
       "titel": "Blest Be The Tie That Binds",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 140,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Blest_Be_The_Tie_That_Binds-Dennis.abc",
+      "bestand": "raw/blest_be_the_tie_that_binds-dennis.abc",
       "titel": "Blest Be The Tie That Binds",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 161,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Blind_Bartimaeus-Fillmore.abc",
+      "bestand": "raw/blind_bartimaeus-fillmore.abc",
       "titel": "Blind Bartimaeus",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 208,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Breathe_On_Me_Breath_Of_God-Aylesbury-Wirksworth.abc",
+      "bestand": "raw/breathe_on_me_breath_of_god-aylesbury-wirksworth.abc",
       "titel": "Breathe on Me, Breath of God",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 105,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Built_On_The_Rock-Kirken_Den_Er_Et_Gammelt_Hus.abc",
+      "bestand": "raw/built_on_the_rock-kirken_den_er_et_gammelt_hus.abc",
       "titel": "Built on the Rock",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 232,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/By_Grace_Im_Saved-O_Dass_Ich_Tansend_Zungen.abc",
+      "bestand": "raw/by_grace_im_saved-o_dass_ich_tansend_zungen.abc",
       "titel": "By Grace I'm Saved",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 497,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Christ_Arose-Christ_Arose.abc",
+      "bestand": "raw/christ_arose-christ_arose.abc",
       "titel": "Christ Arose",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 301,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Christ_Jesus_Lay_In_Deaths_Strong_Bands-Christ_Lag_in_Todes_Banden-Torgau.abc",
+      "bestand": "raw/christ_jesus_lay_in_deaths_strong_bands-christ_lag_in_todes_banden-torgau.abc",
       "titel": "Christ Jesus Lay In Death's Strong Bands",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 244,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Christ_Returneth-Christ_Returneth.abc",
+      "bestand": "raw/christ_returneth-christ_returneth.abc",
       "titel": "Christ Returneth",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 314,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Christ_The_Lord_Is_Risen_Today-Llanfair.abc",
+      "bestand": "raw/christ_the_lord_is_risen_today-llanfair.abc",
       "titel": "Christ The Lord Is Risen Today (Lyra)",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 238,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Christ_The_Lord_Is_Risen_Today-Orientis_Partibus-Redhead_45.abc",
+      "bestand": "raw/christ_the_lord_is_risen_today-orientis_partibus-redhead_45.abc",
       "titel": "Christ The Lord Is Risen Today (Lyra)",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 114,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Come_Down_O_Love_Divine-Down_Ampney.abc",
+      "bestand": "raw/come_down_o_love_divine-down_ampney.abc",
       "titel": "Come Down, O Love Divine",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 209,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Come_Forth_Come_On_With_Solemn_Song-Jeg_Har_Min_Sag_Til_Gud_Hjemstilt-My_All_I_To_My_God_Commend.abc",
+      "bestand": "raw/come_forth_come_on_with_solemn_song-jeg_har_min_sag_til_gud_hjemstilt-my_all_i_to_my_god_commend.abc",
       "titel": "Come Forth! Come On, with Solemn Song!",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 210,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Come_God_Creator_Holy_Ghost-Komm_Gott_Schoepfer.abc",
+      "bestand": "raw/come_god_creator_holy_ghost-komm_gott_schoepfer.abc",
       "titel": "Come, God Creator, Holy Ghost",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 200,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Come_Holy_Spirit_Lord_Our_God-Komm_Heiliger_Geist_Herre_Gott.abc",
+      "bestand": "raw/come_holy_spirit_lord_our_god-komm_heiliger_geist_herre_gott.abc",
       "titel": "Come Holy Spirit, Lord Our God",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 432,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Come_Thou_Fount-Nettleton.abc",
+      "bestand": "raw/come_thou_fount-nettleton.abc",
       "titel": "Come Thou Fount Of Every Blessing",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 245,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Come_Thou_Long_Expected_Jesus-Jefferson.abc",
+      "bestand": "raw/come_thou_long_expected_jesus-jefferson.abc",
       "titel": "Come, Thou Long-Expected Jesus",
+      "toonsoort": "C",
+      "aantal_stemmen": 3,
+      "aantal_noten": 222,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Come_Ye_Disconsolate-Consolator_Webbe.abc",
+      "bestand": "raw/come_ye_disconsolate-consolator_webbe.abc",
       "titel": "Come, Ye Disconsolate",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 173,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Come_Your_Heart_and_Voices_Raising-Quem_Pastores.abc",
+      "bestand": "raw/come_your_heart_and_voices_raising-quem_pastores.abc",
       "titel": "Come, Your Hearts and Voices Raising",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 245,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Comfort_Comfort_Ye_My_People-Freu_dich_sehr_o_meine_Seele.abc",
+      "bestand": "raw/comfort_comfort_ye_my_people-freu_dich_sehr_o_meine_seele.abc",
       "titel": "Comfort, Comfort Ye My People",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 241,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Creator_of_the_Stars_of_Night-Conditor_Alme_Siderum.abc",
+      "bestand": "raw/creator_of_the_stars_of_night-conditor_alme_siderum.abc",
       "titel": "Creator of the Stars of Night",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 164,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Creator_of_the_Stars_of_Night-Conditor_Alme_Siderum_stylized.abc",
+      "bestand": "raw/creator_of_the_stars_of_night-conditor_alme_siderum_stylized.abc",
       "titel": "Creator of the Stars of Night",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 164,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Crown_Him_With_Many_Crowns-Diademata.abc",
+      "bestand": "raw/crown_him_with_many_crowns-diademata.abc",
       "titel": "Crown Him With Many Crowns",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 209,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Day_of_Wrath_O_Day_of_Mourning-Dies_Irae_Dykes.abc",
+      "bestand": "raw/day_of_wrath_o_day_of_mourning-dies_irae_dykes.abc",
       "titel": "Day of Wrath, O Day of Mourning",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 206,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Dear_Christians_One_And_All_Rejoice-Es_ist_Gewisslich_an_der_Zeit.abc",
+      "bestand": "raw/dear_christians_one_and_all_rejoice-es_ist_gewisslich_an_der_zeit.abc",
       "titel": "Dear Christians, One and All Rejoice",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 229,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Dear_Christians_One_And_All_Rejoice-Nun-Freut-Euch.abc",
+      "bestand": "raw/dear_christians_one_and_all_rejoice-nun-freut-euch.abc",
       "titel": "Dear Christians, One and All Rejoice",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 225,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Despair_Not_O_Heart-Med_Sorgen_Og_Klagen-Despair_Not_O_Heart-Jam_Moesta-Iam_Moesta.abc",
+      "bestand": "raw/despair_not_o_heart-med_sorgen_og_klagen-despair_not_o_heart-jam_moesta-iam_moesta.abc",
       "titel": "Despair Not, O Heart",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 281,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Did_You_Think_To_Pray-Stockbridge.abc",
+      "bestand": "raw/did_you_think_to_pray-stockbridge.abc",
       "titel": "Did You Think To Pray?",
+      "toonsoort": "F",
+      "aantal_stemmen": 2,
+      "aantal_noten": 242,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Evening_and_Morning-Die_Guldne_Sonne-Franconia_Ebeling-Philippi.abc",
+      "bestand": "raw/evening_and_morning-die_guldne_sonne-franconia_ebeling-philippi.abc",
       "titel": "Evening and Morning",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 252,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Every_Morning_Mercies_New-Kelso.abc",
+      "bestand": "raw/every_morning_mercies_new-kelso.abc",
       "titel": "Every Morning Mercies New",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 169,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Faith_Of_Our_Fathers-St_Catherine.abc",
+      "bestand": "raw/faith_of_our_fathers-st_catherine.abc",
       "titel": "Faith of Our Fathers",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 204,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Far_Far_Away_on_Judeas_Plains-Far_Far_Away_on_Judeas_Plains.abc",
+      "bestand": "raw/far_far_away_on_judeas_plains-far_far_away_on_judeas_plains.abc",
       "titel": "Far, Far Away On Judea's Plains",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 201,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Fear_Not_O_Little_Flock-Kommt_her_zu_mir_spricht_Gottes_Sohn.abc",
+      "bestand": "raw/fear_not_o_little_flock-kommt_her_zu_mir_spricht_gottes_sohn.abc",
       "titel": "Fear Not, O Little Flock",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 195,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/For_All_The_Saints-Sine_Nomine.abc",
+      "bestand": "raw/for_all_the_saints-sine_nomine.abc",
       "titel": "For All The Saints",
+      "toonsoort": "G",
+      "aantal_stemmen": 6,
+      "aantal_noten": 480,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/For_The_Beauty_Of_The_Earth-Dix.abc",
+      "bestand": "raw/for_the_beauty_of_the_earth-dix.abc",
       "titel": "For The Beauty Of The Earth",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 269,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/From_All_Thy_Saints_in_Warfare-Kings_Lynn.abc",
+      "bestand": "raw/from_all_thy_saints_in_warfare-kings_lynn.abc",
       "titel": "From All Thy Saints in Warfare",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 233,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/From_All_Your_Saints_in_Warfare-Kings_Lynn.abc",
+      "bestand": "raw/from_all_your_saints_in_warfare-kings_lynn.abc",
       "titel": "From All Thy Saints in Warfare",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 233,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/From_God_Shall_Naught_Divide_Me-Von_Gott_Will_Ich_Nicht_Lassen.abc",
+      "bestand": "raw/from_god_shall_naught_divide_me-von_gott_will_ich_nicht_lassen.abc",
       "titel": "From God Shall Naught Divide Me",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 212,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/From_Heaven_Above-Vom_Himmel_Hoch.abc",
+      "bestand": "raw/from_heaven_above-vom_himmel_hoch.abc",
       "titel": "From Heaven Above To Earth I Come",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 538,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/From_Nazareth-Puer_Nobis_Nascitur.abc",
+      "bestand": "raw/from_nazareth-puer_nobis_nascitur.abc",
       "titel": "From Nazareth",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 139,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Gabriels_Message-Gabriel.abc",
+      "bestand": "raw/gabriels_message-gabriel.abc",
       "titel": "Gabriel's Message",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 198,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Gentle_Mary_Laid_Her_Child-Tempus_Adest_Floridum.abc",
+      "bestand": "raw/gentle_mary_laid_her_child-tempus_adest_floridum.abc",
       "titel": "Gentle Mary Laid Her Child",
+      "toonsoort": "A",
+      "aantal_stemmen": 4,
+      "aantal_noten": 212,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Glorious_Things_of_Thee_Are_Spoken-Austria_Haydn-Austrian_Hymn.abc",
+      "bestand": "raw/glorious_things_of_thee_are_spoken-austria_haydn-austrian_hymn.abc",
       "titel": "Glorious Things of Thee are Spoken",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 270,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Go_to_Dark_Gethsemane-Gethsemane-Petra.abc",
+      "bestand": "raw/go_to_dark_gethsemane-gethsemane-petra.abc",
       "titel": "Go To Dark Gethsemane",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 169,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/God_Bless_Our_Native_Land-America-National_Hymn.abc",
+      "bestand": "raw/god_bless_our_native_land-america-national_hymn.abc",
       "titel": "God Bless Our Native Land",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 159,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/God_Himself_Is_Present-Wunderbarer_Konig-Arnsberg-Groeningen.abc",
+      "bestand": "raw/god_himself_is_present-wunderbarer_konig-arnsberg-groeningen.abc",
       "titel": "God Himself is Present",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 247,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/God_Rest_Ye_Merry_Gentlemen-God_Rest_Ye_Merry_Gentlemen.abc",
+      "bestand": "raw/god_rest_ye_merry_gentlemen-god_rest_ye_merry_gentlemen.abc",
       "titel": "God Rest Ye Merry Gentlemen",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 270,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/God_That_Madest_Earth_and_Heaven-Ar_Hyd_Y_Nos.abc",
+      "bestand": "raw/god_that_madest_earth_and_heaven-ar_hyd_y_nos.abc",
       "titel": "God, That Madest Earth and Heaven",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 211,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/God_The_Father_Be_Our_Stay-Gott_Der_Vater_Wohn_uns_bei.abc",
+      "bestand": "raw/god_the_father_be_our_stay-gott_der_vater_wohn_uns_bei.abc",
       "titel": "God the Father Be Our Stay",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 419,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/God_Whose_Almighty_Word-Italian_Hymn.abc",
+      "bestand": "raw/god_whose_almighty_word-italian_hymn.abc",
       "titel": "God, Whose Almighty Word",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 161,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/God_Will_Take_Care_Of_You-Martin.abc",
+      "bestand": "raw/god_will_take_care_of_you-martin.abc",
       "titel": "God Will Take Care of You",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 231,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Good_King_Wenceslas-Tempus_Adest_Floridum.abc",
+      "bestand": "raw/good_king_wenceslas-tempus_adest_floridum.abc",
       "titel": "Bonus Carol: Good King Wenceslas",
+      "toonsoort": "A",
+      "aantal_stemmen": 4,
+      "aantal_noten": 212,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Great_Is_Thy_Faithfulness-Faithfulness_Runyan.abc",
+      "bestand": "raw/great_is_thy_faithfulness-faithfulness_runyan.abc",
       "titel": "Great Is Thy Faithfulness",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 340,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Guide_Me_O_Thou_Great_Jehovah-Cwm_Rhondda.abc",
+      "bestand": "raw/guide_me_o_thou_great_jehovah-cwm_rhondda.abc",
       "titel": "Guide Me, O Thou Great Jehovah",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 238,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Hallelujah_Praise_Jehovah_Psalter-Ripley_Gregorian.abc",
+      "bestand": "raw/hallelujah_praise_jehovah_psalter-ripley_gregorian.abc",
       "titel": "Hallelujah, Praise Jehovah, O My Soul",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 246,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Hallelujah_What_a_Savior-Hallelujah_What_a_Savior.abc",
+      "bestand": "raw/hallelujah_what_a_savior-hallelujah_what_a_savior.abc",
       "titel": "Hallelujah, What a Savior!",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 117,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Happy_The_Man_Who_Feareth_God-Wo_Gott_Zum_Haus_1524.abc",
+      "bestand": "raw/happy_the_man_who_feareth_god-wo_gott_zum_haus_1524.abc",
       "titel": "Happy the Man Who Feareth God",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 158,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Happy_The_Man_Who_Feareth_God-Wo_Gott_Zum_Haus_1533.abc",
+      "bestand": "raw/happy_the_man_who_feareth_god-wo_gott_zum_haus_1533.abc",
       "titel": "Happy the Man Who Feareth God",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 129,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Hark_Hark_My_Soul-Finlandia.abc",
+      "bestand": "raw/hark_hark_my_soul-finlandia.abc",
       "titel": "Hark, Hark, My Soul!",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 275,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Hark_The_Glad_Sound-Chesterfield-Richmond_Haweis-Spa_Fields_Chapel.abc",
+      "bestand": "raw/hark_the_glad_sound-chesterfield-richmond_haweis-spa_fields_chapel.abc",
       "titel": "Hark the Glad Sound",
+      "toonsoort": "G",
+      "aantal_stemmen": 5,
+      "aantal_noten": 211,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Hark_The_Herald_Angels_Sing-Mendelssohn.abc",
+      "bestand": "raw/hark_the_herald_angels_sing-mendelssohn.abc",
       "titel": "Hark! The Herald Angels Sing",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 291,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Hark_The_Voice_Of_Jesus_Calling-Galilean.abc",
+      "bestand": "raw/hark_the_voice_of_jesus_calling-galilean.abc",
       "titel": "Hark, the Voice of Jesus Calling",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 289,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Hark_the_Sound_of_Holy_Voices-O_Durchbrecher_aller_Bande.abc",
+      "bestand": "raw/hark_the_sound_of_holy_voices-o_durchbrecher_aller_bande.abc",
       "titel": "Hark the Sound of Holy Voices",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 304,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/He_Keeps_Me_Singing-He_Keeps_Me_Singing-Melody_of_Love.abc",
+      "bestand": "raw/he_keeps_me_singing-he_keeps_me_singing-melody_of_love.abc",
       "titel": "He Keeps Me Singing",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 226,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/He_Leadeth_Me-He_Leadeth_Me.abc",
+      "bestand": "raw/he_leadeth_me-he_leadeth_me.abc",
       "titel": "He Leadeth Me",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 273,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/He_Was_Not_Willing-He_Was_Not_Willing.abc",
+      "bestand": "raw/he_was_not_willing-he_was_not_willing.abc",
       "titel": "He Was Not Willing",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 336,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/He_Who_Would_Valiant_Be-Monks_Gate.abc",
+      "bestand": "raw/he_who_would_valiant_be-monks_gate.abc",
       "titel": "He Who Would Valiant Be",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 206,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Heavenly_Father_Send_Thy_Blessing-Ripley_Gregorian.abc",
+      "bestand": "raw/heavenly_father_send_thy_blessing-ripley_gregorian.abc",
       "titel": "Heavenly Father Send Thy Blessing",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 246,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Holy_Ghost_With_Light_Divine-Canterbury-Song_13.abc",
+      "bestand": "raw/holy_ghost_with_light_divine-canterbury-song_13.abc",
       "titel": "Holy Ghost, with Light Divine",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 308,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Holy_God_We_Praise_Thy_Name-Te_Deum-Hursley.abc",
+      "bestand": "raw/holy_god_we_praise_thy_name-te_deum-hursley.abc",
       "titel": "Holy God, We Praise Thy Name",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 207,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Holy_Holy_Holy-Nicaea.abc",
+      "bestand": "raw/holy_holy_holy-nicaea.abc",
       "titel": "Holy, Holy, Holy",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 203,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Holy_Spirit_Ever_Dwelling-Ebenezer-Ton_Y_Botel.abc",
+      "bestand": "raw/holy_spirit_ever_dwelling-ebenezer-ton_y_botel.abc",
       "titel": "Holy Spirit, Ever Dwelling",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 291,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Hosanna_Loud_Hosanna-Ellacombe.abc",
+      "bestand": "raw/hosanna_loud_hosanna-ellacombe.abc",
       "titel": "Hosanna, Loud Hosanna",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 250,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/How_Blest_the_Hearts-Holy_Matrimony.abc",
+      "bestand": "raw/how_blest_the_hearts-holy_matrimony.abc",
       "titel": "How Blest the Hearts",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 437,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/How_Can_I_Keep_from_Singing-How_Can_I_Keep_from_Singing-Endless_Song-Singing-My_Life_Flows_On.abc",
+      "bestand": "raw/how_can_i_keep_from_singing-how_can_i_keep_from_singing-endless_song-singing-my_life_flows_on.abc",
       "titel": "How Can I Keep from Singing?",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 240,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/How_Firm_A_Foundation-Foundation-Protection.abc",
+      "bestand": "raw/how_firm_a_foundation-foundation-protection.abc",
       "titel": "How Firm A Foundation",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 264,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/How_Shall_We_Answer_Terrors_Cry-Melita.abc",
+      "bestand": "raw/how_shall_we_answer_terrors_cry-melita.abc",
       "titel": "How Shall We Answer Terror's Cry?",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 199,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/I_Am_Jesus_Little_Lamb-Weil_Ich_Jesu_Schaflein_Bin.abc",
+      "bestand": "raw/i_am_jesus_little_lamb-weil_ich_jesu_schaflein_bin.abc",
       "titel": "I Am Jesus' Little Lamb",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 185,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/I_Bind_Unto_Myself_Today-St_Patricks_Breastplate.abc",
+      "bestand": "raw/i_bind_unto_myself_today-st_patricks_breastplate.abc",
       "titel": "I Bind Unto Myself Today",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 5,
+      "aantal_noten": 710,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/I_Come_O_Savior_To_Thy_Table-Ich_Sterbe_Taglich.abc",
+      "bestand": "raw/i_come_o_savior_to_thy_table-ich_sterbe_taglich.abc",
       "titel": "I Come, O Savior, To Thy Table",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 211,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/I_Heard_The_Bells_On_Christmas_Day-Waltham_Calkin.abc",
+      "bestand": "raw/i_heard_the_bells_on_christmas_day-waltham_calkin.abc",
       "titel": "I Heard The Bells On Christmas Day",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 128,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/I_Know_That_My_Redeemer_Lives-Duke_Street.abc",
+      "bestand": "raw/i_know_that_my_redeemer_lives-duke_street.abc",
       "titel": "I Know That My Redeemer Lives",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 253,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/I_Know_Whom_I_Have_Believed-I_Know_Whom_I_Have_Believed.abc",
+      "bestand": "raw/i_know_whom_i_have_believed-i_know_whom_i_have_believed.abc",
       "titel": "I Know Whom I Have Believed",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 265,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/I_Need_Thee_Every_Hour-I_Need_Thee_Every_Hour.abc",
+      "bestand": "raw/i_need_thee_every_hour-i_need_thee_every_hour.abc",
       "titel": "I Need Thee Every Hour",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 186,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/I_Place_My_Trust_In_God-Haly_Trust.abc",
+      "bestand": "raw/i_place_my_trust_in_god-haly_trust.abc",
       "titel": "I Place My Trust In God",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 271,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/I_Sing_The_Mighty_Power_Of_God-Ellacombe.abc",
+      "bestand": "raw/i_sing_the_mighty_power_of_god-ellacombe.abc",
       "titel": "I Sing the Mighty Power of God",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 250,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/I_Walk_In_Danger_All_The_Way-Der_Lieben_Sonne_Lich_Und_Pracht-Ristad.abc",
+      "bestand": "raw/i_walk_in_danger_all_the_way-der_lieben_sonne_lich_und_pracht-ristad.abc",
       "titel": "I Walk In Danger All The Way",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 242,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/If_God_Had_Not_Been_On_Our_Side-Waer_Gott_nicht_mit_ans_Diese_Zeit_1524.abc",
+      "bestand": "raw/if_god_had_not_been_on_our_side-waer_gott_nicht_mit_ans_diese_zeit_1524.abc",
       "titel": "If God Had Not Been on Our Side",
+      "toonsoort": "A",
+      "aantal_stemmen": 4,
+      "aantal_noten": 238,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/If_God_Had_Not_Been_On_Our_Side-Waer_Gott_nicht_mit_ans_Diese_Zeit_1537.abc",
+      "bestand": "raw/if_god_had_not_been_on_our_side-waer_gott_nicht_mit_ans_diese_zeit_1537.abc",
       "titel": "If God Had Not Been on Our Side",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 218,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/If_God_Himself_Be_For_Me-Woodbird-Es_Flog_Ein_Kleins_Waldvogelein.abc",
+      "bestand": "raw/if_god_himself_be_for_me-woodbird-es_flog_ein_kleins_waldvogelein.abc",
       "titel": "If God Himself Be For Me",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 760,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Im_But_A_Stranger_Here-St_Edmund_Sullivan.abc",
+      "bestand": "raw/im_but_a_stranger_here-st_edmund_sullivan.abc",
       "titel": "I'm But A Stranger Here",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 171,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Immortal_Invisible_God_Only_Wise-St_Denio.abc",
+      "bestand": "raw/immortal_invisible_god_only_wise-st_denio.abc",
       "titel": "Immortal, Invisible, God Only Wise",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 180,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/In_His_Temple_Now_Behold_Him-Westminster_Abbey.abc",
+      "bestand": "raw/in_his_temple_now_behold_him-westminster_abbey.abc",
       "titel": "In His Temple Now Behold Him",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 204,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/In_Peace_And_Joy_I_Now_Depart-Mit_Fried_Und_Freud_ich_Far_Dahin.abc",
+      "bestand": "raw/in_peace_and_joy_i_now_depart-mit_fried_und_freud_ich_far_dahin.abc",
       "titel": "In Peace and Joy I Now Depart",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 190,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/In_The_Bleak_MidWinter-Cranham.abc",
+      "bestand": "raw/in_the_bleak_midwinter-cranham.abc",
       "titel": "In The Bleak MidWinter",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 359,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/In_These_Our_Days_So_Perilous-Verleih_uns_Frieden_Gnaediglich.abc",
+      "bestand": "raw/in_these_our_days_so_perilous-verleih_uns_frieden_gnaediglich.abc",
       "titel": "In These Our Days So Perilous",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 188,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Isaiah_Mighty_Seer_In_Days_Of_Old-Jesaia_Dem_Propheten_das_Geschah.abc",
+      "bestand": "raw/isaiah_mighty_seer_in_days_of_old-jesaia_dem_propheten_das_geschah.abc",
       "titel": "Isaiah, Mighty Seer, In Days of Old",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 640,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/It_Came_Upon_A_Midnight_Clear-Carol.abc",
+      "bestand": "raw/it_came_upon_a_midnight_clear-carol.abc",
       "titel": "It Came Upon A Midnight Clear",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 256,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/It_Is_Well_With_My_Soul-It_Is_Well-Ville_Du_Havre.abc",
+      "bestand": "raw/it_is_well_with_my_soul-it_is_well-ville_du_havre.abc",
       "titel": "It Is Well With My Soul",
+      "toonsoort": "Db",
+      "aantal_stemmen": 4,
+      "aantal_noten": 221,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Jerusalem_the_Golden-Ewing.abc",
+      "bestand": "raw/jerusalem_the_golden-ewing.abc",
       "titel": "Jerusalem the Golden",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 735,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/JesuJoyOfMansDesiring.abc",
+      "bestand": "raw/jesujoyofmansdesiring.abc",
       "titel": "Jesus, Joy of Man's Desiring",
+      "toonsoort": "G",
+      "aantal_stemmen": 9,
+      "aantal_noten": 1062,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Jesus_Came_The_Heavens_Adoring-Sieh_hier_bin_ich_Ehrenkoenig.abc",
+      "bestand": "raw/jesus_came_the_heavens_adoring-sieh_hier_bin_ich_ehrenkoenig.abc",
       "titel": "Jesus Came, the Heavens Adoring",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 183,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Jesus_Christ_Is_Risen_Today-Easter_Hymn.abc",
+      "bestand": "raw/jesus_christ_is_risen_today-easter_hymn.abc",
       "titel": "Jesus Christ Is Risen Today",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 266,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Jesus_Christ_Our_Blessed_Savior-Jesus_Christus_Unser_Heiland_Der_Von_Uns_1524.abc",
+      "bestand": "raw/jesus_christ_our_blessed_savior-jesus_christus_unser_heiland_der_von_uns_1524.abc",
       "titel": "Jesus Christ, Our Blessed Savior",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 322,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Jesus_Christ_Our_Blessed_Savior-Jesus_Christus_Unser_Heiland_Der_Von_Uns_1533.abc",
+      "bestand": "raw/jesus_christ_our_blessed_savior-jesus_christus_unser_heiland_der_von_uns_1533.abc",
       "titel": "Jesus Christ, Our Blessed Savior",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 285,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Jesus_Christ_Who_Came_To_Save-Jesus_Christus_Unser_Heiland_Der_Den_Tod_Klug_1535.abc",
+      "bestand": "raw/jesus_christ_who_came_to_save-jesus_christus_unser_heiland_der_den_tod_klug_1535.abc",
       "titel": "Jesus Christ Who Came to Save",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 143,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Jesus_Grant_That_Balm_And_Healing-Der_Am_Kreuz.abc",
+      "bestand": "raw/jesus_grant_that_balm_and_healing-der_am_kreuz.abc",
       "titel": "Jesus Grant That Balm and Healing",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 305,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Jesus_In_Thy_Dying_Woes-Words_On_The_Cross_The_Litany.abc",
+      "bestand": "raw/jesus_in_thy_dying_woes-words_on_the_cross_the_litany.abc",
       "titel": "Jesus, In Thy Dying Woes",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 111,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Jesus_Is_All_The_World_to_Me-Jesus_Is_All_The_World_to_Me.abc",
+      "bestand": "raw/jesus_is_all_the_world_to_me-jesus_is_all_the_world_to_me.abc",
       "titel": "Jesus Is All the World To Me",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 233,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Jesus_King_Of_Glory-St_Alban.abc",
+      "bestand": "raw/jesus_king_of_glory-st_alban.abc",
       "titel": "Jesus, King of Glory",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 331,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Jesus_Loves_Me-untitled.abc",
+      "bestand": "raw/jesus_loves_me-untitled.abc",
       "titel": "Jesus Loves Me",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 2,
+      "aantal_noten": 189,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Jesus_Shall_Reign-Duke_Street.abc",
+      "bestand": "raw/jesus_shall_reign-duke_street.abc",
       "titel": "Jesus Shall Reign",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 191,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Jesus_Sinners_Doth_Receive-Meinen_Jesum_Lass_ich_Nicht_Darmstadt.abc",
+      "bestand": "raw/jesus_sinners_doth_receive-meinen_jesum_lass_ich_nicht_darmstadt.abc",
       "titel": "Jesus Sinners Doth Receive",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 299,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Jesus_Tender_Shepherd_Hear_Me-Evening_Prayer.abc",
+      "bestand": "raw/jesus_tender_shepherd_hear_me-evening_prayer.abc",
       "titel": "Jesus, Tender Shepherd, Hear Me",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 99,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Jesus_Thy_Boundless_Love_To_Me-Yoakley.abc",
+      "bestand": "raw/jesus_thy_boundless_love_to_me-yoakley.abc",
       "titel": "Jesus, Thy Boundless Love To Me",
+      "toonsoort": "E",
+      "aantal_stemmen": 4,
+      "aantal_noten": 239,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Jesus_Wants_All_Of_His_Children-Blessed_Are_They.abc",
+      "bestand": "raw/jesus_wants_all_of_his_children-blessed_are_they.abc",
       "titel": "Jesus Wants All Of His Children",
+      "toonsoort": "D",
+      "aantal_stemmen": 2,
+      "aantal_noten": 155,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Joy_To_The_World-Antioch.abc",
+      "bestand": "raw/joy_to_the_world-antioch.abc",
       "titel": "Joy to the World",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 194,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Joyful_Joyful_We_Adore_Thee-Ode_To_Joy.abc",
+      "bestand": "raw/joyful_joyful_we_adore_thee-ode_to_joy.abc",
       "titel": "Joyful, Joyful, We Adore Thee",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 248,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Just_As_I_Am_Without_One_Plea-Woodworth.abc",
+      "bestand": "raw/just_as_i_am_without_one_plea-woodworth.abc",
       "titel": "Just As I Am Without One Plea",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 177,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lamp_of_Our_Feet-St_Agnes.abc",
+      "bestand": "raw/lamp_of_our_feet-st_agnes.abc",
       "titel": "Lamp of Our Feet",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 271,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Let_All_Mortal_Flesh_Keep_Silence-Picardy.abc",
+      "bestand": "raw/let_all_mortal_flesh_keep_silence-picardy.abc",
       "titel": "Let All Mortal Flesh Keep Silence",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 142,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Let_Children_Hear_The_Mighty_Deeds-Lea.abc",
+      "bestand": "raw/let_children_hear_the_mighty_deeds-lea.abc",
       "titel": "Let Children Hear The Mighty Deeds",
+      "toonsoort": "A",
+      "aantal_stemmen": 4,
+      "aantal_noten": 116,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Let_Our_Gladness_Have_No_End-Narodil_Se_Kristus_Pan-Salvator_Natus.abc",
+      "bestand": "raw/let_our_gladness_have_no_end-narodil_se_kristus_pan-salvator_natus.abc",
       "titel": "Let Our Gladness Have No End",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 183,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Let_Us_Ever_Walk_With_Jesus-Lasset_Uns_Mit_Jesu_Ziehen_Boltze-Walk_With_Jesus-Let_Us_Ever_Walk_With_Jesus.abc",
+      "bestand": "raw/let_us_ever_walk_with_jesus-lasset_uns_mit_jesu_ziehen_boltze-walk_with_jesus-let_us_ever_walk_with_jesus.abc",
       "titel": "Let Us Ever Walk With Jesus",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 299,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lift_High_The_Cross-Crucifier.abc",
+      "bestand": "raw/lift_high_the_cross-crucifier.abc",
       "titel": "Lift High The Cross",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 198,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lift_Up_Your_Heads_Ye_Mighty_Gates-Milwaukee-Macht_Hoch_die_Tuer_Lemke.abc",
+      "bestand": "raw/lift_up_your_heads_ye_mighty_gates-milwaukee-macht_hoch_die_tuer_lemke.abc",
       "titel": "Lift Up Your Heads, Ye Mighty Gates",
+      "toonsoort": "A",
+      "aantal_stemmen": 4,
+      "aantal_noten": 262,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Like_The_Golden_Sun_Ascending-Werde_Munter.abc",
+      "bestand": "raw/like_the_golden_sun_ascending-werde_munter.abc",
       "titel": "Like The Golden Sun Ascending",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 242,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lo_God_To_Heavn_Ascendeth-Von_Gott_will_ich_Nicht_Lazen.abc",
+      "bestand": "raw/lo_god_to_heavn_ascendeth-von_gott_will_ich_nicht_lazen.abc",
       "titel": "Lo, God To Heav'n Ascendeth",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 212,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lo_He_Comes_On_Clouds_Descending-Helmsley.abc",
+      "bestand": "raw/lo_he_comes_on_clouds_descending-helmsley.abc",
       "titel": "Lo! He Comes With Clouds Descending",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 289,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lo_He_Comes_Whom_Every_Nation-Rex_Gloriae.abc",
+      "bestand": "raw/lo_he_comes_whom_every_nation-rex_gloriae.abc",
       "titel": "Lo He Comes! Whom Every Nation",
+      "toonsoort": "A",
+      "aantal_stemmen": 4,
+      "aantal_noten": 255,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lo_How_A_Rose_Eer_Blooming-Es_Ist_Ein_Ros_Entsprungen.abc",
+      "bestand": "raw/lo_how_a_rose_eer_blooming-es_ist_ein_ros_entsprungen.abc",
       "titel": "Lo, How A Rose E'er Blooming",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 184,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Look_Down_O_Lord_From_Heaven_Behold-Ach_Gott_vom_Himmel.abc",
+      "bestand": "raw/look_down_o_lord_from_heaven_behold-ach_gott_vom_himmel.abc",
       "titel": "Look Down, O Lord, From Heaven Behold",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 265,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Look_Down_O_Lord_From_Heaven_Behold-Es_ist_das_Heil_uns_kommen_her.abc",
+      "bestand": "raw/look_down_o_lord_from_heaven_behold-es_ist_das_heil_uns_kommen_her.abc",
       "titel": "Look Down, O Lord, From Heaven Behold",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 280,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Look_Ye_Saints_the_Sight_Is_Glorious-Bryn_Calfaria.abc",
+      "bestand": "raw/look_ye_saints_the_sight_is_glorious-bryn_calfaria.abc",
       "titel": "Look, Ye Saints, The Sight Is Glorious",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 235,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lord_As_To_Thy_Dear_Cross-St_Bernard_Richardson.abc",
+      "bestand": "raw/lord_as_to_thy_dear_cross-st_bernard_richardson.abc",
       "titel": "Lord As To Thy Dear Cross",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 116,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lord_Be_Thy_Word_My_Rule-Eden_Feilden.abc",
+      "bestand": "raw/lord_be_thy_word_my_rule-eden_feilden.abc",
       "titel": "Lord, Be Thy Word My Rule",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 102,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lord_Dismiss_Us_With_Thy_Blessing-Regent_Square.abc",
+      "bestand": "raw/lord_dismiss_us_with_thy_blessing-regent_square.abc",
       "titel": "Lord, Dismiss Us With Thy Blessing",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 187,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lord_Enthroned_In_Heavenly_Splendor-Bryn_Calfaria.abc",
+      "bestand": "raw/lord_enthroned_in_heavenly_splendor-bryn_calfaria.abc",
       "titel": "Lord, Enthroned in Heavenly Splendor",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 284,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lord_God_Thy_Praise_We_Sing-Herr_Gott_dich_Loben_Wir.abc",
+      "bestand": "raw/lord_god_thy_praise_we_sing-herr_gott_dich_loben_wir.abc",
       "titel": "Lord God, Thy Praise We Sing",
+      "toonsoort": "C",
+      "aantal_stemmen": 10,
+      "aantal_noten": 1331,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lord_Jesus_Think_On_Me-Southwell.abc",
+      "bestand": "raw/lord_jesus_think_on_me-southwell.abc",
       "titel": "Lord Jesus Think On Me",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 154,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lord_Keep_Us_Steadfast_In_Thy_Word-Erhalt_Uns_Herr_bei_Deinem_Wort.abc",
+      "bestand": "raw/lord_keep_us_steadfast_in_thy_word-erhalt_uns_herr_bei_deinem_wort.abc",
       "titel": "Lord, Keep Us Steadfast in Thy Word",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 129,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lord_Of_Our_Life-Iste_Confessor-Rouen.abc",
+      "bestand": "raw/lord_of_our_life-iste_confessor-rouen.abc",
       "titel": "Lord Of Our Life",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 176,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lord_Thee_I_Love_With_All_My_Heart-Herzlich_Lieb_Hab_ich_Dich_O_Herr.abc",
+      "bestand": "raw/lord_thee_i_love_with_all_my_heart-herzlich_lieb_hab_ich_dich_o_herr.abc",
       "titel": "Lord, Thee I Love with All My Heart",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 415,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lord_While_For_All_Mankind_We_Pray-Nox_Praecessit.abc",
+      "bestand": "raw/lord_while_for_all_mankind_we_pray-nox_praecessit.abc",
       "titel": "Lord While For All Mankind We Pray",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 112,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lord_Who_At_Canas_Wedding_Feast-St_Ursula.abc",
+      "bestand": "raw/lord_who_at_canas_wedding_feast-st_ursula.abc",
       "titel": "Lord, Who at Cana's Wedding Feast",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 234,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lord_Who_Throughout_These_Forty_Days-St_Flavian.abc",
+      "bestand": "raw/lord_who_throughout_these_forty_days-st_flavian.abc",
       "titel": "Lord Who Throughout These Forty Days",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 112,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lord_of_Glory_Who_Hast_Bought_Us-Hyfrydol.abc",
+      "bestand": "raw/lord_of_glory_who_hast_bought_us-hyfrydol.abc",
       "titel": "Lord of Glory, Who Hast Bought Us",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 308,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Lord_of_Life_All_Praise_Excelling-Hyfrydol.abc",
+      "bestand": "raw/lord_of_life_all_praise_excelling-hyfrydol.abc",
       "titel": "Lord of Life, All Praise Excelling",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 308,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/May_God_Bestow_On_Us_His_Grace-Es_Wollt_uns_Gott_Genaedig.abc",
+      "bestand": "raw/may_god_bestow_on_us_his_grace-es_wollt_uns_gott_genaedig.abc",
       "titel": "May God Bestow on Us His Grace",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 327,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Moment_By_Moment-Whittle.abc",
+      "bestand": "raw/moment_by_moment-whittle.abc",
       "titel": "Moment By Moment",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 322,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/More_Love_To_Thee-More_Love_To_Thee.abc",
+      "bestand": "raw/more_love_to_thee-more_love_to_thee.abc",
       "titel": "More Love to Thee",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 160,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/My_Faith_Looks_Up_To_Thee-Olivet.abc",
+      "bestand": "raw/my_faith_looks_up_to_thee-olivet.abc",
       "titel": "My Faith Looks Up To Thee",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 156,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/My_Hope_Is_Built-Melita.abc",
+      "bestand": "raw/my_hope_is_built-melita.abc",
       "titel": "My Hope Is Built",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 199,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/My_Jesus_As_Thou_Wilt-Jewett-Weber.abc",
+      "bestand": "raw/my_jesus_as_thou_wilt-jewett-weber.abc",
       "titel": "My Jesus, As Thou Wilt",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 223,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/My_Saviors_Love-My_Saviors_Love-I_Stand_Amazed_in_the_Presence.abc",
+      "bestand": "raw/my_saviors_love-my_saviors_love-i_stand_amazed_in_the_presence.abc",
       "titel": "My Savior's Love",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 253,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/My_Soul_Now_Praise_Thy_Maker-Non_Lob_Mein_Seel.abc",
+      "bestand": "raw/my_soul_now_praise_thy_maker-non_lob_mein_seel.abc",
       "titel": "My Soul, Now Praise Thy Maker",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 356,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Nearer_My_God_To_Thee-Bethany.abc",
+      "bestand": "raw/nearer_my_god_to_thee-bethany.abc",
       "titel": "Nearer, My God, To Thee",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 227,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/No_Not_One-No_Not_One.abc",
+      "bestand": "raw/no_not_one-no_not_one.abc",
       "titel": "No, Not One!",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 260,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/None_Other_Lamb-Rossetti.abc",
+      "bestand": "raw/none_other_lamb-rossetti.abc",
       "titel": "None Other Lamb",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 135,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Not_Worthy_Lord_To_Gather_Up_The_Crumbs-Eventide.abc",
+      "bestand": "raw/not_worthy_lord_to_gather_up_the_crumbs-eventide.abc",
       "titel": "Not Worthy, Lord, to Gather Up the Crumbs",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 201,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Now_Praise_We_Christ_The_Holy_One-Christum_Wir_Sollen_Loben_Schon.abc",
+      "bestand": "raw/now_praise_we_christ_the_holy_one-christum_wir_sollen_loben_schon.abc",
       "titel": "Now Praise We Christ, the Holy One",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 244,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Now_Rest_Beneath_Nights_Shadow-Innsbruck-Nun_ruhen_alle_Walder-O_Welt_Ich_Muss_Dich_Lassen.abc",
+      "bestand": "raw/now_rest_beneath_nights_shadow-innsbruck-nun_ruhen_alle_walder-o_welt_ich_muss_dich_lassen.abc",
       "titel": "Now Rest Beneath Night's Shadow",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 267,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Now_Sin_with_Reign_Unbroken-Au_Meines_Herzens_Grunde-I_Doden_Jesus_Blunded-Jeg_Vil_Din_Pris_Udsjunge.abc",
+      "bestand": "raw/now_sin_with_reign_unbroken-au_meines_herzens_grunde-i_doden_jesus_blunded-jeg_vil_din_pris_udsjunge.abc",
       "titel": "Now Sin, With Reign Unbroken",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 219,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Now_Thank_We_All_Our_God-Nun_Danket.abc",
+      "bestand": "raw/now_thank_we_all_our_god-nun_danket.abc",
       "titel": "Now Thank We All Our God",
+      "toonsoort": "F",
+      "aantal_stemmen": 2,
+      "aantal_noten": 200,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Now_The_Light_Has_Gone_Away-Mude_Bin_Ich_Geh_Zur_Ruh.abc",
+      "bestand": "raw/now_the_light_has_gone_away-mude_bin_ich_geh_zur_ruh.abc",
       "titel": "Now the Light Has Gone Away",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 113,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Blessed_Jesus_This-Down_Ampney.abc",
+      "bestand": "raw/o_blessed_jesus_this-down_ampney.abc",
       "titel": "O Blessed Jesus This",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 209,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Chief_Of_Cities_Bethlehem-Puer_Nobis_Nascitur.abc",
+      "bestand": "raw/o_chief_of_cities_bethlehem-puer_nobis_nascitur.abc",
       "titel": "O Chief of Cities Bethlehem",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 139,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Come_All_Ye_Faithful-Adeste_Fideles-Portugese_Hymn.abc",
+      "bestand": "raw/o_come_all_ye_faithful-adeste_fideles-portugese_hymn.abc",
       "titel": "O Come, All Ye Faithful",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 244,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Come_O_Come_Emmanuel-Veni_Emmanuel.abc",
+      "bestand": "raw/o_come_o_come_emmanuel-veni_emmanuel.abc",
       "titel": "O Come O Come Emmanuel",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 229,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Day_Of_Rest_And_Gladness-Woodbird.abc",
+      "bestand": "raw/o_day_of_rest_and_gladness-woodbird.abc",
       "titel": "O Day of Rest And Gladness",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 287,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Father_All_Creating-Aurelia.abc",
+      "bestand": "raw/o_father_all_creating-aurelia.abc",
       "titel": "O Father, All Creating",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 208,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_For_A_Thousand_Tongues-Azmon.abc",
+      "bestand": "raw/o_for_a_thousand_tongues-azmon.abc",
       "titel": "O For A Thousand Tongues",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 551,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Grieve_Not_So_Nor_So_Lament-Erfurt-Ilse.abc",
+      "bestand": "raw/o_grieve_not_so_nor_so_lament-erfurt-ilse.abc",
       "titel": "O Grieve Not So, Nor So Lament",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 176,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Holy_Blessed_Trinity-O_Heilige_Dreifaltigkeit-Steht_Auf_Ihr_Lieben_Kinderlein.abc",
+      "bestand": "raw/o_holy_blessed_trinity-o_heilige_dreifaltigkeit-steht_auf_ihr_lieben_kinderlein.abc",
       "titel": "O Holy, Blessed Trinity",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 128,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Holy_Spirit_Enter_In-Wie_Schon_Leuchtet.abc",
+      "bestand": "raw/o_holy_spirit_enter_in-wie_schon_leuchtet.abc",
       "titel": "O Holy Spirit, Enter In",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 506,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Little_Town_Of_Bethlehem-St_Louis.abc",
+      "bestand": "raw/o_little_town_of_bethlehem-st_louis.abc",
       "titel": "O Little Town of Bethlehem",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 226,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Lord_How_Shall_I_Meet_Thee-Wie_Soll_Ich_Dich_Empfange.abc",
+      "bestand": "raw/o_lord_how_shall_i_meet_thee-wie_soll_ich_dich_empfange.abc",
       "titel": "O Lord, How Shall I Meet Thee",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 211,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Lord_I_Am_Not_Worthy-O_Lord_I_Am_Not_Worthy.abc",
+      "bestand": "raw/o_lord_i_am_not_worthy-o_lord_i_am_not_worthy.abc",
       "titel": "O Lord, I Am Not Worthy",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 110,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Lord_My_Soul_Convicted-Winchester_New.abc",
+      "bestand": "raw/o_lord_my_soul_convicted-winchester_new.abc",
       "titel": "O Lord My Soul Convicted",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 133,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Lord_Of_Heaven_and_Earth_and_Sea-Es_Ist_Kein_Tag.abc",
+      "bestand": "raw/o_lord_of_heaven_and_earth_and_sea-es_ist_kein_tag.abc",
       "titel": "O Lord of Heav'n and Earth and Sea",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 233,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Lord_We_Praise_Thee-Gott_Sei_Gelobet_Und_Gebenedeiet.abc",
+      "bestand": "raw/o_lord_we_praise_thee-gott_sei_gelobet_und_gebenedeiet.abc",
       "titel": "O Lord We Praise Thee",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 342,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Lord_When_Condemnation-Wenn_Mein_Sund.abc",
+      "bestand": "raw/o_lord_when_condemnation-wenn_mein_sund.abc",
       "titel": "O Lord, When Condemnation",
+      "toonsoort": "FC",
+      "aantal_stemmen": 4,
+      "aantal_noten": 206,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Love_How_Deep-Deo_Gracias-Agincourt.abc",
+      "bestand": "raw/o_love_how_deep-deo_gracias-agincourt.abc",
       "titel": "O Love, How Deep, How Broad, How High",
+      "toonsoort": "E",
+      "aantal_stemmen": 4,
+      "aantal_noten": 256,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Sacred_Head_Now_Wounded-Passion_Chorale-Herzlich_Tut_Mich_Verlangen.abc",
+      "bestand": "raw/o_sacred_head_now_wounded-passion_chorale-herzlich_tut_mich_verlangen.abc",
       "titel": "O Sacred Head, Now Wounded",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 571,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_That_The_Lord_Would_Guide_My_Ways-Evan-Eva.abc",
+      "bestand": "raw/o_that_the_lord_would_guide_my_ways-evan-eva.abc",
       "titel": "O That The Lord Would Guide My Ways",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 143,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_The_Deep_Deep_Love_Of_Jesus-Ebenezer-Ton_Y_Botel.abc",
+      "bestand": "raw/o_the_deep_deep_love_of_jesus-ebenezer-ton_y_botel.abc",
       "titel": "O The Deep, Deep Love of Jesus",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 291,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Trinity_Most_Blessed_Light-O_Lux_Beata_Trinitas.abc",
+      "bestand": "raw/o_trinity_most_blessed_light-o_lux_beata_trinitas.abc",
       "titel": "O Trinity of Blessed Light",
+      "toonsoort": "D",
+      "aantal_stemmen": 5,
+      "aantal_noten": 195,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/O_Wondrous_Type_O_Vision_Fair-Deo_Gracias-Agincourt.abc",
+      "bestand": "raw/o_wondrous_type_o_vision_fair-deo_gracias-agincourt.abc",
       "titel": "O Wondrous Type, O Vision Fair",
+      "toonsoort": "E",
+      "aantal_stemmen": 4,
+      "aantal_noten": 185,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Of_The_Fathers_Love_Begotten-Divinum_Mysterium-Corde_Natus.abc",
+      "bestand": "raw/of_the_fathers_love_begotten-divinum_mysterium-corde_natus.abc",
       "titel": "Of The Father's Love Begotten",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 463,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Of_The_Fathers_Love_Begotten-Divinum_Mysterium_Isorhythmic-Corde_Natus_Isorhythmic-Corde_Natus_No._2.abc",
+      "bestand": "raw/of_the_fathers_love_begotten-divinum_mysterium_isorhythmic-corde_natus_isorhythmic-corde_natus_no-_2.abc",
       "titel": "Of The Father's Love Begotten",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 441,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Oh_Blest_The_House-Wo_Gott_Zum_Haus.abc",
+      "bestand": "raw/oh_blest_the_house-wo_gott_zum_haus.abc",
       "titel": "Oh, Blest the House",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 162,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/On_Jordans_Bank_The_Baptists_Cry-Puer_Nobis_Nascitur.abc",
+      "bestand": "raw/on_jordans_bank_the_baptists_cry-puer_nobis_nascitur.abc",
       "titel": "On Jordan's Bank the Baptist's Cry",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 139,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/On_My_Heart_Imprint_Thine_Image-Der_Am_Kreuz.abc",
+      "bestand": "raw/on_my_heart_imprint_thine_image-der_am_kreuz.abc",
       "titel": "On My Heart Imprint Thine Image",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 247,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/On_What_Has_Now_Been_Sown-Darwalls_148th.abc",
+      "bestand": "raw/on_what_has_now_been_sown-darwalls_148th.abc",
       "titel": "On What Has Now Been Sown",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 161,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/One_Things_Needful-Eins_Ist_Not.abc",
+      "bestand": "raw/one_things_needful-eins_ist_not.abc",
       "titel": "One Thing's Needful",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 648,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Open_Now_Thy_Gates_Of_Beauty-Unser_Herrscher-Neander.abc",
+      "bestand": "raw/open_now_thy_gates_of_beauty-unser_herrscher-neander.abc",
       "titel": "Open Now Thy Gates of Beauty",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 183,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Our_Father_Thou_In_Heaven_Above-Vater_Unser_im_Himmelreich.abc",
+      "bestand": "raw/our_father_thou_in_heaven_above-vater_unser_im_himmelreich.abc",
       "titel": "Our Father Thou in Heaven Above",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 388,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Our_God_Our_Help_In_Ages_Past-St_Anne.abc",
+      "bestand": "raw/our_god_our_help_in_ages_past-st_anne.abc",
       "titel": "Our God, Our Help In Ages Past",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 244,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Out_Of_The_Deep_I_Cry_To_Thee-Aus_Tiefer_Not_Luther.abc",
+      "bestand": "raw/out_of_the_deep_i_cry_to_thee-aus_tiefer_not_luther.abc",
       "titel": "Out of the Deep I Cry to Thee",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 256,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Out_Of_The_Deep_I_Cry_To_Thee-Aus_Tiefer_Not_Strassburg.abc",
+      "bestand": "raw/out_of_the_deep_i_cry_to_thee-aus_tiefer_not_strassburg.abc",
       "titel": "Out of the Deep I Cry to Thee",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 221,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Over_Kidron_Jesus_Treadeth-Over_Kedron_Jesus_Treadaer.abc",
+      "bestand": "raw/over_kidron_jesus_treadeth-over_kedron_jesus_treadaer.abc",
       "titel": "Over Kidron Jesus Treadeth",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 308,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Pass_Me_Not_O_Gentle_Savior-Pass_Me_Not_O_Gentle_Savior.abc",
+      "bestand": "raw/pass_me_not_o_gentle_savior-pass_me_not_o_gentle_savior.abc",
       "titel": "Pass Me Not, O Gentle Savior",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 193,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Praise_God_From_Whom_All_Blessings_Flow-Old_100th.abc",
+      "bestand": "raw/praise_god_from_whom_all_blessings_flow-old_100th.abc",
       "titel": "Praise God From Whom All Blessings Flow",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 132,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Praise_My_Soul_The_King_Of_Heaven-Praise_My_Soul-Lauda_Anima.abc",
+      "bestand": "raw/praise_my_soul_the_king_of_heaven-praise_my_soul-lauda_anima.abc",
       "titel": "Praise My Soul The King Of Heaven",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 187,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Praise_The_Lord_Ye_Heavens_Adore_Him-Austria_Haydn-Austrian_Hymn.abc",
+      "bestand": "raw/praise_the_lord_ye_heavens_adore_him-austria_haydn-austrian_hymn.abc",
       "titel": "Praise The Lord, Ye Heavens Adore Him",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 270,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Praise_To_The_Lord_The_Almighty-Lobe_Den_Herren.abc",
+      "bestand": "raw/praise_to_the_lord_the_almighty-lobe_den_herren.abc",
       "titel": "Praise To The Lord, The Almighty",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 200,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Rejoice_My_Heart_Be_Glad_and_Sing-Ich_Singe_dir_mit_Herz.abc",
+      "bestand": "raw/rejoice_my_heart_be_glad_and_sing-ich_singe_dir_mit_herz.abc",
       "titel": "Rejoice, My Heart, Be Glad and Sing",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 115,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Rejoice_O_Pilgrim_Throng-Marion.abc",
+      "bestand": "raw/rejoice_o_pilgrim_throng-marion.abc",
       "titel": "Rejoice, O Pilgrim Throng",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 249,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Rescue_the_Perishing-Rescue_the_Perishing.abc",
+      "bestand": "raw/rescue_the_perishing-rescue_the_perishing.abc",
       "titel": "Rescue the Perishing",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 252,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Ride_On_Ride_On_In_Majesty-Winchester_New.abc",
+      "bestand": "raw/ride_on_ride_on_in_majesty-winchester_new.abc",
       "titel": "Ride On! Ride On in Majesty",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 133,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Rock_of_Ages-Toplady.abc",
+      "bestand": "raw/rock_of_ages-toplady.abc",
       "titel": "Rock of Ages",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 169,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Salvation_Unto_Us_Has_Come-Es_ist_das_Heil_uns_Kommen_her.abc",
+      "bestand": "raw/salvation_unto_us_has_come-es_ist_das_heil_uns_kommen_her.abc",
       "titel": "Salvation Unto Us Has Come",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 225,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Savior_Like_A_Shepherd_Lead_Us-Bradbury.abc",
+      "bestand": "raw/savior_like_a_shepherd_lead_us-bradbury.abc",
       "titel": "Savior, Like A Shepherd Lead Us",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 248,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Savior_Of_The_Nations_Come-Nun_Komm_Der_Heiden_Heiland.abc",
+      "bestand": "raw/savior_of_the_nations_come-nun_komm_der_heiden_heiland.abc",
       "titel": "Savior Of The Nations Come",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 176,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Savior_When_In_Dust_To_Thee-Aberystwyth.abc",
+      "bestand": "raw/savior_when_in_dust_to_thee-aberystwyth.abc",
       "titel": "Savior When In Dust To Thee",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 267,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Savior_Who_Thy_Flock_Art_Feeding-Batty-Ringe_Recht.abc",
+      "bestand": "raw/savior_who_thy_flock_art_feeding-batty-ringe_recht.abc",
       "titel": "Savior, Who Thy Flock Art Feeding",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 125,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/See_Amid_The_Winters_Snow-Humility.abc",
+      "bestand": "raw/see_amid_the_winters_snow-humility.abc",
       "titel": "See Amid the Winter's Snow",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 246,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/See_The_Lord_Ascends_In_Triumph-Rex_Gloriae.abc",
+      "bestand": "raw/see_the_lord_ascends_in_triumph-rex_gloriae.abc",
       "titel": "See, The Lord Ascends In Triumph",
+      "toonsoort": "A",
+      "aantal_stemmen": 4,
+      "aantal_noten": 504,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Shepherd_of_Tender_Youth-Italian_Hymn.abc",
+      "bestand": "raw/shepherd_of_tender_youth-italian_hymn.abc",
       "titel": "Shepherd of Tender Youth",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 161,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Silent_Night-Stille_Nacht.abc",
+      "bestand": "raw/silent_night-stille_nacht.abc",
       "titel": "Silent Night",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 173,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Sing_My_Tongue_the_Glorious_Battle-Pange_Lingua.abc",
+      "bestand": "raw/sing_my_tongue_the_glorious_battle-pange_lingua.abc",
       "titel": "Sing My Tongue, The Glorious Battle",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 512,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Sing_O_Sing_This_Blessed_Morn-Nativity.abc",
+      "bestand": "raw/sing_o_sing_this_blessed_morn-nativity.abc",
       "titel": "Sing, O Sing, This Blessed Morn",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 356,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Softly_Now_the_Day_Is_Ending-Even_Song-Himlen_aabnes_Morket_Svinder.abc",
+      "bestand": "raw/softly_now_the_day_is_ending-even_song-himlen_aabnes_morket_svinder.abc",
       "titel": "Softly Now the Day Is Ending",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 191,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Songs_Of_Thankfulness_And_Praise-St_Georges_Windsor.abc",
+      "bestand": "raw/songs_of_thankfulness_and_praise-st_georges_windsor.abc",
       "titel": "Songs of Thankfulness and Praise",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 224,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Souls_of_Men_Why_Will_Ye_Scatter-In_Babilone.abc",
+      "bestand": "raw/souls_of_men_why_will_ye_scatter-in_babilone.abc",
       "titel": "Souls of Men! Why Will Ye Scatter",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 289,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Stricken_Smitten_And_Afflicted-O_Mein_Jesu_Ich_Muss_Sterben-Wo_Ist_Jesus_Mein_Verlangen.abc",
+      "bestand": "raw/stricken_smitten_and_afflicted-o_mein_jesu_ich_muss_sterben-wo_ist_jesus_mein_verlangen.abc",
       "titel": "Stricken, Smitten, and Afflicted",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 240,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Take_My_Life_And_Let_It_Be-Mozart.abc",
+      "bestand": "raw/take_my_life_and_let_it_be-mozart.abc",
       "titel": "Take My Life And Let It Be",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 162,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Take_Thou_My_Hand-So_Nimm_Denn_Meine_Hande.abc",
+      "bestand": "raw/take_thou_my_hand-so_nimm_denn_meine_hande.abc",
       "titel": "Take Thou My Hand and Lead Me",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 192,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Take_Up_Thy_Cross_The_Savior_Said-Nun_Lasst_Uns_Den_Leib_Begraben.abc",
+      "bestand": "raw/take_up_thy_cross_the_savior_said-nun_lasst_uns_den_leib_begraben.abc",
       "titel": "'Take Up Thy Cross', the Savior Said",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 165,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/That_Men_A_Godly_Life_Might_Live-Dies_sind_die_heilgen_zehu_Gebot.abc",
+      "bestand": "raw/that_men_a_godly_life_might_live-dies_sind_die_heilgen_zehu_gebot.abc",
       "titel": "That Men a godly Life Might Live",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 148,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_Advent_of_Our_God-St_Thomas.abc",
+      "bestand": "raw/the_advent_of_our_god-st_thomas.abc",
       "titel": "The Advent of Our God",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 139,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_Bridegroom_Soon_Will_Call_Us-Act_Gott_Vom_Himmelreiche.abc",
+      "bestand": "raw/the_bridegroom_soon_will_call_us-act_gott_vom_himmelreiche.abc",
       "titel": "The Bridegroom Soon Will Call Us",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 228,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_Churchs_One_Foundation-Aurelia.abc",
+      "bestand": "raw/the_churchs_one_foundation-aurelia.abc",
       "titel": "The Church's One Foundation",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 316,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_Comforter_Has_Come-The_Comforter_Has_Come.abc",
+      "bestand": "raw/the_comforter_has_come-the_comforter_has_come.abc",
       "titel": "The Comforter Has Come",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 336,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_Day_Is_Surely_Drawing_Near-Es_ist_Gewisslich_an_der_Zett.abc",
+      "bestand": "raw/the_day_is_surely_drawing_near-es_ist_gewisslich_an_der_zett.abc",
       "titel": "The Day is Surely Drawing Near",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 215,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_First_Noel-The_First_Noel.abc",
+      "bestand": "raw/the_first_noel-the_first_noel.abc",
       "titel": "The First Noel",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 269,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_Galilean_Fishers_Toil-Old_137th.abc",
+      "bestand": "raw/the_galilean_fishers_toil-old_137th.abc",
       "titel": "The Galilean Fishers Toil",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 225,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_God_Of_Abraham_Praise-Yigdal-Leoni.abc",
+      "bestand": "raw/the_god_of_abraham_praise-yigdal-leoni.abc",
       "titel": "The God of Abraham Praise",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 198,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_Gospel_Shows_The_Fathers_Grace-Herr_Jesu_Christ_Dich_Zu_Uns_Wend.abc",
+      "bestand": "raw/the_gospel_shows_the_fathers_grace-herr_jesu_christ_dich_zu_uns_wend.abc",
       "titel": "The Gospel Shows The Father's Grace",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 157,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_Grave_Itself_A_Garden_Is-Belmont.abc",
+      "bestand": "raw/the_grave_itself_a_garden_is-belmont.abc",
       "titel": "The Grave Itself a Garden Is",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 124,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_King_Shall_Come-Consolation-Morning_Song.abc",
+      "bestand": "raw/the_king_shall_come-consolation-morning_song.abc",
       "titel": "The King Shall Come",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 186,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_Kingdom_Satan_Founded-Au_Meines_Herzens_Grunde-I_Doden_Jesus_Blunded-Jeg_Vil_Din_Pris_Udsjunge.abc",
+      "bestand": "raw/the_kingdom_satan_founded-au_meines_herzens_grunde-i_doden_jesus_blunded-jeg_vil_din_pris_udsjunge.abc",
       "titel": "The Kingdom Satan Founded",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 229,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_Law_Of_God_Is_Good_And_Wise-Erhalt_Uns_Herr.abc",
+      "bestand": "raw/the_law_of_god_is_good_and_wise-erhalt_uns_herr.abc",
       "titel": "The Law Of God Is Good And Wise",
+      "toonsoort": "G",
+      "aantal_stemmen": 3,
+      "aantal_noten": 129,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_Lily_of_the_Valley-Salvation-The_Lily_of_the_Valley.abc",
+      "bestand": "raw/the_lily_of_the_valley-salvation-the_lily_of_the_valley.abc",
       "titel": "The Lily of the Valley",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 407,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_Lords_My_Shepherd-Marosa-Brother_James_Air.abc",
+      "bestand": "raw/the_lords_my_shepherd-marosa-brother_james_air.abc",
       "titel": "The Lord's My Shepherd",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 225,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_Love_Of_God-The_Love_Of_God.abc",
+      "bestand": "raw/the_love_of_god-the_love_of_god.abc",
       "titel": "The Love of God",
+      "toonsoort": "Db",
+      "aantal_stemmen": 4,
+      "aantal_noten": 373,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_Mouth_of_Fools_Doth_God_Confess-Es_spricht_der_Unweisen_Mund.abc",
+      "bestand": "raw/the_mouth_of_fools_doth_god_confess-es_spricht_der_unweisen_mund.abc",
       "titel": "The Mouth of Fools Doth God Confess",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 280,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_Old_Rugged_Cross-Old_Rugged_Cross.abc",
+      "bestand": "raw/the_old_rugged_cross-old_rugged_cross.abc",
       "titel": "The Old Rugged Cross",
+      "toonsoort": "Bb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 343,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_People_That_in_Darkness_Sat-Lobt_Gott_Ihr_Christen_Allzugleich.abc",
+      "bestand": "raw/the_people_that_in_darkness_sat-lobt_gott_ihr_christen_allzugleich.abc",
       "titel": "The People That in Darkness Sat",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 194,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_Star_Proclaims_the_King_Is_Here-Wo_Gott_Zum_Haus_1533.abc",
+      "bestand": "raw/the_star_proclaims_the_king_is_here-wo_gott_zum_haus_1533.abc",
       "titel": "The Star Proclaims the King is Here",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 129,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_Strife_Is_Oer_The_Battle_Done-Victory-Palestrina.abc",
+      "bestand": "raw/the_strife_is_oer_the_battle_done-victory-palestrina.abc",
       "titel": "The Strife Is O'er, The Battle Done",
+      "toonsoort": "E",
+      "aantal_stemmen": 4,
+      "aantal_noten": 222,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/The_Winds_And_Billows_Loudly_Roar-Consolation-Morning_Song.abc",
+      "bestand": "raw/the_winds_and_billows_loudly_roar-consolation-morning_song.abc",
       "titel": "The Winds and Billows Loudly Roar",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 181,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/There_Came_A_Message_From_the_Sky-Esbjerg.abc",
+      "bestand": "raw/there_came_a_message_from_the_sky-esbjerg.abc",
       "titel": "There Came a Message From the Sky",
+      "toonsoort": "A",
+      "aantal_stemmen": 4,
+      "aantal_noten": 204,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Theres_A_Great_Day_Coming-Theres_A_Great_Day_Coming.abc",
+      "bestand": "raw/theres_a_great_day_coming-theres_a_great_day_coming.abc",
       "titel": "There's a Great Day Coming",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 292,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Thine_Arm_O_Lord_In_Days_Of_Old-Kingsfold.abc",
+      "bestand": "raw/thine_arm_o_lord_in_days_of_old-kingsfold.abc",
       "titel": "Thine Arm, O Lord, in Days of Old",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 271,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Thou_Who_At_Thy_First_Eucharist-Unde_Et_Memores.abc",
+      "bestand": "raw/thou_who_at_thy_first_eucharist-unde_et_memores.abc",
       "titel": "Thou, Who at Thy First Eucharist",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 240,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Though_In_The_Midst_Of_Life_We_Be-Mitten_Wir_Im_Leben_Sind.abc",
+      "bestand": "raw/though_in_the_midst_of_life_we_be-mitten_wir_im_leben_sind.abc",
       "titel": "Though in the Midst of Life We Be",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 420,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Through_The_Night_of_Doubt_and_Sorrow-Rex_Gloriae.abc",
+      "bestand": "raw/through_the_night_of_doubt_and_sorrow-rex_gloriae.abc",
       "titel": "Through the Night of Doubt and Sorrow",
+      "toonsoort": "A",
+      "aantal_stemmen": 4,
+      "aantal_noten": 255,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Tis_Good_Lord_To_Be_Here-Potsdam.abc",
+      "bestand": "raw/tis_good_lord_to_be_here-potsdam.abc",
       "titel": "Tis Good, Lord, To Be Here",
+      "toonsoort": "E",
+      "aantal_stemmen": 4,
+      "aantal_noten": 116,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/Tis_Midnight_and_On_Olives_Brow-St_Cross.abc",
+      "bestand": "raw/tis_midnight_and_on_olives_brow-st_cross.abc",
       "titel": "'Tis Midnight and On Olive's Brow",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 133,
       "soort": "abc",
       "heeft_melodie": true
     },
     {
-      "bestand": "raw/To_Avert_from_Men_Gods_Wrath-Gethsemane-Petra.abc",
+      "bestand": "raw/to_avert_from_men_gods_wrath-gethsemane-petra.abc",
       "titel": "To Avert From Men God's Wrath",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 208,
       "soort": "abc",
       "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/to_god_be_the_glory-to_god_be_the_glory.abc",
+      "titel": "To God Be The Glory",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 367,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/to_jordan_came_our_lord_the_christ-christ_unser_herr.abc",
+      "titel": "To Jordan Came Our Lord, The Christ",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 292,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/to_shepherds_as_they_watched_by_night-vom_himmel_hoch.abc",
+      "titel": "To Shepherds As They Watched By Night",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 166,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/today_thy_mercy_calls_me-anthes.abc",
+      "titel": "Today Thy Mercy Calls Me",
+      "toonsoort": "A",
+      "aantal_stemmen": 4,
+      "aantal_noten": 211,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/twas_on_that_dark_that_doleful_night-st_cross.abc",
+      "titel": "'Twas On That Dark, That Doleful Night",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 204,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/under_his_wings-under_his_wings.abc",
+      "titel": "Under His Wings",
+      "toonsoort": "Db",
+      "aantal_stemmen": 4,
+      "aantal_noten": 297,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/upon_the_cross_extended-innsbruck-nun_ruhen_alle_walder-o_welt_ich_muss_dich_lassen.abc",
+      "titel": "Upon The Cross Extended",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 221,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/wake_awake_for_night_is_flying-wachet_auf.abc",
+      "titel": "Wake, Awake, for Night Is Flying",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 355,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/we_all_believe_in_one_true_god-wir_glauben_all_an_einen_gott_schoepfer.abc",
+      "titel": "We All Believe in One True God",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 417,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/we_gather_together-kremser.abc",
+      "titel": "We Gather Together",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 191,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/we_give_thee_but_thine_own-energy.abc",
+      "titel": "We Give Thee But Thine Own",
+      "toonsoort": "G",
+      "aantal_stemmen": 4,
+      "aantal_noten": 135,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/we_know_thee_who_thou_art-sellinge.abc",
+      "titel": "We Know Thee Who Thou Art",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 110,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/we_now_implore_god_the_holy_ghost-nun_bitten_wir_den_heiligen_geist.abc",
+      "titel": "We Now Implore God the Holy Ghost",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 182,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/were_you_there-were_you_there.abc",
+      "titel": "Were You There?",
+      "toonsoort": "E",
+      "aantal_stemmen": 4,
+      "aantal_noten": 258,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/what_a_friend_we_have_in_jesus-untitled.abc",
+      "titel": "What A Friend We Have In Jesus",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 240,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/what_child_is_this-greensleeves.abc",
+      "titel": "What Child Is This?",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 242,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/what_is_the_world_to_me-was_frag_ich_nach_der_welt.abc",
+      "titel": "What Is the World to Me?",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 210,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/what_wondrous_love_is_this-wondrous_love_southern_harmony.abc",
+      "titel": "What Wondrous Love Is This?",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 217,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/when_i_survey_the_wondrous_cross-duke_street.abc",
+      "titel": "When I Survey the Wondrous Cross",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 154,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/when_i_survey_the_wondrous_cross-hamburg.abc",
+      "titel": "When I Survey the Wondrous Cross",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 149,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/when_i_survey_the_wondrous_cross-o_waly_waly.abc",
+      "titel": "When I Survey the Wondrous Cross",
+      "toonsoort": "G",
+      "aantal_stemmen": 5,
+      "aantal_noten": 173,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/when_i_survey_the_wondrous_cross-rockingham_old.abc",
+      "titel": "When I Survey the Wondrous Cross",
+      "toonsoort": "D",
+      "aantal_stemmen": 4,
+      "aantal_noten": 142,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/when_the_roll_is_called_up_yonder-when_the_roll_is_called_up_yonder.abc",
+      "titel": "When The Roll Is Called Up Yonder",
+      "toonsoort": "Ab",
+      "aantal_stemmen": 4,
+      "aantal_noten": 366,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/where_he_leads_me-where_he_leads_me.abc",
+      "titel": "Where He Leads Me",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 264,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/while_oer_our_guilty_land-federal_street.abc",
+      "titel": "While O'er Our Guilty Land, O Lord",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 172,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/whiter_than_snow-whiter_than_snow.abc",
+      "titel": "Whiter Than Snow",
+      "toonsoort": "A",
+      "aantal_stemmen": 4,
+      "aantal_noten": 258,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/why_should_cross_and_trial_grieve_me-ebeling-bonn-warum_sollt_ich-all_my_heart_this_night.abc",
+      "titel": "Why Should Cross and Trial Grieve Me?",
+      "toonsoort": "F",
+      "aantal_stemmen": 4,
+      "aantal_noten": 162,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/wilt_thou_o_man_live_happily-mensch_willt_du_leben_seligich.abc",
+      "titel": "Wilt Thou, O Man, Live Happily",
+      "toonsoort": "C",
+      "aantal_stemmen": 4,
+      "aantal_noten": 159,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/within_the_fathers_house-franconia.abc",
+      "titel": "Within the Father's House",
+      "toonsoort": "Eb",
+      "aantal_stemmen": 4,
+      "aantal_noten": 163,
+      "soort": "abc",
+      "heeft_melodie": true
+    },
+    {
+      "bestand": "raw/you_parents_hear_what_jesus_taught-herr_jesu_christ_dict_zu_uns_wend.abc",
+      "titel": "You Parents Hear What Jesus Taught",
+      "toonsoort": "F",
+      "aantal_stemmen": 2,
+      "aantal_noten": 126,
+      "soort": "abc",
+      "heeft_melodie": true
+    }
+  ],
+  "overgeslagen": [
+    {
+      "bestand": "Ascribe_To_The_Lord_Honor-Iyin_Oluwa.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: copyright: Tune public domain.  Lyrics and Setting Copyright 2012, Bola Omodun Ilori. These lyrics and this"
+    },
+    {
+      "bestand": "At_The_Lambs_High_Feast-Sonne_Der_Gerechtigkeit.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: copyright: Words and Music, public domain.  Setting: Copyright 2009 Brian J. Dumont. This setting"
+    },
+    {
+      "bestand": "Author_of_All_Life-Beach_Spring.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: copyright: Words: Copyright 2009, Brian J. Dumont. These lyrics may be freely reproduced or published for"
+    },
+    {
+      "bestand": "Awake_My_Soul_An_Offering_Bring-Melismata_22.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: copyright: Words and Setting: Copyright 2009, Brian L. Penney. These lyrics and this setting may be freely"
+    },
+    {
+      "bestand": "Canon-Kanon.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: copyright: Melody, public domain.  Setting: Copyright 2011 Brian J. Dumont. This setting"
+    },
+    {
+      "bestand": "Canon.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: copyright: Melody, public domain.  Setting: Copyright 2011 Brian J. Dumont. This setting"
+    },
+    {
+      "bestand": "Christ_My_King_On_High-Christ_My_King_On_High.abc",
+      "reden": "publiek-domeinstatus onduidelijk"
+    },
+    {
+      "bestand": "From_the_Mount_of_Our_Lords_Glory-Unser_Herrscher-Neander.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: copyright: Words: Copyright 2014, Chad L. Bird. These lyrics may be freely reproduced or published for Christian"
+    },
+    {
+      "bestand": "Have_Mercy_On_Me_O_My_God-Third_Mode_Melody.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: copyright: Words: Copyright 2007, Brian L. Penney. These lyrics may be freely reproduced or published for"
+    },
+    {
+      "bestand": "His_Gifts-Simple_Gifts.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: copyright: Melody, public domain.  Words and Setting: Copyright 2011 Brian J. Dumont. These lyrics and setting"
+    },
+    {
+      "bestand": "I_Trust_in_the_Blood_of_Calvary-I_Trust_in_the_Blood_of_Calvary.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: copyright: Words and Music Copyright © 2025, Randall Medcalf. These lyrics and music may be"
+    },
+    {
+      "bestand": "Magnificat-Uffingham.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: copyright: Words: Copyright 2009, Brian L. Penney. These lyrics may be freely reproduced or published for"
+    },
+    {
+      "bestand": "My_Neighbor-Tallis_Canon.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: copyright: Words: Copyright 2007, John G. Fleischmann. These lyrics may be freely reproduced or published for"
+    },
+    {
+      "bestand": "My_Song_Shall_Be_Of_Jesus-Sondance-Choral.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: Music and Setting copyright: Copyright 1998 Kenneth W. Paxton.  This tune and setting may be freely reproduced or"
+    },
+    {
+      "bestand": "My_Song_Shall_Be_Of_Jesus-Sondance.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: Music and Setting copyright: Copyright 1998 Kenneth W. Paxton.  This tune and setting may be freely reproduced or"
+    },
+    {
+      "bestand": "O_Be_Glad_All_Nations_on_Earth-Gwalia.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: copyright: Words: Copyright 2009, Brian L. Penney. These lyrics may be freely reproduced or published for Christian"
+    },
+    {
+      "bestand": "O_Lord_My_God_I_Thirst_For_You-Kingsfold.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: copyright: music and setting public domain.  Words: Copyright 2010, Anthony Robertson. These lyrics may be"
+    },
+    {
+      "bestand": "The_Apostle_Looked_And_Heard_A_Voice-London-Addisons.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: copyright: music and setting public domain.  Words: Copyright 2005, Anthony Robertson. These lyrics may be"
+    },
+    {
+      "bestand": "The_Cloud_Received_Christ_From_Their_Sight-Azmon.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: copyright: Words: Copyright 2008, Brian J. Dumont. These lyrics may be freely reproduced or published for Christian"
+    },
+    {
+      "bestand": "The_Lords_Prayer-Erfyniad.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: copyright: Words: Copyright 2009, Brian L. Penney. These lyrics may be freely reproduced or published for"
+    },
+    {
+      "bestand": "Twas_In_The_Moon_Of_Wintertime-Huron_Carol-Jesous_Ahatonhia-Une_Jeune_Pucelle.abc",
+      "reden": "publiek-domeinstatus onduidelijk"
+    },
+    {
+      "bestand": "Yet_Before_We_See_Your_Plans-Holy_Manna.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: copyright: Words: Copyright 2012, Brian J. Dumont. These lyrics may be freely reproduced or published for"
+    },
+    {
+      "bestand": "You_People_Who_Now_Are_Baptized-Es_ist_Gewisslich_an_der_Zeit.abc",
+      "reden": "gedeeltelijk auteursrechtelijk beschermd; geen volledige publiek-domeinverklaring: C: copyright: Words: Copyright 2011, Brian J. Dumont. These lyrics may be freely reproduced or published for"
     }
   ]
 }

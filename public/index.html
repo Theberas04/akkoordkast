@@ -172,6 +172,16 @@
   .mees-noten b.klinkt{color:var(--amber)}
   .grepen figure[data-akkoord].klinkt{outline:2px solid var(--amber);outline-offset:2px;border-radius:10px}
   .seg .ak.klinkt{background:var(--amber);color:#241a03;border-radius:4px;padding:0 3px}
+  .woorden{margin-top:10px;background:var(--pane);border:1px solid var(--lijn);border-radius:10px;padding:8px 12px}
+  .woorden summary{cursor:pointer;font-weight:700;font-size:.9rem}
+  .woorden-tekst{white-space:pre-wrap;font-family:inherit;font-size:.9rem;line-height:1.6;margin:8px 0 0;color:var(--tekst2)}
+  .scan-lijst{margin-top:8px;display:grid;gap:4px;max-height:280px;overflow:auto}
+  .scan-regel{display:flex;gap:8px;align-items:center;background:var(--pane);border:1px solid var(--lijn);
+    border-radius:8px;padding:6px 9px;font-size:.83rem}
+  .scan-regel .naam{font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .scan-regel .meta{color:var(--tekst2);font-size:.76rem;white-space:nowrap}
+  .scan-regel.klaar{border-color:#2f6b4f}
+  .scan-regel.fout{border-color:#7a3b3b}
   .spotify-speler{margin-top:8px}
   .spotify-speler div{min-height:152px}
   .spotify-speler iframe{border-radius:12px;border:0;width:100%;min-height:152px;background:#0d1526}
@@ -306,6 +316,23 @@
       </div>
       <div class="melding" id="upload-melding" hidden></div>
       <div id="upload-uitkomst" hidden></div>
+    </div>
+    <div class="kaart">
+      <h2>Een hele muziekmap in één keer</h2>
+      <p class="melding">Staat je muziek op dezelfde machine als AkkoordKast, dan hoef je niets te uploaden. Vul het pad in
+        (bijvoorbeeld <code>/home/tom/muziek</code>) en de app loopt de map door, ook onderliggende mappen, en maakt van
+        elk nummer een eigen liedje met akkoordschema. Bestandsnamen als "Amazing Grace (official video).mp3" worden aan
+        het liedje in de bibliotheek gekoppeld, dus je krijgt de grepen en het capo-advies er gratis bij. Wat al gedaan is,
+        wordt overgeslagen.</p>
+      <label for="scan-map">Map op deze machine</label>
+      <div class="rij">
+        <input id="scan-map" type="text" placeholder="/home/tom/muziek" style="flex:1;min-width:240px">
+        <button class="knop zacht" id="scan-kijk">Kijk wat erin zit</button>
+        <button class="knop" id="scan-start">Alles omzetten</button>
+      </div>
+      <div class="melding" id="scan-melding" hidden></div>
+      <progress id="scan-vort" style="width:100%;height:10px;margin-top:8px" value="0" max="100" hidden></progress>
+      <div id="scan-lijst" class="scan-lijst"></div>
     </div>
     <div class="kaart">
       <h2>Eigen liedje toevoegen</h2>
@@ -612,6 +639,14 @@ function tekenLiedje(l) {
 
       '<h3>Bladmuziek</h3>' +
       '<div class="songtekst" id="songtekst">' + tekenSongtekst(l.model) + '</div>' +
+      (l.tekst
+        ? '<details class="woorden"><summary>De woorden' +
+          (l.tekstVan ? ' van ' + esc(l.tekstVan.replace(/\s*\(\d+\)$/, '')) : '') + '</summary>' +
+          '<pre class="woorden-tekst">' + esc(l.tekst) + '</pre>' +
+          '<p class="melding">De akkoorden hierboven komen uit jouw opname; dit is de tekst van het liedje uit de bibliotheek' +
+          (l.tekstVan ? ' (id ' + esc((l.tekstVan.match(/\((\d+)\)$/) || [])[1] || '') + ')' : '') +
+          '. <button class="knop zacht" id="woorden-open">Open dat liedje met grepen en capo-advies</button></p></details>'
+        : '') +
 
       '<h3>Meespelen</h3>' +
       '<p class="melding">' + (l.heeftEigenOpname
@@ -710,6 +745,12 @@ function tekenLiedje(l) {
   });
   $('spotify-zoek-knop').addEventListener('click', function () { spotifyZoek(l, $('spotify-zoek').value); });
   $('spotify-zoek').addEventListener('keydown', function (e) { if (e.key === 'Enter') spotifyZoek(l, this.value); });
+  if ($('woorden-open')) {
+    $('woorden-open').addEventListener('click', function () {
+      var id = ((l.tekstVan || '').match(/\((\d+)\)$/) || [])[1];
+      if (id) openLiedje(Number(id));
+    });
+  }
   tekenSpotify(l);
   // meespelen
   $('mees-start').addEventListener('click', function () { meespelStart(l); });
@@ -1455,6 +1496,60 @@ function kiesApparaat(ip, naam) {
   toonMelding('cast-melding', 'Apparaat gekozen. Open een liedje en druk op "Cast dit liedje".', 'goed');
 }
 $('upload-start').addEventListener('click', uploadMuziek);
+function scanKijk() {
+  var map = $('scan-map').value.trim();
+  if (!map) { toonMelding('scan-melding', 'Vul eerst een map in.', 'fout'); return; }
+  toonMelding('scan-melding', 'Map bekijken…', '');
+  api('/api/scan?map=' + encodeURIComponent(map)).then(function (r) {
+    toonMelding('scan-melding', r.aantal + ' geluids- of videobestanden gevonden (' + (Math.round(r.grootteTotaal / 1048576 * 10) / 10) + ' MB). ' +
+      r.nieuw + ' nog niet gedaan, ' + r.alGedaan + ' eerder gedaan.', 'goed');
+    $('scan-lijst').innerHTML = (r.bestanden || []).slice(0, 200).map(function (b) {
+      return '<div class="scan-regel' + (b.alGedaan ? ' klaar' : '') + '"><span class="naam">' + esc(b.naam) + '</span>' +
+        '<span class="meta">' + (Math.round(b.grootte / 1048576 * 10) / 10) + ' MB' + (b.alGedaan ? ' · al gedaan' : '') + '</span></div>';
+    }).join('');
+  }).catch(function (e) { toonMelding('scan-melding', e.message, 'fout'); });
+}
+
+function scanStart() {
+  var map = $('scan-map').value.trim();
+  if (!map) { toonMelding('scan-melding', 'Vul eerst een map in.', 'fout'); return; }
+  var klaar = 0, totaal = 0, nieuw = 0;
+  $('scan-vort').hidden = false;
+  $('scan-vort').value = 0;
+  $('scan-lijst').innerHTML = '';
+  function volgende() {
+    api('/api/scan', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ map: map, limiet: 6 })
+    }).then(function (r) {
+      totaal = r.totaal; nieuw = nieuw + r.gedaan;
+      klaar = r.totaal - r.rest;
+      toonMelding('scan-melding', 'Bezig: ' + klaar + ' van ' + r.totaal + ' bestanden gedaan…', '');
+      $('scan-vort').value = r.totaal ? Math.round(klaar / r.totaal * 100) : 100;
+      (r.liedjes || []).forEach(function (l) {
+        var regel = document.createElement('div');
+        regel.className = 'scan-regel klaar';
+        regel.innerHTML = '<span class="naam">' + esc(l.bestand) + '</span><span class="meta">' +
+          l.tempo + ' bpm · ' + l.toonsoort + ' · ' + esc(l.gevonden || l.titel) + '</span>';
+        $('scan-lijst').prepend(regel);
+      });
+      (r.fouten || []).forEach(function (f) {
+        var regel = document.createElement('div');
+        regel.className = 'scan-regel fout';
+        regel.innerHTML = '<span class="naam">' + esc(f.bestand) + '</span><span class="meta">' + esc(f.fout) + '</span>';
+        $('scan-lijst').prepend(regel);
+      });
+      if (!r.klaar && r.gedaan) { window.setTimeout(volgende, 400); return; }
+      $('scan-vort').value = 100;
+      toonMelding('scan-melding', 'Klaar: ' + nieuw + ' nummers omgezet en ' + r.mislukt + ' mislukt. ' +
+        (r.rest ? r.rest + ' bestanden staan er nog (herhaal de opdracht).' : 'Alles uit deze map zit erin.'), 'goed');
+      laadLiedjes();
+    }).catch(function (e) { toonMelding('scan-melding', e.message, 'fout'); });
+  }
+  volgende();
+}
+$('scan-kijk').addEventListener('click', scanKijk);
+$('scan-start').addEventListener('click', scanStart);
 $('spotify-instellingen').addEventListener('click', function () {
   toonMelding('spotify-status', 'Bezig met bewaren en testen…', '');
   api('/api/spotify/instellingen', {

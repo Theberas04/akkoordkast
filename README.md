@@ -8,7 +8,8 @@
 ![Node 22](https://img.shields.io/badge/Node.js-22%20(node%3Asqlite)-3c873a)
 ![geen npm-afhankelijkheden](https://img.shields.io/badge/dependencies-geen-34d399)
 ![taal](https://img.shields.io/badge/taal-Nederlands-60a5fa)
-![liedjes](https://img.shields.io/badge/publiek--domein%20liedjes-26-f5a524)
+![liedjes](https://img.shields.io/badge/liedjes-1325-f5a524)
+![bronnen](https://img.shields.io/badge/bronnen-publiek%20domein-34d399)
 
 Je opent AkkoordKast op je telefoon of laptop, zoekt een liedje en ziet meteen:
 de bladmuziek met de akkoorden boven de tekst, **of je een capo nodig hebt en welke grepen
@@ -26,6 +27,8 @@ Die begeleiding cast je naar een Chromecast in je netwerk.
 | ![upload](docs/img/upload-herkend.png) | **Mp3 of mp4 uploaden** — de app haalt het geluid uit je bestand, herkent tempo, toonsoort en akkoorden en zoekt het liedje er meteen bij in de bibliotheek. |
 | ![meespelen](docs/img/meespelen-opname.png) | **Meespelen met je eigen opname** — je opname is de muziek; de akkoorden, de maat, de hals en de grepen lopen ermee mee. |
 | ![spotify](docs/img/spotify-blok.png) | **Spotify** — plak een link en de speler staat erbij; de noten lopen mee met wat je hoort. Met een eigen Client ID kun je ook zoeken. |
+| ![muziekmap](docs/img/muziekmap-klaar.png) | **Een hele muziekmap in één keer** — geef een map op deze machine op en elk nummer erin wordt een eigen liedje met akkoordschema, tempo en toonsoort. |
+| ![tekst](docs/img/liedjestekst-bij-opname.png) | **De liedjestekst erbij** — lijkt de bestandsnaam op een liedje uit de bibliotheek, dan krijg je de tekst van dat liedje erbij te lezen, met de akkoorden uit jouw opname erboven. |
 
 ## Rondleiding van 56 seconden
 
@@ -90,9 +93,25 @@ in plaats van wav. Geen npm-afhankelijkheden.
 
 ## De liedjes
 
-Meegeleverd: **26 publiek-domein liedjes** (Nederlandse kinderliedjes en Sinterklaasliedjes,
-kerstliedjes, het Wilhelmus, Engelstalige en Afrikaanse traditionals, drie instrumentale
-stukken met tab) in [`song-data/liedjes.json`](song-data/liedjes.json), elk met bronvermelding.
+Meegeleverd: **1.325 liedjes**, allemaal met akkoorden per maat en (waar de bron dat heeft) de melodie,
+verdeeld over drie bestanden met eigen id-bereiken:
+
+| Bestand | Aantal | Wat | Id's |
+| --- | --- | --- | --- |
+| [`song-data/liedjes.json`](song-data/liedjes.json) | 26 | met tekst en akkoorden: Nederlandse kinder- en Sinterklaasliedjes, kerstliedjes, het Wilhelmus, Engelstalige en Afrikaanse traditionals, plus instrumentale stukken met tab | 1–26 |
+| [`song-data/volkswijsjes.json`](song-data/volkswijsjes.json) | 971 | melodieën uit de Nottingham-collectie (jigs, reels, waltzes, morris, Playford), instrumentaal, akkoorden uit de bron | 100.000+ |
+| [`song-data/kerkwijsjes.json`](song-data/kerkwijsjes.json) | 328 | kerkwijsjes uit het Open Hymnal Project, instrumentaal, akkoorden uit de vierstemmige zetting | 200.000+ |
+
+Elk liedje houdt de toonsoort die de bron aangeeft; waar een akkoord geen greep heeft zoekt de
+app de dichtstbijzijnde toonsoort waarin alles speelbaar is, en verder lost het capo-advies het op.
+
+**Over de licenties.** De 26 liedjes met tekst zijn publiek domein. De volkswijsjes komen uit een
+collectie zonder expliciete licentieverklaring op de bronpagina — het zijn negentiende-eeuwse
+traditionals, maar er is geen licentie-grant; daarom staan ze in een **apart bestand** dat je met één
+regel kunt weglaten als je dat niet wilt. De kerkwijsjes komen uit het Open Hymnal Project, dat zijn
+publiek-domeinstatus in elk bestand zelf verklaart. De bronvermelding en de letterlijke
+licentieverklaringen staan in `song-data/abc/manifest-nmd.json` en
+`song-data/hymnen/manifest-hymnen.json`, plus per liedje in de dataset.
 
 Eerlijk over de grens: een app met de bladmuziek van *alle* nummers die bestaan kan niet legaal
 worden meegeleverd — de meeste muziek van na ~1928 valt onder auteursrecht. Daarom is AkkoordKast
@@ -108,10 +127,22 @@ Kies in het tabblad **Toevoegen** een **mp3, mp4, m4a, wav, ogg of webm**. De ap
 2. bepaalt het tempo, de maatsoort en de toonsoort (FFT, chromagram, tikherkenning);
 3. herkent per maat het akkoord dat het beste bij de klankkleur past, met een zekerheid per maat;
 4. maakt er een eigen liedje van, zet het schema in de bladmuziek en hangt je opname eraan;
-5. zoekt in de bibliotheek of de bestandsnaam bij een bestaand liedje hoort ("Amazing Grace (official video).mp3" → het liedje *Amazing Grace*), zodat je meteen de grepen en het capo-advies hebt.
+5. zoekt in de bibliotheek of de bestandsnaam bij een bestaand liedje hoort ("Amazing Grace (official video).mp3" → het liedje *Amazing Grace*), zodat je meteen de grepen en het capo-advies hebt;
+6. neemt van dat gevonden liedje **de liedjestekst mee** (zonder akkoorden), zodat je onder het herkende schema de woorden te lezen krijgt en meteen kunt meezingen.
 
 Daarna speel je mee met je eigen opname: geen aftelmaat, één keer door het schema, en het beeld volgt het geluid.
 Het is automatische herkenning — het resultaat is een voorstel, dus controleer het schema en pas het gerust aan.
+
+## Een hele muziekmap in één keer
+
+Staat je muziek op dezelfde machine als AkkoordKast, dan hoef je niets te uploaden. Geef in het
+tabblad **Toevoegen** het pad op (bijvoorbeeld `/home/tom/muziek`) en druk op **Kijk wat erin zit**;
+de app loopt de map en alle onderliggende mappen door en laat zien wat erin staat en wat al gedaan is.
+Daarna zet **Alles omzetten** elk nummer om naar een eigen liedje: tempo, toonsoort en akkoorden per
+maat, met de bestandsnaam als titel, en waar de naam op een liedje uit de bibliotheek lijkt krijg je
+dat liedje erbij (grepen en capo-advies inbegrepen). Het werk gaat in kleine rondes met een
+voortgangsbalk, dus ook een map met honderden nummers loopt gewoon door; wat al gedaan is wordt
+overgeslagen, zodat je gerust nog eens kunt drukken.
 
 ## Spotify
 

@@ -52,6 +52,12 @@ db.exec(`
     audio_titel TEXT NOT NULL DEFAULT '',
     aangemaakt TEXT NOT NULL DEFAULT ''
   );
+  CREATE TABLE IF NOT EXISTS imports (
+    pad TEXT PRIMARY KEY,
+    grootte INTEGER NOT NULL DEFAULT 0,
+    liedje_id INTEGER NOT NULL DEFAULT 0,
+    wanneer TEXT NOT NULL DEFAULT ''
+  );
   CREATE TABLE IF NOT EXISTS spotify_koppelingen (
     liedje_id INTEGER PRIMARY KEY,
     uri TEXT NOT NULL DEFAULT '',
@@ -73,7 +79,9 @@ db.exec(`
 for (const kolom of [
   "ALTER TABLE liedjes ADD COLUMN akkoorden_per_maat TEXT NOT NULL DEFAULT ''",
   "ALTER TABLE liedjes ADD COLUMN maatsoort INTEGER NOT NULL DEFAULT 4",
-  "ALTER TABLE liedjes ADD COLUMN eerste_tel REAL NOT NULL DEFAULT 0"
+  "ALTER TABLE liedjes ADD COLUMN eerste_tel REAL NOT NULL DEFAULT 0",
+  "ALTER TABLE liedjes ADD COLUMN tekst TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE liedjes ADD COLUMN tekst_van TEXT NOT NULL DEFAULT ''"
 ]) {
   try { db.exec(kolom); } catch (e) { /* de kolom bestaat al */ }
 }
@@ -140,6 +148,8 @@ function eigenRij(id) {
     maatsoort: Math.max(2, Math.min(12, Number(rij.maatsoort) || 4)),
     eersteTel: Number(rij.eerste_tel) || 0,
     akkoordenPerMaat: leesAkkoordenPerMaat(rij.akkoorden_per_maat),
+    tekst: rij.tekst || '',
+    tekst_van: rij.tekst_van || '',
     noten: [],
     audio_bestand: rij.audio_bestand,
     audio_titel: rij.audio_titel,
@@ -233,6 +243,8 @@ function weergave(lied, opties) {
     // een liedje dat uit een upload is herkend, heeft een akkoordschema per maat
     akkoordenPerMaat: lied.akkoordenPerMaat || [],
     heeftEigenOpname: !!(lied.audio_bestand && lied.akkoordenPerMaat && lied.akkoordenPerMaat.length),
+    tekst: lied.tekst || '',
+    tekstVan: lied.tekst_van || '',
     spotify: koppelingVan(lied.id),
     maatsoort: lied.maatsoort || 4,
     licentie: lied.licentie || '',
@@ -635,6 +647,15 @@ function zoekInBibliotheek(titel) {
   return beste;
 }
 
+// De woorden van een liedje uit de bibliotheek, zonder de akkoorden erboven.
+function woordenVan(gevonden) {
+  if (!gevonden) return { tekst: '', van: '' };
+  const lied = bron.vind(gevonden.id);
+  if (!lied) return { tekst: '', van: '' };
+  const woorden = chordpro.zonderAkkoorden(lied.chordpro || '');
+  return { tekst: woorden.slice(0, 8000), van: `${lied.titel} (${lied.id})` };
+}
+
 // Geluid uit een upload halen en daar een akkoordschema van maken.
 function analyseerUpload(bestandPad, opties) {
   const o = Object.assign({ maatsoort: 0 }, opties || {});
@@ -659,6 +680,106 @@ function maakMp3Van(bestandPad, naam) {
     return null;
   }
   return naam;
+}
+
+// ------------------------------------------------- een hele muziekmap in één keer ---
+// Dezelfde herkenning als bij één upload, maar dan over een map op deze machine.
+const AUDIO_EXT = ['.mp3', '.m4a', '.aac', '.wav', '.ogg', '.opus', '.flac', '.webm', '.mp4', '.m4v', '.mov', '.mkv'];
+const MAX_DIEPTE = 4;
+const MAX_PER_RONDE = 500;
+
+// Welke geluids- en videobestanden liggen er in deze map?
+function scanBestanden(mapPad) {
+  const map = path.resolve(String(mapPad || '').trim());
+  if (!String(mapPad || '').trim()) return { fout: 'Geef een map op, bijvoorbeeld /home/tom/muziek.' };
+  if (!fs.existsSync(map)) return { fout: 'Deze map bestaat niet op deze machine: ' + map };
+  let isMap = false;
+  try { isMap = fs.statSync(map).isDirectory(); } catch (e) { isMap = false; }
+  if (!isMap) return { fout: 'Dit is geen map: ' + map };
+  const bestanden = [];
+  const loop = (map2, diepte) => {
+    let inhoud;
+    try { inhoud = fs.readdirSync(map2, { withFileTypes: true }); } catch (e) { return; }
+    for (const ent of inhoud) {
+      if (ent.name.startsWith('.')) continue;
+      const vol = path.join(map2, ent.name);
+      if (ent.isDirectory()) {
+        if (diepte < MAX_DIEPTE) loop(vol, diepte + 1);
+        continue;
+      }
+      if (!AUDIO_EXT.includes(path.extname(ent.name).toLowerCase())) continue;
+      let grootte = 0;
+      try { grootte = fs.statSync(vol).size; } catch (e) { continue; }
+      if (grootte < 1024) continue;
+      const al = db.prepare('SELECT liedje_id FROM imports WHERE pad = ?').get(vol);
+      bestanden.push({ pad: vol, naam: ent.name, grootte, alGedaan: al ? al.liedje_id : null });
+    }
+  };
+  loop(map, 0);
+  bestanden.sort((a, b) => a.pad.localeCompare(b.pad));
+  const nieuwe = bestanden.filter(b => !b.alGedaan);
+  return {
+    map,
+    bestanden,
+    aantal: bestanden.length,
+    nieuw: nieuwe.length,
+    alGedaan: bestanden.length - nieuwe.length,
+    grootteTotaal: bestanden.reduce((n, b) => n + b.grootte, 0),
+    open: nieuwe.slice(0, MAX_PER_RONDE)
+  };
+}
+
+// Eén bestand uit de map herkennen en er een eigen liedje van maken.
+function herkenBestand(bestand) {
+  const uitkomst = analyseerUpload(bestand.pad, {});
+  const titel = titelUitBestandsnaam(bestand.naam);
+  const gevonden = zoekInBibliotheek(titel);
+  const schoon = veiligeNaam(bestand.naam.replace(/\.[A-Za-z0-9]+$/, ''));
+  const mp3Naam = 'scan-' + (schoon || 'opname') + '-' + Date.now().toString(36) + '.mp3';
+  let gelukt = null;
+  if (path.extname(bestand.naam).toLowerCase() === '.mp3') {
+    try {
+      fs.copyFileSync(bestand.pad, path.join(MEDIA_DIR, 'audio', mp3Naam));
+      gelukt = mp3Naam;
+    } catch (e) { gelukt = null; }
+  }
+  if (!gelukt) gelukt = maakMp3Van(bestand.pad, mp3Naam);
+  const accordeerschema = uitkomst.akkoordenPerMaat.length
+    ? schemaAlsChordpro(titel, uitkomst.toonsoort, Math.round(uitkomst.tempo), uitkomst.akkoordenPerMaat)
+    : `{title: ${titel}}\n{key: ${uitkomst.toonsoort}}\n`;
+  const notitie = `Automatisch herkend uit de muziekmap (${uitkomst.aantalMaten} maten, zekerheid ${Math.round(uitkomst.gemiddeldeZekerheid * 100)}%). Controleer het schema en pas het gerust aan.`;
+  const nu = new Date().toISOString();
+  const woorden = woordenVan(gevonden);
+  const info = db.prepare(`INSERT INTO liedjes (titel, artiest, taal, genre, moeilijkheid, toonsoort, tempo, strum, bron, youtube, notitie, chordpro, aangemaakt, akkoorden_per_maat, maatsoort, eerste_tel, tekst, tekst_van)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
+    titel, '', 'nl', gevonden ? 'Overgenomen' : 'Eigen opname', 2, uitkomst.toonsoort,
+    Math.max(40, Math.min(200, Math.round(uitkomst.tempo))), 'D DU UDU',
+    gevonden ? `Herkend uit de muziekmap; lijkt op "${gevonden.titel}"` : 'Herkend uit de muziekmap',
+    '', notitie, accordeerschema, nu, JSON.stringify(uitkomst.akkoordenPerMaat),
+    uitkomst.maatsoort, Math.max(0, Number(uitkomst.eersteTelSeconden) || 0),
+    woorden.tekst, woorden.van);
+  if (gelukt) {
+    db.prepare('UPDATE liedjes SET audio_bestand = ?, audio_titel = ? WHERE id = ?')
+      .run(gelukt, `Opname: ${titel}`.slice(0, 120), Number(info.lastInsertRowid));
+  }
+  db.prepare('INSERT INTO imports (pad, grootte, liedje_id, wanneer) VALUES (?,?,?,?) ON CONFLICT(pad) DO UPDATE SET liedje_id = excluded.liedje_id, wanneer = excluded.wanneer')
+    .run(bestand.pad, bestand.grootte, Number(info.lastInsertRowid), nu);
+  return {
+    id: EIGEN_START + Number(info.lastInsertRowid),
+    titel,
+    bestand: bestand.naam,
+    pad: bestand.pad,
+    gevonden: gevonden ? gevonden.titel : '',
+    tempo: Math.round(uitkomst.tempo * 10) / 10,
+    maatsoort: uitkomst.maatsoort,
+    toonsoort: uitkomst.toonsoort,
+    aantalMaten: uitkomst.aantalMaten,
+    woorden: woorden.tekst ? woorden.tekst.split('\n').length : 0,
+    zekerheid: Math.round(uitkomst.gemiddeldeZekerheid * 100),
+    akkoorden: uitkomst.akkoordenPerMaat,
+    heeftAudio: !!gelukt,
+    metBeeld: !!gelukt
+  };
 }
 
 // ---------------------------------------------------------------------- cast ---
@@ -1006,14 +1127,16 @@ async function verwerk(req, res) {
       : `{title: ${titel}}\n{key: ${uitkomst.toonsoort}}\n`;
     const nu = new Date().toISOString();
     const notitie = `Automatisch herkend uit een upload (${uitkomst.aantalMaten} maten, zekerheid ${Math.round(uitkomst.gemiddeldeZekerheid * 100)}%). Controleer het schema en pas het gerust aan.`;
-    const info = db.prepare(`INSERT INTO liedjes (titel, artiest, taal, genre, moeilijkheid, toonsoort, tempo, strum, bron, youtube, notitie, chordpro, aangemaakt, akkoorden_per_maat, maatsoort, eerste_tel)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
+    const woorden = woordenVan(gevonden);
+    const info = db.prepare(`INSERT INTO liedjes (titel, artiest, taal, genre, moeilijkheid, toonsoort, tempo, strum, bron, youtube, notitie, chordpro, aangemaakt, akkoorden_per_maat, maatsoort, eerste_tel, tekst, tekst_van)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
       titel, '', 'nl', gevonden ? 'Overgenomen' : 'Eigen opname', 2, uitkomst.toonsoort,
       Math.max(40, Math.min(200, Math.round(uitkomst.tempo))), 'D DU UDU',
       gevonden ? `Herkend uit upload; lijkt op "${gevonden.titel}"` : 'Herkend uit upload',
       '', notitie, accordeerschema, nu,
       JSON.stringify(uitkomst.akkoordenPerMaat), uitkomst.maatsoort,
-      Math.max(0, Number(uitkomst.eersteTelSeconden) || 0));
+      Math.max(0, Number(uitkomst.eersteTelSeconden) || 0),
+      woorden.tekst, woorden.van);
     const id = EIGEN_START + Number(info.lastInsertRowid);
     if (mp3Naam) {
       db.prepare('UPDATE liedjes SET audio_bestand = ?, audio_titel = ? WHERE id = ?')
@@ -1034,6 +1157,51 @@ async function verwerk(req, res) {
       },
       gevonden: gevonden || null,
       audio: mp3Naam ? `/media/audio/${mp3Naam}` : ''
+    });
+    return;
+  }
+
+  // --- een hele muziekmap in één keer ---
+  if (pad === '/api/scan' && methode === 'GET') {
+    const uit = scanBestanden(query.get('map'));
+    if (uit.fout) { json(res, 400, { fout: uit.fout }); return; }
+    json(res, 200, {
+      map: uit.map,
+      aantal: uit.aantal,
+      nieuw: uit.nieuw,
+      alGedaan: uit.alGedaan,
+      grootteTotaal: uit.grootteTotaal,
+      bestanden: uit.bestanden.slice(0, 500)
+    });
+    return;
+  }
+  if (pad === '/api/scan' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    const uit = scanBestanden(body.map);
+    if (uit.fout) { json(res, 400, { fout: uit.fout }); return; }
+    const limiet = Math.max(1, Math.min(MAX_PER_RONDE, parseInt(body.limiet, 10) || 8));
+    const teDoen = uit.open.slice(0, limiet);
+    const gedaan = [];
+    const mislukt = [];
+    for (const bestand of teDoen) {
+      try {
+        gedaan.push(herkenBestand(bestand));
+      } catch (e) {
+        mislukt.push({ bestand: bestand.naam, pad: bestand.pad, fout: e.message });
+        db.prepare('INSERT INTO imports (pad, grootte, liedje_id, wanneer) VALUES (?,?,0,?) ON CONFLICT(pad) DO NOTHING')
+          .run(bestand.pad, bestand.grootte, new Date().toISOString());
+      }
+    }
+    const na = scanBestanden(body.map);
+    json(res, gedaan.length || mislukt.length ? 201 : 200, {
+      map: uit.map,
+      gedaan: gedaan.length,
+      mislukt: mislukt.length,
+      klaar: na.nieuw === 0,
+      rest: na.nieuw,
+      totaal: na.aantal,
+      liedjes: gedaan,
+      fouten: mislukt
     });
     return;
   }

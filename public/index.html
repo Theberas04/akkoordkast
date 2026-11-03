@@ -1245,7 +1245,8 @@ function laadWachter() {
     var knop = $('wacht-aan');
     knop.textContent = w.aan ? 'Automatisch bijhouden uitzetten' : 'Automatisch bijhouden aanzetten';
     knop.className = 'knop' + (w.aan ? ' zacht' : '');
-    if (!$('wacht-map').value) $('wacht-map').value = w.map || '';
+    if (!$('wacht-map').value) $('wacht-map').value = w.map || w.standaardMap || '';
+    if (!$('scan-map').value) $('scan-map').value = w.standaardMap || w.map || '';
     $('wacht-minuten').value = String(w.minuten);
     var gedaan = w.laatste ? new Date(w.laatste).toLocaleString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
     $('wacht-stand').textContent = !w.aan
@@ -1299,6 +1300,8 @@ $('wacht-nu').addEventListener('click', function () {
 
 function laadVersie() {
   api('/api/versie').then(function (data) {
+    // Staat er een muziekmap in de omgeving (MUSIC_DIR), dan vullen we die vast in.
+    if (data.muziekmap && !$('scan-map').value) $('scan-map').value = data.muziekmap;
     $('versie-nummer').textContent = data.versie;
     $('versie-commit').textContent = data.commit || 'onbekend';
     $('versie-liedjes').textContent = data.liedjes;

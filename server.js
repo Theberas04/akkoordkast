@@ -1034,10 +1034,14 @@ function scanRonde(mapPad, limiet) {
 // De wachter: kijkt op de achtergrond of er nieuwe muziek in de map staat en of er
 // een nieuwe versie van de app is. Alles wordt bewaard in de instellingen, zodat de
 // kaart in de app kan laten zien wat er gebeurd is — ook na een herstart.
+// De map die de app zelf voorstelt: met MUSIC_DIR in de omgeving (bijvoorbeeld een
+// NAS- of Drive-koppeling) hoef je dat pad niet elke keer in te typen.
+const STANDAARD_MUZIEKMAP = String(process.env.MUSIC_DIR || '').trim();
+
 const WACHTER = {
   aan: leesInstelling('wacht_map_aan', '0') === '1',
   minuten: Math.max(5, Math.min(24 * 60, parseInt(leesInstelling('wacht_map_minuten', '360'), 10) || 360)),
-  map: leesInstelling('scan_map', ''),
+  map: leesInstelling('scan_map', STANDAARD_MUZIEKMAP),
   laatste: leesInstelling('wacht_map_laatste', ''),
   verslag: leesInstelling('wacht_map_verslag', ''),
   perRonde: Math.max(1, Math.min(50, parseInt(leesInstelling('wacht_map_per_ronde', '8'), 10) || 8)),
@@ -1052,6 +1056,7 @@ function wachterBeeld() {
     aan: WACHTER.aan,
     minuten: WACHTER.minuten,
     map: WACHTER.map,
+    standaardMap: STANDAARD_MUZIEKMAP,
     laatste: WACHTER.laatste,
     verslag: WACHTER.verslag,
     perRonde: WACHTER.perRonde,
@@ -1539,7 +1544,8 @@ async function verwerk(req, res) {
       liedjes: bron.alle().length,
       updateMogelijk: updateMogelijk(),
       updateScript: updateMogelijk() ? UPDATE_SCRIPT : '',
-      updateCommando: updateCommando()
+      updateCommando: updateCommando(),
+      muziekmap: STANDAARD_MUZIEKMAP
     });
     return;
   }

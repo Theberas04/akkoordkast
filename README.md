@@ -341,6 +341,11 @@ de koppeling leest het uit `/etc/akkoordkast/nas.credentials` met rechten 600. N
 
 ### Als het gekoppeld is
 
+Wijs de app er dan op. Zet je `MUSIC_DIR` in de omgeving van de dienst (dat doet
+`drive-koppelen.sh` automatisch), dan vult de app dat pad zelf vast in bij **Muziekmap scannen** en bij
+**Automatisch bijhouden**. Zonder die variabele typ je het pad één keer in — het blijft daarna bewaard.
+
+
 1. Open AkkoordKast in je browser.
 2. Ga naar het tabblad **Toevoegen** en zoek **Muziekmap scannen** op.
 3. Vul bij **Map op deze machine** het koppelpunt in (standaard `/home/akkoordkast/muziek`).

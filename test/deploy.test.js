@@ -1,0 +1,202 @@
+'use strict';
+// De deploykit: syntax, bestandslijsten en de afspraken die een verse installatie
+// laten werken. Een bestand dat in de ene lijst staat en in de andere niet, is de
+// klassieke oorzaak van "Cannot find module" in de container.
+const test = require('node:test');
+const assert = require('node:assert');
+const fs = require('fs');
+const path = require('path');
+const { execFileSync } = require('child_process');
+
+const WORTEL = path.join(__dirname, '..');
+const DEPLOY = path.join(WORTEL, 'deploy', 'proxmox');
+
+function lees(naam) {
+  return fs.readFileSync(path.join(DEPLOY, naam), 'utf8');
+}
+
+function bestaatInRepo(pad) {
+  return fs.existsSync(path.join(WORTEL, pad));
+}
+
+// Leest een shell-array met de naam TITEL uit een script.
+function shellArray(tekst, titel) {
+  const m = tekst.match(new RegExp(titel + '=\\(\\n([\\s\\S]*?)\\n\\)', 'm'));
+  if (!m) return null;
+  return m[1].split('\n').map(r => r.trim()).filter(Boolean).map(r => r.replace(/^["']|["']$/g, ''));
+}
+
+// Leest de paden die naar de container worden gestuurd: pct push ... "$APP_DIR/$f".
+function pushGroepen(tekst) {
+  const groepen = [];
+  const regels = tekst.split('\n');
+  let huidige = null;
+  for (const regel of regels) {
+    const loop = regel.match(/^for f in "\$\{([A-Z]+)\[@\]\}"; do\s*(.*)$/);
+    if (loop) {
+      huidige = { naam: loop[1], regels: [regel] };
+      groepen.push(huidige);
+      continue;
+    }
+    if (huidige && /pct push/.test(regel)) huidige.regels.push(regel);
+    if (huidige && /^done\s*$/.test(regel)) huidige = null;
+  }
+  // Alleen lussen die echt naar de container sturen (de downloadlus doet dat niet).
+  return groepen.filter(g => g.regels.some(r => /pct push/.test(r)));
+}
+
+const SCRIPTS = fs.readdirSync(DEPLOY).filter(n => n.endsWith('.sh'));
+
+test('elk deploy-script is syntactisch in orde', () => {
+  for (const naam of SCRIPTS) {
+    const pad = path.join(DEPLOY, naam);
+    execFileSync('bash', ['-n', pad], { stdio: 'pipe' });
+  }
+  assert.ok(SCRIPTS.length >= 4, 'te weinig deploy-scripts: ' + SCRIPTS.join(', '));
+});
+
+test('geen enkel script heeft een oneven aantal aanhalingstekens per regel', () => {
+  for (const naam of SCRIPTS) {
+    const regels = lees(naam).split('\n');
+    regels.forEach((regel, i) => {
+      const enkel = (regel.match(/'/g) || []).length;
+      const dubbel = (regel.match(/"/g) || []).length;
+      // Een apostrof in een Nederlands woord komt niet voor in deze scripts;
+      // een oneven aantal betekent bijna altijd een afgebroken quote.
+      assert.equal(enkel % 2, 0, `${naam}:${i + 1} oneven aantal ' : ${regel.trim()}`);
+      assert.equal(dubbel % 2, 0, `${naam}:${i + 1} oneven aantal " : ${regel.trim()}`);
+    });
+  }
+});
+
+test('de downloadlijst van install.sh bestaat volledig in de repository', () => {
+  const install = lees('install.sh');
+  const files = shellArray(install, 'FILES');
+  assert.ok(files, 'geen FILES-array in install.sh');
+  assert.ok(files.length >= 17, 'downloadlijst te kort: ' + files.length);
+  for (const f of files) {
+    assert.ok(!f.includes(' '), 'bestandsnaam met een spatie: ' + f);
+    assert.ok(bestaatInRepo(f), 'install.sh noemt een bestand dat niet bestaat: ' + f);
+  }
+  assert.equal(new Set(files).size, files.length, 'dubbele namen in de downloadlijst');
+  assert.match(install, /case "\$f" in/, 'geen case-guard in de downloadlus');
+  assert.match(install, /Interne fout: bestandsnaam met een spatie/, 'geen spatiescheiding-guard in de downloadlus');
+});
+
+test('de updater haalt alles op wat hij in de container zet, en niet minder', () => {
+  const install = shellArray(lees('install.sh'), 'FILES');
+  const update = shellArray(lees('update-from-github.sh'), 'FILES');
+  assert.ok(update.length >= 17, 'downloadlijst van de updater te kort');
+  for (const f of update) {
+    assert.ok(install.includes(f), `install.sh haalt ${f} niet op, terwijl de updater het nodig heeft`);
+  }
+  // De updater hoeft de deploy-scripts zelf niet op te halen: hij draait al.
+  const gepusht = pushGroepen(lees('update-from-github.sh'))
+    .flatMap(g => shellArray(lees('update-from-github.sh'), g.naam));
+  for (const f of gepusht) {
+    assert.ok(update.includes(f), `de updater pusht ${f} zonder het op te halen`);
+  }
+  assert.equal(new Set(update).size, update.length, 'dubbele namen in de downloadlijst van de updater');
+});
+
+test('alles wat naar de container gaat, wordt ook opgehaald en bestaat', () => {
+  const install = shellArray(lees('install.sh'), 'FILES');
+  for (const naam of ['provision-akkoordkast.sh', 'update-from-github.sh']) {
+    const tekst = lees(naam);
+    const groepen = pushGroepen(tekst);
+    assert.ok(groepen.length >= 3, `${naam}: geen push-lussen gevonden`);
+    for (const groep of groepen) {
+      const lijst = shellArray(tekst, groep.naam);
+      assert.ok(lijst, `${naam}: array ${groep.naam} niet gevonden`);
+      for (const f of lijst) {
+        assert.ok(groep.regels.some(r => r.includes(`$APP_DIR/$f`)),
+          `${naam}: ${f} wordt niet naar de container gestuurd`);
+        if (naam === 'provision-akkoordkast.sh') {
+          assert.ok(install.includes(f), `install.sh haalt ${f} niet op, terwijl provisioning het nodig heeft`);
+        } else {
+          assert.ok(install.includes(f), `install.sh haalt ${f} niet op voor de updater`);
+        }
+        assert.ok(bestaatInRepo(f), `${naam}: ${f} bestaat niet in de repository`);
+        assert.ok(lees('update-from-github.sh').includes(f), `update-from-github.sh kent ${f} niet`);
+      }
+    }
+  }
+});
+
+test('provisioning en updater sturen dezelfde groepen naar de container', () => {
+  const groepen = naam => pushGroepen(lees(naam)).map(g => g.naam + ':' + shellArray(lees(naam), g.naam).join(','));
+  assert.deepEqual(groepen('update-from-github.sh'), groepen('provision-akkoordkast.sh'));
+});
+
+test('elk bestand dat server.js requiret, staat in de downloadlijsten', () => {
+  const server = fs.readFileSync(path.join(WORTEL, 'server.js'), 'utf8');
+  const modules = [...server.matchAll(/require\('\.\/([^']+)'\)/g)].map(m => m[1]);
+  assert.ok(modules.length >= 5, 'te weinig requires gevonden');
+  const install = lees('install.sh');
+  for (const mod of modules) {
+    const pad = mod.endsWith('.js') ? mod : mod + '.js';
+    assert.ok(bestaatInRepo(pad), 'module ontbreekt in de repository: ' + pad);
+    assert.ok(install.includes(pad), 'install.sh haalt ' + pad + ' niet op');
+  }
+  // de lib-modules van de app zelf
+  for (const lib of ['lib/theorie.js', 'lib/grepen.js', 'lib/chordpro.js', 'lib/capo.js', 'lib/gitaar.js']) {
+    assert.ok(install.includes(lib), 'install.sh mist ' + lib);
+  }
+  assert.ok(install.includes('scripts/cast-helper.py'), 'install.sh mist de cast-hulp');
+  assert.ok(install.includes('song-data/liedjes.json'), 'install.sh mist de liedjes-dataset');
+});
+
+test('de installatie laat het apparaat zijn eigen bestanden serveren, zonder proxy', () => {
+  const provision = lees('provision-akkoordkast.sh');
+  assert.doesNotMatch(provision, /nginx/, 'er hoort geen nginx in de installatie te zitten');
+  assert.match(provision, /AmbientCapabilities=CAP_NET_BIND_SERVICE/);
+  assert.match(provision, /Environment=PORT=/, 'de poort hoort in de systemd-unit te staan');
+  assert.match(provision, /CAST_PYTHON=/, 'het pad naar de cast-hulp hoort in de unit te staan');
+  assert.match(provision, /node:sqlite/, 'de installatie hoort node:sqlite te controleren');
+});
+
+test('de gezondheidscontrole eist de app-marker en een node-proces op de poort', () => {
+  for (const naam of ['provision-akkoordkast.sh', 'update-from-github.sh']) {
+    const tekst = lees(naam);
+    assert.match(tekst, /x-akkoordkast/, `${naam}: controleert de app-marker niet`);
+    assert.match(tekst, /grep -q node/, `${naam}: controleert niet of node op de poort luistert`);
+    assert.doesNotMatch(tekst, /curl[^\n|]*\|\s*grep -q/, `${naam}: curl met pipefail en grep -q breekt op een gebroken pijp`);
+  }
+});
+
+test('de updater wacht lang genoeg en kan terugrollen', () => {
+  const tekst = lees('update-from-github.sh');
+  assert.match(tekst, /seq 1 60/, 'de wachttijd is te kort voor een langzame start');
+  assert.match(tekst, /sleep 2/, 'de wachttijd tussen pogingen ontbreekt');
+  assert.match(tekst, /APP_DIR\.bak/, 'geen reservekopie voor terugrollen');
+  assert.match(tekst, /cmp -s/, 'de updater controleert niet of de nieuwe bestanden geserveerd worden');
+  assert.match(tekst, /Cache-Control: no-cache/);
+});
+
+test('de updater en de installer raken de database en de media niet aan', () => {
+  for (const naam of ['install.sh', 'update-from-github.sh']) {
+    const tekst = lees(naam);
+    assert.doesNotMatch(tekst, /rm -rf \/var\/lib\/akkoordkast/, `${naam} mag de gegevensmap niet wissen`);
+  }
+});
+
+test('er is een alleen-lezen diagnose-script met een Wat nu-blok', () => {
+  const tekst = lees('check-akkoordkast.sh');
+  assert.match(tekst, /Alleen-lezen/);
+  assert.match(tekst, /Wat nu\?/);
+  assert.match(tekst, /node:sqlite/);
+  // alleen de regels die het script echt uitvoert mogen niets veranderen
+  const uitgevoerd = tekst.split('\n').filter(r => /^\s*binnen\s/.test(r)).join('\n');
+  assert.ok(uitgevoerd.length > 100, 'geen binnen-opdrachten gevonden');
+  assert.doesNotMatch(uitgevoerd, /rm -rf/);
+  assert.doesNotMatch(uitgevoerd, /systemctl restart/);
+  assert.doesNotMatch(uitgevoerd, /systemctl stop/);
+  assert.doesNotMatch(uitgevoerd, /pip install/);
+});
+
+test('de bestandslijsten-checker van het deploygereedschap is groen', () => {
+  const uit = execFileSync('python3', [path.join(WORTEL, 'scripts', 'check-deploy-file-lists.py')],
+    { cwd: WORTEL, encoding: 'utf8' });
+  assert.doesNotMatch(uit, /FOUT|fout:/i, uit);
+  assert.match(uit, /ok|OK|geen probleem/i);
+});

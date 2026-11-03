@@ -1,0 +1,14 @@
+# gegevens en media blijven op de server
+data/
+data-demo/
+*.db
+*.db-journal
+
+# lokale hulpmiddelen
+.venv/
+node_modules/
+chrome-profile/
+
+# tijdelijke bestanden van de beeld- en videobouw
+/tmp/
+*.log

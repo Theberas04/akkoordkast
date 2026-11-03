@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AkkoordKast · gitaarsongbook met capo-advies</title>
+<meta name="description" content="Bladmuziek, akkoorden, capo-advies, grepen en audio voor gitaar — met Chromecast.">
+<meta name="theme-color" content="#0f172a">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+  :root{
+    --bg:#0b1120; --bg2:#111c33; --pane:#16223c; --pane2:#1c2b4a;
+    --tekst:#e8eefc; --tekst2:#9fb0d0; --lijn:#25365c;
+    --amber:#f5a524; --amber2:#ffc75a; --gitaar:#e0a45e;
+    --groen:#34d399; --rood:#f87171; --blauw:#60a5fa;
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--tekst);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+  body{padding-bottom:calc(40px + env(safe-area-inset-bottom))}
+  a{color:var(--amber2)}
+  header{padding:14px 16px 10px;background:linear-gradient(180deg,#101a2f,#0b1120);border-bottom:1px solid var(--lijn);
+    position:sticky;top:0;z-index:20}
+  .kop{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  h1{font-size:1.24rem;margin:0;letter-spacing:.2px;white-space:nowrap}
+  h1 span{color:var(--amber)}
+  .onderkop{color:var(--tekst2);font-size:.82rem;margin-top:2px}
+  .pilletje{background:var(--pane2);border:1px solid var(--lijn);color:var(--tekst2);
+    border-radius:999px;padding:3px 9px;font-size:.74rem;white-space:nowrap}
+  nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:10px 12px 0;max-width:660px;margin:0 auto}
+  nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    min-height:52px;background:var(--pane);border:1px solid var(--lijn);border-radius:12px;color:var(--tekst);
+    font-size:.78rem;font-weight:600;padding:6px 4px;cursor:pointer;text-align:center}
+  nav button .ic{font-size:1.05rem;line-height:1}
+  nav button.actief{background:var(--amber);color:#231400;border-color:var(--amber)}
+  main{max-width:1080px;margin:0 auto;padding:12px 12px 32px}
+  .paneel{display:none}
+  .paneel.actief{display:block}
+  .kaart{background:var(--pane);border:1px solid var(--lijn);border-radius:var(--r);padding:12px;margin-bottom:12px}
+  .kaart h2{margin:0 0 8px;font-size:1rem}
+  .kaart h3{margin:14px 0 6px;font-size:.9rem;color:var(--tekst2);text-transform:uppercase;letter-spacing:.06em}
+  .rij{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  input,select,textarea,button{font-family:inherit;font-size:16px}
+  input,select,textarea{background:#0d1526;border:1px solid var(--lijn);color:var(--tekst);
+    border-radius:10px;padding:9px 10px;min-height:44px;width:100%}
+  textarea{min-height:180px;flex:none;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86rem;line-height:1.5}
+  label{display:block;font-size:.78rem;color:var(--tekst2);margin:8px 0 3px}
+  .veld2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .knop{background:var(--amber);color:#231400;border:0;border-radius:10px;padding:10px 14px;font-weight:700;
+    min-height:44px;cursor:pointer;white-space:nowrap;flex:none}
+  .knop.zacht{background:var(--pane2);color:var(--tekst);border:1px solid var(--lijn)}
+  .knop.goed{background:var(--groen);color:#04231a}
+  .knop.rood{background:#7f1d1d;color:#ffe4e6;border:1px solid #b91c1c}
+  .knop:disabled{opacity:.5;cursor:default}
+  .liedlijst{display:grid;gap:8px}
+  .lied{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;
+    background:var(--pane);border:1px solid var(--lijn);border-radius:12px;padding:10px 12px}
+  .lied .titel{font-weight:700}
+  .lied .artiest{color:var(--tekst2);font-size:.82rem}
+  .chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+  .chip{font-size:.72rem;border:1px solid var(--lijn);border-radius:999px;padding:2px 8px;color:var(--tekst2);background:#101a2e}
+  .chip.capo{background:#3a2a06;border-color:#7c5a10;color:var(--amber2)}
+  .chip.geen{background:#062a1f;border-color:#116b4c;color:var(--groen)}
+  .chip.eigen{background:#1e1b4b;border-color:#4338ca;color:#c7d2fe}
+  .sterren{color:var(--amber2);letter-spacing:1px;font-size:.78rem}
+  .melding{background:#1b2740;border:1px solid var(--lijn);border-left:3px solid var(--amber);
+    border-radius:10px;padding:9px 11px;font-size:.85rem;color:var(--tekst2);margin:8px 0}
+  .melding.fout{border-left-color:var(--rood);color:#fecaca}
+  .melding.goed{border-left-color:var(--groen);color:#bbf7d0}
+  /* liedje-weergave */
+  .liedkop{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start}
+  .liedkop h2{margin:0;font-size:1.15rem}
+  .advies{background:#231a06;border:1px solid #7c5a10;border-radius:10px;padding:10px;margin:10px 0}
+  .advies.clean{background:#062a1f;border-color:#116b4c}
+  .advies .groot{font-size:1rem;font-weight:700;color:var(--amber2)}
+  .advies.clean .groot{color:var(--groen)}
+  .advies p{margin:6px 0 0;font-size:.86rem;color:var(--tekst2)}
+  .capo-rij{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+  .capo-rij button{min-width:42px;min-height:38px;padding:4px 8px;border-radius:9px;background:#101a2e;
+    color:var(--tekst);border:1px solid var(--lijn);cursor:pointer;font-weight:600}
+  .capo-rij button.actief{background:var(--amber);color:#231400;border-color:var(--amber)}
+  .grepen{display:flex;gap:10px;overflow-x:auto;padding:4px 0 8px}
+  .grepen figure{margin:0;background:#0d1526;border:1px solid var(--lijn);border-radius:10px;padding:4px;flex:none}
+  .grepen figcaption{text-align:center;font-size:.72rem;color:var(--tekst2);padding-bottom:2px}
+  svg.greep{width:88px;height:112px;display:block}
+  .greep-naam{fill:var(--tekst);font-size:11px;font-weight:700}
+  .greep-mute{fill:#f87171;font-size:10px;font-weight:700}
+  .greep-positie{fill:#94a3b8;font-size:10px}
+  .greep-capo{fill:#f5a524;font-size:8px}
+  .greep-vinger{fill:#04263a;font-size:7.5px;font-weight:700}
+  .greep-geen{fill:#94a3b8;font-size:12px}
+  .greep-geen-klein{fill:#64748b;font-size:8px}
+  .songtekst{margin-top:6px}
+  .regel{display:flex;flex-wrap:wrap;align-items:flex-end;line-height:1.25;margin:2px 0}
+  .seg{display:inline-block;vertical-align:bottom}
+  .seg .ak{display:block;color:var(--amber2);font-weight:700;font-size:.8rem;height:1.2em;white-space:nowrap}
+  .seg .tx{display:block;white-space:pre}
+  .bloklabel{color:var(--tekst2);font-weight:700;text-transform:uppercase;font-size:.74rem;letter-spacing:.08em;margin:12px 0 2px}
+  .refrein{background:#12203a;border-left:3px solid var(--amber);border-radius:8px;padding:6px 10px;margin:6px 0}
+  .refrein .bloklabel{margin-top:0}
+  .tabblok{background:#0d1526;border:1px solid var(--lijn);border-radius:8px;padding:8px 10px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8rem;color:var(--gitaar);
+    overflow-x:auto;white-space:pre}
+  .leeg{height:9px}
+  .speler{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+  audio{width:100%;max-width:420px;height:40px}
+  .apparaten{display:grid;gap:8px}
+  .apparaat{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;
+    background:var(--pane);border:1px solid var(--lijn);border-radius:12px;padding:10px 12px}
+  .apparaat .naam{font-weight:700}
+  .apparaat .meta{color:var(--tekst2);font-size:.78rem}
+  .volume{display:flex;align-items:center;gap:8px;margin-top:8px}
+  .volume input[type=range]{width:100%;min-height:auto;background:transparent;border:0;padding:0}
+  .laden{color:var(--tekst2);font-size:.85rem;padding:8px 0}
+  .voettekst{color:var(--tekst2);font-size:.76rem;text-align:center;padding:18px 12px 0;line-height:1.6}
+  details.help{border:1px solid var(--lijn);border-radius:10px;padding:8px 10px;margin-top:8px;background:#101a2e}
+  details.help summary{cursor:pointer;font-weight:600;font-size:.86rem}
+  details.help p,details.help li{font-size:.82rem;color:var(--tekst2)}
+  code{background:#0d1526;border:1px solid var(--lijn);border-radius:5px;padding:1px 4px;font-size:.85em}
+  #filter-toggle{display:none}
+  @media (max-width:760px){
+    header{padding:10px 12px 8px}
+    .onderkop{display:none}
+    h1{font-size:1.1rem}
+    nav{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:8px 8px 0}
+    nav button{font-size:.7rem;min-height:50px;padding:5px 2px}
+    main{padding:10px 8px 24px}
+    .veld2{grid-template-columns:1fr}
+    /* op een telefoon eerst de liedjes, de filters achter één knop */
+    #filter-toggle{display:inline-flex}
+    #meer-filters{display:none}
+    #meer-filters.open{display:grid;grid-template-columns:1fr}
+  }
+  @media print{
+    header,nav,.knop,.capo-rij,.grepen,.speler,.voettekst{display:none!important}
+    body{background:#fff;color:#000}
+    .kaart{border:0;background:#fff}
+    .seg .ak{color:#000}
+    .refrein{background:#f3f4f6}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="kop">
+    <h1>Akkoord<span>Kast</span></h1>
+    <span class="pilletje" id="kop-aantal">liedjes laden…</span>
+    <span class="pilletje" id="kop-cast">cast: onbekend</span>
+  </div>
+  <div class="onderkop">Bladmuziek met akkoorden, capo-advies, grepen en audio voor gitaar</div>
+</header>
+
+<nav>
+  <button id="tab-liedjes" class="actief" data-paneel="paneel-liedjes"><span class="ic">🎵</span><span>Liedjes</span></button>
+  <button id="tab-spelen" data-paneel="paneel-spelen"><span class="ic">🎸</span><span>Spelen</span></button>
+  <button id="tab-toevoegen" data-paneel="paneel-toevoegen"><span class="ic">➕</span><span>Toevoegen</span></button>
+  <button id="tab-casten" data-paneel="paneel-casten"><span class="ic">📺</span><span>Casten</span></button>
+</nav>
+
+<main>
+  <!-- ------------------------------------------------ liedjes -->
+  <section id="paneel-liedjes" class="paneel actief">
+    <div class="kaart">
+      <div class="rij">
+        <input id="zoek" type="search" placeholder="Zoek op titel, artiest of akkoord (bv. Am)…" autocomplete="off">
+      </div>
+      <div class="veld2" style="margin-top:8px" id="meer-filters">
+        <div><label for="filter-taal">Taal</label>
+          <select id="filter-taal"><option value="">Alle talen</option></select></div>
+        <div><label for="filter-genre">Soort</label>
+          <select id="filter-genre"><option value="">Alles</option></select></div>
+        <div><label for="filter-capo">Capo</label>
+          <select id="filter-capo">
+            <option value="">Maakt niet uit</option>
+            <option value="nee">Zonder capo te spelen</option>
+            <option value="ja">Met capo (makkelijkere grepen)</option>
+          </select></div>
+        <div><label for="filter-moeilijkheid">Moeilijkheid</label>
+          <select id="filter-moeilijkheid">
+            <option value="">Alles</option>
+            <option value="1">1 · alleen C G Am F</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5 · barré-akkoorden</option>
+          </select></div>
+      </div>
+      <div class="rij" style="margin-top:8px">
+        <button class="knop zacht" id="filter-toggle">Zoeken en filters</button>
+        <button class="knop zacht" id="filter-wis">Filters wissen</button>
+        <span class="pilletje" id="lijst-teller"></span>
+      </div>
+      <div class="melding" id="lijst-melding" hidden></div>
+    </div>
+    <div class="liedlijst" id="liedlijst"></div>
+    <div class="rij" style="margin-top:10px">
+      <button class="knop zacht" id="meer-laden" hidden>Nog liedjes laden</button>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------ spelen -->
+  <section id="paneel-spelen" class="paneel">
+    <div class="kaart" id="spelen-leeg">
+      <div class="melding">Kies eerst een liedje in het tabblad <strong>Liedjes</strong>.</div>
+    </div>
+    <div id="spelen-inhoud" hidden></div>
+  </section>
+
+  <!-- ------------------------------------------------ toevoegen -->
+  <section id="paneel-toevoegen" class="paneel">
+    <div class="kaart">
+      <h2>Eigen liedje toevoegen</h2>
+      <p class="melding">Zet akkoorden tussen rechte haken vóór de lettergreep waar ze vallen:
+        <code>[G]Dit is een [C]regel</code>. Een refrein zet je tussen <code>{soc}</code> en <code>{eoc}</code>,
+        een tabblok tussen <code>{sot}</code> en <code>{eot}</code>.</p>
+      <label for="nieuw-bestand">ChordPro-bestand kiezen (.cho, .pro, .crd, .txt)</label>
+      <input id="nieuw-bestand" type="file" accept=".cho,.pro,.crd,.chopro,.txt,text/plain">
+      <div class="veld2">
+        <div><label for="nieuw-titel">Titel</label><input id="nieuw-titel" type="text" placeholder="bv. Mijn liedje"></div>
+        <div><label for="nieuw-artiest">Artiest / bron</label><input id="nieuw-artiest" type="text" placeholder="bv. Traditional"></div>
+        <div><label for="nieuw-taal">Taal</label><input id="nieuw-taal" type="text" value="nl"></div>
+        <div><label for="nieuw-genre">Soort</label><input id="nieuw-genre" type="text" value="Eigen"></div>
+        <div><label for="nieuw-toonsoort">Toonsoort (leeg = automatisch)</label><input id="nieuw-toonsoort" type="text" placeholder="bv. G"></div>
+        <div><label for="nieuw-tempo">Tempo (BPM)</label><input id="nieuw-tempo" type="number" value="84" min="40" max="200" onfocus="this.select()"></div>
+        <div><label for="nieuw-strum">Slagpatroon</label><input id="nieuw-strum" type="text" value="D DU UDU"></div>
+        <div><label for="nieuw-moeilijkheid">Moeilijkheid (1-5)</label><input id="nieuw-moeilijkheid" type="number" value="2" min="1" max="5" onfocus="this.select()"></div>
+      </div>
+      <label for="nieuw-youtube">Link naar de muziek (YouTube/Spotify, mag leeg blijven)</label>
+      <input id="nieuw-youtube" type="url" placeholder="https://…">
+      <label for="nieuw-chordpro">ChordPro-tekst</label>
+      <textarea id="nieuw-chordpro" placeholder="{title: Mijn liedje}&#10;{key: G}&#10;&#10;[G]Eerste regel met akkoorden&#10;[C]Tweede regel"></textarea>
+      <div class="rij" style="margin-top:10px">
+        <button class="knop" id="opslaan-liedje">Opslaan</button>
+        <button class="knop zacht" id="leegmaken">Formulier leegmaken</button>
+      </div>
+      <div class="melding" id="toevoegen-melding" hidden></div>
+      <details class="help">
+        <summary>Meerdere liedjes in één keer importeren</summary>
+        <p>Plak of kies een bestand met meerdere liedjes die elk met <code>{title: …}</code> beginnen. Elk liedje wordt apart opgeslagen.
+          Deze app levert zelf publiek-domein liedjes mee; liedjes met auteursrecht voeg je toe als eigen invoer, net als de audio.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------ casten -->
+  <section id="paneel-casten" class="paneel">
+    <div class="kaart">
+      <h2>Chromecast</h2>
+      <p class="melding">AkkoordKast stuurt de audio van het geopende liedje naar een Chromecast in je netwerk.
+        De Chromecast haalt het geluid op bij deze server, dus het toestel moet dit adres kunnen bereiken.</p>
+      <div class="rij">
+        <button class="knop" id="cast-zoeken">Apparaten zoeken</button>
+        <input id="cast-handmatig" type="text" placeholder="of typ een IP-adres, bv. 192.168.1.100" style="flex:1;min-width:180px">
+        <button class="knop zacht" id="cast-verbind-ip">Daar casten</button>
+      </div>
+      <div class="melding" id="cast-melding" hidden></div>
+      <div class="apparaten" id="cast-apparaten"></div>
+      <h3>Nu ingesteld apparaat</h3>
+      <p class="melding" id="cast-huidig">Er is nog geen apparaat gekozen.</p>
+      <h3>Wat wordt er gecast?</h3>
+      <p class="melding" id="cast-wat">Open eerst een liedje; dan cast ik de begeleiding van dat liedje of je eigen opname.</p>
+      <div class="rij" style="margin-top:8px">
+        <button class="knop" id="cast-nu">Cast het geopende liedje</button>
+        <button class="knop zacht" id="cast-stop">Stop met casten</button>
+      </div>
+      <div class="volume">
+        <button class="knop zacht" id="cast-volume-lager">−</button>
+        <input id="cast-volume" type="range" min="0" max="100" value="50">
+        <button class="knop zacht" id="cast-volume-hoger">+</button>
+      </div>
+      <div class="melding" id="cast-status" hidden></div>
+    </div>
+  </section>
+
+  <div class="voettekst">
+    AkkoordKast · de meegeleverde liedjes zijn publiek domein · eigen liedjes en opnames blijven op deze server
+  </div>
+</main>
+
+<script>
+'use strict';
+var staat = {
+  liedjes: [], vanaf: 0, totaal: 0, meer: false,
+  liedje: null, apparaat: '', apparaatNaam: '', apparaten: []
+};
+
+function $(id) { return document.getElementById(id); }
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function api(pad, opties) {
+  return fetch(pad, opties).then(function (r) {
+    return r.json().catch(function () { return {}; }).then(function (data) {
+      if (!r.ok) throw new Error(data.fout || ('Fout ' + r.status));
+      return data;
+    });
+  });
+}
+function toonMelding(id, tekst, soort) {
+  var el = $(id);
+  if (!el) return;
+  el.className = 'melding' + (soort ? ' ' + soort : '');
+  el.textContent = tekst || '';
+  el.hidden = !tekst;
+}
+
+// --------------------------------------------------------------- navigatie ---
+var TABS = ['liedjes', 'spelen', 'toevoegen', 'casten'];
+TABS.forEach(function (naam) {
+  $('tab-' + naam).addEventListener('click', function () { toonTab(naam); });
+});
+function toonTab(naam) {
+  TABS.forEach(function (t) {
+    $('paneel-' + t).classList.toggle('actief', t === naam);
+    $('tab-' + t).classList.toggle('actief', t === naam);
+  });
+  if (naam === 'casten') laadApparaten(true);
+  window.scrollTo(0, 0);
+}
+
+// ------------------------------------------------------------- liedlijst ---
+function sterren(n) {
+  var uit = '';
+  for (var i = 1; i <= 5; i++) uit += i <= n ? '★' : '☆';
+  return uit;
+}
+function tekenLiedjes() {
+  var lijst = $('liedlijst');
+  if (!staat.liedjes.length) {
+    lijst.innerHTML = '<div class="melding">Geen liedjes gevonden met deze filters.</div>';
+    return;
+  }
+  lijst.innerHTML = staat.liedjes.map(function (l) {
+    var capo = l.capo === 0
+      ? '<span class="chip geen">zonder capo</span>'
+      : '<span class="chip capo">capo ' + l.capo + ' → ' + esc(l.capoTekst.replace(/^Capo \d+ · /, '')) + '</span>';
+    return '<div class="lied" data-id="' + l.id + '">' +
+      '<div>' +
+        '<div class="titel">' + esc(l.titel) + '</div>' +
+        '<div class="artiest">' + esc(l.artiest || 'onbekend') + ' · ' + esc(l.genre) + ' · ' + esc(l.taal) + '</div>' +
+        '<div class="chips">' + capo +
+          '<span class="chip sterren">' + sterren(l.moeilijkheid) + '</span>' +
+          '<span class="chip">' + esc(l.toonsoort) + '</span>' +
+          (l.akkoorden.length ? '<span class="chip">' + esc(l.akkoorden.join(' ')) + '</span>' : '') +
+          (l.eigen ? '<span class="chip eigen">eigen</span>' : '') +
+          (l.heeftOpname ? '<span class="chip">opname</span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="rij"><button class="knop" data-open="' + l.id + '">Spelen</button></div>' +
+    '</div>';
+  }).join('');
+  Array.prototype.forEach.call(lijst.querySelectorAll('[data-open]'), function (knop) {
+    knop.addEventListener('click', function () { openLiedje(knop.getAttribute('data-open')); });
+  });
+}
+function lijstQuery() {
+  var p = new URLSearchParams();
+  p.set('compact', '1');
+  p.set('vanaf', String(staat.vanaf));
+  p.set('aantal', '24');
+  var z = $('zoek').value.trim(); if (z) p.set('zoek', z);
+  var t = $('filter-taal').value; if (t) p.set('taal', t);
+  var g = $('filter-genre').value; if (g) p.set('genre', g);
+  var c = $('filter-capo').value; if (c) p.set('capo', c);
+  var m = $('filter-moeilijkheid').value; if (m) p.set('moeilijkheid', m);
+  return p;
+}
+function laadLiedjes(ververs) {
+  if (ververs) staat.vanaf = 0;
+  var p = lijstQuery();
+  api('/api/liedjes?' + p.toString()).then(function (data) {
+    if (ververs) staat.liedjes = data.liedjes; else staat.liedjes = staat.liedjes.concat(data.liedjes);
+    staat.totaal = data.totaal;
+    staat.meer = data.meer;
+    staat.vanaf = staat.liedjes.length;
+    tekenLiedjes();
+    $('meer-laden').hidden = !staat.meer;
+    $('lijst-teller').textContent = staat.liedjes.length + ' van ' + data.totaal + ' liedjes';
+    $('kop-aantal').textContent = data.statistieken.aantal + ' meegeleverde liedjes';
+    vulFilters(data);
+    toonMelding('lijst-melding', staat.meer ? 'Nog ' + (data.totaal - staat.liedjes.length) + ' liedjes te laden.' : '', '');
+  }).catch(function (e) { toonMelding('lijst-melding', e.message, 'fout'); });
+}
+function vulFilters(data) {
+  var talen = Object.keys(data.statistieken.talen).sort();
+  var genres = Object.keys(data.statistieken.genres).sort();
+  var taalSel = $('filter-taal');
+  if (taalSel.options.length <= 1) {
+    talen.forEach(function (t) {
+      var o = document.createElement('option');
+      o.value = t; o.textContent = t + ' (' + data.statistieken.talen[t] + ')';
+      taalSel.appendChild(o);
+    });
+  }
+  var genreSel = $('filter-genre');
+  if (genreSel.options.length <= 1) {
+    genres.forEach(function (g) {
+      var o = document.createElement('option');
+      o.value = g; o.textContent = g; genreSel.appendChild(o);
+    });
+  }
+}
+$('zoek').addEventListener('input', debounce(function () { laadLiedjes(true); }, 250));
+['filter-taal', 'filter-genre', 'filter-capo', 'filter-moeilijkheid'].forEach(function (id) {
+  $(id).addEventListener('change', function () { laadLiedjes(true); });
+});
+$('filter-wis').addEventListener('click', function () {
+  $('zoek').value = ''; $('filter-taal').value = ''; $('filter-genre').value = '';
+  $('filter-capo').value = ''; $('filter-moeilijkheid').value = '';
+  laadLiedjes(true);
+});
+$('filter-toggle').addEventListener('click', function () {
+  $('meer-filters').classList.toggle('open');
+});
+// Op een breed scherm staan de filters meteen open, op een telefoon achter de knop.
+if (window.innerWidth > 760) $('meer-filters').classList.add('open');
+$('meer-laden').addEventListener('click', function () { laadLiedjes(false); });
+function debounce(fn, ms) {
+  var t = null;
+  return function () { clearTimeout(t); t = setTimeout(fn, ms); };
+}
+
+// ---------------------------------------------------- liedje openen/spelen ---
+function openLiedje(id, opties) {
+  var o = opties || {};
+  var p = new URLSearchParams();
+  if (o.transpose) p.set('transpose', o.transpose);
+  if (o.capo !== undefined && o.capo !== null && o.capo !== 'auto') p.set('capo', o.capo);
+  api('/api/liedjes/' + id + '?' + p.toString()).then(function (data) {
+    staat.liedje = data;
+    tekenLiedje(data);
+    toonTab('spelen');
+    $('cast-wat').textContent = 'Klaar om te casten: ' + data.titel + (data.artiest ? ' — ' + data.artiest : '');
+  }).catch(function (e) { toonMelding('lijst-melding', e.message, 'fout'); });
+}
+
+function tekenLiedje(l) {
+  $('spelen-leeg').hidden = true;
+  var c = $('spelen-inhoud');
+  c.hidden = false;
+  var advies = l.advies;
+  var capoKnoppen = '';
+  for (var i = 0; i <= 8; i++) {
+    capoKnoppen += '<button data-capo="' + i + '"' + (i === l.capo ? ' class="actief"' : '') + '>' + i + '</button>';
+  }
+  var grepen = l.akkoorden.map(function (a) {
+    return '<figure>' + a.svg + '<figcaption>' + esc(a.naam) + (a.vorm !== a.naam ? ' = ' + esc(a.vorm) + '-greep' : '') + '</figcaption></figure>';
+  }).join('');
+
+  c.innerHTML =
+    '<div class="kaart">' +
+      '<div class="liedkop">' +
+        '<div>' +
+          '<h2>' + esc(l.titel) + '</h2>' +
+          '<div class="artiest" style="color:var(--tekst2);font-size:.85rem">' + esc(l.artiest || 'onbekend') + ' · ' + esc(l.genre) +
+            ' · toonsoort ' + esc(l.toonsoort) + ' · ' + l.tempo + ' BPM</div>' +
+          '<div class="chips">' +
+            '<span class="chip sterren">' + sterren(l.moeilijkheid) + '</span>' +
+            '<span class="chip">' + esc(l.strum) + '</span>' +
+            (l.eigen ? '<span class="chip eigen">eigen liedje</span>' : '<span class="chip">publiek domein</span>') +
+            '<span class="chip">' + esc(l.bron || '') + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="rij">' +
+          '<button class="knop zacht" id="print-liedje">Printen</button>' +
+          (l.eigen ? '<button class="knop zacht" id="verwijder-liedje">Verwijderen</button>'
+                   : '<button class="knop zacht" id="kopie-liedje">Eigen kopie maken</button>') +
+        '</div>' +
+      '</div>' +
+
+      '<div class="advies' + (advies.capo === 0 ? ' clean' : '') + '">' +
+        '<div class="groot">' + (advies.capo === 0 ? 'Zonder capo spelen' : 'Capo ' + advies.capo + ' · speel in ' + esc(advies.vormToonsoort)) + '</div>' +
+        '<p>' + esc(advies.tekst) + '</p>' +
+        '<p>Grepen die je dan pakt: ' +
+          advies.akkoorden.map(function (a) {
+            return '<strong>' + esc(a.vorm) + '</strong>' + (a.vorm !== a.concert ? ' <em>(klinkt als ' + esc(a.concert) + ')</em>' : '') + (a.barre ? ' ⚠ barré' : '');
+          }).join(' · ') + '</p>' +
+      '</div>' +
+
+      '<h3>Capostand</h3>' +
+      '<div class="capo-rij" id="capo-rij">' + capoKnoppen + '</div>' +
+      '<h3>Toonhoogte verschuiven (transponeren)</h3>' +
+      '<div class="rij">' +
+        '<button class="knop zacht" id="trans-down">− halve toon</button>' +
+        '<span class="pilletje">' + (l.transpositie > 0 ? '+' : '') + l.transpositie + '</span>' +
+        '<button class="knop zacht" id="trans-up">+ halve toon</button>' +
+        '<button class="knop zacht" id="trans-nul">terug naar ' + esc(l.model.meta.toonsoort || l.toonsoort) + '</button>' +
+      '</div>' +
+
+      '<h3>Grepen</h3>' +
+      '<div class="grepen">' + grepen + '</div>' +
+
+      '<h3>Bladmuziek</h3>' +
+      '<div class="songtekst" id="songtekst">' + tekenSongtekst(l.model) + '</div>' +
+
+      '<h3>Begeleiding</h3>' +
+      '<div class="veld2">' +
+        '<div><label for="speler-reeks">Akkoordenreeks</label>' +
+          '<input id="speler-reeks" type="text" value="' + esc(l.akkoordenReeks.join(' ')) + '"></div>' +
+        '<div><label for="speler-tempo">Tempo (BPM)</label>' +
+          '<input id="speler-tempo" type="number" min="40" max="200" value="' + l.tempo + '" onfocus="this.select()"></div>' +
+      '</div>' +
+      '<div class="speler">' +
+        '<audio id="speler-audio" controls preload="none"></audio>' +
+        '<button class="knop" id="beluister">Begeleiding maken</button>' +
+        '<a class="knop zacht" id="download-mp3" download>mp3 downloaden</a>' +
+        '<a class="knop zacht" href="' + esc(l.audio.youtube) + '" target="_blank" rel="noopener">Zoek de muziek online</a>' +
+      '</div>' +
+      '<div class="melding" id="speler-melding">De begeleiding wordt op deze server gemaakt met een gitaarsynthesizer (tokkels van de akkoordenreeks) — geen auteursrechtelijke opname.</div>' +
+      (l.audio.opname
+        ? '<h3>Eigen opname</h3><div class="speler"><audio controls src="' + esc(l.audio.opname) + '"></audio>' +
+          (l.eigen ? '<button class="knop rood" id="opname-weg">Opname verwijderen</button>' : '') + '</div>'
+        : (l.eigen
+            ? '<h3>Eigen opname toevoegen</h3><input id="opname-bestand" type="file" accept="audio/*">' +
+              '<div class="rij"><button class="knop" id="opname-upload">Opname uploaden</button></div>'
+            : '<div class="melding">Wil je hier je eigen audio aan hangen? Maak eerst een eigen kopie van dit liedje.</div>')) +
+      '<div class="rij" style="margin-top:12px">' +
+        '<button class="knop goed" id="cast-dit">Cast dit liedje</button>' +
+      '</div>' +
+    '</div>';
+
+  // handlers van dit liedje
+  $('print-liedje').addEventListener('click', function () { window.print(); });
+  Array.prototype.forEach.call(document.querySelectorAll('#capo-rij button'), function (b) {
+    b.addEventListener('click', function () { openLiedje(l.id, { transpose: l.transpositie, capo: b.getAttribute('data-capo') }); });
+  });
+  $('trans-down').addEventListener('click', function () { openLiedje(l.id, { transpose: l.transpositie - 1, capo: 'auto' }); });
+  $('trans-up').addEventListener('click', function () { openLiedje(l.id, { transpose: l.transpositie + 1, capo: 'auto' }); });
+  $('trans-nul').addEventListener('click', function () { openLiedje(l.id, { transpose: 0, capo: 'auto' }); });
+  $('beluister').addEventListener('click', function () { maakBegeleiding(l); });
+  $('speler-tempo').addEventListener('change', function () { maakBegeleiding(l); });
+  $('cast-dit').addEventListener('click', function () { castLiedje(l); });
+  if ($('kopie-liedje')) {
+    $('kopie-liedje').addEventListener('click', function () {
+      api('/api/liedjes/' + l.id + '/kopie', { method: 'POST' }).then(function (r) {
+        toonMelding('speler-melding', 'Eigen kopie gemaakt — je kunt er nu audio aan hangen.', 'goed');
+        openLiedje(r.id);
+      }).catch(function (e) { toonMelding('speler-melding', e.message, 'fout'); });
+    });
+  }
+  if ($('verwijder-liedje')) {
+    $('verwijder-liedje').addEventListener('click', function () {
+      if (!confirm('Dit eigen liedje verwijderen?')) return;
+      api('/api/liedjes/' + l.id, { method: 'DELETE' }).then(function () {
+        laadLiedjes(true); toonTab('liedjes');
+      }).catch(function (e) { toonMelding('speler-melding', e.message, 'fout'); });
+    });
+  }
+  if ($('opname-upload')) {
+    $('opname-upload').addEventListener('click', function () { uploadOpname(l); });
+  }
+  if ($('opname-weg')) {
+    $('opname-weg').addEventListener('click', function () {
+      api('/api/liedjes/' + l.id + '/audio', { method: 'DELETE' }).then(function () { openLiedje(l.id); })
+        .catch(function (e) { toonMelding('speler-melding', e.message, 'fout'); });
+    });
+  }
+}
+
+function tekenSongtekst(model) {
+  var uit = '';
+  var inRefrein = false;
+  model.regels.forEach(function (r) {
+    if (r.soort === 'sectie-start') {
+      uit += '<div class="refrein"><div class="bloklabel">' + esc(r.label || 'Refrein') + '</div>';
+      inRefrein = true;
+      return;
+    }
+    if (r.soort === 'sectie-eind') { uit += '</div>'; inRefrein = false; return; }
+    if (r.soort === 'label') { uit += '<div class="bloklabel">' + esc(r.tekst) + '</div>'; return; }
+    if (r.soort === 'tab') {
+      uit += '<div class="tabblok">' + r.regels.map(esc).join('\n') + '</div>';
+      return;
+    }
+    if (r.soort === 'leeg') { uit += '<div class="leeg"></div>'; return; }
+    var segs = r.segmenten.map(function (s) {
+      var tekst = s.tekst === '' || s.tekst === undefined ? '\u00a0\u00a0' : s.tekst;
+      return '<span class="seg"><span class="ak">' + (s.akkoord ? esc(s.akkoord) : '\u00a0') + '</span>' +
+             '<span class="tx">' + esc(tekst) + '</span></span>';
+    }).join('');
+    uit += '<div class="regel">' + segs + '</div>';
+  });
+  return uit;
+}
+
+function maakBegeleiding(l) {
+  var reeks = $('speler-reeks').value.trim();
+  var tempo = $('speler-tempo').value;
+  var p = new URLSearchParams();
+  p.set('liedje', l.id);
+  p.set('capo', l.capo);
+  p.set('transpose', l.transpositie);
+  p.set('tempo', tempo);
+  if (reeks) p.set('reeks', reeks);
+  var url = '/api/audio/preview?' + p.toString();
+  toonMelding('speler-melding', 'De begeleiding wordt gemaakt… dit duurt een paar seconden.', '');
+  fetch(url).then(function (r) {
+    if (!r.ok) return r.json().then(function (d) { throw new Error(d.fout || 'maken mislukt'); });
+    return r.blob();
+  }).then(function (blob) {
+    var bron = URL.createObjectURL(blob);
+    var sp = $('speler-audio');
+    sp.src = bron;
+    sp.play().catch(function () {});
+    $('download-mp3').href = bron;
+    $('download-mp3').setAttribute('download', 'akkoordkast-' + l.id + '.mp3');
+    toonMelding('speler-melding', 'Klaar: beluister de begeleiding of cast hem naar je Chromecast.', 'goed');
+  }).catch(function (e) { toonMelding('speler-melding', e.message, 'fout'); });
+}
+
+function uploadOpname(l) {
+  var veld = $('opname-bestand');
+  if (!veld || !veld.files || !veld.files.length) { toonMelding('speler-melding', 'Kies eerst een audiobestand.', 'fout'); return; }
+  var bestand = veld.files[0];
+  if (bestand.size > 40 * 1024 * 1024) { toonMelding('speler-melding', 'Dit bestand is groter dan 40 MB.', 'fout'); return; }
+  toonMelding('speler-melding', 'Opname wordt verstuurd…', '');
+  fetch('/api/liedjes/' + l.id + '/audio', {
+    method: 'POST',
+    headers: { 'content-type': bestand.type || 'audio/mpeg', 'x-bestandsnaam': bestand.name, 'x-audio-titel': bestand.name },
+    body: bestand
+  }).then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.fout || 'upload mislukt'); return d; }); })
+    .then(function () { toonMelding('speler-melding', 'Opname toegevoegd.', 'goed'); openLiedje(l.id); })
+    .catch(function (e) { toonMelding('speler-melding', e.message, 'fout'); });
+}
+
+// ------------------------------------------------------------------- casten ---
+function laadApparaten(stil) {
+  if (!stil) toonMelding('cast-melding', 'Zoeken naar Chromecasts…', '');
+  api('/api/cast/apparaten').then(function (data) {
+    if (data.fout) { toonMelding('cast-melding', data.fout + (data.hint ? ' — ' + data.hint : ''), 'fout'); return; }
+    staat.apparaten = data.apparaten || [];
+    tekenApparaten();
+    toonMelding('cast-melding', staat.apparaten.length
+      ? staat.apparaten.length + ' apparaat/apparaten gevonden.'
+      : 'Geen Chromecast gevonden. Zet het toestel aan, zorg dat het in hetzelfde netwerk zit, of typ hieronder het IP-adres.', staat.apparaten.length ? 'goed' : '');
+    $('kop-cast').textContent = 'cast: ' + (staat.apparaten.length || 'geen apparaat');
+  }).catch(function (e) { toonMelding('cast-melding', e.message, 'fout'); });
+}
+function tekenApparaten() {
+  var c = $('cast-apparaten');
+  if (!staat.apparaten.length) { c.innerHTML = ''; return; }
+  c.innerHTML = staat.apparaten.map(function (a) {
+    return '<div class="apparaat"><div><div class="naam">' + esc(a.naam) + '</div>' +
+      '<div class="meta">' + esc(a.ip) + (a.model ? ' · ' + esc(a.model) : '') + '</div></div>' +
+      '<button class="knop" data-cast="' + esc(a.ip) + '" data-naam="' + esc(a.naam) + '">Kies</button></div>';
+  }).join('');
+  Array.prototype.forEach.call(c.querySelectorAll('[data-cast]'), function (b) {
+    b.addEventListener('click', function () { kiesApparaat(b.getAttribute('data-cast'), b.getAttribute('data-naam')); });
+  });
+}
+function kiesApparaat(ip, naam) {
+  staat.apparaat = ip;
+  staat.apparaatNaam = naam || ip;
+  $('cast-huidig').textContent = 'Casten naar: ' + staat.apparaatNaam + ' (' + ip + ')';
+  api('/api/instellingen', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ cast_apparaat: ip, cast_naam: staat.apparaatNaam })
+  }).catch(function () {});
+  toonMelding('cast-melding', 'Apparaat gekozen. Open een liedje en druk op "Cast dit liedje".', 'goed');
+}
+$('cast-zoeken').addEventListener('click', function () { laadApparaten(false); });
+$('cast-verbind-ip').addEventListener('click', function () {
+  var ip = $('cast-handmatig').value.trim();
+  if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(ip)) { toonMelding('cast-melding', 'Dat lijkt geen IP-adres.', 'fout'); return; }
+  kiesApparaat(ip, ip);
+});
+function castLiedje(l) {
+  var apparaat = staat.apparaat || $('cast-handmatig').value.trim();
+  if (!apparaat) { toonMelding('cast-melding', 'Kies eerst een apparaat in het tabblad Casten.', 'fout'); toonTab('casten'); return; }
+  var gebruikOpname = l.audio.opname && (!l.eigen ? false : true);
+  toonMelding('cast-melding', 'Casten naar ' + (staat.apparaatNaam || apparaat) + '…', '');
+  api('/api/cast/start', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      apparaat: apparaat,
+      naam: staat.apparaatNaam,
+      liedje: l.id,
+      bron: gebruikOpname ? 'opname' : 'preview',
+      capo: l.capo,
+      transpose: l.transpositie,
+      titel: l.titel,
+      artiest: l.artiest,
+      basis: location.origin
+    })
+  }).then(function (r) {
+    if (r.fout) throw new Error(r.fout);
+    toonMelding('cast-melding', 'Nu aan het casten: ' + l.titel + ' naar ' + (r.apparaat && r.apparaat.naam ? r.apparaat.naam : apparaat) + '.', 'goed');
+  }).catch(function (e) { toonMelding('cast-melding', e.message, 'fout'); });
+}
+$('cast-nu').addEventListener('click', function () {
+  if (!staat.liedje) { toonMelding('cast-melding', 'Open eerst een liedje in het tabblad Liedjes.', 'fout'); return; }
+  castLiedje(staat.liedje);
+});
+$('cast-stop').addEventListener('click', function () {
+  api('/api/cast/stop', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ apparaat: staat.apparaat })
+  }).then(function (r) { toonMelding('cast-melding', r.fout || 'Gestopt.', r.fout ? 'fout' : 'goed'); })
+    .catch(function (e) { toonMelding('cast-melding', e.message, 'fout'); });
+});
+function zetVolume(niveau) {
+  $('cast-volume').value = niveau;
+  api('/api/cast/volume', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ apparaat: staat.apparaat, niveau: niveau / 100 })
+  }).then(function (r) { toonMelding('cast-status', r.fout || ('Volume ' + niveau + '%'), r.fout ? 'fout' : 'goed'); })
+    .catch(function (e) { toonMelding('cast-status', e.message, 'fout'); });
+}
+$('cast-volume').addEventListener('change', function () { zetVolume(this.value); });
+$('cast-volume-lager').addEventListener('click', function () { zetVolume(Math.max(0, Number($('cast-volume').value) - 10)); });
+$('cast-volume-hoger').addEventListener('click', function () { zetVolume(Math.min(100, Number($('cast-volume').value) + 10)); });
+
+// --------------------------------------------------------------- toevoegen ---
+$('nieuw-bestand').addEventListener('change', function () {
+  var f = this.files && this.files[0];
+  if (!f) return;
+  var lezer = new FileReader();
+  lezer.onload = function () {
+    $('nieuw-chordpro').value = String(lezer.result || '');
+    var t = $('nieuw-chordpro').value.match(/\{\s*(?:title|t)\s*:\s*([^}]+)\}/i);
+    if (t && !$('nieuw-titel').value) $('nieuw-titel').value = t[1].trim();
+    toonMelding('toevoegen-melding', 'Bestand ingelezen (' + f.name + '). Controleer de velden en druk op Opslaan.', 'goed');
+  };
+  lezer.readAsText(f);
+});
+$('opslaan-liedje').addEventListener('click', function () {
+  var gegevens = {
+    titel: $('nieuw-titel').value,
+    artiest: $('nieuw-artiest').value,
+    taal: $('nieuw-taal').value || 'nl',
+    genre: $('nieuw-genre').value || 'Eigen',
+    moeilijkheid: $('nieuw-moeilijkheid').value,
+    toonsoort: $('nieuw-toonsoort').value,
+    tempo: $('nieuw-tempo').value,
+    strum: $('nieuw-strum').value,
+    youtube: $('nieuw-youtube').value,
+    chordpro: $('nieuw-chordpro').value
+  };
+  if (!gegevens.chordpro.trim()) { toonMelding('toevoegen-melding', 'Vul eerst de ChordPro-tekst in.', 'fout'); return; }
+  api('/api/liedjes/import', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(gegevens)
+  }).then(function (r) {
+    toonMelding('toevoegen-melding', r.aantal + ' liedje(s) opgeslagen.', 'goed');
+    $('leegmaken').click();
+    laadLiedjes(true);
+    if (r.ids && r.ids.length) setTimeout(function () { openLiedje(r.ids[0]); }, 400);
+  }).catch(function (e) { toonMelding('toevoegen-melding', e.message, 'fout'); });
+});
+$('leegmaken').addEventListener('click', function () {
+  ['nieuw-titel', 'nieuw-artiest', 'nieuw-toonsoort', 'nieuw-youtube', 'nieuw-chordpro'].forEach(function (id) { $(id).value = ''; });
+  $('nieuw-taal').value = 'nl';
+  $('nieuw-genre').value = 'Eigen';
+  $('nieuw-moeilijkheid').value = '2';
+  $('nieuw-tempo').value = '84';
+  $('nieuw-strum').value = 'D DU UDU';
+});
+
+// ------------------------------------------------------------------- start ---
+laadLiedjes(true);
+api('/api/instellingen').then(function (s) {
+  if (s.cast_apparaat) {
+    staat.apparaat = s.cast_apparaat;
+    staat.apparaatNaam = s.cast_naam || s.cast_apparaat;
+    $('cast-huidig').textContent = 'Casten naar: ' + staat.apparaatNaam + ' (' + s.cast_apparaat + ')';
+  }
+}).catch(function () {});
+if (navigator.serviceWorker) {
+  navigator.serviceWorker.register('/sw.js').catch(function () {});
+}
+</script>
+</body>
+</html>

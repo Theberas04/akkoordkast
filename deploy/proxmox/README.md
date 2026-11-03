@@ -12,12 +12,24 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/Theberas04/akkoordkast/m
 ```
 
 De uitvoer begint met de versie van de installer, bijvoorbeeld `== AkkoordKast-installer
-2026-11-03.3`. Zie je een oudere versie, dan kwam het script uit de schijfcache van GitHub
-(die houdt een bestand vijf minuten vast) of uit een bewaard bestand. Forceer dan een verse
-kopie met `?cb=`:
+2026-11-03.3` en de commit waar hij mee werkt.
+
+**Waarom dat belangrijk is.** De ruwe URL van GitHub (`raw.githubusercontent.com`) houdt een
+bestand vijf minuten vast (`cache-control: max-age=300`), en een `?cb=` erachter helpt daar
+**niet** tegen: de schijfcache kijkt alleen naar het pad (`x-cache: HIT` op een verse
+parameter). Draai je meteen na een wijziging, dan kun je dus nog de oude versie krijgen.
+
+Daarom zet de installer zichzelf vast op een commit: hij vraagt bij de GitHub-API welke commit
+`main` nu is en haalt **alle** bestanden van die commit op. Een vastgezette commit verandert
+nooit, dus je krijgt precies één versie en nooit een half oude. Lukt dat niet (geen internet
+naar de API), dan gaat hij door met de branch en zegt hij dat de bestanden even oud kunnen zijn.
+
+Wil je zelf verzekerd van de nieuwste versie van een script — bijvoorbeeld omdat je net een
+wijziging hebt gekregen — haal het dan via de API in plaats van via de ruwe URL:
 
 ```bash
-bash -c "$(curl -fsSL "https://raw.githubusercontent.com/Theberas04/akkoordkast/main/deploy/proxmox/install.sh?cb=$(date +%s)")"
+bash -c "$(curl -fsSL -H 'Accept: application/vnd.github.raw' \
+  'https://api.github.com/repos/Theberas04/akkoordkast/contents/deploy/proxmox/install.sh?ref=main')"
 ```
 
 De installer doet vier dingen:
@@ -77,6 +89,11 @@ CONTROLEER_PAKKET=1 TARGET_DIR=/tmp/pakket bash deploy/proxmox/install.sh
 ```bash
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Theberas04/akkoordkast/main/deploy/proxmox/update-from-github.sh)" <CTID>
 ```
+
+Het container-id mag op drie manieren mee: als eerste argument (`bash script.sh 106`), via de
+omgeving (`CTID=106 …`) en als `bash -c "$(curl …)" 106` — die laatste zet het nummer in `$0`
+in plaats van `$1`, en dat vingen de scripts eerder niet af. Alle drie werken nu. De updater zet
+zich net als de installer vast op de commit die op dat moment in `main` staat.
 
 De updater haalt de bestanden op naar `/opt/akkoordkast-update`, maakt in de container een
 reservekopie (`/opt/akkoordkast.bak`), schuift de nieuwe bestanden erin en herstart de dienst.

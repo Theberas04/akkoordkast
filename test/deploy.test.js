@@ -61,15 +61,29 @@ test('elk deploy-script is syntactisch in orde', () => {
 
 test('geen enkel script heeft een oneven aantal aanhalingstekens per regel', () => {
   for (const naam of SCRIPTS) {
-    const regels = lees(naam).split('\n');
-    regels.forEach((regel, i) => {
+    // Regels die met een \ doorgaan vormen samen één regel: een quote mag daar pas op de
+    // volgende regel sluiten. Daarom eerst die regels aan elkaar plakken en dan pas tellen.
+    const fysiek = lees(naam).split('\n');
+    const logisch = [];
+    let bezig = '';
+    let startregel = 0;
+    fysiek.forEach((regel, i) => {
+      if (!bezig) startregel = i + 1;
+      bezig = bezig ? bezig + '\n' + regel : regel;
+      if (regel.endsWith('\\')) return;
+      logisch.push({ regel: bezig, nummer: startregel });
+      bezig = '';
+    });
+    if (bezig) logisch.push({ regel: bezig, nummer: startregel });
+
+    for (const { regel, nummer } of logisch) {
       const enkel = (regel.match(/'/g) || []).length;
       const dubbel = (regel.match(/"/g) || []).length;
       // Een apostrof in een Nederlands woord komt niet voor in deze scripts;
       // een oneven aantal betekent bijna altijd een afgebroken quote.
-      assert.equal(enkel % 2, 0, `${naam}:${i + 1} oneven aantal ' : ${regel.trim()}`);
-      assert.equal(dubbel % 2, 0, `${naam}:${i + 1} oneven aantal " : ${regel.trim()}`);
-    });
+      assert.equal(enkel % 2, 0, `${naam}:${nummer} oneven aantal ' : ${regel.trim()}`);
+      assert.equal(dubbel % 2, 0, `${naam}:${nummer} oneven aantal " : ${regel.trim()}`);
+    }
   }
 });
 
@@ -242,6 +256,35 @@ test('de gezondheidscontrole eist de app-marker en een node-proces op de poort',
     assert.match(tekst, /grep -q node/, `${naam}: controleert niet of node op de poort luistert`);
     assert.doesNotMatch(tekst, /curl[^\n|]*\|\s*grep -q/, `${naam}: curl met pipefail en grep -q breekt op een gebroken pijp`);
   }
+});
+
+test('de scripts accepteren het container-id ook via bash -c (nummer in $0)', () => {
+  // De documentatie zegt 'bash -c "$(curl ...)" <CTID>'. Dat zet het nummer in $0 en niet in
+  // $1, terwijl alle drie de scripts $1 lazen: het id kwam nooit aan en de opdracht stopte met
+  // 'Gebruik: bash provision-akkoordkast.sh <CTID>'. Daarom nu alle drie de vormen, en de
+  // uitlezing echt uitgevoerd.
+  for (const naam of ['provision-akkoordkast.sh', 'update-from-github.sh', 'check-akkoordkast.sh']) {
+    const tekst = lees(naam);
+    assert.match(tekst, /case "\$\{0:-\}" in/, `${naam}: $0 wordt niet bekeken`);
+    assert.match(tekst, /\*\[!0-9\]\*/, `${naam}: een niet-cijferige $0 (de scriptnaam) wordt niet afgewezen`);
+    assert.match(tekst, /CTID="\$\{1:-\$\{CTID:-\$KANDIDAAT0\}\}"/, `${naam}: leest niet alle drie de vormen`);
+  }
+
+  // En echt uitvoeren: dezelfde regels, op drie manieren aangeroepen.
+  const bron = lees('provision-akkoordkast.sh');
+  const van = bron.indexOf('# Het container-id kan');
+  const tot = bron.indexOf('CTID="${1:-${CTID:-$KANDIDAAT0}}"', van) + 'CTID="${1:-${CTID:-$KANDIDAAT0}}"'.length;
+  const stuk = bron.slice(van, tot) + '\necho "CTID=[$CTID]"\n';
+  const echt = (args, env) => execFileSync('bash', args, {
+    encoding: 'utf8', env: Object.assign({}, process.env, env || {}),
+  }).trim();
+  assert.equal(echt(['-c', stuk, '108']), 'CTID=[108]', 'het id uit $0 komt niet aan');
+  assert.equal(echt(['-c', stuk], { CTID: '107' }), 'CTID=[107]', 'CTID= uit de omgeving komt niet aan');
+  const tijdelijk = path.join(os.tmpdir(), 'akkoordkast-ctid.sh');
+  fs.writeFileSync(tijdelijk, '#!/usr/bin/env bash\n' + stuk);
+  assert.equal(echt([tijdelijk, '106']), 'CTID=[106]', 'het eerste argument komt niet aan');
+  assert.equal(echt([tijdelijk]), 'CTID=[]', 'zonder id hoort er niets te staan');
+  fs.unlinkSync(tijdelijk);
 });
 
 test('de updater wacht lang genoeg en kan terugrollen', () => {

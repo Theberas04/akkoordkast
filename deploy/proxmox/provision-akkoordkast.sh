@@ -8,7 +8,15 @@
 # naar de container sturen zonder GitHub.
 set -euo pipefail
 
-CTID="${1:-${CTID:-}}"
+# Het container-id kan op drie manieren komen: als eerste argument
+# ('bash script.sh 106'), via de omgeving (CTID=106 ...) en via
+# 'bash -c "$(curl ...)" 106' — dat laatste zet het nummer in $0, niet in $1.
+# Een $0 die geen cijfer is, is de naam van dit script en telt dus niet mee.
+case "${0:-}" in
+  *[!0-9]*|"") KANDIDAAT0="" ;;
+  *) KANDIDAAT0="$0" ;;
+esac
+CTID="${1:-${CTID:-$KANDIDAAT0}}"
 APP_DIR="${APP_DIR:-/opt/akkoordkast}"
 DATA_DIR="${DATA_DIR:-/var/lib/akkoordkast}"
 GEBRUIKER="${GEBRUIKER:-akkoordkast}"

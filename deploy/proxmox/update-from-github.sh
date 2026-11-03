@@ -10,11 +10,39 @@
 # mediabibliotheek worden nooit overschreven.
 set -euo pipefail
 
-CTID="${1:-${CTID:-}}"
+# Het container-id kan op drie manieren komen: als eerste argument
+# ('bash script.sh 106'), via de omgeving (CTID=106 ...) en via
+# 'bash -c "$(curl ...)" 106' — dat laatste zet het nummer in $0, niet in $1.
+# Een $0 die geen cijfer is, is de naam van dit script en telt dus niet mee.
+case "${0:-}" in
+  *[!0-9]*|"") KANDIDAAT0="" ;;
+  *) KANDIDAAT0="$0" ;;
+esac
+CTID="${1:-${CTID:-$KANDIDAAT0}}"
 REPO_OWNER="${REPO_OWNER:-Theberas04}"
 REPO_NAAM="${REPO_NAAM:-akkoordkast}"
 BRANCH="${BRANCH:-main}"
 RAW_BASE="${RAW_BASE:-https://raw.githubusercontent.com/$REPO_OWNER/$REPO_NAAM/$BRANCH}"
+
+# Versheid: de ruwe URL van GitHub houdt een bestand vijf minuten vast (cache-control
+# max-age=300) en een ?cb= erachter verandert daar niets aan — de schijfcache van GitHub
+# kijkt alleen naar het pad. Daarom halen we eerst de commit op waar de branch naar wijst en
+# halen we alle bestanden van die vastgezette commit: die is onveranderlijk, dus altijd gelijk
+# aan wat er in de repository staat. Lukt dat niet (geen internet naar de API), dan gaan we
+# door met de branch en melden we dat de bestanden even oud kunnen zijn.
+if [ "${RAW_BASE#file://}" = "$RAW_BASE" ] && [ -z "${COMMIT_VAST:-}" ]; then
+  COMMIT_VAST="$(curl -fsSL --max-time 20 -H 'Accept: application/vnd.github+json' \
+    "https://api.github.com/repos/$REPO_OWNER/$REPO_NAAM/commits/$BRANCH" 2>/dev/null \
+    | sed -n 's/.*"sha" *: *"\([0-9a-f]\{40\}\)".*/\1/p' | head -1)"
+  if [ -n "$COMMIT_VAST" ]; then
+    RAW_BASE="https://raw.githubusercontent.com/$REPO_OWNER/$REPO_NAAM/$COMMIT_VAST"
+    echo "== Commit ${COMMIT_VAST:0:7} van $BRANCH (alle bestanden komen uit die versie)"
+  else
+    echo "LET OP: kon de commit van $BRANCH niet ophalen; de bestanden kunnen tot vijf" >&2
+    echo "minuten oud zijn. Forceer een verse kopie via de API:" >&2
+    echo "   bash -c \"\$(curl -fsSL -H 'Accept: application/vnd.github.raw' https://api.github.com/repos/$REPO_OWNER/$REPO_NAAM/contents/deploy/proxmox/update-from-github.sh?ref=$BRANCH)\"" >&2
+  fi
+fi
 APP_DIR="${APP_DIR:-/opt/akkoordkast}"
 DATA_DIR="${DATA_DIR:-/var/lib/akkoordkast}"
 POORT="${POORT:-80}"

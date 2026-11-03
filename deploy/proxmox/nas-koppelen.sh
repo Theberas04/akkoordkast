@@ -141,12 +141,35 @@ if ! pct status "$CTID" >/dev/null 2>&1; then
   exit 1
 fi
 
+# Wil je in de app hetzelfde pad gebruiken als op de NAS zelf — handig als je het pad
+# al kent, bijvoorbeeld /mnt/Nas/Nas-Opslag/Muziek — zet dan ZELFDE_PAD=ja. Bij NFS kan
+# dat: de container ziet de map dan op precies dat pad, zodat je in de app niets hoeft
+# om te rekenen.
+# Bij NFS is het exportpad ook in de container een zinvol pad, dus dan gebruiken we
+# standaard hetzelfde pad: wat je op de NAS intikt, is dan ook wat je in de app intikt.
+# Wil je het toch ergens anders, geef dan ZELFDE_PAD=nee mee.
+if [ "$NAS_PROTO" = "nfs" ] && [ -z "${ZELFDE_PAD:-}" ]; then
+  ZELFDE_PAD="ja"
+fi
+ZELFDE_PAD="${ZELFDE_PAD:-nee}"
+if [ "$ZELFDE_PAD" = "ja" ]; then
+  if [ "$NAS_PROTO" = "nfs" ] && [ -n "$NAS_EXPORT" ]; then
+    KOPPELPUNT="$NAS_EXPORT"
+  else
+    fout "Let op: ZELFDE_PAD=ja werkt alleen bij NFS (bij cifs is de share geen pad)."
+    fout "Ik gebruik het koppelpunt dat je hebt opgegeven: $KOPPELPUNT"
+  fi
+fi
+
 zeg "== Gegevens"
 zeg "   koppeling : $NAS_PROTO"
 zeg "   NAS       : $NAS_HOST"
 if [ "$NAS_PROTO" = "cifs" ]; then zeg "   share     : $NAS_SHARE"; else zeg "   export    : $NAS_EXPORT"; fi
 zeg "   container : $CTID"
 zeg "   koppelpunt: $KOPPELPUNT (in de container)"
+if [ "$ZELFDE_PAD" = "ja" ] && [ "$KOPPELPUNT" = "$NAS_EXPORT" ]; then
+  zeg "   (hetzelfde pad als op de NAS, dus in de app vul je dat pad in)"
+fi
 zeg "   op de host: $HOST_MNT"
 
 # --- Controle: is de NAS bereikbaar vanaf de host? --------------------------

@@ -268,6 +268,21 @@ dat liedje erbij (grepen en capo-advies inbegrepen). Het werk gaat in kleine ron
 voortgangsbalk, dus ook een map met honderden nummers loopt gewoon door; wat al gedaan is wordt
 overgeslagen, zodat je gerust nog eens kunt drukken.
 
+### Meer dan één muziekmap
+
+De app kan naar **meerdere mappen tegelijk** kijken. Dat is handig als je muziek deels op de NAS
+staat en deels op de machine zelf: je voegt ze allebei toe in het tabblad **Toevoegen**, en zowel
+**Alles omzetten** als de automatische wachter lopen ze allemaal langs.
+
+- **Muziekmap toevoegen**: vul een volledig pad in (bijvoorbeeld `/mnt/Nas/Nas-Opslag/Muziek`) en
+  druk op **Deze map toevoegen**. De app controleert meteen of de map er is en hoeveel muziek erin
+  staat; staat de koppeling er niet, dan zegt hij dat in plaats van te doen alsof.
+- Per map zie je **hoeveel bestanden erin staan en hoeveel er nog te doen zijn**, met **Kijk wat
+  erin zit** om die map te bekijken en **weghalen** om hem uit de lijst te halen.
+- **Alles omzetten** met een leeg vak doet alle mappen in de lijst; vul je een pad in, dan doet hij
+  alleen die map.
+- Bij het opstarten is de map uit `MUSIC_DIR` (zie hieronder) meteen de eerste map in de lijst.
+
 ## De muziekmap op een NAS of in Google Drive
 
 Staat je muziek niet op dezelfde machine als AkkoordKast maar op een NAS in je netwerk of
@@ -322,8 +337,12 @@ Geef dan het **exportpad** mee in `NAS_EXPORT` (niet in `NAS_SHARE`; dat is voor
 
 ```bash
 NAS_PROTO=nfs NAS_HOST=192.168.1.100 NAS_EXPORT=/mnt/Nas/Nas-Opslag/Muziek \
-CTID=106 bash deploy/proxmox/nas-koppelen.sh
+CTID=106 ZELFDE_PAD=ja bash deploy/proxmox/nas-koppelen.sh
 ```
+
+Met `ZELFDE_PAD=ja` hangt de container de map op **precies hetzelfde pad** als op de NAS, dus dan
+vul je in de app letterlijk `/mnt/Nas/Nas-Opslag/Muziek` in. Zonder die optie kiest het script het
+standaard koppelpunt (`/home/akkoordkast/muziek`) en moet je in de app dat pad gebruiken.
 
 De NFS-server van de NAS moet dit host-adres wel toelaten (`*`, of het netwerk/de host van de
 Proxmox-server). Een export die alleen `localhost` of één gast toestaat, geeft bij het koppelen

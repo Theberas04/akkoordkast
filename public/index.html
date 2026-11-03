@@ -185,6 +185,13 @@
   .scan-regel .meta{color:var(--tekst2);font-size:.76rem;white-space:nowrap}
   .scan-regel.klaar{border-color:#2f6b4f}
   .scan-regel.fout{border-color:#7a3b3b}
+  .mappen-lijst{display:grid;gap:4px;margin:0 0 10px}
+  .map-regel{display:flex;gap:8px;align-items:center;background:var(--pane);border:1px solid var(--lijn);
+    border-radius:8px;padding:6px 8px;font-size:.84rem}
+  .map-regel .naam{font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .map-regel .meta{color:var(--tekst2);font-size:.76rem;white-space:nowrap}
+  .map-regel.fout{border-color:#7a3b3b}
+  .knop.mini{padding:3px 8px;font-size:.76rem}
   .spotify-speler{margin-top:8px}
   .spotify-speler div{min-height:152px}
   .spotify-speler iframe{border-radius:12px;border:0;width:100%;min-height:152px;background:#0d1526}
@@ -801,6 +808,12 @@
         elk nummer een eigen liedje met akkoordschema. Bestandsnamen als "Amazing Grace (official video).mp3" worden aan
         het liedje in de bibliotheek gekoppeld, dus je krijgt de grepen en het capo-advies er gratis bij. Wat al gedaan is,
         wordt overgeslagen.</p>
+      <label for="map-nieuw">Muziekmap toevoegen</label>
+      <div class="rij">
+        <input id="map-nieuw" type="text" placeholder="/mnt/Nas/Nas-Opslag/Muziek" style="flex:1;min-width:240px">
+        <button class="knop zacht" id="map-toevoegen">Deze map toevoegen</button>
+      </div>
+      <div id="mappen-lijst" class="mappen-lijst"></div>
       <label for="scan-map">Map op deze machine</label>
       <div class="rij">
         <input id="scan-map" type="text" placeholder="/home/tom/muziek" style="flex:1;min-width:240px">
@@ -1341,6 +1354,7 @@ function werkBij() {
 $('versie-controle').addEventListener('click', controleerVersie);
 $('versie-update').addEventListener('click', werkBij);
 laadVersie();
+laadMappen();
 
 // ------------------------------------------------------------ liedjesboek ---
 // Van de huidige selectie één document maken: titelblad, inhoudsopgave en elk liedje
@@ -3029,6 +3043,65 @@ function kiesApparaat(ip, naam) {
   toonMelding('cast-melding', 'Apparaat gekozen. Open een liedje en druk op "Cast dit liedje".', 'goed');
 }
 $('upload-start').addEventListener('click', uploadMuziek);
+
+// --- muziekmappen: welke mappen kijkt de app na? -------------------------
+// Je kunt er meer dan één hebben: een map op deze machine, de map op je NAS die als
+// koppeling in de container staat, enzovoort. De wachter en "Alles omzetten" lopen
+// ze allemaal langs.
+function laadMappen() {
+  return api('/api/mappen').then(function (d) {
+    var vak = $('mappen-lijst');
+    if (!vak) return;
+    var mappen = d.mappen || [];
+    if (!mappen.length) {
+      vak.innerHTML = '<div class="les-klein">Er staat nog geen muziekmap in de app. ' +
+        'Vul hierboven een pad in en druk op "Deze map toevoegen" — bijvoorbeeld de map op je NAS.</div>';
+      return;
+    }
+    vak.innerHTML = mappen.map(function (m) {
+      var meta = m.bestaat
+        ? m.aantal + ' bestanden · ' + m.nieuw + ' nog te doen'
+        : esc(m.fout || 'niet gevonden');
+      return '<div class="map-regel' + (m.bestaat ? '' : ' fout') + '">' +
+        '<span class="naam">' + esc(m.pad) + '</span>' +
+        '<span class="meta">' + meta + '</span>' +
+        '<button class="knop mini zacht" data-kies="' + esc(m.pad) + '">Kijk wat erin zit</button>' +
+        '<button class="knop mini zacht" data-weg="' + esc(m.pad) + '">weghalen</button>' +
+        '</div>';
+    }).join('');
+    Array.prototype.forEach.call(vak.querySelectorAll('[data-kies]'), function (b) {
+      b.addEventListener('click', function () {
+        $('scan-map').value = b.getAttribute('data-kies');
+        scanKijk();
+      });
+    });
+    Array.prototype.forEach.call(vak.querySelectorAll('[data-weg]'), function (b) {
+      b.addEventListener('click', function () {
+        api('/api/mappen/weg', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ pad: b.getAttribute('data-weg') })
+        }).then(function () { laadMappen(); })
+          .catch(function (e) { toonMelding('scan-melding', e.message, 'fout'); });
+      });
+    });
+  }).catch(function () {});
+}
+
+if ($('map-toevoegen')) {
+  $('map-toevoegen').addEventListener('click', function () {
+    var pad = $('map-nieuw').value.trim();
+    if (!pad) { toonMelding('scan-melding', 'Vul een map in, bijvoorbeeld /mnt/Nas/Nas-Opslag/Muziek.', 'fout'); return; }
+    api('/api/mappen', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ pad: pad })
+    }).then(function () {
+      $('map-nieuw').value = '';
+      $('scan-map').value = pad;
+      toonMelding('scan-melding', 'Map toegevoegd. De app kijkt er nu ook in.', 'goed');
+      laadMappen();
+    }).catch(function (e) { toonMelding('scan-melding', e.message, 'fout'); });
+  });
+}
 function scanKijk() {
   var map = $('scan-map').value.trim();
   if (!map) { toonMelding('scan-melding', 'Vul eerst een map in.', 'fout'); return; }
@@ -3046,7 +3119,7 @@ function scanKijk() {
 
 function scanStart() {
   var map = $('scan-map').value.trim();
-  if (!map) { toonMelding('scan-melding', 'Vul eerst een map in.', 'fout'); return; }
+  var lichaam = map ? { map: map, limiet: 6 } : { limiet: 6 };
   var klaar = 0, totaal = 0, nieuw = 0;
   $('scan-vort').hidden = false;
   $('scan-vort').value = 0;
@@ -3054,7 +3127,7 @@ function scanStart() {
   function volgende() {
     api('/api/scan', {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ map: map, limiet: 6 })
+      body: JSON.stringify(lichaam)
     }).then(function (r) {
       totaal = r.totaal; nieuw = nieuw + r.gedaan;
       klaar = r.totaal - r.rest;

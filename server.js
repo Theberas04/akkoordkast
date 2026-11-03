@@ -1038,10 +1038,78 @@ function scanRonde(mapPad, limiet) {
 // NAS- of Drive-koppeling) hoef je dat pad niet elke keer in te typen.
 const STANDAARD_MUZIEKMAP = String(process.env.MUSIC_DIR || '').trim();
 
+// De app kan naar meerdere mappen kijken: de map op deze machine, de NAS-map die als
+// koppeling in de container staat, enzovoort. De lijst staat in de instellingen.
+function leesMappen() {
+  let lijst = [];
+  try { lijst = JSON.parse(leesInstelling('scan_mappen', '[]')); } catch (e) { lijst = []; }
+  if (!Array.isArray(lijst)) lijst = [];
+  const enkel = String(leesInstelling('scan_map', '') || '').trim();
+  if (enkel) lijst.push(enkel);
+  if (!lijst.length && STANDAARD_MUZIEKMAP) lijst.push(STANDAARD_MUZIEKMAP);
+  const uit = [];
+  for (const stuk of lijst) {
+    const schoon = String(stuk || '').trim();
+    if (!schoon) continue;
+    const p = path.resolve(schoon);
+    if (!uit.includes(p)) uit.push(p);
+  }
+  return uit;
+}
+
+function zetMappen(lijst) {
+  const schoon = [];
+  for (const stuk of lijst) {
+    const naam = String(stuk || '').trim();
+    if (!naam) continue;
+    const p = path.resolve(naam);
+    if (!schoon.includes(p)) schoon.push(p);
+  }
+  zetInstelling('scan_mappen', JSON.stringify(schoon));
+  zetInstelling('scan_map', schoon[0] || '');
+  WACHTER.mappen = schoon;
+  WACHTER.map = schoon[0] || '';
+  return schoon;
+}
+
+// Wat de app van één map laat zien: staat hij hier, en hoeveel muziek ligt erin?
+function mapBeeld(pad) {
+  const p = path.resolve(String(pad || '').trim() || '.');
+  const beeld = { pad: p, bestaat: false, isMap: false, aantal: 0, nieuw: 0, fout: '' };
+  let stat = null;
+  try { stat = fs.statSync(p); } catch (e) { stat = null; }
+  if (!stat) {
+    beeld.fout = 'Deze map is er niet op deze machine. Staat de koppeling naar de NAS er wel?';
+    return beeld;
+  }
+  if (!stat.isDirectory()) {
+    beeld.fout = 'Dit is geen map.';
+    return beeld;
+  }
+  beeld.bestaat = true;
+  beeld.isMap = true;
+  const uit = scanBestanden(p);
+  if (uit.fout) { beeld.fout = uit.fout; return beeld; }
+  beeld.aantal = uit.aantal;
+  beeld.nieuw = uit.nieuw;
+  return beeld;
+}
+
+function mappenBeeld() {
+  const mappen = leesMappen().map(mapBeeld);
+  const standaardPad = STANDAARD_MUZIEKMAP ? path.resolve(STANDAARD_MUZIEKMAP) : '';
+  return {
+    mappen,
+    standaard: STANDAARD_MUZIEKMAP,
+    voorstel: standaardPad && !mappen.some(m => m.pad === standaardPad) ? standaardPad : ''
+  };
+}
+
 const WACHTER = {
   aan: leesInstelling('wacht_map_aan', '0') === '1',
   minuten: Math.max(5, Math.min(24 * 60, parseInt(leesInstelling('wacht_map_minuten', '360'), 10) || 360)),
   map: leesInstelling('scan_map', STANDAARD_MUZIEKMAP),
+  mappen: leesMappen(),
   laatste: leesInstelling('wacht_map_laatste', ''),
   verslag: leesInstelling('wacht_map_verslag', ''),
   perRonde: Math.max(1, Math.min(50, parseInt(leesInstelling('wacht_map_per_ronde', '8'), 10) || 8)),
@@ -1056,6 +1124,7 @@ function wachterBeeld() {
     aan: WACHTER.aan,
     minuten: WACHTER.minuten,
     map: WACHTER.map,
+    mappen: leesMappen(),
     standaardMap: STANDAARD_MUZIEKMAP,
     laatste: WACHTER.laatste,
     verslag: WACHTER.verslag,
@@ -1070,20 +1139,37 @@ function wachterBeeld() {
 async function wachterRonde(metVersie) {
   if (WACHTER.bezig) return;
   WACHTER.bezig = true;
-  if (!WACHTER.map) {
+  const mappen = leesMappen();
+  WACHTER.mappen = mappen;
+  WACHTER.map = mappen[0] || '';
+  if (!mappen.length) {
     WACHTER.laatste = new Date().toISOString();
     WACHTER.verslag = 'Nog geen muziekmap ingesteld.';
     zetInstelling('wacht_map_laatste', WACHTER.laatste);
     zetInstelling('wacht_map_verslag', WACHTER.verslag);
   } else {
     try {
-      const uit = scanRonde(WACHTER.map, WACHTER.perRonde);
+      let gedaan = 0, mislukt = 0, rest = 0, totaal = 0;
+      const ontbreekt = [];
+      for (const map of mappen) {
+        const uit = scanRonde(map, WACHTER.perRonde);
+        if (uit.fout) { ontbreekt.push(map); continue; }
+        gedaan += uit.gedaan || 0;
+        mislukt += uit.mislukt || 0;
+        rest += uit.rest || 0;
+        totaal += uit.totaal || 0;
+      }
+      const delen = [];
+      if (gedaan || mislukt) {
+        delen.push(gedaan + ' omgezet' + (mislukt ? ', ' + mislukt + ' mislukt' : '') + ' · nog ' + rest + ' te doen');
+      } else if (!ontbreekt.length) {
+        delen.push('Niets nieuws in ' + (mappen.length > 1 ? 'de mappen' : 'de map') + ' (' + totaal + ' bestanden).');
+      }
+      if (ontbreekt.length) {
+        delen.push('Let op: ' + ontbreekt.join(', ') + ' is er niet (meer). Staat de koppeling nog?');
+      }
       WACHTER.laatste = new Date().toISOString();
-      WACHTER.verslag = uit.fout
-        ? 'Let op: ' + uit.fout
-        : (uit.gedaan || uit.mislukt)
-          ? uit.gedaan + ' omgezet' + (uit.mislukt ? ', ' + uit.mislukt + ' mislukt' : '') + ' · nog ' + uit.rest + ' te doen'
-          : 'Niets nieuws in de map (' + uit.totaal + ' bestanden).';
+      WACHTER.verslag = delen.join(' · ');
       zetInstelling('wacht_map_laatste', WACHTER.laatste);
       zetInstelling('wacht_map_verslag', WACHTER.verslag);
     } catch (e) {
@@ -1518,9 +1604,14 @@ async function verwerk(req, res) {
       WACHTER.minuten = Math.max(5, Math.min(24 * 60, parseInt(body.minuten, 10) || WACHTER.minuten));
       zetInstelling('wacht_map_minuten', String(WACHTER.minuten));
     }
+    if (body.mappen !== undefined && Array.isArray(body.mappen)) {
+      zetMappen(body.mappen);
+    }
     if (body.map !== undefined) {
-      WACHTER.map = String(body.map || '').trim();
-      zetInstelling('scan_map', WACHTER.map);
+      // De eerste map blijft de hoofdmap; de rest van de lijst blijft staan.
+      const eerste = String(body.map || '').trim();
+      const rest = leesMappen().slice(1);
+      zetMappen(eerste ? [eerste].concat(rest) : rest);
     }
     if (body.perRonde !== undefined) {
       WACHTER.perRonde = Math.max(1, Math.min(50, parseInt(body.perRonde, 10) || WACHTER.perRonde));
@@ -2052,6 +2143,47 @@ async function verwerk(req, res) {
   }
 
   // --- een hele muziekmap in één keer ---
+  // --- muziekmappen: welke mappen kijkt de app na? ---
+  if (pad === '/api/mappen' && methode === 'GET') {
+    json(res, 200, mappenBeeld());
+    return;
+  }
+  if (pad === '/api/mappen' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    const ingevoerd = String(body.pad || '').trim();
+    if (!ingevoerd) {
+      json(res, 400, { fout: 'Geef een map op, bijvoorbeeld /mnt/Nas/Nas-Opslag/Muziek.' });
+      return;
+    }
+    if (!path.isAbsolute(ingevoerd)) {
+      json(res, 400, { fout: 'Gebruik een volledig pad, vanaf de hoofdmap (/). Bijvoorbeeld /mnt/Nas/Nas-Opslag/Muziek.' });
+      return;
+    }
+    const p = path.resolve(ingevoerd);
+    const beeld = mapBeeld(p);
+    if (!beeld.bestaat || !beeld.isMap) {
+      json(res, 400, { fout: (beeld.fout || 'Deze map kan ik niet gebruiken.') + ' Pad: ' + p });
+      return;
+    }
+    const lijst = leesMappen();
+    if (!lijst.includes(p)) lijst.push(p);
+    zetMappen(lijst);
+    json(res, 201, mappenBeeld());
+    return;
+  }
+  if (pad === '/api/mappen/weg' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    const ingevoerd = String(body.pad || '').trim();
+    if (!ingevoerd) {
+      json(res, 400, { fout: 'Geef de map op die weg moet.' });
+      return;
+    }
+    const p = path.resolve(ingevoerd);
+    zetMappen(leesMappen().filter(m => m !== p));
+    json(res, 200, mappenBeeld());
+    return;
+  }
+
   if (pad === '/api/scan' && methode === 'GET') {
     const uit = scanBestanden(query.get('map'));
     if (uit.fout) { json(res, 400, { fout: uit.fout }); return; }
@@ -2068,11 +2200,55 @@ async function verwerk(req, res) {
   if (pad === '/api/scan' && methode === 'POST') {
     const body = await leesJsonBody(req);
     const limiet = Math.max(1, Math.min(MAX_PER_RONDE, parseInt(body.limiet, 10) || 8));
-    const uit = scanRonde(body.map, limiet);
-    if (uit.fout) { json(res, 400, { fout: uit.fout }); return; }
-    // De map onthouden, zodat de wachter hem ook weet.
-    if (uit.map) zetInstelling('scan_map', uit.map);
-    json(res, uit.gedaan || uit.mislukt ? 201 : 200, uit);
+
+    // Eén map meegegeven? Dan doen we precies die map, zoals altijd.
+    if (String(body.map || '').trim()) {
+      const uit = scanRonde(body.map, limiet);
+      if (uit.fout) { json(res, 400, { fout: uit.fout }); return; }
+      // De map onthouden, zodat de wachter hem ook weet.
+      if (uit.map) {
+        const p = path.resolve(uit.map);
+        const lijst = leesMappen();
+        if (!lijst.includes(p)) { lijst.push(p); zetMappen(lijst); }
+      }
+      json(res, uit.gedaan || uit.mislukt ? 201 : 200, uit);
+      return;
+    }
+
+    // Geen map meegegeven? Dan alle mappen die in de app staan, één ronde.
+    const mappen = leesMappen();
+    if (!mappen.length) {
+      json(res, 400, { fout: 'Er staat nog geen muziekmap in de app. Voeg er eerst een toe.' });
+      return;
+    }
+    let gedaan = 0, mislukt = 0, rest = 0, totaal = 0;
+    const liedjes = [], fouten = [], perMap = [];
+    for (const map of mappen) {
+      const uit = scanRonde(map, limiet);
+      if (uit.fout) {
+        perMap.push({ map, fout: uit.fout });
+        fouten.push({ bestand: map, pad: map, fout: uit.fout });
+        continue;
+      }
+      gedaan += uit.gedaan || 0;
+      mislukt += uit.mislukt || 0;
+      rest += uit.rest || 0;
+      totaal += uit.totaal || 0;
+      for (const l of (uit.liedjes || [])) liedjes.push(l);
+      for (const f of (uit.fouten || [])) fouten.push(f);
+      perMap.push({ map, gedaan: uit.gedaan, mislukt: uit.mislukt, rest: uit.rest, totaal: uit.totaal });
+    }
+    json(res, gedaan || mislukt ? 201 : 200, {
+      mappen: perMap,
+      gedaan,
+      mislukt,
+      rest,
+      totaal,
+      klaar: rest === 0,
+      liedjes,
+      fouten,
+      wanneer: new Date().toISOString()
+    });
     return;
   }
 

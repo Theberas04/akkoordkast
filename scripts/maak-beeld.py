@@ -73,11 +73,13 @@ def hero():
     </style></head><body><div class="wrap">
       <div>
         <h1>Akkoord<span class="amber">Kast</span></h1>
-        <p class="sub">Bladmuziek voor gitaar met akkoorden,<br>capo-advies, grepen en audio.</p>
+        <p class="sub">Bladmuziek voor gitaar met akkoorden,<br>capo-advies, grepen, noten en audio.</p>
         <div class="doos">
-          <span class="sterk">26 publiek-domein liedjes</span>
-          <span class="pil">capo-advies</span>
-          <span class="pil">eigen liedjes &amp; opnames</span>
+          <span class="sterk">1.325 liedjes uit publiek domein</span>
+          <span class="pil">capo-advies &amp; grepen</span>
+          <span class="pil">meespelen met de noten</span>
+          <span class="pil">eigen muziekmap in &eacute;&eacute;n keer</span>
+          <span class="pil">Spotify</span>
           <span class="pil">Chromecast</span>
         </div>
         <p class="sub" style="font-size:20px;margin-top:20px">Draait op je eigen Proxmox&#8209;server &middot; mobiel en op de pc</p>

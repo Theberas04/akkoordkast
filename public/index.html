@@ -1558,41 +1558,68 @@ function kiesAnalyserNode(stream) {
   return { ctx: ctx, analyser: analyser };
 }
 
-// Welk akkoord klinkt er? Uit het spectrum halen we per toonklasse de sterkste
-// uitslag, en die vergelijken we met de akkoorden uit de reeks.
-function gehoordAkkoord(analyser, ctx, akkoorden) {
+// Wat klinkt er? We maken een chromagram: per toonklasse (C, C#, D, ...) hoeveel
+// energie er in het spectrum zit. Elke frequentiebak verdeelt zijn energie over de
+// noten die er dichtbij liggen, zodat het niet uitmaakt of een toon net tussen twee
+// bakken valt.
+function chromaVan(analyser, ctx) {
   var data = new Uint8Array(analyser.frequencyBinCount);
   analyser.getByteFrequencyData(data);
-  var perKlasse = new Array(12).fill(0);
-  var laagste = Math.round(70 * analyser.fftSize / ctx.sampleRate);
-  var hoogste = Math.round(1200 * analyser.fftSize / ctx.sampleRate);
-  for (var i = Math.max(1, laagste); i < Math.min(data.length, hoogste); i++) {
+  var chroma = new Array(12).fill(0);
+  var perBak = ctx.sampleRate / analyser.fftSize;
+  for (var i = 1; i < data.length; i++) {
     var waarde = data[i];
-    if (waarde < 40) continue;                     // ruis overslaan
-    var freq = i * ctx.sampleRate / analyser.fftSize;
-    var midi = Math.round(69 + 12 * Math.log2(freq / 440));
-    var klasse = ((midi % 12) + 12) % 12;
-    if (waarde > perKlasse[klasse]) perKlasse[klasse] = waarde;
+    if (waarde < 30) continue;                       // stilte en ruis overslaan
+    var freq = i * perBak;
+    if (freq < 70 || freq > 1600) continue;          // onder en boven de gitaar
+    var midiF = 69 + 12 * Math.log2(freq / 440);
+    for (var n = Math.floor(midiF) - 1; n <= Math.ceil(midiF) + 1; n++) {
+      var afstand = Math.abs(midiF - n);
+      if (afstand > 1) continue;
+      chroma[((n % 12) + 12) % 12] += waarde * (1 - afstand);
+    }
   }
-  var hoogsteWaarde = Math.max.apply(null, perKlasse);
-  if (!hoogsteWaarde) return null;
-  var genormaliseerd = perKlasse.map(function (v) { return v / hoogsteWaarde; });
+  var hoogste = Math.max.apply(null, chroma);
+  if (!hoogste) return null;
+  return chroma.map(function (v) { return v / hoogste; });
+}
+
+// Wat verwachten we voor een akkoord? De akkoordtonen zelf, plus hun boventonen:
+// het octaaf, de kwint en nog een octaaf. Zo klopt het ook als de grondtoon zwak is.
+function verwachtingVan(noten) {
+  var gewicht = new Array(12).fill(0);
+  noten.forEach(function (midi) {
+    [[0, 1], [12, 0.7], [19, 0.5], [24, 0.3]].forEach(function (paar) {
+      var klasse = (((midi + paar[0]) % 12) + 12) % 12;
+      if (paar[1] > gewicht[klasse]) gewicht[klasse] = paar[1];
+    });
+  });
+  return gewicht;
+}
+
+// Welk van deze akkoorden lijkt het meest op wat we horen? We vergelijken de vorm van
+// het chromagram met de vorm van het verwachtingspatroon (cosinus), en laten een
+// akkoord vallen als de sterkste toon niet in het akkoord zit.
+function gehoordAkkoord(analyser, ctx, akkoorden) {
+  var chroma = chromaVan(analyser, ctx);
+  if (!chroma) return null;
+  var somChroma = Math.sqrt(chroma.reduce(function (a, b) { return a + b * b; }, 0));
+  if (somChroma < 0.6) return null;                  // te weinig verschil om iets van te zeggen
+  var sterkste = chroma.indexOf(Math.max.apply(null, chroma));
 
   var beste = null;
   akkoorden.forEach(function (naam) {
-    var g = greepVan(naam);
-    if (!g || !g.noten) return;
-    var klassen = toonklassenVanMidi(g.noten);
-    var som = 0;
-    klassen.forEach(function (k) { som += genormaliseerd[k]; });
-    var score = som / klassen.length;
-    // tonen die niet in het akkoord horen, trekken de score omlaag
-    genormaliseerd.forEach(function (v, k) {
-      if (klassen.indexOf(k) < 0) score -= v * 0.12;
-    });
+    var greep = greepVan(naam);
+    if (!greep || !greep.noten) return;
+    var gewicht = verwachtingVan(greep.noten);
+    var somGewicht = Math.sqrt(gewicht.reduce(function (a, b) { return a + b * b; }, 0));
+    if (!somGewicht || gewicht[sterkste] === 0) return;
+    var punt = 0;
+    for (var k = 0; k < 12; k++) punt += chroma[k] * gewicht[k];
+    var score = punt / (somChroma * somGewicht);
     if (!beste || score > beste.score) beste = { naam: naam, score: score };
   });
-  if (!beste || beste.score < 0.35) return null;
+  if (!beste || beste.score < 0.72) return null;
   return beste;
 }
 
@@ -1602,7 +1629,12 @@ function startLuisteren() {
     toonMelding('trein-luister-melding', 'Deze browser kan niet bij de microfoon.', 'fout');
     return;
   }
-  navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } })
+  // De grepen (met hun noten) komen uit de API; zonder die lijst kan de app geen
+  // akkoord herkennen, dus zorgen we dat ze er zijn voordat we gaan luisteren.
+  laadLeerGrepen()
+    .then(function () {
+      return navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    })
     .then(function (stream) {
       var knoppen = kiesAnalyserNode(stream);
       LUISTER.aan = true;

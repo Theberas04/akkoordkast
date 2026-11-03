@@ -1229,6 +1229,39 @@ async function verwerk(req, res) {
     return;
   }
 
+  // --- liedjesboek: de hele selectie met bladmuziek, om in één keer te printen ---
+  if (pad === '/api/boek' && methode === 'GET') {
+    const profielId = profielVan(req, query);
+    const max = Math.max(1, Math.min(120, parseInt(query.get('max'), 10) || 40));
+    const uit = zoekLiedjes(query, profielId);
+    const liedjes = uit.slice(0, max).map(lied => {
+      const weer = weergave(lied, { transpose: query.get('transpose'), capoStand: query.get('capo') });
+      return {
+        id: weer.id,
+        titel: weer.titel,
+        artiest: weer.artiest,
+        toonsoort: weer.toonsoort,
+        tempo: weer.tempo,
+        capo: weer.capo,
+        strum: weer.strum,
+        maatsoort: weer.maatsoort,
+        transpositie: weer.transpositie,
+        model: weer.model,
+        akkoorden: weer.akkoorden,
+        eigen: weer.eigen,
+        bron: weer.bron,
+        licentie: weer.licentie
+      };
+    });
+    json(res, 200, {
+      totaal: uit.length,
+      aantal: liedjes.length,
+      afgekapt: uit.length > liedjes.length,
+      liedjes
+    });
+    return;
+  }
+
   // --- artiesten (voor het filter) ---
   if (pad === '/api/artiesten' && methode === 'GET') {
     json(res, 200, { artiesten: bron.artiesten() });

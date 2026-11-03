@@ -350,6 +350,57 @@
     padding:8px;background:var(--pane);border:1px solid var(--lijn);border-radius:12px}
   .staaf{flex:1;background:#ffffff14;border-radius:4px 4px 0 0;min-height:3px}
   .staaf.gevuld{background:linear-gradient(180deg,var(--amber2),var(--amber))}
+  /* het liedjesboek: op het scherm een voorbeeld, op papier het enige */
+  #printboek{display:none}
+  #printboek.zichtbaar{display:block;background:#fff;color:#111;padding:22px 26px;border-radius:var(--r);
+    margin:18px 0}
+  .boek-balk{display:flex;gap:10px;align-items:center;position:sticky;top:8px;background:#fff;
+    padding-bottom:10px;border-bottom:1px solid #ddd;margin-bottom:14px}
+  .boek-balk .pilletje{background:#f0f0f0;border-color:#ddd;color:#333}
+  .boek-titelblad{text-align:center;padding:26px 0 18px;border-bottom:2px solid #222;margin-bottom:18px}
+  .boek-titelblad h1{font-family:var(--kop);font-size:2rem;margin:0 0 6px}
+  .boek-onder{color:#444;font-size:.9rem;margin-bottom:6px}
+  .boek-inhoudsopgave{margin-top:14px;columns:2;column-gap:26px;text-align:left;font-size:.92rem}
+  .boek-inhoudsopgave span{color:#666}
+  .boek-lied{padding-top:12px;margin-top:16px;border-top:1px solid #ddd}
+  .boek-lied h2{font-family:var(--kop);font-size:1.3rem;margin:0 0 4px}
+  .boek-grepen{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+  .boek-greep{margin:0;text-align:center;font-size:.7rem;color:#333}
+  .boek-greep svg{width:88px;height:auto}
+  #printboek .blad{color:#111}
+  #printboek .blad .ak{color:#8a5a00;font-weight:700}
+  #printboek .blad .regel{font-size:1rem;line-height:1.75}
+  #printboek .blad .refrein{background:#f6f6f6;border-left:3px solid #bbb;padding:6px 10px;border-radius:6px}
+  #printboek .blad .bloklabel{color:#555;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
+  .boek-bron{color:#777;font-size:.72rem;margin-top:8px}
+
+  @media print{
+    html.boek-zichtbaar body{background:#fff;color:#000}
+    html.boek-zichtbaar header,html.boek-zichtbaar nav,html.boek-zichtbaar main,
+    html.boek-zichtbaar .voettekst,html.boek-zichtbaar .boek-balk{display:none!important}
+    html.boek-zichtbaar #printboek{display:block!important;padding:0;margin:0;border-radius:0}
+    #printboek .boek-lied{page-break-after:always;break-after:page}
+    #printboek .boek-lied:last-child{page-break-after:auto;break-after:auto}
+  }
+  /* podiummodus: alleen het liedje, groot en rustig */
+  body.podium{background:var(--bg)}
+  body.podium header,body.podium nav,body.podium .onderkop,body.podium .voettekst,
+  body.podium #paneel-liedjes{display:none!important}
+  body.podium #spelen-inhoud>.kaart{border:0;background:transparent;box-shadow:none;padding:0 6px}
+  body.podium #spelen-inhoud>.kaart>*:not(.podium-houd){display:none!important}
+  body.podium .liedkop h2{font-size:2.1rem}
+  body.podium .liedkop>.rij:not(#speel-gereedschap),body.podium #speel-labels{display:none}
+  body.podium .blad .regel{font-size:1.5rem;line-height:2.1}
+  body.podium .blad .ak{font-size:1.15rem}
+  body.podium .blad .refrein{background:#f5a52412;border-left:4px solid var(--amber);padding:10px 14px}
+  body.podium .blad .tabblok{font-size:1.15rem}
+  body.podium .grepen{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+  body.podium .grepen svg{width:120px;height:auto}
+  body.podium #speel-gereedschap{position:sticky;top:0;z-index:5;background:#0b1120e6;
+    backdrop-filter:blur(3px);padding:8px 0;margin:0 0 10px}
+  @media (max-width:760px){
+    body.podium .blad .regel{font-size:1.22rem;line-height:2}
+  }
   /* ------- leermodus ------- */
   .leren-kop{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
   .voortgang{flex:1 1 240px;min-width:200px}
@@ -490,6 +541,7 @@
       <div class="rij" style="margin-top:8px">
         <button class="knop zacht" id="filter-toggle">Zoeken en filters</button>
         <button class="knop zacht" id="filter-wis">Filters wissen</button>
+        <button class="knop zacht" id="boek-printen" title="Alle liedjes van deze selectie als één document">Boek maken</button>
         <span class="pilletje" id="lijst-teller"></span>
       </div>
       <div class="melding" id="lijst-melding" hidden></div>
@@ -756,7 +808,19 @@
   <div class="voettekst">
     AkkoordKast · de meegeleverde liedjes komen uit bronnen met een vrije licentie · eigen liedjes en opnames blijven op deze server
   </div>
+  </section>
 </main>
+
+<!-- Het liedjesboek: alleen zichtbaar als je het maakt, en bij het printen het enige
+     wat op papier komt. -->
+<section id="printboek" aria-label="Liedjesboek">
+  <div class="boek-balk">
+    <span class="pilletje" id="boek-teller"></span>
+    <button class="knop" id="boek-nu-printen">Printen</button>
+    <button class="knop zacht" id="boek-sluiten">Sluiten</button>
+  </div>
+  <div id="boek-inhoud"></div>
+</section>
 
 <script>
 'use strict';
@@ -1036,6 +1100,58 @@ function debounce(fn, ms) {
   return function () { clearTimeout(t); t = setTimeout(fn, ms); };
 }
 
+// ------------------------------------------------------------ liedjesboek ---
+// Van de huidige selectie één document maken: titelblad, inhoudsopgave en elk liedje
+// op een eigen pagina, met de grepen en de bladmuziek. Printen doet de browser zelf
+// (Printen → Bewaar als PDF), dus er is geen losse PDF-dienst nodig.
+function maakBoek() {
+  var p = lijstQuery();
+  p.delete('compact');
+  p.set('max', '40');
+  api('/api/boek?' + p.toString()).then(function (data) {
+    if (!data.liedjes.length) { toonMelding('lijst-melding', 'Geen liedjes in deze selectie.', 'fout'); return; }
+    var vandaag = new Date().toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
+    var inhoud = data.liedjes.map(function (l, i) {
+      var grepen = l.akkoorden.map(function (a) {
+        return '<figure class="boek-greep">' + a.svg + '<figcaption>' + esc(a.naam) + '</figcaption></figure>';
+      }).join('');
+      return '<article class="boek-lied">' +
+        '<h2>' + (i + 1) + '. ' + esc(l.titel) + '</h2>' +
+        '<div class="boek-onder">' + esc(l.artiest || 'onbekend') +
+          (l.toonsoort ? ' · toonsoort ' + esc(l.toonsoort) : '') +
+          (l.capo ? ' · capo ' + l.capo : ' · zonder capo') +
+          (l.strum ? ' · ' + esc(l.strum) : '') + '</div>' +
+        (grepen ? '<div class="boek-grepen">' + grepen + '</div>' : '') +
+        '<div class="blad podium-houd">' + tekenSongtekst(l.model) + '</div>' +
+        (l.bron ? '<div class="boek-bron">' + esc(l.bron) + '</div>' : '') +
+        '</article>';
+    }).join('');
+    $('boek-inhoud').innerHTML =
+      '<div class="boek-titelblad">' +
+        '<h1>Liedjesboek</h1>' +
+        '<div class="boek-onder">' + data.liedjes.length + ' liedjes · ' + esc(vandaag) + '</div>' +
+        '<div class="boek-inhoudsopgave">' + data.liedjes.map(function (l, i) {
+          return '<div>' + (i + 1) + '. ' + esc(l.titel) + (l.artiest ? ' <span>· ' + esc(l.artiest) + '</span>' : '') + '</div>';
+        }).join('') + '</div>' +
+      '</div>' + inhoud;
+    $('boek-teller').textContent = data.liedjes.length + ' liedjes' +
+      (data.afgekapt ? ' van ' + data.totaal + ' (de eerste veertig)' : '');
+    document.documentElement.classList.add('boek-zichtbaar');
+    $('printboek').classList.add('zichtbaar');
+    $('printboek').scrollIntoView({ block: 'start' });
+  }).catch(function (e) { toonMelding('lijst-melding', e.message, 'fout'); });
+}
+
+function sluitBoek() {
+  $('printboek').classList.remove('zichtbaar');
+  document.documentElement.classList.remove('boek-zichtbaar');
+  $('boek-inhoud').innerHTML = '';
+}
+
+$('boek-printen').addEventListener('click', maakBoek);
+$('boek-nu-printen').addEventListener('click', function () { window.print(); });
+$('boek-sluiten').addEventListener('click', sluitBoek);
+
 // ---------------------------------------------------- liedje openen/spelen ---
 function openLiedje(id, opties) {
   var o = opties || {};
@@ -1066,7 +1182,7 @@ function tekenLiedje(l) {
 
   c.innerHTML =
     '<div class="kaart">' +
-      '<div class="liedkop">' +
+      '<div class="liedkop podium-houd">' +
         '<div>' +
           '<h2>' + esc(l.titel) + '</h2>' +
           '<div class="artiest" style="color:var(--tekst2);font-size:.85rem">' + esc(l.artiest || 'onbekend') + ' · ' + esc(l.genre) +
@@ -1081,6 +1197,7 @@ function tekenLiedje(l) {
         '</div>' +
         '<div class="rij">' +
           '<button class="knop ster" id="speel-ster">☆ favoriet</button>' +
+          '<button class="knop zacht" id="podium-knop" title="Groot en rustig beeld om van te spelen">Podiummodus</button>' +
           '<button class="knop zacht" id="print-liedje">Printen</button>' +
           (l.eigen ? '<button class="knop zacht" id="verwijder-liedje">Verwijderen</button>'
                    : '<button class="knop zacht" id="kopie-liedje">Eigen kopie maken</button>') +
@@ -1096,6 +1213,16 @@ function tekenLiedje(l) {
           }).join(' · ') + '</p>' +
       '</div>' +
 
+      '<div class="rij speel-gereedschap podium-houd" id="speel-gereedschap">' +
+        '<button class="knop zacht" id="scroll-knop">▶ Meescrollen</button>' +
+        '<button class="knop zacht" id="scroll-langzamer" title="Langzamer">−</button>' +
+        '<span class="pilletje" id="scroll-stand">12 px/s</span>' +
+        '<button class="knop zacht" id="scroll-sneller" title="Sneller">+</button>' +
+        '<button class="knop zacht" id="scroll-terug">Halve pagina terug</button>' +
+        '<button class="knop zacht" id="scroll-verder">Halve pagina verder</button>' +
+        '<span class="les-klein" id="scroll-hint">Spatie start en stopt, de pijltjes schuiven een halve pagina.</span>' +
+      '</div>' +
+
       '<h3>Capostand</h3>' +
       '<div class="capo-rij" id="capo-rij">' + capoKnoppen + '</div>' +
       '<h3>Toonhoogte verschuiven (transponeren)</h3>' +
@@ -1106,8 +1233,8 @@ function tekenLiedje(l) {
         '<button class="knop zacht" id="trans-nul">terug naar ' + esc(l.model.meta.toonsoort || l.toonsoort) + '</button>' +
       '</div>' +
 
-      '<h3>Grepen</h3>' +
-      '<div class="grepen">' + grepen + '</div>' +
+      '<h3 class="podium-houd">Grepen</h3>' +
+      '<div class="grepen podium-houd">' + grepen + '</div>' +
 
       '<h3>Bladmuziek</h3>' +
       '<div class="songtekst" id="songtekst">' + tekenSongtekst(l.model) + '</div>' +
@@ -1216,6 +1343,18 @@ function tekenLiedje(l) {
   $('print-liedje').addEventListener('click', function () { window.print(); });
   toonFavorietKnop(l);
   $('speel-ster').addEventListener('click', function () { zetFavoriet(l.id, !l.favoriet); });
+  // meescrollen en podium: knoppen koppelen en de stand van dit toestel terugzetten
+  zetScrollSnelheid(scrollSnelheid());
+  stopScroll();
+  $('scroll-knop').addEventListener('click', wisselScroll);
+  $('scroll-sneller').addEventListener('click', function () { zetScrollSnelheid(scroll.snelheid + 4); });
+  $('scroll-langzamer').addEventListener('click', function () { zetScrollSnelheid(scroll.snelheid - 4); });
+  $('scroll-terug').addEventListener('click', function () { scrollStap(-1); });
+  $('scroll-verder').addEventListener('click', function () { scrollStap(1); });
+  $('podium-knop').addEventListener('click', function () { zetPodium(!document.body.classList.contains('podium')); });
+  var podiumAan = false;
+  try { podiumAan = localStorage.getItem('akkoordkast-podium') === '1'; } catch (e) {}
+  zetPodium(podiumAan);
   // Onthouden dat je dit liedje hebt opengespeeld: daar leeft 'laatst gespeeld' van.
   api('/api/gespeeld', {
     method: 'POST',
@@ -1294,6 +1433,82 @@ function tekenLiedje(l) {
     });
   }
 }
+
+// --------------------------------------------------- meescrollen en podium ---
+// Meescrollen: de pagina schuift zelf door terwijl je speelt. De snelheid bewaren we
+// per toestel, want elk liedje en elk scherm vraagt een andere snelheid.
+var SCROLL_SLEUTEL = 'akkoordkast-scrollsnelheid';
+var scroll = { bezig: false, snelheid: 12, laatste: 0, timer: null };
+
+function scrollSnelheid() {
+  try { return Math.max(2, Math.min(120, Number(localStorage.getItem(SCROLL_SLEUTEL)) || 12)); }
+  catch (e) { return 12; }
+}
+function zetScrollSnelheid(px) {
+  scroll.snelheid = Math.max(2, Math.min(120, Math.round(px)));
+  try { localStorage.setItem(SCROLL_SLEUTEL, String(scroll.snelheid)); } catch (e) {}
+  var stand = $('scroll-stand');
+  if (stand) stand.textContent = scroll.snelheid + ' px/s';
+}
+
+function scrollStap(richting) {
+  window.scrollBy({ top: richting * Math.round(window.innerHeight * 0.5), behavior: 'smooth' });
+}
+
+function startScroll() {
+  if (scroll.bezig) return;
+  scroll.bezig = true;
+  scroll.laatste = performance.now();
+  var knop = $('scroll-knop');
+  if (knop) { knop.textContent = '⏸ Meescrollen'; knop.className = 'knop goed'; }
+  var stap = function (nu) {
+    if (!scroll.bezig) return;
+    var seconden = Math.min(0.25, (nu - scroll.laatste) / 1000);   // nooit een sprong na een pauze
+    scroll.laatste = nu;
+    var onder = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+    if (onder) { stopScroll(); return; }
+    // Bij een lage snelheid is één stap minder dan een pixel. De rest bewaren we,
+    // anders zet de browser hem elke keer op nul en gebeurt er niets.
+    scroll.rest = (scroll.rest || 0) + scroll.snelheid * seconden;
+    var af = Math.floor(scroll.rest);
+    if (af > 0) {
+      scroll.rest -= af;
+      window.scrollBy(0, af);
+    }
+    scroll.timer = requestAnimationFrame(stap);
+  };
+  scroll.timer = requestAnimationFrame(stap);
+}
+
+function stopScroll() {
+  if (!scroll.bezig) return;
+  scroll.bezig = false;
+  cancelAnimationFrame(scroll.timer);
+  var knop = $('scroll-knop');
+  if (knop) { knop.textContent = '▶ Meescrollen'; knop.className = 'knop zacht'; }
+}
+
+function wisselScroll() { if (scroll.bezig) stopScroll(); else startScroll(); }
+
+// Podiummodus: alleen het liedje op het scherm, groot en rustig, om van te spelen.
+function zetPodium(aan) {
+  document.body.classList.toggle('podium', !!aan);
+  var knop = $('podium-knop');
+  if (knop) knop.textContent = aan ? 'Podium uit' : 'Podiummodus';
+  try { localStorage.setItem('akkoordkast-podium', aan ? '1' : ''); } catch (e) {}
+}
+
+document.addEventListener('keydown', function (ev) {
+  var vak = ev.target || {};
+  if (vak.tagName === 'INPUT' || vak.tagName === 'SELECT' || vak.tagName === 'TEXTAREA') return;
+  var opSpelen = $('paneel-spelen') && $('paneel-spelen').classList.contains('actief');
+  if (ev.key === 'Escape' && document.body.classList.contains('podium')) { zetPodium(false); return; }
+  if (!opSpelen) return;
+  if (ev.key === ' ') { ev.preventDefault(); wisselScroll(); return; }
+  if (ev.key === 'PageDown' || ev.key === 'ArrowDown' && ev.shiftKey) { ev.preventDefault(); scrollStap(1); return; }
+  if (ev.key === 'PageUp' || ev.key === 'ArrowUp' && ev.shiftKey) { ev.preventDefault(); scrollStap(-1); return; }
+  if (ev.key === 'p' || ev.key === 'P') { zetPodium(!document.body.classList.contains('podium')); }
+});
 
 function tekenSongtekst(model) {
   var uit = '';

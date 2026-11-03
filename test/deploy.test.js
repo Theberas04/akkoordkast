@@ -200,3 +200,27 @@ test('de bestandslijsten-checker van het deploygereedschap is groen', () => {
   assert.doesNotMatch(uit, /FOUT|fout:/i, uit);
   assert.match(uit, /ok|OK|geen probleem/i);
 });
+
+test('elke liedjes-dataset staat in de index en in alle installatielijsten', () => {
+  const wortel = path.join(__dirname, '..');
+  const index = JSON.parse(fs.readFileSync(path.join(wortel, 'song-data', 'datasets.json'), 'utf8'));
+  const inIndex = index.datasets.map(d => d.bestand.replace(/^song-data\//, ''));
+  const opSchijf = fs.readdirSync(path.join(wortel, 'song-data'))
+    .filter(n => n.endsWith('.json'))
+    .filter(n => !/^manifest|^datasets\.json$|^SPEC/i.test(n))
+    .sort();
+  assert.deepEqual(inIndex.slice().sort(), opSchijf, 'de index dekt niet alle datasets');
+
+  const scripts = ['install.sh', 'provision-akkoordkast.sh', 'update-from-github.sh'];
+  for (const naam of scripts) {
+    const bron = fs.readFileSync(path.join(wortel, 'deploy', 'proxmox', naam), 'utf8');
+    for (const bestand of opSchijf.concat(['datasets.json'])) {
+      assert.ok(bron.includes('song-data/' + bestand), naam + ' mist song-data/' + bestand);
+    }
+  }
+
+  // en de app laadt precies de datasets uit de index
+  const bron = require('../liedjes-bron');
+  const geladen = bron.perBestand().map(b => b.bestand).sort();
+  assert.deepEqual(geladen, opSchijf, 'de app laadt niet de datasets uit de index');
+});

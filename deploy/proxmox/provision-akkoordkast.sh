@@ -55,6 +55,7 @@ DATA=(
   "song-data/liedjes.json"
   "song-data/volkswijsjes.json"
   "song-data/kerkwijsjes.json"
+  "song-data/datasets.json"
   "scripts/cast-helper.py"
 )
 

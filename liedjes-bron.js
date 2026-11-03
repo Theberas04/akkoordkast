@@ -14,13 +14,32 @@ const capo = require('./lib/capo');
 const theorie = require('./lib/theorie');
 const grepen = require('./lib/grepen');
 
+// De lijst met datasets staat in song-data/datasets.json, zodat een nieuwe bron
+// toevoegen een regel in dat bestand is (plus het bestand zelf). Valt die index
+// weg, dan gebruiken we deze vaste lijst; een test controleert dat de index alle
+// datasetbestanden dekt en dat de installatiescripts ze allemaal meenemen.
+const VAST = [
+  { bestand: path.join(__dirname, 'song-data', 'liedjes.json'), vanaf: 1 },
+  { bestand: path.join(__dirname, 'song-data', 'volkswijsjes.json'), vanaf: 100000 },
+  { bestand: path.join(__dirname, 'song-data', 'kerkwijsjes.json'), vanaf: 200000 }
+];
+
+function leesIndex() {
+  const pad = path.join(__dirname, 'song-data', 'datasets.json');
+  try {
+    const index = JSON.parse(fs.readFileSync(pad, 'utf8'));
+    const lijst = (index.datasets || [])
+      .filter(d => d && d.bestand && Number(d.vanaf) >= 0)
+      .map(d => ({ bestand: path.join(__dirname, d.bestand), vanaf: Number(d.vanaf) }));
+    return lijst.length ? lijst : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 const BESTANDEN = process.env.LIEDJES_BESTAND
   ? [{ bestand: process.env.LIEDJES_BESTAND, vanaf: 1 }]
-  : [
-    { bestand: path.join(__dirname, 'song-data', 'liedjes.json'), vanaf: 1 },
-    { bestand: path.join(__dirname, 'song-data', 'volkswijsjes.json'), vanaf: 100000 },
-    { bestand: path.join(__dirname, 'song-data', 'kerkwijsjes.json'), vanaf: 200000 }
-  ];
+  : (leesIndex() || VAST);
 
 function leesBestand(pad) {
   try {

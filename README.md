@@ -28,6 +28,7 @@ Die begeleiding cast je naar een Chromecast in je netwerk.
 | ![meespelen](docs/img/meespelen-opname.png) | **Meespelen met je eigen opname** — je opname is de muziek; de akkoorden, de maat, de hals en de grepen lopen ermee mee. |
 | ![spotify](docs/img/spotify-blok.png) | **Spotify** — plak een link en de speler staat erbij; de noten lopen mee met wat je hoort. Met een eigen Client ID kun je ook zoeken. |
 | ![muziekmap](docs/img/muziekmap-klaar.png) | **Een hele muziekmap in één keer** — geef een map op deze machine op en elk nummer erin wordt een eigen liedje met akkoordschema, tempo en toonsoort. |
+| ![start/stop](docs/img/start-stop.png) | **Start en stop bij het spelen** — naast de speler staan twee gewone knoppen (Start en Stop) met de stand ernaast; Stop zet de muziek ook echt terug naar het begin. |
 | ![tekst](docs/img/liedjestekst-bij-opname.png) | **De liedjestekst erbij** — lijkt de bestandsnaam op een liedje uit de bibliotheek, dan krijg je de tekst van dat liedje erbij te lezen, met de akkoorden uit jouw opname erboven. |
 
 ## Rondleiding van 56 seconden

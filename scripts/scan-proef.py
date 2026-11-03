@@ -37,7 +37,7 @@ def main():
     b.js("(async()=>{ if(navigator.serviceWorker){const rs=await navigator.serviceWorker.getRegistrations(); for(const r of rs){await r.unregister();}} if(window.caches){const ks=await caches.keys(); for(const k of ks){await caches.delete(k);}}})()")
     b.call('Page.reload', {'ignoreCache': True})
     wacht(b, 2.5)
-    b.call('Emulation.setDeviceMetricsOverride', {'width': 1180, 'height': 1000, 'deviceScaleFactor': 1, 'mobile': False})
+    b.call('Emulation.setDeviceMetricsOverride', {'width': 1180, 'height': 1080, 'deviceScaleFactor': 1, 'mobile': False})
 
     # naar het tabblad Toevoegen
     b.js("(()=>{const k=[...document.querySelectorAll('.tab')].find(e=>/toevoegen/i.test(e.textContent)); if(k) k.click();})()")
@@ -46,9 +46,10 @@ def main():
     b.js("document.getElementById('scan-kijk').click();")
     wacht(b, 3.0)
     print('melding na kijken:', b.js("document.getElementById('scan-melding').textContent"))
-    b.js("(()=>{const el=document.getElementById('scan-map'); window.scrollTo(0, el.getBoundingClientRect().top+scrollY-180);})()")
+    b.js("(()=>{const el=document.getElementById('scan-map'); window.scrollTo(0, el.getBoundingClientRect().top+window.scrollY-180);})()")
     wacht(b, 0.8)
-    b.schermafbeelding(str(doel / 'muziekmap-gevonden.png'), {'x': 0, 'y': 0, 'width': 1180, 'height': 1000, 'scale': 1})
+    # geen clip: bij een sticky kop geeft een uitgesneden opname een spookbalk midden in het beeld
+    b.schermafbeelding(str(doel / 'muziekmap-gevonden.png'))
 
     b.js("document.getElementById('scan-start').click();")
     for _ in range(40):
@@ -58,9 +59,12 @@ def main():
             break
     print('melding na omzetten:', b.js("document.getElementById('scan-melding').textContent"))
     print('regels in de lijst:', b.js("document.querySelectorAll('#scan-lijst .scan-regel').length"))
-    b.js("(()=>{const el=document.getElementById('scan-lijst'); window.scrollTo(0, el.getBoundingClientRect().top+scrollY-330);})()")
+    # de app springt na het omzetten naar de liedjeslijst; terug naar Toevoegen voor het beeld
+    b.js("document.getElementById('tab-toevoegen').click();")
     wacht(b, 1.0)
-    b.schermafbeelding(str(doel / 'muziekmap-klaar.png'), {'x': 0, 'y': 0, 'width': 1180, 'height': 1000, 'scale': 1})
+    b.js("(()=>{const el=document.getElementById('scan-lijst'); window.scrollTo(0, el.getBoundingClientRect().top+window.scrollY-330);})()")
+    wacht(b, 1.0)
+    b.schermafbeelding(str(doel / 'muziekmap-klaar.png'))
     print('paginafouten:', b.fouten())
     print('geschreven naar', doel.resolve())
 

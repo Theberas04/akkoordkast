@@ -50,6 +50,10 @@ SCENES = [
      'tekst': 'Bladmuziek op je telefoon, ook te printen', 'telefoon': True},
     {'beeld': DOCS / 'toevoegen-desktop.png', 'stem': 'n5.mp3',
      'tekst': 'Eigen liedjes en opnames toevoegen'},
+    {'beeld': DOCS / 'muziekmap-klaar.png', 'stem': 'n7.mp3',
+     'tekst': 'Een hele muziekmap in één keer omzetten'},
+    {'beeld': DOCS / 'liedjestekst-bij-opname.png', 'stem': 'n8.mp3',
+     'tekst': 'De liedjestekst er gratis bij'},
     {'beeld': DOCS / 'casten-desktop.png', 'stem': 'n6.mp3',
      'tekst': 'Begeleiding casten naar je Chromecast'},
 ]

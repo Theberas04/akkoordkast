@@ -375,3 +375,15 @@ test('de cast-helper zet nooit een kale traceback op de uitvoer', () => {
   assert.match(bron, /"fout"/);
   assert.match(bron, /pychromecast/);
 });
+
+test('het liedpaneel heeft een eigen start- en stopknop bij het spelen', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  for (const id of ['speler-start', 'speler-stop', 'speler-stand', 'opname-start', 'opname-stop', 'opname-stand']) {
+    assert.ok(html.includes('id="' + id + '"'), 'id ontbreekt: ' + id);
+  }
+  assert.match(html, /function koppelSpeler/);
+  assert.match(html, /koppelSpeler\('speler-audio', 'speler-start', 'speler-stop', 'speler-stand'\)/);
+  assert.match(html, /koppelSpeler\('opname-audio', 'opname-start', 'opname-stop', 'opname-stand'\)/);
+  // stoppen zet de speler ook echt terug naar het begin
+  assert.match(html, /a\.pause\(\);\s*\n\s*try \{ a\.currentTime = 0; \}/);
+});

@@ -172,6 +172,9 @@
   .mees-noten b.klinkt{color:var(--amber)}
   .grepen figure[data-akkoord].klinkt{outline:2px solid var(--amber);outline-offset:2px;border-radius:10px}
   .seg .ak.klinkt{background:var(--amber);color:#241a03;border-radius:4px;padding:0 3px}
+  .speel-knoppen{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+  .speel-knoppen .meta{color:var(--tekst2);font-size:.82rem}
+  .speel-knoppen .meta.aan{color:#5fd39a}
   .woorden{margin-top:10px;background:var(--pane);border:1px solid var(--lijn);border-radius:10px;padding:8px 12px}
   .woorden summary{cursor:pointer;font-weight:700;font-size:.9rem}
   .woorden-tekst{white-space:pre-wrap;font-family:inherit;font-size:.9rem;line-height:1.6;margin:8px 0 0;color:var(--tekst2)}
@@ -707,14 +710,26 @@ function tekenLiedje(l) {
       '</div>' +
       '<div class="speler">' +
         '<audio id="speler-audio" controls preload="none"></audio>' +
+      '</div>' +
+      '<div class="rij speel-knoppen">' +
+        '<button class="knop goed" id="speler-start">▶ Start</button>' +
+        '<button class="knop rood" id="speler-stop">■ Stop</button>' +
+        '<span class="meta" id="speler-stand">gestopt</span>' +
+      '</div>' +
+      '<div class="speler">' +
         '<button class="knop" id="beluister">Begeleiding maken</button>' +
         '<a class="knop zacht" id="download-mp3" download>mp3 downloaden</a>' +
         '<a class="knop zacht" href="' + esc(l.audio.youtube) + '" target="_blank" rel="noopener">Zoek de muziek online</a>' +
       '</div>' +
       '<div class="melding" id="speler-melding">De begeleiding wordt op deze server gemaakt met een gitaarsynthesizer (tokkels van de akkoordenreeks) — geen auteursrechtelijke opname.</div>' +
       (l.audio.opname
-        ? '<h3>Eigen opname</h3><div class="speler"><audio controls src="' + esc(l.audio.opname) + '"></audio>' +
-          (l.eigen ? '<button class="knop rood" id="opname-weg">Opname verwijderen</button>' : '') + '</div>'
+        ? '<h3>Eigen opname</h3><div class="speler"><audio id="opname-audio" controls src="' + esc(l.audio.opname) + '"></audio></div>' +
+          '<div class="rij speel-knoppen">' +
+            '<button class="knop goed" id="opname-start">▶ Start</button>' +
+            '<button class="knop rood" id="opname-stop">■ Stop</button>' +
+            '<span class="meta" id="opname-stand">gestopt</span>' +
+            (l.eigen ? '<button class="knop rood" id="opname-weg">Opname verwijderen</button>' : '') +
+          '</div>'
         : (l.eigen
             ? '<h3>Eigen opname toevoegen</h3><input id="opname-bestand" type="file" accept="audio/*">' +
               '<div class="rij"><button class="knop" id="opname-upload">Opname uploaden</button></div>'
@@ -751,6 +766,8 @@ function tekenLiedje(l) {
       if (id) openLiedje(Number(id));
     });
   }
+  koppelSpeler('speler-audio', 'speler-start', 'speler-stop', 'speler-stand');
+  koppelSpeler('opname-audio', 'opname-start', 'opname-stop', 'opname-stand');
   tekenSpotify(l);
   // meespelen
   $('mees-start').addEventListener('click', function () { meespelStart(l); });
@@ -917,6 +934,39 @@ function tekenAkkoordschema(perMaat) {
     }).join('') + '</div>';
   }
   return uit;
+}
+
+// ------------------------------------------------------------------ spelers ---
+// Een eigen start- en stopknop naast de speler, zodat je niet in de
+// mini-speler van de browser hoeft te mikken.
+function koppelSpeler(audioId, startId, stopId, standId) {
+  var a = $(audioId);
+  if (!a || !$(startId) || !$(stopId)) return;
+  var stand = $(standId);
+  function zet(tekst, aan) {
+    if (!stand) return;
+    stand.textContent = tekst;
+    stand.className = 'meta' + (aan ? ' aan' : '');
+  }
+  $(startId).addEventListener('click', function () {
+    if (!a.src) {
+      if ($('speler-melding')) toonMelding('speler-melding', 'Druk eerst op "Begeleiding maken", dan kun je starten.', 'fout');
+      else if ($('opname-melding')) toonMelding('opname-melding', 'Er is nog geen bestand om af te spelen.', 'fout');
+      return;
+    }
+    var belofte = a.play();
+    if (belofte && belofte.catch) {
+      belofte.catch(function (e) { zet('kon niet starten'); if ($('speler-melding')) toonMelding('speler-melding', 'Afspelen lukte niet: ' + e.message, 'fout'); });
+    }
+  });
+  $(stopId).addEventListener('click', function () {
+    a.pause();
+    try { a.currentTime = 0; } catch (e) { /* nog niet geladen */ }
+    zet('gestopt');
+  });
+  a.addEventListener('play', function () { zet('speelt', true); });
+  a.addEventListener('pause', function () { zet(a.currentTime > 0.05 && !a.ended ? 'gepauzeerd' : 'gestopt'); });
+  a.addEventListener('ended', function () { zet('klaar, opnieuw beginnen'); });
 }
 
 // ------------------------------------------------------------------ spotify ---

@@ -8,7 +8,7 @@
 ![Node 22](https://img.shields.io/badge/Node.js-22%20(node%3Asqlite)-3c873a)
 ![geen npm-afhankelijkheden](https://img.shields.io/badge/dependencies-geen-34d399)
 ![taal](https://img.shields.io/badge/taal-Nederlands-60a5fa)
-![liedjes](https://img.shields.io/badge/liedjes-8679-f5a524)
+![liedjes](https://img.shields.io/badge/liedjes-8680-f5a524)
 ![bronnen](https://img.shields.io/badge/bronnen-publiek%20domein-34d399)
 
 Je opent AkkoordKast op je telefoon of laptop, zoekt een liedje en ziet meteen:
@@ -94,14 +94,14 @@ in plaats van wav. Geen npm-afhankelijkheden.
 
 ## De liedjes
 
-Meegeleverd: **8.679 liedjes**, allemaal met akkoorden per maat en (waar de bron dat heeft) de melodie,
+Meegeleverd: **8.680 liedjes**, allemaal met akkoorden per maat en (waar de bron dat heeft) de melodie,
 verdeeld over zes bestanden met eigen id-bereiken. Welke bestanden meegaan staat in
 [`song-data/datasets.json`](song-data/datasets.json); een test controleert dat die lijst, de bestanden
 op schijf en de installatiescripts hetzelfde zeggen.
 
 | Bestand | Aantal | Wat | Id's |
 | --- | --- | --- | --- |
-| [`song-data/liedjes.json`](song-data/liedjes.json) | 26 | met tekst en akkoorden: Nederlandse kinder- en Sinterklaasliedjes, kerstliedjes, het Wilhelmus, Engelstalige en Afrikaanse traditionals, plus instrumentale stukken met tab | 1–26 |
+| [`song-data/liedjes.json`](song-data/liedjes.json) | 27 | met tekst en akkoorden: Nederlandse kinder- en Sinterklaasliedjes, kerstliedjes, het Wilhelmus, het **Limburgs volkslied**, Engelstalige en Afrikaanse traditionals, plus instrumentale stukken met tab | 1–27 |
 | [`song-data/volkswijsjes.json`](song-data/volkswijsjes.json) | 971 | melodieën uit de Nottingham-collectie (jigs, reels, waltzes, morris, Playford), instrumentaal, akkoorden uit de bron | 100.000+ |
 | [`song-data/kerkwijsjes.json`](song-data/kerkwijsjes.json) | 328 | kerkwijsjes uit het Open Hymnal Project, instrumentaal, akkoorden uit de vierstemmige zetting | 200.000+ |
 | [`song-data/anthology-liedjes.json`](song-data/anthology-liedjes.json) | 314 | liedjes **met tekst** uit The Public Domain Song Anthology (CC0), Engelstalig, akkoorden uit de harmonisatie, noten uit de zangstem | 500.000+ |
@@ -132,6 +132,18 @@ Models verbiedt. Per groep:
 De bronvermelding en de letterlijke licentieverklaringen staan per bron in de manifesten onder
 `song-data/` (bijvoorbeeld `oneill/manifest-oneill.json` en `anthology/manifest-anthology.json`),
 plus per liedje in de dataset zelf.
+
+**Over Limburg en Sittard.** Daar is bewust weinig van te vinden. Dertien bronnen zijn nagelopen
+(CPDL/ChoralWiki, Cantorion, IMSLP, Wikimedia Commons, Delpher, de Nederlandse Liederenbank van het
+Meertens Instituut, janwolters.nl, overtuin.net, MuseScore, abcnotation.com, Wikisource, de Limburgse
+erfgoedorganisaties en de Sittardse liedjes zelf) — de uitkomst staat per bron in
+`song-data/limburg/manifest-*.json`. Telkens is er ofwel geen licentieverklaring, ofwel een licentie
+met share-alike of niet-commercieel, ofwel alleen een scan of PDF in plaats van leesbare noten. Het
+Limburgs volkslied staat er wel in: de melodie en de tekst zijn publiek domein (Tijssen 1926,
+Krekelberg 1937) en het akkoordschema is erbij gemaakt. Liedjes van Sittardse makelij — zoals die van
+Jo Erens (1928-1955) — zijn pas dit jaar rechtenvrij en er bestaat geen leesbaar notenbestand van; die
+kunnen er dus alleen in als jij de akkoorden en de tekst aanlevert, of als je een opname uploadt en de
+app de akkoorden er zelf uit haalt.
 
 **Over dubbelen.** De bundels overlappen elkaar: hetzelfde wijsje staat in O'Neill, in Kerr's én in
 Ryan's. `scripts/ontdubbel.js` haalt die eruit op titel plus het verloop van de melodie (los van de

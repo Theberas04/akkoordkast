@@ -6,7 +6,6 @@
 
 [![tests](https://github.com/Theberas04/akkoordkast/actions/workflows/tests.yml/badge.svg)](https://github.com/Theberas04/akkoordkast/actions/workflows/tests.yml)
 [![installeren op Proxmox](https://img.shields.io/badge/install-Proxmox%20LXC-f5a524)](deploy/proxmox/README.md)
-![licentie MIT](https://img.shields.io/badge/licentie-MIT-34d399)
 ![Node 22](https://img.shields.io/badge/Node.js-22%20(node%3Asqlite)-3c873a)
 ![geen npm-afhankelijkheden](https://img.shields.io/badge/dependencies-geen-34d399)
 ![taal](https://img.shields.io/badge/taal-Nederlands-60a5fa)
@@ -281,6 +280,7 @@ regel nagelopen, omdat een afgebroken quote in een single-quoted heredoc stil bl
 
 ## Licentie
 
-De app-code is MIT (zie [`LICENSE`](LICENSE)). De meegeleverde liedjes zijn publiek domein; de
-bronvermelding staat per liedje in de dataset. De liedjes zijn niet van mij en de dataset is met de hand samengesteld,
+De app-code is van Tom Werdens; er is geen licentie verleend voor hergebruik. De meegeleverde
+liedjes zijn publiek domein — de bronvermelding en de letterlijke licentieverklaring van elke bron
+staan per liedje in de dataset. De liedjes zijn niet van mij en de dataset is met de hand samengesteld,
 dus controleer bij twijfel zelf de herkomst voordat je iets publiceert.

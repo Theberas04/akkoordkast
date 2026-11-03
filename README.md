@@ -4,7 +4,9 @@
 
 ![AkkoordKast](docs/img/hero.png)
 
+[![tests](https://github.com/Theberas04/akkoordkast/actions/workflows/tests.yml/badge.svg)](https://github.com/Theberas04/akkoordkast/actions/workflows/tests.yml)
 [![installeren op Proxmox](https://img.shields.io/badge/install-Proxmox%20LXC-f5a524)](deploy/proxmox/README.md)
+![licentie MIT](https://img.shields.io/badge/licentie-MIT-34d399)
 ![Node 22](https://img.shields.io/badge/Node.js-22%20(node%3Asqlite)-3c873a)
 ![geen npm-afhankelijkheden](https://img.shields.io/badge/dependencies-geen-34d399)
 ![taal](https://img.shields.io/badge/taal-Nederlands-60a5fa)
@@ -15,6 +17,12 @@ Je opent AkkoordKast op je telefoon of laptop, zoekt een liedje en ziet meteen:
 de bladmuziek met de akkoorden boven de tekst, **of je een capo nodig hebt en welke grepen
 je dan pakt**, de greepdiagrammen, en een audiospeler met begeleiding van de akkoordenreeks.
 Die begeleiding cast je naar een Chromecast in je netwerk.
+
+**Wat staat waar:** [rondleiding](#rondleiding-van-56-seconden) ·
+[installeren op Proxmox](#installeren-op-je-proxmox-host) · [zelf draaien](#zelf-draaien-zonder-container) ·
+[wat zit erin](#wat-zit-erin) · [de liedjes](#de-liedjes) · [gitaar leren spelen](#gitaar-leren-spelen) ·
+[muziek erbij zoeken](#muziek-of-video-erbij-zoeken) · [een muziekmap in één keer](#een-hele-muziekmap-in-één-keer) ·
+[Spotify](#spotify) · [hoe het werkt](#hoe-het-werkt) · [tests](#tests) · [licentie](#licentie)
 
 | Scherm | Wat je ziet |
 | --- | --- |
@@ -256,10 +264,13 @@ op `developer.spotify.com/dashboard`). Die sleutels blijven in de database van d
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 57 tests: muziektheorie, API, pagina, deploy-scripts
+node --test test/*.test.js          # 94 tests: muziektheorie, API, pagina, datasets, deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL
 ```
+
+Elke push naar `main` draait de suite ook op GitHub (zie het badge boven aan deze pagina,
+[workflow `tests.yml`](.github/workflows/tests.yml)) — op Node 22, zonder verdere afhankelijkheden.
 
 De suite controleert onder meer dat elk inline scriptblok van de pagina compileert, dat geen
 enkele id dubbel voorkomt, dat de liedjes-dataset alleen akkoorden gebruikt waar een diagram voor
@@ -270,6 +281,6 @@ regel nagelopen, omdat een afgebroken quote in een single-quoted heredoc stil bl
 
 ## Licentie
 
-De app-code is MIT. De meegeleverde liedjes zijn publiek domein; de bronvermelding staat per
-liedje in de dataset. De liedjes zijn niet van mij en de dataset is met de hand samengesteld,
+De app-code is MIT (zie [`LICENSE`](LICENSE)). De meegeleverde liedjes zijn publiek domein; de
+bronvermelding staat per liedje in de dataset. De liedjes zijn niet van mij en de dataset is met de hand samengesteld,
 dus controleer bij twijfel zelf de herkomst voordat je iets publiceert.

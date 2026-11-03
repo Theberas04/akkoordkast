@@ -1,0 +1,23 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    name: node --test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Node-versie
+        run: node --version
+      - name: Tests
+        run: node --test test/*.test.js
+      - name: Bestandslijsten van de deploy
+        run: python3 scripts/check-deploy-file-lists.py

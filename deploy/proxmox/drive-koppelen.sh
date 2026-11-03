@@ -22,6 +22,12 @@
 #      nog is en de service zo nodig herstart,
 #   6. laat zien hoe je MUSIC_DIR op deze map zet.
 #
+# Alleen een map in Drive gebruiken (aanbevolen, want Drive zelf bevat alles):
+#   RCLONE_PAD=Muziek bash drive-koppelen.sh
+#
+# Eerst kijken wat het zou doen, zonder iets te veranderen:
+#   PROEF=1 bash drive-koppelen.sh
+#
 # Eenmalige aanmelding bij Google (dat kan niet zonder browser):
 #   - Op een computer met een browser: installeer daar rclone, draai
 #     rclone config, maak een remote van het type drive aan, en laat de
@@ -35,6 +41,21 @@
 set -euo pipefail
 
 REMOTE="${REMOTE:-gdrive}"
+PROEF="${PROEF:-}"
+RCLONE_PAD="${RCLONE_PAD:-}"
+
+# In proefmodus schrijft het script alles in een tijdelijke map en verandert het
+# buiten die map niets. Zo kun je de hele weg nalopen, ook zonder root.
+if [ -n "$PROEF" ]; then
+  PROEFWORTEL="$(mktemp -d)"
+  SYSTEMD_MAP="$PROEFWORTEL/etc/systemd/system"
+  MOUNT="$PROEFWORTEL/muziek"
+  RCLONE_CONF="$PROEFWORTEL/rclone/rclone.conf"
+  BRON_PROEF="$PROEFWORTEL"
+  mkdir -p "$SYSTEMD_MAP" "$(dirname "$RCLONE_CONF")" "$MOUNT"
+else
+  SYSTEMD_MAP="/etc/systemd/system"
+fi
 MOUNT="${MOUNT:-/home/akkoordkast/muziek}"
 CONTAINER_GEBRUIKER="${CONTAINER_GEBRUIKER:-akkoordkast}"
 RCLONE_CONF="${RCLONE_CONF:-/root/.config/rclone/rclone.conf}"
@@ -47,7 +68,20 @@ CONTROLE_TIMER="akkoordkast-drive-check.timer"
 zeg() { printf '%s\n' "$*"; }
 fout() { printf '%s\n' "$*" >&2; }
 
-if [ "$(id -u)" != "0" ]; then
+if [ -n "$PROEF" ]; then
+  zeg "PROEFMODUS: ik verander niets buiten $PROEFWORTEL"
+fi
+
+# In proefmodus doen we alsof; op een echte machine wordt het echt uitgevoerd.
+doe() {
+  if [ -n "$PROEF" ]; then
+    printf '%s\n' "   [proef] zou uitvoeren: $*"
+    return 0
+  fi
+  "$@"
+}
+
+if [ -z "$PROEF" ] && [ "$(id -u)" != "0" ]; then
   fout "Draai dit als root IN de container."
   fout "Vanaf de Proxmox-host bijvoorbeeld: pct exec <CTID> -- bash drive-koppelen.sh"
   exit 1
@@ -62,7 +96,8 @@ fi
 
 zeg "== rclone en fuse installeren"
 if ! command -v rclone >/dev/null 2>&1; then
-  if ! DEBIAN_FRONTEND=noninteractive apt-get install -y -qq rclone fuse3 >/dev/null; then
+  doe bash -c "DEBIAN_FRONTEND=noninteractive apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq rclone fuse3"
+  if [ -z "$PROEF" ] && ! command -v rclone >/dev/null 2>&1; then
     fout "Kon rclone of fuse3 niet installeren."
     fout "Draai eerst: apt-get update && apt-get install -y rclone fuse3"
     exit 1
@@ -73,7 +108,9 @@ fi
 
 # rclone mount mag alleen door andere gebruikers gelezen worden als fuse dat
 # toestaat. De app draait als de gebruiker $CONTAINER_GEBRUIKER, dus dat moet.
-if [ -f /etc/fuse.conf ] && ! grep -qE '^[[:space:]]*user_allow_other' /etc/fuse.conf; then
+if [ -n "$PROEF" ]; then
+  zeg "   [proef] op een echte machine zet ik user_allow_other in /etc/fuse.conf."
+elif [ -f /etc/fuse.conf ] && ! grep -qE '^[[:space:]]*user_allow_other' /etc/fuse.conf; then
   zeg "   user_allow_other aanzetten in /etc/fuse.conf"
   printf 'user_allow_other\n' >> /etc/fuse.conf
 fi
@@ -81,7 +118,9 @@ fi
 # --- Stap 2: eenmalige aanmelding en de remote ------------------------------
 
 zeg "== De Google Drive-koppeling (remote) controleren"
-if ! rclone listremotes 2>/dev/null | grep -q "^${REMOTE}:"; then
+if [ -n "$PROEF" ] && [ "${PROEF_DRIVE:-}" != "ja" ]; then
+  zeg "   [proef] ik controleer de aanmelding niet; zet PROEF_DRIVE=ja om dat wel te doen."
+elif ! rclone listremotes 2>/dev/null | grep -q "^${REMOTE}:"; then
   fout "De remote '$REMOTE' is nog niet ingesteld."
   fout ""
   fout "Doe eerst eenmalig de aanmelding bij Google. Dat kan op twee manieren:"
@@ -104,13 +143,17 @@ if ! rclone listremotes 2>/dev/null | grep -q "^${REMOTE}:"; then
   fout "Draai daarna dit script opnieuw."
   exit 1
 fi
-zeg "   remote '$REMOTE' bestaat"
+if [ -z "$PROEF" ] || [ "${PROEF_DRIVE:-}" = "ja" ]; then
+  zeg "   remote '$REMOTE' bestaat"
+fi
 
 mkdir -p "$(dirname "$RCLONE_CONF")"
 chmod 700 "$(dirname "$RCLONE_CONF")" 2>/dev/null || true
 if [ -f "$RCLONE_CONF" ]; then chmod 600 "$RCLONE_CONF"; fi
 
-if ! rclone lsd "${REMOTE}:" --max-depth 1 >/dev/null 2>&1; then
+if [ -n "$PROEF" ] && [ "${PROEF_DRIVE:-}" != "ja" ]; then
+  zeg "   [proef] ik probeer Google Drive niet te lezen."
+elif ! rclone lsd "${REMOTE}:" --max-depth 1 >/dev/null 2>&1; then
   fout "De remote '$REMOTE' bestaat, maar Google Drive antwoordt niet."
   fout "Controleer je internetverbinding en of de aanmelding nog geldig is:"
   fout "   rclone about ${REMOTE}:"
@@ -119,6 +162,12 @@ fi
 zeg "   Google Drive is bereikbaar"
 
 # --- Stap 3: de koppelmap ---------------------------------------------------
+
+BRON="$REMOTE:"
+if [ -n "$RCLONE_PAD" ]; then
+  BRON="$REMOTE:$RCLONE_PAD"
+  zeg "   ik koppel alleen de map $RCLONE_PAD in Drive"
+fi
 
 zeg "== Koppelmap aanmaken: $MOUNT"
 mkdir -p "$MOUNT"
@@ -130,8 +179,19 @@ fi
 # --vfs-cache-mode writes laat schrijfacties eerst lokaal landen en daarna pas
 # naar Drive gaan; zonder die optie weigert de app-bestanden-app het schrijven.
 
+# rclone geeft bestanden standaard als root door. De app draait als $CONTAINER_GEBRUIKER
+# en moet ook kunnen schrijven, dus de koppeling zet de eigenaar op die gebruiker.
+if id -u "$CONTAINER_GEBRUIKER" >/dev/null 2>&1; then
+  UID_APP="$(id -u "$CONTAINER_GEBRUIKER")"
+  GID_APP="$(id -g "$CONTAINER_GEBRUIKER")"
+else
+  UID_APP="0"
+  GID_APP="0"
+  fout "   Let op: gebruiker $CONTAINER_GEBRUIKER bestaat hier niet; de bestanden komen van root."
+fi
+
 zeg "== Service installeren: $DIENST"
-UNIT="/etc/systemd/system/$DIENST"
+UNIT="$SYSTEMD_MAP/$DIENST"
 cat > "$UNIT" <<UNITEOF
 [Unit]
 Description=Google Drive van AkkoordKast koppelen met rclone
@@ -142,7 +202,7 @@ Wants=network-online.target
 Type=simple
 User=root
 ExecStartPre=/bin/mkdir -p $MOUNT
-ExecStart=/usr/bin/rclone mount $REMOTE: $MOUNT --config $RCLONE_CONF --vfs-cache-mode writes --dir-cache-time 1m --poll-interval 15s --umask 002 --allow-other
+ExecStart=/usr/bin/rclone mount $BRON $MOUNT --config $RCLONE_CONF --vfs-cache-mode writes --dir-cache-time 1m --poll-interval 15s --umask 002 --allow-other --uid $UID_APP --gid $GID_APP
 ExecStop=/bin/fusermount -uz $MOUNT
 Restart=on-failure
 RestartSec=5
@@ -157,7 +217,7 @@ zeg "   $UNIT geschreven"
 # vijf minuten of de map er nog is en herstart de service zo nodig.
 
 zeg "== Controle-timer installeren: $CONTROLE_TIMER"
-cat > "/etc/systemd/system/$CONTROLE_DIENST" <<CHECKEOF
+cat > "$SYSTEMD_MAP/$CONTROLE_DIENST" <<CHECKEOF
 [Unit]
 Description=Controleer of de Google Drive-koppeling van AkkoordKast nog leeft
 
@@ -166,7 +226,7 @@ Type=oneshot
 ExecStart=/bin/bash -c "/usr/bin/mountpoint -q $MOUNT || /bin/systemctl restart $DIENST"
 CHECKEOF
 
-cat > "/etc/systemd/system/$CONTROLE_TIMER" <<TIMEREOF
+cat > "$SYSTEMD_MAP/$CONTROLE_TIMER" <<TIMEREOF
 [Unit]
 Description=Controleer regelmatig de Google Drive-koppeling van AkkoordKast
 
@@ -183,13 +243,20 @@ zeg "   $CONTROLE_DIENST en $CONTROLE_TIMER geschreven"
 # --- Stap 6: inschakelen en koppelen ----------------------------------------
 
 zeg "== Dienst en timer inschakelen"
-systemctl daemon-reload
-systemctl enable "$CONTROLE_TIMER" >/dev/null 2>&1 || true
-systemctl enable "$CONTROLE_DIENST" >/dev/null 2>&1 || true
-systemctl restart "$DIENST"
-systemctl start "$CONTROLE_TIMER" >/dev/null 2>&1 || true
+doe systemctl daemon-reload
+doe bash -c "systemctl enable $CONTROLE_TIMER >/dev/null 2>&1 || true"
+doe bash -c "systemctl enable $CONTROLE_DIENST >/dev/null 2>&1 || true"
+doe systemctl restart "$DIENST"
+doe bash -c "systemctl start $CONTROLE_TIMER >/dev/null 2>&1 || true"
 
 zeg "== Wachten tot de map gekoppeld is"
+if [ -n "$PROEF" ]; then
+  zeg "   [proef] op een echte machine zou de map nu op $MOUNT staan."
+  OK=1
+fi
+if [ -n "$PROEF" ]; then
+  :
+else
 OK=0
 for poging in $(seq 1 30); do
   if mountpoint -q "$MOUNT"; then OK=1; break; fi
@@ -204,7 +271,10 @@ if [ "$OK" != "1" ]; then
   fout "opnieuw rclone config en daarna dit script."
   exit 1
 fi
-zeg "   $MOUNT is gekoppeld aan ${REMOTE}:"
+fi
+if [ -z "$PROEF" ]; then
+  zeg "   $MOUNT is gekoppeld aan ${REMOTE}:"
+fi
 
 # --- MUSIC_DIR zetten: de app op deze map wijzen ----------------------------
 # De map die de app scant hoort in MUSIC_DIR te staan (standaard $MOUNT). We
@@ -212,12 +282,14 @@ zeg "   $MOUNT is gekoppeld aan ${REMOTE}:"
 # overleeft. Dezelfde waarde vul je ook in bij Muziekmap scannen in de app.
 
 zeg "== MUSIC_DIR zetten op $MOUNT"
-DROPIN_DIR="/etc/systemd/system/akkoordkast.service.d"
+DROPIN_DIR="$SYSTEMD_MAP/akkoordkast.service.d"
 mkdir -p "$DROPIN_DIR"
 printf '[Service]\nEnvironment=MUSIC_DIR=%s\n' "$MOUNT" > "$DROPIN_DIR/music-dir.conf"
 zeg "   $DROPIN_DIR/music-dir.conf geschreven"
 
-if systemctl list-unit-files 2>/dev/null | grep -q '^akkoordkast.service'; then
+if [ -n "$PROEF" ]; then
+  zeg "   [proef] op een echte machine herstart ik de app met MUSIC_DIR=$MOUNT."
+elif systemctl list-unit-files 2>/dev/null | grep -q '^akkoordkast.service'; then
   systemctl daemon-reload
   systemctl restart akkoordkast || true
   zeg "   de app is herstart met MUSIC_DIR=$MOUNT"
@@ -232,7 +304,7 @@ cat <<KLAAR
 ==============================================================
  Google Drive is gekoppeld aan de muziekmap
 ==============================================================
-   koppeling : ${REMOTE}:  ->  $MOUNT
+   koppeling : $BRON  ->  $MOUNT
    dienst    : $DIENST
    timer     : $CONTROLE_TIMER (elke vijf minuten een controle)
    MUSIC_DIR : $MOUNT

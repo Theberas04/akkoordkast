@@ -388,7 +388,31 @@ het verschil niet.
    map er nog is en herstart de dienst zo nodig. Drive laat de koppeling nog wel eens vallen; de
    timer en `Restart=on-failure` op de dienst vangen dat op, ook na een herstart van de container.
 5. Het script zet `MUSIC_DIR` op de koppelmap via een drop-in op de dienst van de app en herstart
-   die.
+   die. Het zet ook de **eigenaar** van de gekoppelde bestanden op de gebruiker van de app
+   (`--uid`/`--gid`), want rclone geeft bestanden standaard als root door en dan kan de app er wel
+   lezen maar niet in schrijven.
+
+Koppel bij voorkeur alleen een **map** in Drive in plaats van je hele Drive:
+
+```bash
+pct exec 225 -- env RCLONE_PAD=Muziek bash drive-koppelen.sh
+```
+
+Dat scheelt enorm bij het scannen: je hele Drive inlezen betekent ook je foto's, documenten en
+back-ups. Kijk eerst wat het zou doen zonder iets te veranderen:
+
+```bash
+pct exec 225 -- env PROEF=1 bash drive-koppelen.sh
+```
+
+**Wat je hiervoor moet weten.** Google Drive is geen schijf maar een dienst over het internet:
+bestanden worden pas opgehaald als je ze aanraakt, het inlezen van een grote map duurt daardoor
+langer, en Google legt limieten op aan het aantal aanroepen (bij heel veel bestanden in één keer
+omzetten kun je tegen die limiet aanlopen — zet dan de wachter op een ruim interval, dan gaat het
+rustig in groepjes). Een **gedeelde Drive** van iemand anders, of een map die met je gedeeld is,
+moet je in de koppeling apart aanzetten (`rclone config` → de remote bewerken → `shared_with_me`
+of `team_drive`); standaard ziet de koppeling alleen je eigen Drive. En let op: de app leest de map
+alleen, hij stuurt zelf niets naar Google toe — dat doet rclone.
 
 ### Als het gekoppeld is
 

@@ -53,7 +53,7 @@ def main():
     print('koppeling in het liedje:', b.js("document.getElementById('spotify-link').value"))
     b.js("(()=>{const el=document.getElementById('spotify-speler'); if(el) window.scrollTo(0, el.getBoundingClientRect().top+scrollY-200);})()")
     b.call('Runtime.evaluate', {'expression': 'new Promise(r=>setTimeout(r,1500))', 'awaitPromise': True})
-    b.schermafbeelding(str(doel / 'spotify-koppeling.png'), {'x': 0, 'y': 0, 'width': 1280, 'height': 1000, 'scale': 1})
+    b.schermafbeelding(str(doel / 'spotify-blok.png'))
     print('paginafouten:', b.fouten())
     print('geschreven naar', doel.resolve())
 

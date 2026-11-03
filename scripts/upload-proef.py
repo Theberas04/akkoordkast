@@ -59,7 +59,7 @@ def main():
     print('herkend:', b.js("(()=>{const el=document.getElementById('upload-uitkomst'); return el ? el.textContent.slice(0,400) : 'geen';})()"))
     b.js("window.scrollTo(0,0);")
     b.call('Runtime.evaluate', {'expression': 'new Promise(r=>setTimeout(r,300))', 'awaitPromise': True})
-    b.schermafbeelding(str(doel / 'upload-herkend.png'), {'x': 0, 'y': 0, 'width': 1280, 'height': 940, 'scale': 1})
+    b.schermafbeelding(str(doel / 'upload-herkend.png'))
 
     if b.js("(()=>{return !!document.getElementById('upload-open');})()"):
         b.js("document.getElementById('upload-open').click();")
@@ -73,7 +73,7 @@ def main():
               'akkoord:', b.js("document.getElementById('mees-akkoord').textContent"))
         b.js("(()=>{const el=document.querySelector('.mees-beeld'); if(el) window.scrollTo(0, el.getBoundingClientRect().top+scrollY-140);})()")
         b.call('Runtime.evaluate', {'expression': 'new Promise(r=>setTimeout(r,600))', 'awaitPromise': True})
-        b.schermafbeelding(str(doel / 'meespelen-opname.png'), {'x': 0, 'y': 0, 'width': 1280, 'height': 940, 'scale': 1})
+        b.schermafbeelding(str(doel / 'meespelen-opname.png'))
     print('paginafouten:', b.fouten())
     print('geschreven naar', doel.resolve())
 

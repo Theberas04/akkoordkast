@@ -1,0 +1,28 @@
+{
+  "ronde": 2,
+  "opdracht": "Verzamel alle Limburgse muziek in machineleesbare vorm onder een publiek-domein-, CC0- of CC-BY-licentie, op te leveren in song-data/limburg/raw/ met een manifest per bron.",
+  "resultaat": {
+    "aantal_opgenomen_stukken": 0,
+    "raw_map": "song-data/limburg/raw/ (leeg: geen enkel bestand voldeed aan de licentie- en machineleesbaarheidseisen)",
+    "conclusie": "Na een tweede, diepere ronde blijft het aantal opneembare Limburgse muziekstukken NUL. Er is geen enkel machineleesbaar bestand (ABC/MusicXML/MIDI/LilyPond) van Limburgse muziek gevonden met een expliciete PD/CC0/CC-BY-licentie."
+  },
+  "onderscheiden_bronnen_die_ronde_2_toevoegt": [
+    "manifest-cpdl_ronde2.json",
+    "manifest-wikimedia_commons_ronde2.json",
+    "manifest-abc_musicxml_databanken_ronde2.json",
+    "manifest-wikisource_limburgs_ronde2.json",
+    "manifest-erfgoed_open_data_ronde2.json",
+    "manifest-publieke_partituurbanken_ronde2.json",
+    "manifest-limburgse_plaatsliederen_ronde2.json"
+  ],
+  "waarom_nul": [
+    "CPDL: enige Limburgse componist (Andries Magnée) heeft uitsluitend een CPDL-editie (GPL-afgeleide copyleft/share-alike) - verboden. Geen per-editie PD-/CC-BY-variant.",
+    "Wikimedia Commons: wel PD-afbeeldingen van het Limburgs volkslied (Bronsgroen.png, In 't bronsgroen eikenhout.PNG) en CC BY-SA-audio/MIDI (Rozemarijn vL), maar geen enkel machineleesbaar PD/CC0/CC-BY-bestand van een Limburgs lied. De CC0-MIDI-set van Peter Gerloff (430+200 bestanden) bevat wel CC0-Nederlandse liedjes, maar geen Limburgs lied.",
+    "ABC/MusicXML-databanken: abcnotation.com 0 hits voor 'Limburg mijn vaderland'; GitHub code search/grep.app/searchcode onbruikbaar (auth/bot-wall); OpenScore Lieder (CC0) bevat geen Nederlandse/Limburgse componist; Mutopia 0 hits.",
+    "Wikisource: li.wikisource bestaat niet; nl.wikisource en li.wikipedia bieden alleen liedteksten (CC BY-SA 4.0), geen noten.",
+    "Erfgoedarchieven: HCL geen open licentie op bladmuziek; Europeana alleen CC BY-NC-ND; Muziekschatten betaalde PDF-toegang; CEMPER geen open bladmuziekcorpus.",
+    "Plaatsliederen: van Mestreechs volkslied, Roermond, Sittard, Weert en Venlo geen machineleesbare PD/CC0/CC-BY-bestanden; PD-componisten (voor 1956 overleden) hebben geen open notatiebestanden."
+  ],
+  "restrisico": "GitHub code search en grep.app konden niet worden gebruikt (resp. auth vereist en bot-checkpoint). Een eventueel bestaand Limburgs ABC/MusicXML-bestand in een kleine publieke repository kan zo gemist zijn.",
+  "eerlijkheid": "Er is niets verzonnen; de licentieteksten hierboven zijn letterlijk overgenomen uit de bronpagina's. De gevonden Limburg-bestanden zijn PD-afbeeldingen (niet machineleesbaar) of CC BY-SA/CC BY-NC-ND (verboden)."
+}

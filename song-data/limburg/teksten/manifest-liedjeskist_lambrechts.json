@@ -1,0 +1,17 @@
+{
+  "bron": "liedjeskist.nl",
+  "bron_url": "https://liedjeskist.nl/",
+  "licentie_literaal": "Tekst publiek domein (tekstdichter Lambrecht Lambrechts, 1865–1932, overleed > 70 jaar geleden). liedjeskist.nl is een niet-commerciële liefhebberssite zonder licentieverklaring; bruikbaar op grond van het sterfjaar.",
+  "aantal_teksten": 1,
+  "titels": [
+    {
+      "titel": "De dahlia",
+      "auteur": "Lambrecht Lambrechts",
+      "sterfjaar": 1932
+    }
+  ],
+  "bestanden": [
+    "liedjeskist_lambrechts.json"
+  ],
+  "niet_opgenomen": []
+}

@@ -1,0 +1,16 @@
+{
+  "ronde": 2,
+  "bron": "CPDL / ChoralWiki (cpdl.org) - per editie gecontroleerd",
+  "bron_url": "https://www.cpdl.org/wiki/index.php/Category:Dutch_composers ; https://www.cpdl.org/wiki/index.php/Category:Belgian_composers ; https://www.cpdl.org/wiki/index.php/Sub_tuum_praesidium_(Andries_Magn%C3%A9e) ; https://www.cpdl.org/wiki/index.php/ChoralWiki:CPDL",
+  "aanpak": "Doorgezocht op per-editie-licenties ('Public Domain'/'CC-BY' naast de CPDL-licentie), zoals gevraagd. Alle Nederlandse (68) en Belgische (28) componistencategorieen geevalueerd op Limburgse herkomst; werkpagina's van de enige Limburgse componist op CPDL gecontroleerd op de licentie van de editie zelf.",
+  "limburgse_componisten_op_cpdl": [
+    {"naam": "Andries Magnée", "leven": "1848-1912", "herkomst": "Maastricht (NL-Limburg)", "werken": ["Sub tuum praesidium"]}
+  ],
+  "bevinding_per_editie": "De werkpagina van 'Sub tuum praesidium (Andries Magnée)' vermeldt bij de enige editie (CPDL #45829, ed. Frank de Ruyter, 2017-08-11): 'Copyright: CPDL'. Er is GEEN per-editie PD- of CC-BY-variant aangetroffen. De gevonden Belgische componisten (Callaerts, De Boeck, Gevaert, Hullebroeck, Lemmens, Pietkin e.a.) zijn niet uit of werkzaam in Belgisch Limburg (Hasselt/Tongeren/Sint-Truiden/Genk).",
+  "licentie_literaal": "CPDL LICENSE, Version 4, October 9, 2000 ... 'The CPDL License is based on the GNU General Public License, the primary license used in most free software projects.' ... Section 2, lid b: 'You must cause any work that you distribute or publish, that in whole or in part contains or is derived from the Edition or any part thereof, to be licensed as a whole under the terms of this License.' ... 'This Choral Public Domain License does not permit incorporating your edition into proprietary editions.'",
+  "licentie_type": "CPDL License = van GPL afgeleide copyleft / share-alike",
+  "toegestaan": false,
+  "reden_afwijzing": "Share-alike/copyleft (GPL-afgeleid) is expliciet verboden volgens de opdrachtregels. CPDL biedt voor zijn edities geen losse PD-/CC-BY-variant; standaard geldt de CPDL-licentie.",
+  "aantal_stukken": 0,
+  "bestanden": []
+}

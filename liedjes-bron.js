@@ -80,20 +80,14 @@ function maakLiedje(lied, id) {
     if (!model) model = chordpro.parse(lied.chordpro || '');
     return model;
   };
-  const toonsoort = lied.toonsoort || (() => {
-    const m = hetModel();
-    return m.meta.toonsoort || (m.akkoorden[0] || 'C');
-  })();
   const liedje = {
     id,
-    titel: lied.titel || model.meta.titel || `Liedje ${id}`,
+    titel: lied.titel || hetModel().meta.titel || `Liedje ${id}`,
     artiest: lied.artiest || '',
     taal: (lied.taal || 'nl').toLowerCase(),
     genre: lied.genre || 'Folk',
     moeilijkheid: Math.max(1, Math.min(5, parseInt(lied.moeilijkheid, 10) || 2)),
-    toonsoort,
-    tempo: parseInt(lied.tempo, 10) || model.meta.tempo || 84,
-    strum: lied.strum || model.meta.strum || 'D DU UDU',
+    tempo: parseInt(lied.tempo, 10) || hetModel().meta.tempo || 84,
     bron: lied.bron || '',
     licentie: lied.licentie || '',
     youtube: lied.youtube || '',
@@ -105,6 +99,25 @@ function maakLiedje(lied, id) {
     // in de tests. We vullen pas aan als iemand de maatakkoorden echt opvraagt.
     maatsoort: Math.max(2, Math.min(12, parseInt(lied.maatsoort, 10) || 4))
   };
+  // Toonsoort en slagpatroon: uit het databestand als het er staat, anders afgeleid
+  // uit het akkoordschema. Een liedtekst zonder muziek (geen akkoorden, geen noten)
+  // houdt ze leeg: er valt niets te spelen en dus ook niets te verzinnen.
+  Object.defineProperty(liedje, 'toonsoort', {
+    enumerable: true,
+    get: () => {
+      if (lied.toonsoort) return lied.toonsoort;
+      const m = hetModel();
+      if (!m.akkoorden.length) return '';
+      return m.meta.toonsoort || m.akkoorden[0] || 'C';
+    }
+  });
+  Object.defineProperty(liedje, 'strum', {
+    enumerable: true,
+    get: () => {
+      if (lied.strum) return lied.strum;
+      return hetModel().akkoorden.length ? 'D DU UDU' : '';
+    }
+  });
   Object.defineProperty(liedje, 'model', {
     enumerable: true,
     get: hetModel
@@ -112,7 +125,7 @@ function maakLiedje(lied, id) {
   Object.defineProperty(liedje, 'advies', {
     enumerable: true,
     get: () => {
-      if (!advies) advies = capo.advies(hetModel().akkoorden, toonsoort);
+      if (!advies) advies = capo.advies(hetModel().akkoorden, liedje.toonsoort);
       return advies;
     }
   });
@@ -154,6 +167,21 @@ function zoekTekst(lied) {
   return ZOEK.get(lied.id) || lied.titel.toLowerCase();
 }
 
+// De artiesten met hun aantal liedjes, van veel naar weinig. In de grote bundels is
+// de "artiest" de verzameling waar het wijsje uit komt; dat is precies waarop je wilt
+// kunnen filteren. Lege artiesten laten we weg.
+function artiesten() {
+  const telling = new Map();
+  for (const l of LIEDJES) {
+    const naam = String(l.artiest || '').trim();
+    if (!naam) continue;
+    telling.set(naam, (telling.get(naam) || 0) + 1);
+  }
+  return [...telling.entries()]
+    .map(([naam, aantal]) => ({ naam, aantal }))
+    .sort((a, b) => b.aantal - a.aantal || a.naam.localeCompare(b.naam, 'nl'));
+}
+
 function statistieken() {
   const talen = {};
   const genres = {};
@@ -166,4 +194,4 @@ function statistieken() {
   return { aantal: LIEDJES.length, talen, genres, metMelodie, bestanden: HERKOMST };
 }
 
-module.exports = { alle, vind, zoekTekst, statistieken, perBestand, LIEDJES, theorie };
+module.exports = { alle, vind, zoekTekst, statistieken, artiesten, perBestand, LIEDJES, theorie };

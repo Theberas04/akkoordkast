@@ -400,10 +400,13 @@ test('de leermodus staat in de pagina: leslijst, trainer, stemmen, ritme en grep
     'trein-stats', 'stem-rij', 'ritme-rij', 'ritme-start', 'ritme-stop', 'ritme-tellen', 'ritme-uitleg', 'leren-grepen']) {
     assert.ok(html.includes('id="' + id + '"'), 'id ontbreekt in de leermodus: ' + id);
   }
-  // acht lessen met alle vier de onderdelen
+  // vierentwintig lessen of meer, in vier delen, met alle onderdelen per les
   assert.match(html, /var LESSEN = \[/);
   const lessen = html.match(/titel: '[^']+',\s*\n\s*kort:/g) || [];
-  assert.equal(lessen.length, 8, 'verwacht acht lessen, gevonden: ' + lessen.length);
+  assert.ok(lessen.length >= 24, 'verwacht minstens vierentwintig lessen, gevonden: ' + lessen.length);
+  const delen = [...html.matchAll(/deel: '([^']+)'/g)].map(m => m[1]);
+  assert.deepEqual([...new Set(delen)], ['Beginnen', 'Akkoorden', 'Ritme', 'Verdiepen']);
+  assert.equal(delen.length, lessen.length, 'elke les hoort bij een deel');
   for (const woord of ['doel:', 'tekst: [', 'oefening:', 'knop: {']) {
     assert.ok(html.includes(woord), 'lesonderdeel ontbreekt: ' + woord);
   }
@@ -450,7 +453,7 @@ test('de leermodus rekent de lesknoppen om naar de trainer', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
   // elke les met een trainerknop moet een set, tempo en aantal maten meegeven
   const knoppen = html.match(/knop: \{ tekst: '[^']+', naar: 'trainer', set: '[^']+', tempo: \d+, maten: \d+ \}/g) || [];
-  assert.ok(knoppen.length >= 3, 'verwacht minstens drie trainerknoppen, gevonden: ' + knoppen.length);
+  assert.ok(knoppen.length >= 8, 'verwacht minstens acht trainerknoppen, gevonden: ' + knoppen.length);
   for (const k of knoppen) {
     const set = k.match(/set: '([^']+)'/)[1].split(' ');
     assert.ok(set.length >= 2, 'een trainerset hoort minstens twee akkoorden te hebben: ' + k);
@@ -458,7 +461,61 @@ test('de leermodus rekent de lesknoppen om naar de trainer', () => {
     assert.ok(tempo >= 40 && tempo <= 140, 'tempo buiten bereik: ' + tempo);
   }
   assert.match(html, /function startTrainer\(\)/);
+  assert.match(html, /function lesKaart\(les, i, af\)/);
+  assert.match(html, /class="les-deel"/);
   assert.match(html, /function stopTrainer\(/);
   assert.match(html, /localStorage\.setItem\(LEER_SLEUTEL/);
   assert.match(html, /document\.addEventListener\('visibilitychange'/);
+});
+
+// ------------------------------------------------------- filter op artiest ---
+
+test('de artiestenlijst geeft namen met hun aantal liedjes', async () => {
+  const r = await haal(omgeving.basis, '/api/artiesten');
+  assert.equal(r.status, 200);
+  const lijst = r.data.artiesten;
+  assert.ok(Array.isArray(lijst) && lijst.length > 10, 'te weinig artiesten: ' + (lijst && lijst.length));
+  for (const a of lijst) {
+    assert.ok(typeof a.naam === 'string' && a.naam.length, 'naam ontbreekt');
+    assert.ok(Number.isInteger(a.aantal) && a.aantal >= 1, 'aantal onbruikbaar bij ' + a.naam);
+  }
+  // van veel naar weinig, en nooit een lege naam
+  for (let i = 1; i < lijst.length; i++) {
+    assert.ok(lijst[i - 1].aantal >= lijst[i].aantal, 'de lijst is niet gesorteerd');
+  }
+  assert.ok(!lijst.some(a => !a.naam.trim()), 'lege artiestennaam in de lijst');
+  assert.ok(lijst.some(a => a.aantal >= 100), 'de grote bundels horen bovenaan te staan');
+});
+
+test('het liedjesfilter werkt op artiest, ook gedeeltelijk', async () => {
+  const alles = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=1');
+  const totaalAlles = alles.data.totaal;
+
+  const vol = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=200&artiest=' + encodeURIComponent("Kerr's Merry Melodies"));
+  assert.equal(vol.status, 200);
+  assert.ok(vol.data.totaal > 100, 'te weinig treffers op de bundelnaam: ' + vol.data.totaal);
+  assert.ok(vol.data.totaal < totaalAlles, 'het filter laat alles door');
+  for (const l of vol.data.liedjes) assert.match(l.artiest, /Kerr's Merry Melodies/);
+
+  // een stukje van de naam is genoeg
+  const stuk = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=5&artiest=O%27Neill');
+  assert.ok(stuk.data.totaal > 1000, 'gedeeltelijk zoeken werkt niet: ' + stuk.data.totaal);
+
+  // en het filter is te combineren met een genre
+  const combi = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=5&artiest=O%27Neill&genre=Danswijsje');
+  assert.ok(combi.data.totaal >= 0 && combi.data.totaal <= stuk.data.totaal, 'de combinatie klopt niet');
+
+  const niets = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=5&artiest=bestaatnietecht');
+  assert.equal(niets.data.totaal, 0);
+});
+
+test('de pagina heeft de filters voor genre en artiest', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  assert.match(html, /<label for="filter-genre">Genre<\/label>/);
+  assert.match(html, /<select id="filter-artiest"><option value="">Alle artiesten<\/option><\/select>/);
+  assert.match(html, /function laadArtiesten\(\)/);
+  assert.match(html, /p\.set\('artiest', a\)/);
+  assert.match(html, /\['filter-taal', 'filter-genre', 'filter-artiest', 'filter-capo', 'filter-moeilijkheid'\]/);
+  // de filters wissen zet ze ook echt terug
+  assert.match(html, /\$\('filter-artiest'\)\.value = ''/);
 });

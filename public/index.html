@@ -314,10 +314,19 @@
     html{scroll-behavior:auto}
   }
   @media (min-width:900px){
-    #meer-filters{grid-template-columns:repeat(4,minmax(0,1fr))}
+    #meer-filters{grid-template-columns:repeat(3,minmax(0,1fr))}
     .lied .titel{font-family:var(--kop);font-size:1.05rem}
   }
   section.paneel, .kaart{scroll-margin-top:96px}
+  /* de vier delen van de cursus */
+  .les-deel{display:flex;align-items:center;justify-content:space-between;margin:20px 0 8px}
+  .les-deel span:first-child{font-family:var(--kop);font-size:1.06rem;font-weight:600;color:var(--tekst)}
+  .les-deel-telling{font-size:.8rem;color:var(--tekst2);border:1px solid var(--rand,#ffffff1f);
+    border-radius:999px;padding:2px 10px;white-space:nowrap}
+  @media (min-width:900px){
+    #leren-lessen{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;align-items:start}
+    #leren-lessen .les-deel{grid-column:1 / -1}
+  }
   /* ------- leermodus ------- */
   .leren-kop{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
   .voortgang{flex:1 1 240px;min-width:200px}
@@ -420,8 +429,10 @@
       <div class="veld2" style="margin-top:8px" id="meer-filters">
         <div><label for="filter-taal">Taal</label>
           <select id="filter-taal"><option value="">Alle talen</option></select></div>
-        <div><label for="filter-genre">Soort</label>
-          <select id="filter-genre"><option value="">Alles</option></select></div>
+        <div><label for="filter-genre">Genre</label>
+          <select id="filter-genre"><option value="">Alle genres</option></select></div>
+        <div><label for="filter-artiest">Artiest</label>
+          <select id="filter-artiest"><option value="">Alle artiesten</option></select></div>
         <div><label for="filter-capo">Capo</label>
           <select id="filter-capo">
             <option value="">Maakt niet uit</option>
@@ -493,14 +504,20 @@
         <div class="trein-dans">
           <div>
             <label for="trein-set">Akkoorden</label>
-            <select id="trein-set">
+            <input id="trein-set" type="text" list="trein-sets" value="Em Am C" autocomplete="off"
+              placeholder="Em Am C">
+            <div class="les-klein" id="trein-set-melding" style="margin-top:4px"></div>
+            <datalist id="trein-sets">
               <option value="Em Am C">Beginner: Em · Am · C</option>
               <option value="C G D7">Eerste liedjes: C · G · D7</option>
               <option value="G Em C D7">Volkswijsjes: G · Em · C · D7</option>
-              <option value="C Am F G7">Klassieke reeks: C · Am · F · G7</option>
+              <option value="C Am Dm G7">Klassieke reeks: C · Am · Dm · G7</option>
               <option value="F Bm">Barré: F · Bm</option>
+              <option value="Am Em Dm">Mineurakkoorden: Am · Em · Dm</option>
+              <option value="C F G">Toonladder-akkoorden: C · F · G</option>
+              <option value="A Am D Dm">Groot tegen klein: A · Am · D · Dm</option>
               <option value="C C7 Cm Cmaj7 D D7 Dm Dm7 E E7 Em Em7 F F7 Fm Fmaj7 G G7 Gm A A7 Am Am7 Bb B7 Bm">Alles door elkaar (26 grepen)</option>
-            </select>
+            </datalist>
           </div>
           <div>
             <label for="trein-tempo">Tempo: <span id="trein-tempo-waarde">60</span> bpm</label>
@@ -758,8 +775,10 @@ function tekenLiedjes() {
         '<div class="artiest">' + esc(l.artiest || 'onbekend') + ' · ' + esc(l.genre) + ' · ' + esc(taalNaam(l.taal)) + '</div>' +
         '<div class="chips">' + capo +
           '<span class="chip sterren">' + sterren(l.moeilijkheid) + '</span>' +
-          '<span class="chip">' + esc(l.toonsoort) + '</span>' +
-          (l.akkoorden.length ? '<span class="chip">' + esc(l.akkoorden.join(' ')) + '</span>' : '') +
+          (l.toonsoort ? '<span class="chip">' + esc(l.toonsoort) + '</span>' : '') +
+          (l.akkoorden.length
+            ? '<span class="chip">' + esc(l.akkoorden.join(' ')) + '</span>'
+            : '<span class="chip geen">alleen tekst</span>') +
           (l.eigen ? '<span class="chip eigen">eigen</span>' : '') +
           (l.heeftOpname ? '<span class="chip">opname</span>' : '') +
         '</div>' +
@@ -779,6 +798,7 @@ function lijstQuery() {
   var z = $('zoek').value.trim(); if (z) p.set('zoek', z);
   var t = $('filter-taal').value; if (t) p.set('taal', t);
   var g = $('filter-genre').value; if (g) p.set('genre', g);
+  var a = $('filter-artiest').value; if (a) p.set('artiest', a);
   var c = $('filter-capo').value; if (c) p.set('capo', c);
   var m = $('filter-moeilijkheid').value; if (m) p.set('moeilijkheid', m);
   return p;
@@ -804,6 +824,24 @@ function laadLiedjes(ververs) {
 var TAALNAMEN = { nl: 'Nederlands', en: 'Engels', de: 'Duits', af: 'Afrikaans', li: 'Limburgs', instrumentaal: 'instrumentaal' };
 function taalNaam(code) { return TAALNAMEN[code] || code; }
 
+// De artiestenlijst komt uit een eigen eindpunt: zeshonderd namen zouden het
+// liedjes-antwoord onnodig groot maken. Alleen artiesten met minstens twee liedjes
+// komen in de lijst, anders wordt het een telefoonboek; zoeken op naam kan altijd
+// nog via het zoekvak.
+function laadArtiesten() {
+  api('/api/artiesten').then(function (data) {
+    var sel = $('filter-artiest');
+    if (!sel || sel.options.length > 1) return;
+    (data.artiesten || []).filter(function (a) { return a.aantal >= 2; }).forEach(function (a) {
+      var o = document.createElement('option');
+      o.value = a.naam;
+      o.textContent = a.naam.length > 42 ? a.naam.slice(0, 41) + '…' : a.naam;
+      o.textContent += ' (' + a.aantal + ')';
+      sel.appendChild(o);
+    });
+  }).catch(function () {});
+}
+
 function vulFilters(data) {
   var talen = Object.keys(data.statistieken.talen).sort();
   var genres = Object.keys(data.statistieken.genres).sort();
@@ -824,11 +862,11 @@ function vulFilters(data) {
   }
 }
 $('zoek').addEventListener('input', debounce(function () { laadLiedjes(true); }, 250));
-['filter-taal', 'filter-genre', 'filter-capo', 'filter-moeilijkheid'].forEach(function (id) {
+['filter-taal', 'filter-genre', 'filter-artiest', 'filter-capo', 'filter-moeilijkheid'].forEach(function (id) {
   $(id).addEventListener('change', function () { laadLiedjes(true); });
 });
 $('filter-wis').addEventListener('click', function () {
-  $('zoek').value = ''; $('filter-taal').value = ''; $('filter-genre').value = '';
+  $('zoek').value = ''; $('filter-taal').value = ''; $('filter-genre').value = ''; $('filter-artiest').value = '';
   $('filter-capo').value = ''; $('filter-moeilijkheid').value = '';
   laadLiedjes(true);
 });
@@ -976,6 +1014,10 @@ function tekenLiedje(l) {
       '<div class="spotify-speler" id="spotify-speler"></div>' +
 
       '<h3>Begeleiding</h3>' +
+      (l.akkoorden.length ? '' :
+        '<div class="melding">Van dit liedje is alleen de tekst overgeleverd — er is geen melodie of ' +
+        'akkoordschema in de bron, dus er valt ook geen begeleiding te maken. Wil je er zelf akkoorden bij ' +
+        'zetten, maak dan eerst een eigen kopie van dit liedje.</div>') +
       '<div class="veld2">' +
         '<div><label for="speler-reeks">Akkoordenreeks</label>' +
           '<input id="speler-reeks" type="text" value="' + esc(l.akkoordenReeks.join(' ')) + '"></div>' +
@@ -2001,6 +2043,7 @@ $('leegmaken').addEventListener('click', function () {
 
 // ------------------------------------------------------------------- start ---
 laadLiedjes(true);
+laadArtiesten();
 api('/api/instellingen').then(function (s) {
   if (s.cast_apparaat) {
     staat.apparaat = s.cast_apparaat;
@@ -2009,10 +2052,11 @@ api('/api/instellingen').then(function (s) {
   }
 }).catch(function () {});
 // ==================================================================== leren ===
-// De leermodus: een cursus van acht lessen, een akkoordentrainer met metronoom,
-// een stemhulp, slagpatronen en alle grepen. Alles wat klinkt maken we zelf met
-// Web Audio (geen geluidsbestanden, geen internet), en wat je afrondt bewaren we
-// in localStorage zodat je verder kunt waar je gebleven was.
+// De leermodus: een cursus van vierentwintig lessen in vier delen (beginnen,
+// akkoorden, ritme, verdiepen), een akkoordentrainer met metronoom, een stemhulp,
+// slagpatronen en alle grepen. Alles wat klinkt maken we zelf met Web Audio (geen
+// geluidsbestanden, geen internet), en wat je afrondt bewaren we in localStorage
+// zodat je verder kunt waar je gebleven was.
 
 var LEER_SLEUTEL = 'akkoordkast-leren';
 var leerGrepen = null;          // grepen van de server, met noten erbij
@@ -2109,7 +2153,9 @@ function speelKlik(accent, wanneer) {
 
 // ------------------------------------------------------------ de cursus ---
 var LESSEN = [
+  // ------------------------------------------------------------- beginnen ---
   {
+    deel: 'Beginnen',
     titel: 'De gitaar vasthouden en de zes snaren',
     kort: 'Kennen: de snaren, de frets en je vingers',
     doel: 'Je weet hoe je de gitaar vasthoudt en hoe de zes snaren heten.',
@@ -2122,6 +2168,7 @@ var LESSEN = [
     knop: { tekst: 'Toon de zes snaren', naar: 'stemmen', set: null }
   },
   {
+    deel: 'Beginnen',
     titel: 'Stemmen',
     kort: 'Je gitaar op toon krijgen',
     doel: 'Je kunt je gitaar stemmen met de toonbank in de app.',
@@ -2134,6 +2181,7 @@ var LESSEN = [
     knop: { tekst: 'Naar het stemmen', naar: 'stemmen', set: null }
   },
   {
+    deel: 'Beginnen',
     titel: 'Je eerste drie akkoorden: Em, Am en C',
     kort: 'Drie akkoorden waar je al liedjes mee kunt spelen',
     doel: 'Je kunt Em, Am en C pakken en elke snaar laten klinken.',
@@ -2146,6 +2194,35 @@ var LESSEN = [
     knop: { tekst: 'Oefen Em · Am · C op 60 bpm', naar: 'trainer', set: 'Em Am C', tempo: 60, maten: 2 }
   },
   {
+    deel: 'Beginnen',
+    titel: 'De houding van je linkerhand',
+    kort: 'Waarom je vingers soms niet willen en wat helpt',
+    doel: 'Je vingers staan recht op de snaren en je hand blijft ontspannen.',
+    tekst: [
+      'Kijk van boven op je hand: je vingertoppen horen de snaren te raken, niet het platte kussentje van je vinger. Zet je duim laag achter de hals, ongeveer tegenover je middelvinger.',
+      'Knijp niet. Je hebt veel minder kracht nodig dan je denkt; als je hand na twee minuten moe is, knijp je te hard. Duw de gitaar niet weg met je linkerhand, maar houd hem met je rechterarm.',
+      'Kort en vaak werkt beter dan lang en pijnlijk: tien minuten per dag met ontspannen handen levert meer op dan een uur met verkrampte vingers.'
+    ],
+    oefening: 'Pak Em, laat los, pak Em, laat los — twintig keer, zo losjes mogelijk. Blijf met je duim laag.',
+    knop: { tekst: 'Em in de trainer, 20 keer', naar: 'trainer', set: 'Em Em Em Em', tempo: 50, maten: 1 }
+  },
+  {
+    deel: 'Beginnen',
+    titel: 'Opwarmen en vingeroefeningen',
+    kort: 'Vijf minuten die je handen soepel maken',
+    doel: 'Je hebt een vast opwarmritueel voordat je gaat spelen.',
+    tekst: [
+      'Begin met je vingers los te maken: strek ze, maak vuisten, laat je pols losjes ronddraaien. Koude handen spelen slecht en raken sneller geblesseerd.',
+      'Zet je vingers één voor één neer op dezelfde snaar: wijsvinger bij fret 1, middelvinger bij 2, ringvinger bij 3, pink bij 4. Ga zo per snaar omhoog. Dat heet de <strong>kruipgang</strong> en het is de klassieke opwarming.',
+      'Speel het rustig, zonder haast, en let op dat elke noot even hard klinkt. Het gaat niet om snelheid maar om gelijkmatigheid.'
+    ],
+    oefening: 'Doe een minuut of twee de kruipgang over de snaren, dan de trainer met Em · Am · C op 55 bpm.',
+    knop: { tekst: 'Trainer met Em · Am · C op 55 bpm', naar: 'trainer', set: 'Em Am C', tempo: 55, maten: 2 }
+  },
+
+  // ----------------------------------------------------------- akkoorden ---
+  {
+    deel: 'Akkoorden',
     titel: 'C, G en D7 — en leren wisselen',
     kort: 'De akkoorden van heel veel liedjes',
     doel: 'Je kunt tussen C, G en D7 wisselen zonder te stoppen.',
@@ -2158,6 +2235,74 @@ var LESSEN = [
     knop: { tekst: 'Oefen C · G · D7 op 60 bpm', naar: 'trainer', set: 'C G D7', tempo: 60, maten: 2 }
   },
   {
+    deel: 'Akkoorden',
+    titel: 'Groot en klein: het verschil horen',
+    kort: 'Majeur klinkt vrolijk, mineur klinkt weemoedig',
+    doel: 'Je hoort het verschil tussen groot (majeur) en klein (mineur) en je kunt het benoemen.',
+    tekst: [
+      'Een akkoord zonder letter erbij (C, G, D, A, E, F, Bb) is groot. Een akkoord met een m erbij (Am, Em, Dm, Bm) is klein: vaak één toon lager in het midden van het akkoord, en meteen klinkt het verdrietiger.',
+      'Speel C en daarna Cm: je hoort alleen een verschil van één toon. Speel Am en A, en doe hetzelfde. Het is telkens die ene toon die de stemming bepaalt.',
+      'Liedjes mengen ze: groot voor de coupletten, klein voor de brug of een droevige regel. Zo weet je waarom het ene liedje vrolijk klinkt en het andere niet.'
+    ],
+    oefening: 'Trainer met A · Am · D · Dm, één maat per akkoord, en hoor bij elke wissel groot tegen klein.',
+    knop: { tekst: 'Oefen groot tegen klein', naar: 'trainer', set: 'A Am D Dm', tempo: 55, maten: 2 }
+  },
+  {
+    deel: 'Akkoorden',
+    titel: 'Mineurakkoorden: Am, Em, Dm en Bm',
+    kort: 'De vier die je in elk liedje tegenkomt',
+    doel: 'Je kunt Am, Em en Dm pakken; Bm probeer je uit.',
+    tekst: [
+      'Am en Em lijken op elkaar: bij Am zet je drie vingers bij elkaar op de B-, D- en G-snaar (tweede fret), bij Em staan je middel- en ringvinger op de A- en D-snaar van de tweede fret.',
+      'Dm is een akkoord van drie vingers hoog op de hals: G-snaar fret 2, hoge e-snaar fret 1, B-snaar fret 3. Raak de dikke E-snaar niet.',
+      'Bm is de lastigste van dit rijtje: een klein barré-akkoord. Lukt die nog niet, speel dan dezelfde greep hoger op de hals (5e fret = Dm-vorm) waar de snaren makkelijker klinken, of sla hem vandaag over.'
+    ],
+    oefening: 'Trainer met Am · Em · Dm op 55 bpm, twee maten per akkoord, en probeer daarna Bm er los bij.',
+    knop: { tekst: 'Oefen Am · Em · Dm', naar: 'trainer', set: 'Am Em Dm', tempo: 55, maten: 2 }
+  },
+  {
+    deel: 'Akkoorden',
+    titel: 'Zevende akkoorden: spanning en oplossing',
+    kort: 'Waarom G7 naar C wil en D7 naar G',
+    doel: 'Je begrijpt waarom een zevende akkoord naar een ander akkoord trekt.',
+    tekst: [
+      'Een 7-akkoord (G7, D7, C7, A7, E7, B7) klinkt alsof er nog iets komt. Zet hem aan het einde van een regel en het liedje blijft hangen; los hem op en het voelt als thuiskomen.',
+      'De bekendste: <strong>D7 → G</strong> en <strong>G7 → C</strong>. Dat is de motor van duizenden liedjes, van volkswijsje tot smartlap.',
+      'Oefen met een reeks die je overal terugvindt: C · Am · Dm · G7 en dan weer C. Dit rondje komt in de app bij tientallen liedjes terug.'
+    ],
+    oefening: 'Trainer met C · Am · Dm · G7 op 60 bpm, twee maten per akkoord, en luister hoe G7 terug naar C wil.',
+    knop: { tekst: 'Oefen C · Am · Dm · G7', naar: 'trainer', set: 'C Am Dm G7', tempo: 60, maten: 2 }
+  },
+  {
+    deel: 'Akkoorden',
+    titel: 'Barré-akkoorden: F en Bm',
+    kort: 'De laatste drempel, met geduld',
+    doel: 'Je kunt een barré-akkoord pakken en alle snaren laten klinken.',
+    tekst: [
+      'Bij een barré leg je één vinger plat over meerdere snaren: dat is je "liggende" vinger, bij F en Bm is dat je wijsvinger.',
+      'Druk niet met het kussentje van je vinger maar met de zijkant, iets gedraaid, en houd je duim laag achter de hals. Zo komt er meer kracht op de snaren.',
+      'Begin met het barré-akkoord in stukjes: eerst alleen de lage snaren laten klinken, dan de hoge erbij. Lukt het niet vandaag, dan lukt het volgende week — dit is het akkoord waar iedereen het langst over doet.'
+    ],
+    oefening: 'Trainer op 45 bpm met F · Bm, vier maten per akkoord. Neem de tijd om je vingers neer te zetten.',
+    knop: { tekst: 'Oefen F · Bm op 45 bpm', naar: 'trainer', set: 'F Bm', tempo: 45, maten: 4 }
+  },
+  {
+    deel: 'Akkoorden',
+    titel: 'Barrévormen verplaatsen over de hals',
+    kort: 'Eén vorm, twaalf akkoorden',
+    doel: 'Je kunt met één barrévorm akkoorden op elke fret pakken.',
+    tekst: [
+      'De F-greep is eigenlijk een E-greep met een barré ervoor. Schuif die hele vorm twee fretten op en je hebt een G; vijf fretten en je hebt een A. Zo werkt de halve hals met één vorm.',
+      'Hetzelfde geldt voor de Am-vorm: met een barré wordt dat Bm, Cm, Dm — afhankelijk van de fret waar je staat.',
+      'Tel hardop waar je staat: "E-vorm op de derde fret is G". Dat tellen went snel en dan kun je ineens overal een akkoord pakken.'
+    ],
+    oefening: 'Neem de F-greep en schuif hem op naar fret 3, 5 en 7. Speel de trainer met F · G · A · Bb door elkaar.',
+    knop: { tekst: 'Oefen de schuivende barré', naar: 'trainer', set: 'F G A Bb', tempo: 45, maten: 4 }
+  },
+
+  // --------------------------------------------------------------- ritme ---
+  {
+    deel: 'Ritme',
     titel: 'Slagritme met de rechterhand',
     kort: 'Niet tokkelen maar slaan, op de maat',
     doel: 'Je kunt gelijkmatig aanslaan en het patroon D DU UDU spelen.',
@@ -2170,18 +2315,74 @@ var LESSEN = [
     knop: { tekst: 'Naar de slagpatronen', naar: 'ritme', set: null }
   },
   {
+    deel: 'Ritme',
+    titel: 'Maatsoort en meetellen',
+    kort: 'Vier tellen, drie tellen of zes achtsten',
+    doel: 'Je hoort of een liedje in 4/4, 3/4 of 6/8 staat en telt het goed mee.',
+    tekst: [
+      'De meeste liedjes in de app staan in 4/4: vier tellen per maat, met de klemtoon op 1. Walsen staan in 3/4: één zwaar, twee licht.',
+      '6/8 voelt als twee keer drie: <em>één-twee-drie, vier-vijf-zes</em>, in een wiegende beweging. Dat hoor je bij scheepsliederen en veel oude volkswijsjes.',
+      'In de liedjeslijst kun je op de maatsoort letten: in het speelscherm zie je hem staan, en de tellen in de app lopen ermee mee. Zo hoor je meteen of jij goed meetelt.'
+    ],
+    oefening: 'Kies in de slagpatronen de wals (3/4) en daarna de standaardslag, allebei op 60 bpm.',
+    knop: { tekst: 'Naar de slagpatronen', naar: 'ritme', set: null }
+  },
+  {
+    deel: 'Ritme',
+    titel: 'Tokkelen met je vingers',
+    kort: 'Rustig liedjes begeleiden zonder plectrum',
+    doel: 'Je kunt een liedje tokkelen met duim en vingers.',
+    tekst: [
+      'Je duim heet p, je wijsvinger i, je middelvinger m en je ringvinger a. Klassiek patroon: <span class="patroon">p i m a m i</span> over de snaren, van laag naar hoog en weer terug.',
+      'Voor een liedje in C pak je met je duim de A- of D-snaar, en met i, m en a de G-, B- en hoge e-snaar. Eén snaar per tel, gelijkmatig.',
+      'Tokkelen klinkt intiemer dan slaan en is makkelijker om zachtjes te doen. Zet de metronoom op 60 en laat elke toon even lang klinken.'
+    ],
+    oefening: 'Start de tik op 60 bpm en tokkel patroon p i m a over een C-akkoord, vier maten lang.',
+    knop: { tekst: 'Naar het tokkeelpatroon', naar: 'ritme', set: null }
+  },
+  {
+    deel: 'Ritme',
+    titel: 'Tempo vasthouden zonder metronoom',
+    kort: 'Gelijkmatig spelen als de tik uitgaat',
+    doel: 'Je houdt je eigen tempo vast zonder dat je hoeft mee te tikken.',
+    tekst: [
+      'Begin met de metronoom en laat hem na een minuut uit terwijl je doorspeelt. Meestal ga je dan sneller — dat is normaal en het is juist de oefening om het niet te doen.',
+      'Gebruik je voet als tweede metronoom: tik met je tenen op de maat. Dan blijft het ritme in je lijf zitten.',
+      'Neem jezelf op met de telefoon of met de app (bij een eigen liedje kun je een opname hangen) en luister terug. Je hoort je eigen tempo direct.'
+    ],
+    oefening: 'Trainer met C · G · Am · F op 64 bpm: start met de metronoom, zet hem na een minuut uit en blijf doorgaan.',
+    knop: { tekst: 'Oefen C · G · Am · F op 64 bpm', naar: 'trainer', set: 'C G Am F', tempo: 64, maten: 2 }
+  },
+  {
+    deel: 'Ritme',
+    titel: 'Dynamiek: hard en zacht',
+    kort: 'Met zachter en harder spelen vertel je het liedje',
+    doel: 'Je kunt in één liedje van zacht naar hard en terug.',
+    tekst: [
+      'Sla zacht bij het begin van een couplet en hard bij het refrein. Dat is geen trucje maar het verschil tussen een liedje voordragen en een liedje afraffelen.',
+      'Hard slaan doe je met je pols en met wat meer arm, maar zelden harder knijpen in de snaren. Je linkerhand blijft even stevig.',
+      'Oefen met een liedje in de app met een refrein: speel het helemaal door en varieer je slagkracht per deel.'
+    ],
+    oefening: 'Speel de trainer met Em · C · G · D op 60 bpm: eerste ronde zacht, tweede ronde hard.',
+    knop: { tekst: 'Oefen zacht en hard door elkaar', naar: 'trainer', set: 'Em C G D', tempo: 60, maten: 2 }
+  },
+
+  // ----------------------------------------------------------- verdiepen ---
+  {
+    deel: 'Verdiepen',
     titel: 'Maatsoort en meespelen met een liedje',
     kort: 'Van oefening naar een echt liedje',
     doel: 'Je kunt een liedje uit de app helemaal meespelen.',
     tekst: [
-      'De meeste liedjes in de app staan in 4/4 (vier tellen per maat). Walsen staan in 3/4: daar is de eerste tel zwaar en de andere twee licht.',
       'Zoek in het tabblad <strong>Liedjes</strong> een liedje dat je kent, filter op moeilijkheid 1 of 2 en open het. Je ziet het akkoordschema en, als de bron het heeft, de noten die meelopen.',
-      'Begin met een laag tempo. Zit het in je vingers? Verhoog dan in stapjes. Onderweg foutjes maken mag: doorgaan is belangrijker dan netjes zijn.'
+      'Begin met een laag tempo. Zit het in je vingers? Verhoog dan in stapjes. Onderweg foutjes maken mag: doorgaan is belangrijker dan netjes zijn.',
+      'Sla bij het oefenen het lastige stuk niet over. Pak juist die twee maten waar je steeds struikelt en speel ze tien keer langzaam achter elkaar.'
     ],
     oefening: 'Speel één liedje van moeilijkheid 1 of 2 helemaal mee, van begin tot eind.',
     knop: { tekst: 'Naar de makkelijke liedjes', naar: 'liedjes', set: null }
   },
   {
+    deel: 'Verdiepen',
     titel: 'Capo en toonsoort',
     kort: 'Waarom capo 2 hetzelfde klinkt maar makkelijker speelt',
     doel: 'Je begrijpt wat een capo doet en waarom de app er advies over geeft.',
@@ -2194,16 +2395,108 @@ var LESSEN = [
     knop: { tekst: 'Liedjes met capo-advies', naar: 'liedjes', set: null }
   },
   {
-    titel: 'Barré-akkoorden: F en Bm',
-    kort: 'De laatste drempel, met geduld',
-    doel: 'Je kunt een barré-akkoord pakken en alle snaren laten klinken.',
+    deel: 'Verdiepen',
+    titel: 'Transponeren: een liedje hoger of lager zetten',
+    kort: 'Zodat de akkoorden bij jouw stem passen',
+    doel: 'Je kunt een liedje verzetten naar een toonsoort die bij je stem past.',
     tekst: [
-      'Bij een barré leg je één vinger plat over meerdere snaren: dat is je "liggende" vinger, bij F en Bm is dat je wijsvinger.',
-      'Druk niet met het kussentje van je vinger maar met de zijkant, iets gedraaid, en houd je duim laag achter de hals. Zo komt er meer kracht op de snaren.',
-      'Begin met het barré-akkoord in stukjes: eerst alleen de lage snaren laten klinken, dan de hoge erbij. Lukt het niet vandaag, dan lukt het volgende week — dit is het akkoord waar iedereen het langst over doet.'
+      'In het speelscherm zet je met de knoppen het hele liedje een halve toon hoger of lager. De akkoorden schuiven mee en de grepen ook.',
+      'Zing mee met lage tonen tot het te laag wordt voor je stem; dan vind je daar je hoogste stand. Het prettigste zingbereik van de meeste mensen is ongeveer anderhalf octaaf.',
+      'Let op: met een capo verandert de <em>klinkende</em> toonhoogte, met transponeren verandert de <em>greep</em>. De app laat bij elk liedje zien wat er gebeurt.'
     ],
-    oefening: 'Trainer op 45 bpm met F · Bm, vier maten per akkoord. Neem de tijd om je vingers neer te zetten.',
-    knop: { tekst: 'Oefen F · Bm op 45 bpm', naar: 'trainer', set: 'F Bm', tempo: 45, maten: 4 }
+    oefening: 'Open een liedje, zet het drie halve tonen hoger en speel het refrein. Lukt zingen makkelijker of juist niet?',
+    knop: { tekst: 'Naar de liedjes', naar: 'liedjes', set: null }
+  },
+  {
+    deel: 'Verdiepen',
+    titel: 'Toonladders: waarom akkoorden zo werken',
+    kort: 'De acht tonen waar een liedje uit komt',
+    doel: 'Je kunt de toonladder van C en G spelen en uitleggen waar akkoorden vandaan komen.',
+    tekst: [
+      'Een toonladder is een rij van acht tonen: do re mi fa sol la si do. In C speel je die op de A- en D-snaar: A-snaar fret 3 is C, en zo verder.',
+      'Uit die ladder komen de akkoorden: het eerste, vierde en vijfde akkoord horen bij elkaar. In C zijn dat C, F en G — en dat is meteen het akkoordschema van honderden liedjes.',
+      'Daarom kun je met drie akkoorden zoveel liedjes spelen: 1 · 4 · 5 komen uit dezelfde ladder.'
+    ],
+    oefening: 'Speel de C-toonladder rustig omhoog en terug, en speel daarna de trainer met C · F · G op 60 bpm.',
+    knop: { tekst: 'Oefen C · F · G op 60 bpm', naar: 'trainer', set: 'C F G', tempo: 60, maten: 2 }
+  },
+  {
+    deel: 'Verdiepen',
+    titel: 'Zelf akkoorden kiezen bij een tekst',
+    kort: 'Een eigen liedje of een liedje zonder akkoorden',
+    doel: 'Je kunt bij een liedtekst zelf een akkoordschema neerzetten dat klopt.',
+    tekst: [
+      'Zoek in de app een liedje met alleen een tekst (er staat "alleen tekst" bij). Kies de toonsoort, bijvoorbeeld C, en zet je akkoorden op de eerste tel van elke regel.',
+      'De makkelijkste opbouw: twee regels C, één regel F, één regel C, dan G, dan F, en terug naar C. Bij een refrein mag je wat hoger beginnen.',
+      'Maak eerst een eigen kopie van het liedje in de app, dan kun je rustig schuiven met de akkoorden tot het klopt met wat je zingt.'
+    ],
+    oefening: 'Open een liedtekst, maak er een eigen kopie van en zet een schema van C · F · G bij de regels.',
+    knop: { tekst: 'Naar de liedjes', naar: 'liedjes', set: null }
+  },
+  {
+    deel: 'Verdiepen',
+    titel: 'Hoe je een liedje uitzoekt op gehoor',
+    kort: 'Van meezingen naar meespelen',
+    doel: 'Je kunt met vallen en opstaan het schema van een liedje vinden.',
+    tekst: [
+      'Zing de laatste regel van een liedje en de toon waarop het liedje rust is vaak de "thuisnoot" — dat is de toonsoort. Zit het einde op C, dan is het liedje meestal in C.',
+      'Zoek dan de drie akkoorden uit die erbij horen: de thuisnoot (C), één hoger (F of G) en het kleine akkoord (Am). Probeer ze uit tot het klopt.',
+      'In de app kun je met het uploaden van een opname de akkoorden automatisch laten uitzoeken; gebruik dat als controle naast je eigen gehoor.'
+    ],
+    oefening: 'Zoek van een liedje dat je goed kent de toonsoort en probeer met C · F · G · Am mee te spelen.',
+    knop: { tekst: 'C · F · G · Am oefenen', naar: 'trainer', set: 'C F G Am', tempo: 60, maten: 2 }
+  },
+  {
+    deel: 'Verdiepen',
+    titel: 'Meespelen met een opname of een liedje uit de app',
+    kort: 'Samen spelen met echte muziek',
+    doel: 'Je kunt met een bestaande opname meespelen en de maat houden.',
+    tekst: [
+      'Open in de app een liedje en druk op <strong>Start</strong>: het beeld laat de hals, de grepen en de maat meelopen met wat je hoort.',
+      'Oefen eerst de akkoordwissels met de trainer op het tempo van het liedje, en speel het liedje daarna helemaal mee. Zo mislukt de wissel niet op het moment dat het telt.',
+      'Heb je een eigen opname ( mp3 of mp4), dan kun je die in het tabblad Toevoegen zetten; de app haalt er het tempo en de akkoorden uit en speelt ermee mee.'
+    ],
+    oefening: 'Kies een liedje uit de app, oefen het schema eerst met de trainer en speel daarna met Start het hele liedje mee.',
+    knop: { tekst: 'Naar de liedjes', naar: 'liedjes', set: null }
+  },
+  {
+    deel: 'Verdiepen',
+    titel: 'Samenspelen en jezelf terugluisteren',
+    kort: 'Opnemen is de snelste leraar',
+    doel: 'Je luistert kritisch naar jezelf en weet wat je als volgende moet oefenen.',
+    tekst: [
+      'Neem jezelf op met je telefoon, ook al klinkt dat niet mooi. Wat je tijdens het spelen niet hoort, hoor je bij het terugluisteren meteen: een snaar die dof blijft, een maat die sneller gaat.',
+      'Speel samen met iemand anders, of met de begeleiding uit de app. Samen spelen dwingt je om te blijven doorgaan als je een fout maakt — precies wat je moet leren.',
+      'Schrijf na elke oefensessie één ding op dat beter moet. Eén punt per week is meer dan genoeg.'
+    ],
+    oefening: 'Neem dertig seconden van een liedje op en luister het terug. Noem één ding dat beter kan en oefen dat met de trainer.',
+    knop: { tekst: 'Naar de liedjes', naar: 'liedjes', set: null }
+  },
+  {
+    deel: 'Verdiepen',
+    titel: 'Onderhoud van je gitaar',
+    kort: 'Nieuwe snaren, stemming en een rechte hals',
+    doel: 'Je weet wanneer je snaren aan vervanging toe zijn en waar je op moet letten.',
+    tekst: [
+      'Snaren verslijten: na een maand of twee van dagelijks spelen klinken ze dof en ontstemmen ze snel. Nieuwe snaren zijn de goedkoopste verbetering van je geluid.',
+      'Wissel één snaar tegelijk, zodat de spanning op de hals niet wegvalt. Draai nieuwe snaren rustig op spanning en stem ze een paar keer opnieuw in de dagen erna.',
+      'Bewaar je gitaar niet in de kou of naast de verwarming, en niet in de auto. Hout werkt met temperatuur en luchtvochtigheid: daarom ontstemt je gitaar in een koude kerk altijd.'
+    ],
+    oefening: 'Controleer je snaren: zitten er donkere plekken of voel je braampjes bij de fretten? Dan is het tijd.',
+    knop: { tekst: 'Naar het stemmen', naar: 'stemmen', set: null }
+  },
+  {
+    deel: 'Verdiepen',
+    titel: 'Een oefenplan dat je volhoudt',
+    kort: 'Tien minuten per dag, zo ingedeeld',
+    doel: 'Je hebt een vast oefenplan en weet wat je moet doen als je vastloopt.',
+    tekst: [
+      'Tien minuten per dag, elke dag, werkt beter dan twee uur in het weekend. Verdeel het: twee minuten opwarmen (de kruipgang), drie minuten akkoordwissels met de trainer, vijf minuten een liedje.',
+      'Kies één liedje per week dat je helemaal afmaakt in plaats van tien liedjes half. Wat je afmaakt, kun je ook echt spelen.',
+      'Loop je vast op een akkoord of een stuk? Zet het tempo omlaag naar 40 bpm en speel het tien keer langzaam. Bijna alles wat te snel mislukt, lukt langzaam wel.'
+    ],
+    oefening: 'Doe vandaag de tien-minutenindeling en zet de trainer op 40 bpm voor het stuk waar je vastloopt.',
+    knop: { tekst: 'Trainer op 40 bpm', naar: 'trainer', set: 'C G Am F', tempo: 40, maten: 2 }
   }
 ];
 
@@ -2225,22 +2518,23 @@ function toonLeerVoortgang(stand) {
 function tekenLessen() {
   var stand = leerStand();
   var vak = $('leren-lessen');
-  vak.innerHTML = LESSEN.map(function (les, i) {
-    var af = !!stand.lessen[i];
-    var lijst = les.tekst.map(function (p) { return '<p>' + p + '</p>'; }).join('');
-    var knop = les.knop
-      ? '<button class="knop zacht" data-les-knop="' + i + '">' + esc(les.knop.tekst) + '</button>'
-      : '';
-    return '<details class="les' + (af ? ' doen' : '') + '" data-les="' + i + '">' +
-      '<summary><span class="les-nr">' + (af ? '✓' : (i + 1)) + '</span>' +
-      '<span><span class="les-titel">' + esc(les.titel) + '</span><br><span class="les-klein">' + esc(les.kort) + '</span></span></summary>' +
-      '<div class="les-inhoud">' +
-      '<div class="doel"><strong>Doel:</strong> ' + esc(les.doel) + '</div>' + lijst +
-      '<p><strong>Oefening:</strong> ' + esc(les.oefening) + '</p>' +
-      '<div class="klaar-rij">' + knop +
-      '<label style="display:flex;align-items:center;gap:8px;margin:0">' +
-      '<input type="checkbox" data-les-klaar="' + i + '"' + (af ? ' checked' : '') + '> Deze les afgerond</label></div>' +
-      '</div></details>';
+  // De lessen staan in vier delen. Per deel een kopje met hoeveel je er al van
+  // afgerond hebt, zodat je ziet waar je staat zonder de hele lijst te lezen.
+  var delen = [];
+  LESSEN.forEach(function (les, i) {
+    var naam = les.deel || 'Lessen';
+    if (!delen.length || delen[delen.length - 1].naam !== naam) delen.push({ naam: naam, van: i, tot: i });
+    else delen[delen.length - 1].tot = i;
+  });
+  vak.innerHTML = delen.map(function (deel) {
+    var inDeel = LESSEN.slice(deel.van, deel.tot + 1);
+    var af = 0;
+    for (var k = 0; k < inDeel.length; k++) if (stand.lessen[deel.van + k]) af++;
+    var kop = '<div class="les-deel"><span>' + esc(deel.naam) + '</span>' +
+      '<span class="les-deel-telling">' + af + ' van ' + inDeel.length + '</span></div>';
+    return kop + inDeel.map(function (les, k) {
+      return lesKaart(les, deel.van + k, !!stand.lessen[deel.van + k]);
+    }).join('');
   }).join('');
 
   vak.querySelectorAll('[data-les-klaar]').forEach(function (vakje) {
@@ -2258,11 +2552,13 @@ function tekenLessen() {
       var les = LESSEN[Number(knop.getAttribute('data-les-knop'))];
       if (!les.knop) return;
       if (les.knop.naar === 'trainer') {
+        toonTab('leren');
         $('trein-set').value = les.knop.set;
         $('trein-tempo').value = les.knop.tempo;
         $('trein-tempo-waarde').textContent = les.knop.tempo;
         $('trein-maten').value = String(les.knop.maten);
         startTrainer();
+        $('trein-akkoord').scrollIntoView({ block: 'center' });
       } else if (les.knop.naar === 'stemmen') {
         toonTab('leren');
         $('stem-rij').scrollIntoView({ block: 'center' });
@@ -2271,13 +2567,33 @@ function tekenLessen() {
         $('ritme-rij').scrollIntoView({ block: 'center' });
       } else if (les.knop.naar === 'liedjes') {
         toonTab('liedjes');
+        if (les.knop.set) $('zoek').value = les.knop.set;
         $('filter-moeilijkheid').value = '2';
-        $('zoek').focus();
         laadLiedjes(true);
+        $('zoek').focus();
       }
     });
   });
   toonLeerVoortgang(stand);
+}
+
+// Eén les als uitklapbaar blok: doel, uitleg, oefening en het afvinkvakje.
+function lesKaart(les, i, af) {
+  var lijst = les.tekst.map(function (p) { return '<p>' + p + '</p>'; }).join('');
+  var knop = les.knop
+    ? '<button class="knop zacht" data-les-knop="' + i + '">' + esc(les.knop.tekst) + '</button>'
+    : '';
+  return '<details class="les' + (af ? ' doen' : '') + '" data-les="' + i + '">' +
+    '<summary><span class="les-nr">' + (af ? '\u2713' : (i + 1)) + '</span>' +
+    '<span><span class="les-titel">' + esc(les.titel) + '</span><br>' +
+    '<span class="les-klein">' + esc(les.kort) + '</span></span></summary>' +
+    '<div class="les-inhoud">' +
+    '<div class="doel"><strong>Doel:</strong> ' + esc(les.doel) + '</div>' + lijst +
+    '<p><strong>Oefening:</strong> ' + esc(les.oefening) + '</p>' +
+    '<div class="klaar-rij">' + knop +
+    '<label style="display:flex;align-items:center;gap:8px;margin:0">' +
+    '<input type="checkbox" data-les-klaar="' + i + '"' + (af ? ' checked' : '') + '> Deze les afgerond</label></div>' +
+    '</div></details>';
 }
 
 // -------------------------------------------------------------- grepen ---
@@ -2328,8 +2644,37 @@ var trainer = {
   metronoom: true
 };
 
+// De akkoordenreeks van de trainer: vrij ingevuld, met de voorbeelden als suggestie.
+// Alleen akkoorden die echt een greep hebben doen mee — anders gaat de trainer
+// diagrammen voor onbekende akkoorden zoeken. Kleine letters en losse varianten
+// worden naar de juiste schrijfwijze gebracht (em -> Em, bb -> Bb).
 function trainerSet() {
-  return ($('trein-set').value || '').split(/\s+/).filter(Boolean);
+  var ruw = ($('trein-set').value || '').trim().split(/\s+/).filter(Boolean);
+  if (!leerGrepen) return ruw;
+  var perNaam = {};
+  leerGrepen.forEach(function (g) { perNaam[g.naam.toLowerCase()] = g.naam; });
+  var netjes = [];
+  ruw.forEach(function (a) {
+    var naam = perNaam[a.toLowerCase()] ||
+      perNaam[a.charAt(0).toUpperCase() + a.slice(1).toLowerCase()] || '';
+    if (naam && netjes.indexOf(naam) < 0) netjes.push(naam);
+  });
+  return netjes;
+}
+
+// Als er iets in de reeks staat dat geen greep heeft, zeggen we dat erbij in plaats
+// van het stil weg te laten.
+function controleerTrainerSet() {
+  var ruw = ($('trein-set').value || '').trim();
+  var bruikbaar = trainerSet();
+  var melding = $('trein-set-melding');
+  if (!melding) return;
+  if (!ruw) { melding.textContent = 'Vul minstens twee akkoorden in.'; return; }
+  if (!bruikbaar.length) { melding.textContent = 'Geen van deze akkoorden heeft een greep in de app.'; return; }
+  var aantalRuw = ruw.split(/\s+/).filter(Boolean).length;
+  melding.textContent = bruikbaar.length < aantalRuw
+    ? 'Let op: ' + (aantalRuw - bruikbaar.length) + ' ingevuld akkoord heeft geen greep en doet niet mee.'
+    : '';
 }
 
 function tekenTrainer(akkoord, volgend) {
@@ -2342,7 +2687,8 @@ function tekenTrainer(akkoord, volgend) {
 
 function startTrainer() {
   var akkoorden = trainerSet();
-  if (!akkoorden.length) return;
+  controleerTrainerSet();
+  if (akkoorden.length < 1) return;
   laadLeerGrepen().then(function () {
     trainer.akkoorden = akkoorden;
     trainer.index = 0;
@@ -2419,6 +2765,24 @@ function stopTrainer(zonderMelding) {
 }
 
 // --------------------------------------------------------------- ritme ---
+// Kies een nieuwe reeks voor de trainer: netjes maken, controleren en het eerste
+// akkoord laten horen, zodat je meteen hoort wat je hebt ingevuld.
+function kiesTrainerSet() {
+  var nieuw = trainerSet();
+  controleerTrainerSet();
+  if (!nieuw.length) return;
+  var veranderd = nieuw.join(' ') !== trainer.akkoorden.join(' ');
+  trainer.akkoorden = nieuw;
+  var waarde = $('trein-set').value;
+  if (nieuw.join(' ') !== waarde.trim()) $('trein-set').value = nieuw.join(' ');
+  if (veranderd && trainer.bezig) trainer.index = trainer.index % nieuw.length;
+  if (veranderd) {
+    tekenTrainer(nieuw[0], nieuw[1] || nieuw[0]);
+    var g = greepVan(nieuw[0]);
+    if (g) speelGreep(g.noten);
+  }
+}
+
 var PATRONEN = [
   { naam: 'Vier gelijke slagen', patroon: 'D – D – D – D –', maat: 4, uitleg: 'Eerst leren gelijkmatig te slaan: op elke tel één keer naar beneden.' },
   { naam: 'De standaardslag', patroon: 'D – D U – U D U', maat: 4, uitleg: 'De bekendste slag voor liedjes in 4/4. Neer op 1 en 2, op tussen 2 en 3, neer op 3, dan op-neer-op.' },
@@ -2521,11 +2885,8 @@ function laadLeren() {
     $('trein-tempo-waarde').textContent = $('trein-tempo').value;
     trainer.bpm = Number($('trein-tempo').value) || 60;
   });
-  $('trein-set').addEventListener('change', function () {
-    trainer.akkoorden = trainerSet();
-    var g = greepVan(trainer.akkoorden[0]);
-    if (g) speelGreep(g.noten);
-  });
+  $('trein-set').addEventListener('change', function () { kiesTrainerSet(); });
+  $('trein-set').addEventListener('blur', function () { kiesTrainerSet(); });
   $('ritme-start').addEventListener('click', startRitme);
   $('ritme-stop').addEventListener('click', stopRitme);
 }

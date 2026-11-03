@@ -1,0 +1,44 @@
+{
+  "ronde": 2,
+  "bron": "Publieke partituurbanken (free-scores, Cantorion, ScoreExchange, MuseScore, ingeb.org)",
+  "bron_url": "https://www.free-scores.com/ ; https://cantorion.org/ ; https://scoreexchange.com/ ; https://musescore.com/ ; https://ingeb.org/",
+  "aanpak": "Per bron gezocht op 'Limburg (mijn Vaderland)' / 'Oud en trouw Roermond' en gecontroleerd op licentie en machineleesbaarheid.",
+  "bevindingen": [
+    {
+      "bron": "free-scores.com",
+      "formaat": "PDF (deels MIDI)",
+      "licentie_literaal": "Per stuk verschillend; zoekresultaat 'Limburg' levert alleen Duits/Poolse treffers (o.a. 'Kirchenmusik im Bistum Limburg'). Geen Limburgs volkslied in de vrije sectie.",
+      "toegestaan": false
+    },
+    {
+      "bron": "Cantorion",
+      "formaat": "Alleen PDF (geen MusicXML/MIDI)",
+      "licentie_literaal": "The above text from the Wikipedia article 'Limburg mijn Vaderland' text is available under CC BY-SA 3.0. (geen licentie op de partituur zelf)",
+      "toegestaan": false,
+      "reden": "Geen licentie op het bestand; PDF niet machineleesbaar."
+    },
+    {
+      "bron": "ScoreExchange (arrangementen 'Limburg Provincial Anthem' van Keith Terrett)",
+      "formaat": "PDF/audio",
+      "licentie_literaal": "Arrangementen van een hedendaagse arrangeur - auteursrechtelijk beschermd (geen PD/CC0/CC-BY).",
+      "toegestaan": false
+    },
+    {
+      "bron": "MuseScore (musescore.com/song/limburg_mijn_vaderland-6216157)",
+      "formaat": "MuseScore/MusicXML (achter login), PDF",
+      "licentie_literaal": "Per partituur verschillend (All Rights Reserved / CC); download vereist account.",
+      "toegestaan": false,
+      "reden": "Licentie niet eenduidig machineverifieerbaar en download niet zonder account; geen expliciete PD/CC0/CC-BY vastgesteld."
+    },
+    {
+      "bron": "ingeb.org (Frank Petersohn, 20.000 Volkslieder)",
+      "formaat": "MIDI + tekst",
+      "licentie_literaal": "Geen expliciete PD/CC0/CC-BY-licentieverklaring op de site.",
+      "toegestaan": false,
+      "reden": "Bron zonder licentieverklaring mag niet worden opgenomen."
+    }
+  ],
+  "conclusie": "Geen enkele publieke partituurbank levert het Limburgse volkslied (of een ander Limburgs lied) als machineleesbaar bestand onder PD/CC0/CC-BY.",
+  "aantal_stukken": 0,
+  "bestanden": []
+}

@@ -1,0 +1,38 @@
+{
+  "bron": "Limburgse Wikisource (li.wikisource.org)",
+  "bron_url": "https://li.wikisource.org/",
+  "licentie_literaal": "Wikimedia-site: 'Creative Commons Naamsvermelding/Gelijk delen' (CC BY-SA 4.0). De afzonderlijke liedtekst is publiek domein: de tekstdichter overleed in 1937 (< 1956) resp. de anonieme tekst is gepubliceerd in 1892 (vóór 1900).",
+  "aantal_teksten": 2,
+  "titels": [
+    {
+      "titel": "Limburg mijn Vaderland (Waar in 't bronsgroen eikenhout)",
+      "auteur": "Gerard Krekelberg",
+      "sterfjaar": 1937
+    },
+    {
+      "titel": "Erelied der Potentaten van Beek",
+      "auteur": "Anoniem",
+      "sterfjaar": null
+    }
+  ],
+  "bestanden": [
+    "limburgse_wikisource.json"
+  ],
+  "niet_opgenomen": [
+    {
+      "titel": "Pottentaoten-lied (1904) e.a.",
+      "auteur": "Martin Retera / anoniem",
+      "reden": "Geen sterfjaar van de auteur te verifiëren en anonieme teksten dateren van ná 1900; geen PD-verklaring op de pagina."
+    },
+    {
+      "titel": "Vasteloaves-wals 1948/1949/1954",
+      "auteur": "W. Lacriox / Johann Pelzer / Sjang Sangers",
+      "reden": "Geen verifieerbaar sterfjaar van de tekstdichters."
+    },
+    {
+      "titel": "ca. 300 overige Leedteks-pagina's (Rowwen Hèze e.d.)",
+      "auteur": "levende/20e-eeuwse auteurs",
+      "reden": "Auteurs stierven na 1956; auteursrechtelijk beschermd."
+    }
+  ]
+}

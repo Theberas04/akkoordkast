@@ -166,7 +166,17 @@ test('de meegeleverde liedjes-dataset is compleet en houdt zich aan de whitelist
     titels.add(lied.titel);
     assert.ok(['nl', 'en', 'de', 'af', 'li', 'instrumentaal'].includes(lied.taal), 'taal onbekend: ' + lied.taal);
     assert.ok(lied.moeilijkheid >= 1 && lied.moeilijkheid <= 5, 'moeilijkheid buiten bereik');
-    assert.ok(lied.tempo >= 40 && lied.tempo <= 200, 'tempo onrealistisch');
+    // Een liedtekst zonder muziek heeft geen tempo en geen akkoorden: dat is geen
+    // fout maar een eigenschap van de bron (van die liedjes is geen melodie overgeleverd).
+    const alleenTekst = !lied.noten.length && !lied.model.akkoorden.length;
+    if (alleenTekst) {
+      // Het databestand heeft tempo 0; de lezer zet er een werkbaar standaardtempo
+      // neer omdat de speler nu eenmaal een getal nodig heeft. In het bestand zelf
+      // staat geen tempo, en dat is wat de keuring in het bronbestand controleert.
+      assert.ok(lied.tempo >= 40, 'onwerkbaar tempo: ' + lied.titel);
+    } else {
+      assert.ok(lied.tempo >= 40 && lied.tempo <= 200, 'tempo onrealistisch');
+    }
     assert.ok(lied.maatsoort >= 2 && lied.maatsoort <= 12, 'maatsoort onrealistisch: ' + lied.titel);
     if (lied.noten.length) {
       assert.ok(lied.noten.length >= 8, 'te weinig noten: ' + lied.titel);
@@ -175,7 +185,12 @@ test('de meegeleverde liedjes-dataset is compleet en houdt zich aan de whitelist
     }
     // een instrumentaal wijsje mag één akkoord hebben (een ronde bijvoorbeeld),
     // een liedje met tekst hoort er minstens twee te hebben
-    assert.ok(lied.model.akkoorden.length >= (lied.noten.length ? 1 : 2), 'te weinig akkoorden: ' + lied.titel);
+    if (alleenTekst) {
+      assert.equal(lied.toonsoort, '', 'een liedtekst hoort geen toonsoort te hebben: ' + lied.titel);
+      assert.match(lied.licentie || '', /Publiek domein/, 'licentie niet onderbouwd: ' + lied.titel);
+    } else {
+      assert.ok(lied.model.akkoorden.length >= (lied.noten.length ? 1 : 2), 'te weinig akkoorden: ' + lied.titel);
+    }
     for (const akkoord of lied.model.akkoorden) {
       const toegestaan = lied.noten.length ? grepen.heeftGreep(akkoord) : WHITELIST.includes(akkoord);
       assert.ok(toegestaan, `${lied.titel}: akkoord zonder greep: ${akkoord}`);
@@ -255,4 +270,35 @@ test('zoekindex van de meegeleverde liedjes bevat akkoorden en tekst', () => {
   assert.match(index, /amazing grace/);
   assert.match(index, /grace/);
   assert.ok(index.length > 100, 'zoekindex te mager');
+});
+
+test('Limburgse liedteksten zonder melodie komen mee en blijven eerlijk', () => {
+  const liedjes = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'song-data', 'limburg-liedjes.json'), 'utf8'));
+  const teksten = liedjes.filter(l => l.genre === 'Liedtekst' || l.chordpro.includes('Alleen de liedtekst'));
+  assert.ok(teksten.length >= 18, 'verwacht minstens achttien liedteksten, gevonden: ' + teksten.length);
+  for (const l of teksten) {
+    // geen akkoorden, geen toonsoort, geen tempo: er is geen muziek in de bron
+    assert.equal(l.toonsoort, '', l.titel + ': hoort geen toonsoort te hebben');
+    assert.equal(l.tempo, 0, l.titel + ': hoort geen tempo te hebben');
+    assert.ok(!/\[[A-G][^]]*\]/.test(l.chordpro), l.titel + ': hoort geen akkoorden in de tekst te hebben');
+    // wel: de volledige tekst, de dichter met sterfjaar en een bron
+    assert.ok(l.chordpro.includes('{title: ' + l.titel + '}'), l.titel + ': titel ontbreekt');
+    assert.match(l.artiest, /†\d{4}|Anoniem/, l.titel + ': dichter zonder sterfjaar');
+    assert.match(l.bron, /https?:\/\//, l.titel + ': bron zonder adres');
+    assert.match(l.licentie, /Publiek domein/, l.titel + ': licentie niet onderbouwd');
+    const regels = l.chordpro.split('\n').filter(r => r.trim() && !r.startsWith('{'));
+    assert.ok(regels.length >= 4, l.titel + ': te weinig tekstregels');
+  }
+  // de liedjes met muziek blijven zoals ze waren
+  const metMuziek = liedjes.filter(l => l.toonsoort);
+  assert.ok(metMuziek.length >= 4, 'de vier liedjes met muziek horen er nog te zijn');
+  for (const l of metMuziek) assert.match(l.chordpro, /\[[A-G][^]]*\]/, l.titel + ': akkoorden ontbreken');
+});
+
+test('de app zegt het als er alleen een tekst is', () => {
+  const html = require('fs').readFileSync(require('path').join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  assert.match(html, /'<span class="chip geen">alleen tekst<\/span>'/);
+  assert.match(html, /Van dit liedje is alleen de tekst overgeleverd/);
+  const server = require('fs').readFileSync(require('path').join(__dirname, '..', 'server.js'), 'utf8');
+  assert.match(server, /er is geen melodie of ' \+\s*\n\s*'akkoordschema om mee te spelen/);
 });

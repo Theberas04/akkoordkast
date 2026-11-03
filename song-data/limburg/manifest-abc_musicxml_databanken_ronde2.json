@@ -1,0 +1,33 @@
+{
+  "ronde": 2,
+  "bron": "ABC- en MusicXML-databanken en GitHub/GitLab",
+  "bron_url": "https://abcnotation.com/searchTunes?q=Limburg+mijn+vaderland ; https://api.github.com/search/repositories ; https://searchcode.com ; https://grep.app ; https://github.com/OpenScore/Lieder ; https://www.mutopiaproject.org",
+  "aanpak": "ABC-tunezoeker abcnotation.com (830.000 tunes) op 'Limburg mijn vaderland' (0 hits); GitHub repository-zoekopdrachten op 'limburg abc', 'limburg notation', 'volksliederen abc', 'nederlandse volksliedjes', 'volksmuziek abc', 'liedboek limburg' (0 relevante repos); code-zoekdiensten grep.app en searchcode.com (grep.app geblokkeerd door Vercel-checkpoint; searchcode API 404/offline, GitHub code search vereist auth); volledige inhoudsopgave (10.609 paden, 142 componisten) van het OpenScore Lieder Corpus (CC0, MusicXML) doorgelopen op Nederlandse/Limburgse liederen; Mutopia gecontroleerd.",
+  "bevindingen": [
+    {
+      "bron": "abcnotation.com",
+      "resultaat": "0 resultaten voor 'Limburg mijn vaderland' uit ongeveer 830.000 tunes. Eerdere ronde: zoekterm 'Limburg' levert alleen Duitstalige Erk-wijsjes (geen Limburg-band).",
+      "toegestaan": false
+    },
+    {
+      "bron": "OpenScore Lieder Corpus (github.com/OpenScore/Lieder)",
+      "licentie_literaal": "CC0 1.0 (a public domain dedication) - 'Free to print, copy, arrange and share - no credit required.'",
+      "resultaat": "142 componisten, geen enkele Nederlandse of Limburgse componist; geen Dutch/Limburg/folk- of anonieme mappen aanwezig.",
+      "toegestaan": false
+    },
+    {
+      "bron": "Mutopia Project (mutopiaproject.org)",
+      "licentie_literaal": "All music on Mutopia may be freely downloaded, printed, copied, distributed, modified, performed and recorded. ... Creative Commons Attribution-ShareAlike (4.0 / 3.0 / 2.5 / 2.0 / 1.0) ... Creative Commons Attribution (4.0 / 3.0 / 2.5) ... Public Domain ...",
+      "resultaat": "Zoekresultaat 'Limburg': 'Sorry, no matches were found for your search criteria.' Geen Limburgs werk.",
+      "toegestaan": false
+    },
+    {
+      "bron": "GitHub / GitLab / grep.app / searchcode",
+      "resultaat": "Geen publieke repository met Limburgse volksmuziek in ABC/MusicXML. GitHub code search en grep.app waren niet bruikbaar (auth resp. bot-checkpoint); dit is een restrisico.",
+      "toegestaan": false
+    }
+  ],
+  "toegestaan": false,
+  "aantal_stukken": 0,
+  "bestanden": []
+}

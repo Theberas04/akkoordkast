@@ -1,0 +1,24 @@
+{
+  "ronde": 2,
+  "bron": "Wikisource (nl + li) en de dialect-versies van het Limburgs volkslied",
+  "bron_url": "https://nl.wikisource.org/wiki/Limburg_mijn_Vaderland ; https://li.wikipedia.org/wiki/Limburgs_volksleed",
+  "aanpak": "li.wikisource.org bestaat niet (HTTP 404). nl.wikisource.org en li.wikipedia.org doorgelicht op noten/partituur; beoordeeld of er machineleesbare notatie bij staat.",
+  "gevonden_inhoud": [
+    {
+      "bron": "nl.wikisource 'Limburg mijn Vaderland'",
+      "soort": "Liedtekst (4 coupletten), scan van de vlag, GEEN noten/geen <score>-tag",
+      "licentie_literaal": "Wikipedia/Wikisource-inhoud is beschikbaar onder de licentie Creative Commons Naamsvermelding/Gelijk delen (CC BY-SA 4.0); de losse teksten van dit PD-lied staan in het publiek domein.",
+      "machineleesbare_notatie": false
+    },
+    {
+      "bron": "li.wikipedia 'Limburgs volksleed'",
+      "soort": "Nederlandse tekst + circa 10 dialectvertalingen (Valkebergs, Venloos, Blieriks, Wieerts/Weerts, Zjwiers, Mestreechs, Posters, Mofers) - alleen tekst, GEEN noten",
+      "licentie_literaal": "CC BY-SA 4.0",
+      "machineleesbare_notatie": false
+    }
+  ],
+  "conclusie": "Er zijn Limburgse liedteksten (incl. dialectversies), maar zonder noten. Voor deze opdracht niet bruikbaar; hier genoteerd zodat een volgende ronde weet wat er staat (titel, bron, licentie).",
+  "toegestaan": false,
+  "aantal_stukken": 0,
+  "bestanden": []
+}

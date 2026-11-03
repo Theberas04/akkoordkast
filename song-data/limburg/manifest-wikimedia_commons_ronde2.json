@@ -1,0 +1,56 @@
+{
+  "ronde": 2,
+  "bron": "Wikimedia Commons - categorieen, componistencategorieen en bestandstypes .mid/.abc/.musicxml/.ly/.mxl",
+  "bron_url": "https://commons.wikimedia.org/wiki/Category:Limburg_(Netherlands) ; https://commons.wikimedia.org/wiki/Category:Songs_of_the_Netherlands ; https://commons.wikimedia.org/wiki/Category:MIDI_files_of_melody_settings_by_Peter_Gerloff_(secular)",
+  "aanpak": "MediaWiki-API: categorymembers van 'Limburg (Netherlands)' (57), 'Music of the Netherlands' (111), 'Songs of the Netherlands', 'Kun je nog zingen, zing dan mee' (117), 'Traditional songs of the Netherlands' (3), 'Het oude Nederlandsche lied (Van Duyse)' (5); full-text zoekopdrachten op filemime:audio/midi / application/x-abc / musicxml / x-lilypond i.c.m. Limburg, Maastricht, Roermond, Venlo, Sittard, Weert en dialectwoorden; de volledige CC0-MIDI-set van uploader Peter Gerloff (430 wereldlijke + 200 geestelijke bestanden) doorgelopen op Nederlandse/Limburgse liederen.",
+  "bevindingen": [
+    {
+      "categorie_of_bestand": "Bronsgroen.png",
+      "band": "Notenbeld 'Limburg mijn Vaderland' (muziek Henri Tijssen)",
+      "formaat": "PNG",
+      "licentie_literaal": "Public domain",
+      "toegestaan": false,
+      "reden": "Publiek domein maar raster-afbeelding, GEEN machineleesbare notatie (geen ABC/MusicXML/MIDI/LilyPond)."
+    },
+    {
+      "categorie_of_bestand": "In 't bronsgroen eikenhout.PNG",
+      "formaat": "PNG",
+      "licentie_literaal": "I, the copyright holder of this work, release this work into the public domain. This applies worldwide. ...",
+      "toegestaan": false,
+      "reden": "Publiek domein maar afbeelding, niet machineleesbaar."
+    },
+    {
+      "categorie_of_bestand": "Nederlandse volksliederen-batch van uploader Rozemarijn vL (o.a. Ferme-jongens-stoere-knapen-muziek.mid, In groen knollenland-kinderliedje-muziek.mid)",
+      "formaat": "MIDI",
+      "licentie_literaal": "This file is licensed under the Creative Commons Attribution-Share Alike 4.0 International license. ... share alike - If you remix, transform, or build upon the material, you must distribute your contributions under the same or compatible license as the original.",
+      "toegestaan": false,
+      "reden": "CC BY-SA 4.0 (share-alike) verboden; en geen enkel bestand betreft een specifiek Limburgs lied."
+    },
+    {
+      "categorie_of_bestand": "CC0-MIDI-set uploader Peter Gerloff / Rabanus Flavus (430 wereldlijke bestanden)",
+      "formaat": "MIDI",
+      "licentie_literaal": "Creative Commons Zero, Public Domain Dedication",
+      "toegestaan": true,
+      "aantal_limburg_stukken": 0,
+      "reden_geen_opname": "Licentie toegestaan (CC0), maar geen enkel bestand betreft een Limburgs lied. Wel Nederlandse liedjes (In Holland staat een huis, Heer Halewijn, Al die willen te kaap'ren varen - niet Limburgs) en schijnverwanten."
+    },
+    {
+      "categorie_of_bestand": "File:Härn Pastoor sien Kauh.mid",
+      "formaat": "MIDI",
+      "licentie_literaal": "Creative Commons Zero, Public Domain Dedication",
+      "toegestaan": true,
+      "reden_geen_opname": "VALSE POSITIEF: tekst in het Nederduits/Westfaals ('tau', 'Dörp'), niet Limburgs."
+    },
+    {
+      "categorie_of_bestand": "File:Freu dich, erlöste Christenheit.mid (o.a.)",
+      "formaat": "MIDI",
+      "licentie_literaal": "Creative Commons Zero, Public Domain Dedication",
+      "toegestaan": true,
+      "reden_geen_opname": "VALSE POSITIEF: 'Melodie: Limburg 1838' verwijst naar het Duitse bisdom Limburg (Limburg an der Lahn), niet naar Nederlands/Belgisch Limburg."
+    }
+  ],
+  "samenvatting": "Geen enkel machineleesbaar Limburgs muziekbestand op Commons. Zoekopdrachten 'Limburg filemime:audio/midi' en 'intitle:Limburg filemime:audio/midi' geven 0 hits; er bestaat geen categorie 'Music of Limburg' of 'Songs of Limburg (Netherlands)'. De wel bestaande Limburg-bestanden zijn afbeeldingen (PD, niet machineleesbaar), een OGG-opname (CC BY-SA 4.0, verboden) of Duitse toevallige naamgenoten.",
+  "toegestaan": false,
+  "aantal_stukken": 0,
+  "bestanden": []
+}

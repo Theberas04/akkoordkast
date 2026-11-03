@@ -1,0 +1,82 @@
+{
+  "bron": "DBNL — Mestreechter spraok, doe zeute taol! (H.J.E. Endepols, 2e druk 1943)",
+  "bron_url": "https://www.dbnl.org/tekst/ende003mest03_01/",
+  "licentie_literaal": "DBNL-kwalificatie van de bloemlezing: 'Mogelijk auteursrechtelijk beschermd'. De opgenomen liedtekst zelf is publiek domein: de tekstdichter overleed meer dan 70 jaar geleden (vóór 1 januari 1956).",
+  "aantal_teksten": 12,
+  "titels": [
+    {
+      "titel": "'t Vreugjaor",
+      "auteur": "Johannes Theodorus Hubertus Weustenraad",
+      "sterfjaar": 1849
+    },
+    {
+      "titel": "Mastreechter taol",
+      "auteur": "Guillaume Désiré Lambert Franquinet",
+      "sterfjaar": 1900
+    },
+    {
+      "titel": "De Noordmanne",
+      "auteur": "Guillaume Désiré Lambert Franquinet",
+      "sterfjaar": 1900
+    },
+    {
+      "titel": "'t Kameneerke",
+      "auteur": "Guillaume Désiré Lambert Franquinet",
+      "sterfjaar": 1900
+    },
+    {
+      "titel": "Chariteit",
+      "auteur": "Laurent Polis",
+      "sterfjaar": 1915
+    },
+    {
+      "titel": "Momus 4 × 11 jaorig jubelei",
+      "auteur": "Laurent Polis",
+      "sterfjaar": 1915
+    },
+    {
+      "titel": "Op de wereld is alles vals",
+      "auteur": "Laurent Polis",
+      "sterfjaar": 1915
+    },
+    {
+      "titel": "Oet Rooske Kleeve (Romance · Aria · Stances)",
+      "auteur": "Johan Koenraad Joseph Breuls",
+      "sterfjaar": 1923
+    },
+    {
+      "titel": "Figaro (oet 'Figaro de Berbeer')",
+      "auteur": "Joseph Hubert Laurent Albert",
+      "sterfjaar": 1939
+    },
+    {
+      "titel": "Air van de calomnie (oet 'Figaro de Berbeer')",
+      "auteur": "Joseph Hubert Laurent Albert",
+      "sterfjaar": 1939
+    },
+    {
+      "titel": "Slotkoor oet 'Trijn' (Mestreechs volksleed)",
+      "auteur": "Alfons Olterdissen",
+      "sterfjaar": 1923
+    },
+    {
+      "titel": "Den onbekinde soldaot sprik",
+      "auteur": "Joseph Systermans",
+      "sterfjaar": 1939
+    }
+  ],
+  "bestanden": [
+    "dbnl_mestreechter_spraok.json"
+  ],
+  "niet_opgenomen": [
+    {
+      "titel": "Lamberts Hurrelbrinck, prozateksten",
+      "reden": "Proza, geen liedtekst."
+    },
+    {
+      "titel": "Anonieme volksleedsjes (Kèrmèsleedsje, Dansleedsje, Kinderleedsjes ...)",
+      "reden": "Anoniem en de bron (1943) verklaart geen PD en is van ná 1900."
+    }
+  ],
+  "opmerking": "7 teksten zijn expliciete liedteksten (met wijsaanduiding, muziek of als zangnummer/polonaise-koers): Momus-jubelei, 'Op de wereld is alles vals' (wijs: Cadet Roussel), 'Oet Rooske Kleeve' (Romance/Aria/Stances, muziek Charles de Bont), Figaro en Air van de calomnie (zangnummers uit de parodie-opera 'Figaro de Berbeer'), Slotkoor uit 'Trijn' (Mestreechs volksleed) en 'Den onbekinde soldaot sprik' (chanson). 5 teksten zijn rijmende, strofische Maastrichtse dialectverzen uit dezelfde bloemlezing (Weustenraad, Franquinet, Polis): geschikt als liedtekst (coupletstructuur + rijm), maar zonder expliciete muziekaanduiding in de bron."
+}

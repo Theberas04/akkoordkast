@@ -8,7 +8,7 @@
 ![Node 22](https://img.shields.io/badge/Node.js-22%20(node%3Asqlite)-3c873a)
 ![geen npm-afhankelijkheden](https://img.shields.io/badge/dependencies-geen-34d399)
 ![taal](https://img.shields.io/badge/taal-Nederlands-60a5fa)
-![liedjes](https://img.shields.io/badge/liedjes-8683-f5a524)
+![liedjes](https://img.shields.io/badge/liedjes-8701-f5a524)
 ![bronnen](https://img.shields.io/badge/bronnen-publiek%20domein-34d399)
 
 Je opent AkkoordKast op je telefoon of laptop, zoekt een liedje en ziet meteen:
@@ -18,7 +18,7 @@ Die begeleiding cast je naar een Chromecast in je netwerk.
 
 | Scherm | Wat je ziet |
 | --- | --- |
-| ![liedjes](docs/img/liedjes-desktop.png) | **Liedjesbibliotheek** — zoeken op titel, artiest of akkoord, filteren op taal, soort, capo en moeilijkheid. Elk liedje toont zijn capostand. |
+| ![liedjes](docs/img/liedjes-desktop.png) | **Liedjesbibliotheek** — zoeken op titel, artiest of akkoord, filteren op taal, **genre**, **artiest**, capo en moeilijkheid. Elk liedje toont zijn capostand. |
 | ![spelen](docs/img/spelen-desktop.png) | **Capo-advies** — "Capo 3, speel in A", met de grepen die je dan pakt en de barré-akkoorden die je ermee ontwijkt. |
 | ![grepen](docs/img/grepen-desktop.png) | **Grepen** — een greepdiagram per akkoord, meegeschoven met de capostand en de barré als balk getekend. |
 | ![bladmuziek](docs/img/bladmuziek-telefoon.png) | **Bladmuziek op je telefoon** — akkoorden boven de lettergreep waar ze vallen, refreinen apart, tabblokken in monospace. Ook te printen. |
@@ -28,7 +28,7 @@ Die begeleiding cast je naar een Chromecast in je netwerk.
 | ![meespelen](docs/img/meespelen-opname.png) | **Meespelen met je eigen opname** — je opname is de muziek; de akkoorden, de maat, de hals en de grepen lopen ermee mee. |
 | ![spotify](docs/img/spotify-blok.png) | **Spotify** — plak een link en de speler staat erbij; de noten lopen mee met wat je hoort. Met een eigen Client ID kun je ook zoeken. |
 | ![muziekmap](docs/img/muziekmap-klaar.png) | **Een hele muziekmap in één keer** — geef een map op deze machine op en elk nummer erin wordt een eigen liedje met akkoordschema, tempo en toonsoort. |
-| ![leren](docs/img/leren-cursus.png) | **Gitaar leren spelen** — acht lessen van het vasthouden van de gitaar tot je eerste barré-akkoord, met per les een oefening in de app en je voortgang bewaard op je toestel. |
+| ![leren](docs/img/leren-cursus.png) | **Gitaar leren spelen** — zesentwintig lessen in vier delen, van "hoe houd ik hem vast" tot een oefenplan dat je volhoudt, met per les een oefening in de app en je voortgang bewaard op je toestel. |
 | ![akkoordentrainer](docs/img/leren-trainer.png) | **Akkoordentrainer** — metronoom, een set akkoorden naar keuze en het volgende akkoord alvast in beeld, want daar gaat het bij leren wisselen om. |
 | ![start/stop](docs/img/start-stop.png) | **Start en stop bij het spelen** — naast de speler staan twee gewone knoppen (Start en Stop) met de stand ernaast; Stop zet de muziek ook echt terug naar het begin. |
 | ![tekst](docs/img/liedjestekst-bij-opname.png) | **De liedjestekst erbij** — lijkt de bestandsnaam op een liedje uit de bibliotheek, dan krijg je de tekst van dat liedje erbij te lezen, met de akkoorden uit jouw opname erboven. |
@@ -108,6 +108,7 @@ op schijf en de installatiescripts hetzelfde zeggen.
 | [`song-data/kerkwijsjes.json`](song-data/kerkwijsjes.json) | 328 | kerkwijsjes uit het Open Hymnal Project, instrumentaal, akkoorden uit de vierstemmige zetting | 200.000+ |
 | [`song-data/anthology-liedjes.json`](song-data/anthology-liedjes.json) | 314 | liedjes **met tekst** uit The Public Domain Song Anthology (CC0), Engelstalig, akkoorden uit de harmonisatie, noten uit de zangstem | 500.000+ |
 | [`song-data/oneill-liedjes.json`](song-data/oneill-liedjes.json) | 2.352 | Ierse wijsjes uit O'Neill's *Music of Ireland* en *Dance Music of Ireland* (1903): jigs, reels, hornpipes, airs | 300.000+ |
+| [`song-data/limburg-liedjes.json`](song-data/limburg-liedjes.json) | 22 | Limburg: het volkslied en drie liedjes van de Sittardse troubadour **Jo Erens** (tekst én muziek, sinds 1 januari dit jaar rechtenvrij) met akkoordschema, plus **achttien publiek-domein liedteksten** uit Maastricht (Mestreechs dialect, uit de bloemlezing van Endepols, 1943) en Belgisch-Limburg (Lambrechts) — van die achttien is geen melodie overgeleverd, dus die staan er als tekst zonder akkoorden | 600.000+ |
 | [`song-data/oude-bundels.json`](song-data/oude-bundels.json) | 4.688 | historische dansbundels: Kerr's *Merry Melodies*, Ryan's *Mammoth Collection* / Cole's *1000 Fiddle Tunes*, en achttiende-eeuwse Engelse manuscripten | 400.000+ |
 
 Elk liedje houdt de toonsoort die de bron aangeeft; waar een akkoord geen greep heeft zoekt de
@@ -147,6 +148,15 @@ Jo Erens (1928-1955) — zijn pas dit jaar rechtenvrij en er bestaat geen leesba
 kunnen er dus alleen in als jij de akkoorden en de tekst aanlevert, of als je een opname uploadt en de
 app de akkoorden er zelf uit haalt.
 
+**Wat er wél uit Limburg in staat.** Achttien liedteksten uit de tweede ronde: twaalf Maastrichtse
+liederen in het Mestreechs (Weustenraad †1849, Franquinet †1900, Polis †1915, Breuls †1923, Olterdissen
+†1923, Albert †1939, Systermans †1939 — waaronder het *Slotkoor oet 'Trijn'*, het Maastrichtse volkslied,
+en *'t Vreugjaor*), één anonieme *Erelied der Potentaten van Beek* (gedrukt 1892) en vijf liederen van de
+Belgisch-Limburgse dichter Lambrecht Lambrechts (†1932). Elk lied heeft een verifieerbare bron-URL en een
+geverifieerd sterfjaar; van deze liedjes is **geen melodie overgeleverd**, dus er staan geen akkoorden bij
+en de app zegt dat er ook bij: de liedlijst zet er "alleen tekst" op en het speelscherm zegt dat er geen
+begeleiding te maken valt. Niets verzonnen, ook niet muzikaal.
+
 **Over dubbelen.** De bundels overlappen elkaar: hetzelfde wijsje staat in O'Neill, in Kerr's én in
 Ryan's. `scripts/ontdubbel.js` haalt die eruit op titel plus het verloop van de melodie (los van de
 toonsoort, zodat ook een getransponeerde transcriptie als dubbel geldt) — 300 dubbelen eruit. De
@@ -161,31 +171,39 @@ aan. De app zelf levert alleen de akkoordenreeks, de grepen en de capo-adviezen.
 
 ## Gitaar leren spelen
 
-In het tabblad **Leren** zit een cursus van acht lessen, van "hoe houd ik hem vast" tot het
-barré-akkoord. Elke les heeft een doel, uitleg in gewone taal en één oefening die je meteen in de
-app doet:
+In het tabblad **Leren** zit een cursus van **zesentwintig lessen in vier delen**. Elke les heeft een
+doel, uitleg in gewone taal en één oefening die je meteen in de app doet. Je voortgang (lessen,
+oefeningen en getrainde akkoordwissels) blijft in je eigen browser bewaard.
 
-1. De gitaar vasthouden en de zes snaren — E · A · D · G · B · e, en je vingernummers.
-2. Stemmen — met de toonbank in de app; welke snaar eerst en hoe je hoort dat je er nog naast zit.
-3. Je eerste drie akkoorden: Em, Am en C — vingers net achter de fret, elke snaar laten klinken.
-4. C, G en D7 — en leren wisselen, met je anker-vinger en vooruitkijken.
-5. Slagritme met de rechterhand — meetellen en het patroon D DU UDU.
-6. Maatsoort en meespelen met een liedje — van oefening naar een echt liedje uit de bibliotheek.
-7. Capo en toonsoort — waarom capo 2 hetzelfde klinkt met makkelijkere grepen.
-8. Barré-akkoorden: F en Bm — de liggende vinger, in stukjes opgebouwd.
+**Beginnen (5 lessen)** — de gitaar vasthouden en de zes snaren; stemmen; je eerste drie akkoorden
+(Em · Am · C); de houding van je linkerhand; opwarmen en vingeroefeningen.
+
+**Akkoorden (6 lessen)** — C · G · D7 en leren wisselen; groot tegen klein horen; mineurakkoorden
+(Am · Em · Dm · Bm); zevende akkoorden en waarom G7 naar C wil; barré-akkoorden F en Bm; en met één
+barrévorm akkoorden op elke fret pakken.
+
+**Ritme (5 lessen)** — slagritme met de rechterhand (D DU UDU); maatsoort en meetellen (4/4, 3/4, 6/8);
+tokkelen met je vingers; tempo vasthouden zonder metronoom; dynamiek, hard en zacht.
+
+**Verdiepen (10 lessen)** — een liedje helemaal meespelen; capo en toonsoort; transponeren naar jouw
+stem; toonladders en waar akkoorden vandaan komen; zelf akkoorden kiezen bij een tekst; een liedje op
+gehoor uitzoeken; meespelen met een opname; jezelf terugluisteren; onderhoud van je gitaar; en een
+oefenplan van tien minuten per dag.
 
 Daarnaast staat in hetzelfde tabblad:
 
-- **Akkoordentrainer** met metronoom: kies een set (van Em · Am · C tot alle 26 grepen door elkaar),
-  het tempo en het aantal maten per akkoord. De app laat het volgende akkoord alvast zien en telt de
-  maten voor je; na het stoppen zie je hoeveel akkoordwissels je gedaan hebt.
+- **Akkoordentrainer** met metronoom: vul een eigen akkoordenset in (met de voorbeelden als suggestie,
+  van Em · Am · C tot alle 26 grepen door elkaar), kies het tempo en het aantal maten per akkoord. De
+  app laat het volgende akkoord alvast zien en telt de maten voor je; na het stoppen zie je hoeveel
+  akkoordwissels je gedaan hebt.
 - **Stemmen**: klik op een snaar en hoor de toon. Zes knoppen, dik naar dun.
 - **Slagpatronen**: vier patronen plus tokkelen, met een metronoom die meetelt.
 - **Alle grepen** op één plek: klik op een greep en je hoort hem.
 
-Wat je afrondt blijft bewaard: de lessen, het aantal oefeningen en het aantal getrainde akkoordwissels
-staan in je eigen browser (localStorage), niet op de server. Alles wat klinkt maakt de pagina zelf met
-Web Audio — geen geluidsbestanden, geen internet, en het werkt dus ook in de app op je telefoon.
+Alles wat klinkt maakt de pagina zelf met Web Audio — geen geluidsbestanden, geen internet, en het werkt
+dus ook in de app op je telefoon en offline.
+
+![een les uit het deel Ritme](docs/img/leren-les.png)
 
 ![stemmen en slagpatronen](docs/img/leren-stemmen.png)
 

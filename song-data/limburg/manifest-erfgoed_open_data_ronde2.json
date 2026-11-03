@@ -1,0 +1,37 @@
+{
+  "ronde": 2,
+  "bron": "Limburgse en open erfgoedarchieven met expliciet open licentie",
+  "bron_url": "https://historischcentrumlimburg.nl/ ; https://api.europeana.eu/ ; https://www.muziekschatten.nl/ ; https://cemper.be/",
+  "aanpak": "Gecontroleerd op gedigitaliseerde bladmuziek met een expliciete PD/CC0/CC-BY-licentie.",
+  "bevindingen": [
+    {
+      "bron": "Historisch Centrum Limburg (HCL, Maastricht; fusie van Rijksarchief/Maastricht/Heerlen)",
+      "formaat": "Archieven en collecties (o.a. handschriften, drukwerk)",
+      "licentie_literaal": "Geen expliciete PD/CC0/CC-BY-licentieverklaring voor gedigitaliseerde bladmuziek aangetroffen; 'in principle these archives are open to the public' is een toegankelijkheids-, geen licentieverklaring.",
+      "machineleesbare_notatie": false,
+      "toegestaan": false
+    },
+    {
+      "bron": "Europeana (aggregator)",
+      "formaat": "Beeld (foto's, affiches) en metadata",
+      "licentie_literaal": "http://creativecommons.org/licenses/by-nc-nd/4.0/",
+      "toegestaan": false,
+      "reden": "CC BY-NC-ND (niet-commercieel, geen afgeleiden) verboden; en het betreft beeld, geen machineleesbare notatie. Voorbeeld: 'Olterdissen, August ... componist van onder andere het Maastrichtse volkslied'."
+    },
+    {
+      "bron": "Muziekschatten (Stichting Omroep Muziek / Muziekbibliotheek van de Omroep)",
+      "formaat": "Gedigitaliseerde bladmuziek (PDF-scans), deels enkel voor betalende leden",
+      "licentie_literaal": "Geen PD/CC0/CC-BY-verklaring per stuk; toegang via (betaald) lidmaatschap. '...available upon registration for the site.'",
+      "machineleesbare_notatie": false,
+      "toegestaan": false
+    },
+    {
+      "bron": "CEMPER / Resonant (Vlaams centrum voor muzikaal erfgoed)",
+      "formaat": "Advies/onderzoek; geen publiek bladmuziekcorpus met open licentie gevonden voor Belgisch Limburg",
+      "toegestaan": false
+    }
+  ],
+  "conclusie": "Geen gedigitaliseerde Limburgse bladmuziek onder PD/CC0/CC-BY. Waar materiaal bestaat gaat het om NC/ND-licenties, betaalde toegang of niet-gelicenseerde scans.",
+  "aantal_stukken": 0,
+  "bestanden": []
+}

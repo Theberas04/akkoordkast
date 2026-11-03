@@ -284,6 +284,7 @@ function zoekLiedjes(query) {
   const q = (query.get('zoek') || '').trim().toLowerCase();
   const taal = (query.get('taal') || '').trim().toLowerCase();
   const genre = (query.get('genre') || '').trim().toLowerCase();
+  const artiest = (query.get('artiest') || '').trim().toLowerCase();
   const capoFilter = (query.get('capo') || '').trim().toLowerCase();
   const moeilijk = parseInt(query.get('moeilijkheid'), 10);
   const eigenFilter = (query.get('eigen') || '').trim();
@@ -301,6 +302,9 @@ function zoekLiedjes(query) {
   }
   if (taal) uit = uit.filter(l => l.taal === taal);
   if (genre) uit = uit.filter(l => l.genre.toLowerCase() === genre);
+  // op artiest zoeken we met een gedeeltelijke overeenkomst: in de grote bundels
+  // staat de verzameling als "artiest" ("Kerr's Merry Melodies (Glasgow, 1870-1880)")
+  if (artiest) uit = uit.filter(l => (l.artiest || '').toLowerCase().includes(artiest));
   if (eigenFilter === '1') uit = uit.filter(l => l.eigen);
   if (eigenFilter === '0') uit = uit.filter(l => !l.eigen);
   if (Number.isFinite(moeilijk)) uit = uit.filter(l => l.moeilijkheid === moeilijk);
@@ -499,6 +503,10 @@ function meespeelPlan(lied, query) {
   const rondes = (heeftMelodie || meespeelEigenAudio(lied)) ? 1 : waarheidsgetrouw(query, 'rondes', 3, 1, 8);
 
   const metEigenAudio = meespeelEigenAudio(lied) && query.get('bron') !== 'synth';
+  if (!perMaat.length) {
+    throw new Error('Van dit liedje is alleen de tekst overgeleverd: er is geen melodie of ' +
+      'akkoordschema om mee te spelen.');
+  }
   const plan = tijdlijn.maakPlan({
     akkoorden: perMaat,
     rondes: rondes,
@@ -856,6 +864,12 @@ async function verwerk(req, res) {
 
   if (pad === '/' || pad === '/index.html') {
     stuurBestand(req, res, path.join(__dirname, 'public', 'index.html'), MIME['.html'], { 'cache-control': 'no-cache' });
+    return;
+  }
+
+  // --- artiesten (voor het filter) ---
+  if (pad === '/api/artiesten' && methode === 'GET') {
+    json(res, 200, { artiesten: bron.artiesten() });
     return;
   }
 

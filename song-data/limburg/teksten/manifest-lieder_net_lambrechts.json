@@ -1,0 +1,37 @@
+{
+  "bron": "LiederNet — teksten van Lambrecht Lambrechts",
+  "bron_url": "https://www.lieder.net/lieder/get_author_texts.html?AuthorId=13550",
+  "licentie_literaal": "Tekst publiek domein (tekstdichter Lambrecht Lambrechts, 1865–1932, overleed > 70 jaar geleden). LiederNet geeft geen eigen licentie voor de tekstweergave; bruikbaar op grond van het sterfjaar van de auteur.",
+  "aantal_teksten": 4,
+  "titels": [
+    {
+      "titel": "De duinen",
+      "auteur": "Lambrecht Lambrechts",
+      "sterfjaar": 1932
+    },
+    {
+      "titel": "De drie Marias",
+      "auteur": "Lambrecht Lambrechts",
+      "sterfjaar": 1932
+    },
+    {
+      "titel": "De stem der Inningheid",
+      "auteur": "Lambrecht Lambrechts",
+      "sterfjaar": 1932
+    },
+    {
+      "titel": "Het groetend kindje",
+      "auteur": "Lambrecht Lambrechts",
+      "sterfjaar": 1932
+    }
+  ],
+  "bestanden": [
+    "lieder_net_lambrechts.json"
+  ],
+  "niet_opgenomen": [
+    {
+      "titel": "Zeelied (TextId 43288)",
+      "reden": "Tekst niet weergegeven op de site (copyright-placeholder)."
+    }
+  ]
+}

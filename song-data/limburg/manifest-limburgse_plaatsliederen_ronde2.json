@@ -1,0 +1,26 @@
+{
+  "ronde": 2,
+  "bron": "Volksliederen van Limburgse plaatsen (stads-, dorp-, gilde- en schuttersliederen)",
+  "bron_url": "https://nl.wikipedia.org/wiki/Limburg_mijn_vaderland ; https://li.wikipedia.org/wiki/Limburgs_volksleed ; Wikidata SPARQL (componisten geboren in NL-Limburg)",
+  "aanpak": "Per lied/bron gezocht naar een PD/CC0/CC-BY notenbestand (ABC/MusicXML/MIDI/LilyPond) van stads- en dorpsliederen en van werk van voor 1956 overleden Limburgse componisten. Via Wikidata een lijst opgesteld van in Nederlands-Limburg geboren componisten die voor 1 januari 1956 overleden (dus PD).",
+  "pd_limburgse_componisten_gevonden": [
+    {"naam": "Alfons Olterdissen", "overleden": "1923", "notitie": "Maastricht; slotkoor van 'De Kaptein van Köpenick' = officieel Mestreechs volkslied"},
+    {"naam": "Émile Wesly", "overleden": "1926"},
+    {"naam": "Joseph Hollman", "overleden": "1926"},
+    {"naam": "Pieter Joseph Kessels", "overleden": "1928"},
+    {"naam": "Mathijs Joseph Hubertus Kessels", "overleden": "1932"},
+    {"naam": "Carl Smulders", "overleden": "1934"},
+    {"naam": "Jos Vranken", "overleden": "1948", "notitie": "Maastricht (1870-1948)"},
+    {"naam": "Alphons Vranken", "overleden": "1953"},
+    {"naam": "Mathieu-André Reichert", "overleden": "1880"},
+    {"naam": "Alexander Batta", "overleden": "1902"},
+    {"naam": "Agathe Plitt", "overleden": "1902"},
+    {"naam": "Marcus Teller", "overleden": "1728"},
+    {"naam": "Jacobus/Franciscus Florii", "overleden": "1588"}
+  ],
+  "bevinding": "Voor deze PD-componisten is GEEN enkel machineleesbaar werkbestand onder PD/CC0/CC-BY gevonden (CPDL: alleen Magnée met CPDL-licentie; IMSLP: PDF en/of nog onder recht; Commons: geen notatie). Van het Mestreechs volkslied, 'Oud en trouw Roermond' (Tijssen, 1862-1926), en stads-/dorpsliederen van Sittard, Weert en Venlo bestaan geen machineleesbare PD/CC0/CC-BY-bestanden.",
+  "licentie_op_gevonden_wel_teksten": "Limburgs volkslied: tekst en melodie in publiek domein (Tijssen ovl. 1926, Krekelberg ovl. 1937), maar alleen als PD-afbeelding (Commons) of tekst (Wikisource) aanwezig - geen notatiebestand.",
+  "toegestaan": false,
+  "aantal_stukken": 0,
+  "bestanden": []
+}

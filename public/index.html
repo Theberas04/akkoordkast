@@ -192,6 +192,19 @@
   .map-regel .meta{color:var(--tekst2);font-size:.76rem;white-space:nowrap}
   .map-regel.fout{border-color:#7a3b3b}
   .knop.mini{padding:3px 8px;font-size:.76rem}
+  .weken{display:grid;gap:6px}
+  .week-rij{display:flex;gap:8px;align-items:center;font-size:.82rem}
+  .week-naam{width:130px;color:var(--tekst2)}
+  .week-staaf{flex:1;height:10px;background:var(--pane);border:1px solid var(--lijn);border-radius:5px;overflow:hidden}
+  .week-staaf span{display:block;height:100%;background:#5fd39a}
+  .week-staaf span.leeg{background:transparent}
+  .week-meta{width:110px;color:var(--tekst2);text-align:right}
+  .week-akkoorden{color:var(--tekst2);font-size:.76rem;min-width:90px}
+  .overgang-regel{display:flex;flex-direction:column;gap:2px;background:var(--pane);border:1px solid var(--lijn);
+    border-radius:8px;padding:6px 8px;font-size:.82rem}
+  .overgang-regel.klaar{border-color:#2f6b4f}
+  .overgang-regel .naam{font-weight:600}
+  .overgang-regel .meta{color:var(--tekst2)}
   .spotify-speler{margin-top:8px}
   .spotify-speler div{min-height:152px}
   .spotify-speler iframe{border-radius:12px;border:0;width:100%;min-height:152px;background:#0d1526}
@@ -587,6 +600,7 @@
         <select id="setlist-kies"></select>
         <button class="knop" id="setlist-openen" title="Speel de setlist achter elkaar door, groot beeld">Optreden starten</button>
         <button class="knop zacht" id="setlist-printen" title="De setlist als vel om naast je neer te leggen">Setlist printen</button>
+        <button class="knop zacht" id="setlist-overgangen" title="Hoe kom je van het ene liedje in het andere?">Overgangen</button>
         <button class="knop zacht" id="setlist-verwijder">Verwijderen</button>
         <span class="pilletje" id="setlist-teller"></span>
       </div>
@@ -596,6 +610,7 @@
         <span class="les-klein">Zet liedjes erin met <strong>+ setlist</strong> in de lijst of in het spelscherm.</span>
       </div>
       <div id="setlist-inhoud"></div>
+      <div id="setlist-overgangen-lijst" class="scan-lijst" style="margin-top:8px"></div>
       <div class="melding" id="setlist-melding" hidden></div>
     </div>
     <div class="liedlijst" id="liedlijst"></div>
@@ -642,6 +657,7 @@
         </div>
       </div>
       <div id="oefencijfers" style="margin-top:12px"></div>
+      <div id="oefen-weken" style="margin-top:16px"></div>
     </div>
 
     <div class="kaart">
@@ -896,6 +912,30 @@
         <span class="pilletje" id="wacht-versie">…</span>
       </div>
       <div class="melding" id="wacht-melding" hidden></div>
+
+      <h3 style="margin-top:18px">Automatische back-up</h3>
+      <p class="les-klein" style="margin:0 0 10px">De app kan elke dag een kopie van alles wat je zelf hebt
+        gemaakt wegschrijven naar een map die jij kiest — je profielen, favorieten, setlists, oefencijfers, je
+        eigen liedjes en de instellingen. Zet die map bijvoorbeeld op de NAS. De nieuwste tien blijven staan,
+        de rest wordt opgeruimd. Wachtwoorden en sleutels gaan er niet in.</p>
+      <div class="rij">
+        <label for="backup-map">Back-upmap</label>
+        <input id="backup-map" type="text" placeholder="/mnt/Nas/Nas-Opslag/akkoordkast-backup" style="flex:1;min-width:240px">
+      </div>
+      <div class="rij">
+        <label for="backup-bewaren">Bewaren</label>
+        <select id="backup-bewaren" style="width:auto;min-width:90px">
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>
+        <button class="knop" id="backup-aan">Back-up aanzetten</button>
+        <button class="knop zacht" id="backup-nu">Nu een back-up maken</button>
+        <span class="pilletje" id="backup-stand">…</span>
+      </div>
+      <div class="melding" id="backup-melding" hidden></div>
+      <div id="backup-lijst" class="scan-lijst"></div>
     </div>
   </section>
 
@@ -964,6 +1004,7 @@
   <div id="boek-inhoud"></div>
 </section>
 
+<script src="/lib/metronoom.js"></script>
 <script>
 'use strict';
 var staat = {
@@ -1319,6 +1360,61 @@ $('wacht-nu').addEventListener('click', function () {
   }).catch(function (e) { toonMelding('wacht-melding', e.message, 'fout'); });
 });
 
+// ---------------------------------------------------------------- back-up ---
+function laadBackup() {
+  return api('/api/backup').then(function (d) {
+    if ($('backup-map') && !$('backup-map').value) $('backup-map').value = d.map || d.standaardMap || '';
+    if ($('backup-bewaren')) $('backup-bewaren').value = String(d.bewaren || 10);
+    if ($('backup-aan')) $('backup-aan').textContent = d.aan ? 'Back-up uitzetten' : 'Back-up aanzetten';
+    var stand = d.aan ? 'aan' : 'uit';
+    if (!d.map) stand += ' · nog geen map';
+    else if (!d.bestaat) stand += ' · die map is er niet';
+    if (d.laatste) stand += ' · laatst ' + new Date(d.laatste).toLocaleString('nl-NL');
+    if ($('backup-stand')) $('backup-stand').textContent = stand;
+    if (d.verslag) toonMelding('backup-melding', d.verslag, d.aan ? 'goed' : '');
+    var vak = $('backup-lijst');
+    if (vak) {
+      vak.innerHTML = (d.bestanden || []).map(function (b) {
+        return '<div class="scan-regel klaar"><span class="naam">' + esc(b.naam) + '</span>' +
+          '<span class="meta">' + Math.round((b.grootte || 0) / 1024) + ' kB</span></div>';
+      }).join('');
+    }
+    return d;
+  }).catch(function () {});
+}
+
+if ($('backup-aan')) {
+  $('backup-aan').addEventListener('click', function () {
+    var aan = $('backup-aan').textContent.indexOf('uitzetten') < 0;
+    api('/api/backup', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ aan: aan, map: $('backup-map').value.trim(), bewaren: Number($('backup-bewaren').value) })
+    }).then(function () {
+      toonMelding('backup-melding', aan ? 'De app maakt nu elke dag een back-up.' : 'De automatische back-up staat uit.', 'goed');
+      laadBackup();
+    }).catch(function (e) { toonMelding('backup-melding', e.message, 'fout'); });
+  });
+}
+
+if ($('backup-nu')) {
+  $('backup-nu').addEventListener('click', function () {
+    toonMelding('backup-melding', 'Bezig met de back-up…', '');
+    api('/api/backup', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ map: $('backup-map').value.trim(), bewaren: Number($('backup-bewaren').value) })
+    }).then(function () {
+      return api('/api/backup/nu', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
+    }).then(function (r) {
+      var s2 = r.uitkomst || {};
+      var tel = s2.samenvatting || {};
+      toonMelding('backup-melding', 'Back-up gemaakt: ' + s2.bestand + ' (' + Math.round((s2.grootte || 0) / 1024) +
+        ' kB · ' + (tel.liedjes || 0) + ' liedjes, ' + (tel.setlists || 0) + ' setlists, ' + (tel.oefensessies || 0) +
+        ' oefensessies)' + (s2.opgeruimd && s2.opgeruimd.length ? ' · ' + s2.opgeruimd.length + ' oude opgeruimd' : ''), 'goed');
+      laadBackup();
+    }).catch(function (e) { toonMelding('backup-melding', e.message, 'fout'); });
+  });
+}
+
 function laadVersie() {
   api('/api/versie').then(function (data) {
     // Staat er een muziekmap in de omgeving (MUSIC_DIR), dan vullen we die vast in.
@@ -1363,6 +1459,8 @@ $('versie-controle').addEventListener('click', controleerVersie);
 $('versie-update').addEventListener('click', werkBij);
 laadVersie();
 laadMappen();
+laadBackup();
+laadWeken();
 tabUitAdres();
 
 // ------------------------------------------------------------ liedjesboek ---
@@ -1489,9 +1587,39 @@ function tekenSetlist(s) {
       zetInSetlist(knop.getAttribute('data-setlist-lied'), knop.getAttribute('data-setlist-actie'));
     });
   });
+  // De overgangen meteen laten zien: dan hoef je er niet apart op te drukken.
+  laadSetlistOvergangen();
 }
 
 // Een liedje in de actieve setlist zetten, eruit halen of verplaatsen.
+// De overgangen in de huidige setlist: per paar opeenvolgende liedjes wat het handigste
+// is. De rekenkunde zit in lib/overgangen.js op de server.
+function laadSetlistOvergangen() {
+  var vak = $('setlist-overgangen-lijst');
+  var id = staat.setlist && staat.setlist.id;
+  if (!vak) return;
+  if (!id) {
+    vak.innerHTML = '<div class="les-klein">Open eerst een setlist.</div>';
+    return;
+  }
+  vak.innerHTML = '<div class="les-klein">Overgangen bekijken…</div>';
+  api('/api/setlists/' + id + '/overgangen').then(function (data) {
+    var lijst = data.overgangen || [];
+    if (!lijst.length) {
+      vak.innerHTML = '<div class="les-klein">Een setlist met twee of meer liedjes geeft hier advies per overgang.</div>';
+      return;
+    }
+    vak.innerHTML = lijst.map(function (o, i) {
+      return '<div class="overgang-regel' + (o.verandert ? '' : ' klaar') + '">' +
+        '<span class="naam">' + (i + 1) + ' → ' + (i + 2) + ' · ' + esc(o.van.titel) + ' naar ' + esc(o.naar.titel) + '</span>' +
+        '<span class="meta">' + esc(o.advies) + '</span>' +
+        '</div>';
+    }).join('');
+  }).catch(function (e) {
+    vak.innerHTML = '<div class="les-klein">' + esc(e.message) + '</div>';
+  });
+}
+
 function zetInSetlist(liedjeId, actie) {
   if (!staat.setlist.id) {
     // Nog geen setlist? Dan maken we er meteen een aan, zodat het plusje altijd werkt.
@@ -1674,6 +1802,7 @@ $('setlist-kies').addEventListener('change', function () {
 $('setlist-nieuw').addEventListener('click', nieuweSetlist);
 $('setlist-naam').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') nieuweSetlist(); });
 $('setlist-openen').addEventListener('click', startOptreden);
+$('setlist-overgangen').addEventListener('click', laadSetlistOvergangen);
 $('setlist-printen').addEventListener('click', printSetlist);
 $('setlist-verwijder').addEventListener('click', verwijderSetlist);
 
@@ -1749,6 +1878,14 @@ function tekenLiedje(l) {
         '<button class="knop zacht" id="scroll-terug">Halve pagina terug</button>' +
         '<button class="knop zacht" id="scroll-verder">Halve pagina verder</button>' +
         '<span class="les-klein" id="scroll-hint">Spatie start en stopt, de pijltjes schuiven een halve pagina.</span>' +
+      '</div>' +
+
+      '<div class="rij speel-gereedschap podium-houd" id="metronoom-rij">' +
+        '<button class="knop zacht" id="metronoom-knop" title="Laat een klik het tempo meeslaan">Metronoom uit</button>' +
+        '<button class="knop zacht" id="metronoom-aftellen" title="Telt af en start dan de begeleiding">Aftellen en starten</button>' +
+        '<button class="knop zacht" id="metronoom-tik" title="Tik vier keer mee in het tempo">Tik tempo</button>' +
+        '<span class="pilletje" id="metronoom-stand">— bpm</span>' +
+        '<span class="les-klein" id="metronoom-hint">Klopt het tempo niet? Tik vier keer mee; de app neemt het over.</span>' +
       '</div>' +
 
       '<div class="rij oefen-gereedschap">' +
@@ -1912,6 +2049,7 @@ function tekenLiedje(l) {
   $('lus-a').addEventListener('click', function () { zetLusPunt('a'); });
   $('lus-b').addEventListener('click', function () { zetLusPunt('b'); });
   $('lus-aan').addEventListener('click', wisselLus);
+  koppelMetronoom(l);
   $('scroll-knop').addEventListener('click', wisselScroll);
   $('scroll-sneller').addEventListener('click', function () { zetScrollSnelheid(scroll.snelheid + 4); });
   $('scroll-langzamer').addEventListener('click', function () { zetScrollSnelheid(scroll.snelheid - 4); });
@@ -3057,6 +3195,137 @@ $('upload-start').addEventListener('click', uploadMuziek);
 // Je kunt er meer dan één hebben: een map op deze machine, de map op je NAS die als
 // koppeling in de container staat, enzovoort. De wachter en "Alles omzetten" lopen
 // ze allemaal langs.
+// ---------------------------------------------------------------- metronoom ---
+// De klikken komen uit WebAudio, dus zonder bestand en zonder vertraging. Het rekenwerk
+// (tik-tempo, wanneer de klikken vallen, hoeveel tellen aftellen) staat in
+// /lib/metronoom.js, zodat dezelfde rekenkunde ook getest wordt.
+var METRO = { aan: false, bpm: 0, timer: null, ctx: null, volgende: 0, tel: 0, tikken: [] };
+
+function metroCtx() {
+  if (!METRO.ctx) {
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    METRO.ctx = new Ctx();
+  }
+  if (METRO.ctx.state === 'suspended') METRO.ctx.resume().catch(function () {});
+  return METRO.ctx;
+}
+
+function metroKlik(wanneer, zwaar) {
+  var ctx = metroCtx();
+  if (!ctx) return;
+  var osc = ctx.createOscillator();
+  var versterker = ctx.createGain();
+  osc.frequency.value = zwaar ? 1600 : 1100;
+  versterker.gain.setValueAtTime(0.0001, wanneer);
+  versterker.gain.exponentialRampToValueAtTime(zwaar ? 0.3 : 0.16, wanneer + 0.004);
+  versterker.gain.exponentialRampToValueAtTime(0.0001, wanneer + 0.08);
+  osc.connect(versterker);
+  versterker.connect(ctx.destination);
+  osc.start(wanneer);
+  osc.stop(wanneer + 0.1);
+}
+
+// Het tempo van nu: het tempo van het liedje, of wat je zelf hebt getikt, keer het
+// oefentempo dat je hebt gekozen.
+function metroBpm() {
+  var lied = staat.liedje || {};
+  var basis = Number(METRO.bpm || lied.tempo || 90) || 90;
+  var vak = $('oefen-tempo');
+  var factor = (vak && Number(vak.value)) || 1;
+  return Math.max(40, Math.min(220, Math.round(basis * factor)));
+}
+
+function metroStand(tekst) {
+  var vak = $('metronoom-stand');
+  if (vak) vak.textContent = tekst;
+}
+
+function metroStart() {
+  var ctx = metroCtx();
+  if (!ctx) return;
+  METRO.aan = true;
+  METRO.tel = 0;
+  METRO.volgende = ctx.currentTime + 0.08;
+  if ($('metronoom-knop')) $('metronoom-knop').textContent = 'Metronoom aan';
+  if (METRO.timer) clearInterval(METRO.timer);
+  METRO.timer = setInterval(function () {
+    var nu = metroCtx();
+    if (!nu) return;
+    var perTel = 60 / metroBpm();
+    // Vooruit plannen: WebAudio heeft een klein beetje tijd nodig om precies te zijn.
+    while (METRO.volgende < nu.currentTime + 0.3) {
+      metroKlik(METRO.volgende, METRO.tel % 4 === 0);
+      METRO.volgende += perTel;
+      METRO.tel += 1;
+    }
+    metroStand(metroBpm() + ' bpm');
+  }, 60);
+}
+
+function metroStop() {
+  METRO.aan = false;
+  if (METRO.timer) clearInterval(METRO.timer);
+  METRO.timer = null;
+  if ($('metronoom-knop')) $('metronoom-knop').textContent = 'Metronoom uit';
+  metroStand(METRO.bpm ? Math.round(METRO.bpm) + ' bpm' : '— bpm');
+}
+
+// Vier tellen aftellen (of twee maten in een andere maatsoort of bij een langzaam tempo)
+// en dan de begeleiding starten.
+function metroAftellen() {
+  var ctx = metroCtx();
+  if (!ctx) return;
+  var bpm = metroBpm();
+  var reken = window.metronoomRekenen || {};
+  var maatsoort = (staat.liedje && staat.liedje.maatsoort) || 4;
+  var tellen = reken.aftelTellen ? reken.aftelTellen(bpm, maatsoort) : 4;
+  var klikken = reken.klikTijden ? reken.klikTijden(ctx.currentTime + 0.1, bpm, tellen, 4) : [];
+  klikken.forEach(function (k) { metroKlik(k.wanneer, k.zwaar); });
+  var laatste = klikken.length ? klikken[klikken.length - 1].wanneer : ctx.currentTime;
+  var wacht = Math.max(0, laatste + 60 / bpm - ctx.currentTime);
+  toonMelding('speler-melding', 'Aftellen: ' + tellen + ' tellen…', '');
+  setTimeout(function () {
+    var start = $('speler-start');
+    if (start) start.click();
+    if (METRO.aan) metroStart();
+  }, Math.round(wacht * 1000));
+}
+
+function metroTik() {
+  var nu = (window.performance && performance.now) ? performance.now() : Date.now();
+  METRO.tikken.push(nu);
+  if (METRO.tikken.length > 12) METRO.tikken.shift();
+  var reken = window.metronoomRekenen || {};
+  var uit = reken.tapTempo ? reken.tapTempo(METRO.tikken) : { bpm: 0, tikken: 0 };
+  if (!uit.bpm) {
+    metroStand('tik nog een keer…');
+    return;
+  }
+  METRO.bpm = uit.bpm;
+  var tempoVak = $('speler-tempo');
+  if (tempoVak) tempoVak.value = String(Math.round(uit.bpm));
+  metroStand(Math.round(uit.bpm) + ' bpm (na ' + uit.tikken + ' tikken)');
+  toonMelding('speler-melding', 'Tempo overgenomen: ' + Math.round(uit.bpm) + ' bpm. Maak de begeleiding opnieuw om het te horen.', 'goed');
+  if (METRO.aan) metroStart();
+}
+
+// De knoppen bestaan pas als er een liedje open is; deze functie wordt bij het openen
+// van een liedje aangeroepen.
+function koppelMetronoom(lied) {
+  METRO.bpm = 0;
+  METRO.tikken = [];
+  if ($('speler-tempo')) METRO.bpm = Number($('speler-tempo').value) || (lied && lied.tempo) || 0;
+  if (METRO.aan) metroStart(); else metroStop();
+  if ($('metronoom-knop')) {
+    $('metronoom-knop').addEventListener('click', function () {
+      if (METRO.aan) metroStop(); else metroStart();
+    });
+  }
+  if ($('metronoom-aftellen')) $('metronoom-aftellen').addEventListener('click', metroAftellen);
+  if ($('metronoom-tik')) $('metronoom-tik').addEventListener('click', metroTik);
+}
+
 function laadMappen() {
   return api('/api/mappen').then(function (d) {
     var vak = $('mappen-lijst');
@@ -4395,6 +4664,31 @@ function tekenSnaren() {
 var lerenGeladen = false;
 // De oefencijfers van dit profiel: de laatste twee weken als staafjes, hoeveel dagen
 // je op een rij geoefend hebt en welke akkoorden het meest langskomen.
+// Het oefenen per week: hoeveel tijd, hoe vaak, en waar je die week mee bezig was.
+function laadWeken() {
+  var vak = $('oefen-weken');
+  if (!vak) return;
+  api('/api/oefenen/weken?weken=8').then(function (data) {
+    var weken = data.weken || [];
+    if (!weken.length || !weken.some(function (w) { return w.sessies; })) {
+      vak.innerHTML = '<div class="les-klein">Nog geen oefensessies. De trainer en de tik onthouden wat je doet, ' +
+        'zodat je hier per week ziet of je vooruitgaat.</div>';
+      return;
+    }
+    var hoogste = Math.max.apply(null, weken.map(function (w) { return w.minuten; }).concat([5]));
+    vak.innerHTML = '<h3>Per week</h3>' +
+      '<div class="weken">' + weken.map(function (w) {
+        var breedte = Math.max(2, Math.round(w.minuten / hoogste * 100));
+        var akkoorden = (w.akkoorden || []).map(function (a) { return esc(a.akkoord); }).join(' · ');
+        return '<div class="week-rij"><span class="week-naam">' + esc(w.label) + '</span>' +
+          '<span class="week-staaf"><span style="width:' + breedte + '%"' + (w.minuten ? '' : ' class="leeg"') + '></span></span>' +
+          '<span class="week-meta">' + (w.minuten ? w.minuten + ' min · ' + w.sessies + '×' : '—') + '</span>' +
+          (akkoorden ? '<span class="week-akkoorden">' + akkoorden + '</span>' : '') +
+        '</div>';
+      }).join('') + '</div>';
+  }).catch(function () {});
+}
+
 function laadOefencijfers() {
   api('/api/oefenen/statistieken?dagen=14').then(function (data) {
     var vak = $('oefencijfers');

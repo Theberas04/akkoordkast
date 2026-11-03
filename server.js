@@ -13,6 +13,9 @@ const capo = require('./lib/capo');
 const grepen = require('./lib/grepen');
 const gitaar = require('./lib/gitaar');
 const tijdlijn = require('./lib/tijdlijn');
+const week = require('./lib/week');
+const backup = require('./lib/backup');
+const overgangen = require('./lib/overgangen');
 const analyse = require('./lib/analyse');
 const spotify = require('./lib/spotify');
 const theorie = require('./lib/theorie');
@@ -1136,6 +1139,126 @@ function wachterBeeld() {
   };
 }
 
+// ------------------------------------------------------------- back-up ---
+// Een kopie van alles wat je zelf hebt gemaakt — profielen, favorieten, setlists,
+// oefencijfers, je eigen liedjes en de instellingen — naar een map die jij kiest,
+// bijvoorbeeld op de NAS. De app bewaart de laatste N en ruimt de rest op.
+const STANDAARD_BACKUPMAP = String(process.env.BACKUP_DIR || '').trim() ||
+  (STANDAARD_MUZIEKMAP ? path.join(path.dirname(STANDAARD_MUZIEKMAP), 'akkoordkast-backup') : '');
+
+const BACKUP = {
+  aan: leesInstelling('backup_aan', '0') === '1',
+  map: leesInstelling('backup_map', STANDAARD_BACKUPMAP),
+  bewaren: Math.max(1, Math.min(100, parseInt(leesInstelling('backup_bewaren', '10'), 10) || 10)),
+  laatste: leesInstelling('backup_laatste', ''),
+  verslag: leesInstelling('backup_verslag', ''),
+  bezig: false
+};
+
+function backupBestanden(mapPad) {
+  if (!mapPad) return [];
+  let namen = [];
+  try {
+    namen = fs.readdirSync(mapPad).filter(n => /^akkoordkast-backup-.*\.json$/.test(n));
+  } catch (e) {
+    return [];
+  }
+  return namen.map(naam => {
+    const pad = path.join(mapPad, naam);
+    let stat = null;
+    try { stat = fs.statSync(pad); } catch (e) { stat = null; }
+    return { naam, pad, grootte: stat ? stat.size : 0, wanneer: stat ? stat.mtime.toISOString() : '' };
+  }).sort((a, b) => a.naam.localeCompare(b.naam));
+}
+
+function maakBackup() {
+  const mapPad = BACKUP.map;
+  if (!mapPad) return { ok: false, fout: 'Er is nog geen map gekozen voor de back-up.' };
+  try {
+    fs.mkdirSync(mapPad, { recursive: true });
+  } catch (e) {
+    return { ok: false, fout: 'De map ' + mapPad + ' kan ik niet maken of bereiken: ' + e.message };
+  }
+  const nu = new Date();
+  const inhoud = backup.maakInhoud({
+    liedjes: db.prepare('SELECT * FROM liedjes').all(),
+    profielen: db.prepare('SELECT * FROM profielen').all(),
+    favorieten: db.prepare('SELECT * FROM favorieten').all(),
+    labels: db.prepare('SELECT * FROM labels').all(),
+    liedje_labels: db.prepare('SELECT * FROM liedje_labels').all(),
+    gespeeld: db.prepare('SELECT * FROM gespeeld').all(),
+    oefensessies: db.prepare('SELECT * FROM oefensessies').all(),
+    setlists: db.prepare('SELECT * FROM setlists').all(),
+    setlist_liedjes: db.prepare('SELECT * FROM setlist_liedjes').all(),
+    instellingen: db.prepare('SELECT sleutel, waarde FROM instellingen').all()
+  }, nu);
+
+  const naam = backup.bestandsnaam(nu);
+  const doel = path.join(mapPad, naam);
+  try {
+    fs.writeFileSync(doel, JSON.stringify(inhoud, null, 1), 'utf8');
+  } catch (e) {
+    return { ok: false, fout: 'Schrijven in ' + mapPad + ' lukt niet: ' + e.message +
+      ' Controleer of de koppeling er is en of de app erin mag schrijven.' };
+  }
+
+  const weg = [];
+  for (const oud of backup.teVerwijderen(backupBestanden(mapPad).map(b => b.naam), BACKUP.bewaren)) {
+    try { fs.unlinkSync(path.join(mapPad, oud)); weg.push(oud); } catch (e) { /* laat staan */ }
+  }
+
+  let grootte = 0;
+  try { grootte = fs.statSync(doel).size; } catch (e) { grootte = 0; }
+  BACKUP.laatste = nu.toISOString();
+  BACKUP.verslag = 'Back-up gemaakt (' + Math.round(grootte / 1024) + ' kB)' +
+    (weg.length ? ' · ' + weg.length + ' oude opgeruimd' : '');
+  zetInstelling('backup_laatste', BACKUP.laatste);
+  zetInstelling('backup_verslag', BACKUP.verslag);
+  return {
+    ok: true,
+    bestand: naam,
+    pad: doel,
+    grootte,
+    opgeruimd: weg,
+    samenvatting: backup.samenvatting(inhoud),
+    verslag: BACKUP.verslag
+  };
+}
+
+function backupBeeld() {
+  const bestaat = !!BACKUP.map && fs.existsSync(BACKUP.map);
+  return {
+    aan: BACKUP.aan,
+    map: BACKUP.map,
+    standaardMap: STANDAARD_BACKUPMAP,
+    bewaren: BACKUP.bewaren,
+    bestaat,
+    laatste: BACKUP.laatste,
+    verslag: BACKUP.verslag,
+    bestanden: bestaat ? backupBestanden(BACKUP.map).slice(-10).reverse() : []
+  };
+}
+
+// De automatische ronde: één keer per dag, als het aanstaat. Wordt vanuit de wachter
+// aangeroepen, die toch al elke minuut kijkt of er iets te doen is.
+function misschienBackup() {
+  if (!BACKUP.aan || BACKUP.bezig || !BACKUP.map) return;
+  const vorige = BACKUP.laatste ? new Date(BACKUP.laatste).getTime() : 0;
+  if (vorige && Date.now() - vorige < 24 * 60 * 60 * 1000) return;
+  BACKUP.bezig = true;
+  try {
+    const uit = maakBackup();
+    if (!uit.ok) {
+      BACKUP.verslag = 'Let op: ' + uit.fout;
+      zetInstelling('backup_verslag', BACKUP.verslag);
+    }
+  } catch (e) {
+    BACKUP.verslag = 'Let op: ' + e.message;
+    zetInstelling('backup_verslag', BACKUP.verslag);
+  }
+  BACKUP.bezig = false;
+}
+
 async function wachterRonde(metVersie) {
   if (WACHTER.bezig) return;
   WACHTER.bezig = true;
@@ -1197,6 +1320,7 @@ async function wachterRonde(metVersie) {
 function startWachter() {
   if (WACHTER.timer) clearInterval(WACHTER.timer);
   WACHTER.timer = setInterval(() => {
+    misschienBackup();
     const nu = Date.now();
     const vorigeVersie = WACHTER.versieLaatste ? Date.parse(WACHTER.versieLaatste) : 0;
     const versieToe = nu - vorigeVersie >= 6 * 3600 * 1000;
@@ -1626,6 +1750,49 @@ async function verwerk(req, res) {
     return;
   }
 
+  // --- back-up ---
+  if (pad === '/api/backup' && methode === 'GET') {
+    json(res, 200, backupBeeld());
+    return;
+  }
+  if (pad === '/api/backup' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    if (body.aan !== undefined) {
+      BACKUP.aan = !!body.aan;
+      zetInstelling('backup_aan', BACKUP.aan ? '1' : '0');
+    }
+    if (body.map !== undefined) {
+      const mapPad = String(body.map || '').trim();
+      if (mapPad && !path.isAbsolute(mapPad)) {
+        json(res, 400, { fout: 'Gebruik een volledig pad voor de back-upmap, bijvoorbeeld /mnt/Nas/Nas-Opslag/akkoordkast-backup.' });
+        return;
+      }
+      BACKUP.map = mapPad ? path.resolve(mapPad) : '';
+      zetInstelling('backup_map', BACKUP.map);
+    }
+    if (body.bewaren !== undefined) {
+      BACKUP.bewaren = Math.max(1, Math.min(100, parseInt(body.bewaren, 10) || BACKUP.bewaren));
+      zetInstelling('backup_bewaren', String(BACKUP.bewaren));
+    }
+    json(res, 200, { ok: true, backup: backupBeeld() });
+    return;
+  }
+  if (pad === '/api/backup/nu' && methode === 'POST') {
+    const uit = maakBackup();
+    if (!uit.ok) { json(res, 400, { fout: uit.fout, backup: backupBeeld() }); return; }
+    json(res, 201, { ok: true, uitkomst: uit, backup: backupBeeld() });
+    return;
+  }
+
+  // --- oefenen per week ---
+  if (pad === '/api/oefenen/weken' && methode === 'GET') {
+    const profielId = profielVan(req, query);
+    const aantal = Math.max(1, Math.min(52, parseInt(query.get('weken'), 10) || 8));
+    const rijen = db.prepare('SELECT moment, seconden, wissels, akkoorden FROM oefensessies WHERE profiel_id = ?').all(profielId);
+    json(res, 200, { weken: week.groepeerPerWeek(rijen, aantal), aantal });
+    return;
+  }
+
   // --- versie en bijwerken ---
   if (pad === '/api/versie' && methode === 'GET') {
     json(res, 200, {
@@ -1755,6 +1922,19 @@ async function verwerk(req, res) {
     db.prepare('DELETE FROM setlist_liedjes WHERE setlist_id = ?').run(setlist.id);
     db.prepare('DELETE FROM setlists WHERE id = ?').run(setlist.id);
     json(res, 200, { ok: true, setlists: setlistsVan(profielId) });
+    return;
+  }
+  const overgangMatch = pad.match(/^\/api\/setlists\/(\d+)\/overgangen$/);
+  if (overgangMatch && methode === 'GET') {
+    const profielId = profielVan(req, query);
+    const setlist = setlistVan(profielId, overgangMatch[1]);
+    if (!setlist) { json(res, 404, { fout: 'Setlist niet gevonden' }); return; }
+    const beeld = setlistBeeld(setlist);
+    json(res, 200, {
+      setlist: beeld.naam,
+      aantal: beeld.liedjes.length,
+      overgangen: overgangen.overgangenVan(beeld.liedjes)
+    });
     return;
   }
   const setlistLiedMatch = pad.match(/^\/api\/setlists\/(\d+)\/liedjes$/);
@@ -2418,6 +2598,12 @@ async function verwerk(req, res) {
   if (methode === 'GET' || methode === 'HEAD') {
     const rest = pad.replace(/^\/+/, '');
     if (rest.includes('..') || rest.includes('\0')) { json(res, 400, { fout: 'Ongeldige bestandsnaam' }); return; }
+    // Naast public/ is er één map die de browser ook mag lezen: lib/. Daar staat de
+    // rekenkunde die zowel de server als de app gebruikt (bijvoorbeeld de metronoom).
+    if (/^lib\/[a-z0-9-]+\.js$/.test(rest)) {
+      stuurBestand(req, res, path.join(__dirname, rest), MIME['.js'], { 'cache-control': 'public, max-age=300' });
+      return;
+    }
     const bestand = path.join(__dirname, 'public', rest);
     if (!bestand.startsWith(path.join(__dirname, 'public'))) { json(res, 400, { fout: 'Ongeldige bestandsnaam' }); return; }
     if (Object.prototype.hasOwnProperty.call(MIME, path.extname(bestand).toLowerCase()) && fs.existsSync(bestand) && fs.statSync(bestand).isFile()) {

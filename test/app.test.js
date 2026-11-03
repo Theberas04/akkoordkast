@@ -37,7 +37,13 @@ test('elk inline scriptblok compileert en elk scriptbestand bestaat', async () =
   }
   const bronnen = [...html.data.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m => m[1]);
   for (const bron of bronnen) {
-    assert.ok(fs.existsSync(path.join(__dirname, '..', 'public', bron.replace(/^\//, ''))), `scriptbestand ontbreekt: ${bron}`);
+    // Scripts horen in public/ te staan. Eén uitzondering: /lib/ — daar staat de
+    // rekenkunde die de server én de browser gebruiken (de metronoom), en die wordt
+    // bewust uit lib/ geserveerd zodat er maar één kopie van is.
+    const schoon = bron.replace(/^\//, '');
+    const inPublic = path.join(__dirname, '..', 'public', schoon);
+    const inLib = /^lib\/[a-z0-9-]+\.js$/.test(schoon) ? path.join(__dirname, '..', schoon) : '';
+    assert.ok(fs.existsSync(inPublic) || (inLib && fs.existsSync(inLib)), `scriptbestand ontbreekt: ${bron}`);
   }
 });
 

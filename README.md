@@ -498,6 +498,17 @@ En wil je een **liedjesboek** meenemen naar de repetitie, dan maakt de app van j
 liedjes) één document: een titelblad, een inhoudsopgave en elk liedje op een eigen pagina met de grepen en de
 bladmuziek erbij. Op het scherm zie je eerst een voorbeeld, waarna de printknop van de browser er een PDF van maakt.
 
+## Akkoordovergangen in een setlist
+
+Onder een setlist staat per paar opeenvolgende liedjes hoe je het beste van het ene in het andere komt.
+De app kijkt naar de toonsoort en de akkoorden en zegt bijvoorbeeld: *"Zet De zilvervloot in C: dat is
+tien halve tonen omlaag, en dan zit je op de toonsoort van Sinterklaas kapoentje. Of zet capo 2 en speel
+de grepen die je al kent."* Zitten er akkoorden in allebei, dan noemt hij ze, want daar blijf je in de
+buurt als je wisselt. Hebben twee liedjes niets gemeen, dan stelt hij een bruggetje voor (een akkoord dat
+in beide toonsoorten past) of vier tellen stilte. Let op: hij noemt ook wanneer je er barrés bij krijgt.
+
+De rekenkunde staat in `lib/overgangen.js`, los van de server, zodat de tests dezelfde logica raken.
+
 ## Een setlist en optredenmodus
 
 Op het tabblad Liedjes staat een kaart **Setlists en optreden**. Je maakt een setlist (bijvoorbeeld
@@ -516,6 +527,24 @@ Met **Setlist printen** maak je er een vel van: alle liedjes onder elkaar met to
 de akkoorden en een lege kolom voor je eigen notities.
 
 ![Setlist op papier](docs/img/setlist-print.png)
+
+## Metronoom, aftellen en tik-tempo
+
+In de speler staat naast het meescrollen een rij met de maat: **Metronoom**, **Aftellen en starten** en
+**Tik tempo**.
+
+- **Metronoom**: klikt het tempo mee, met een zwaardere tik op de eerste tel. De klikken komen uit Web
+  Audio, dus ze lopen niet uit de pas met de begeleiding en er is geen bestand voor nodig. Staat het
+  oefentempo op 70%, dan gaat de metronoom mee naar 70%.
+- **Aftellen en starten**: telt de maat af (vier tellen in 4/4, twee maten in 3/4 of bij een langzaam
+  tempo) en start dan de begeleiding, zodat je niet zelf hoeft te mikken.
+- **Tik tempo**: tik vier keer mee zoals je het nummer voelt en de app rekent het tempo uit. Eén te late
+  tik verpest het niet, en een dubbeltik wordt genegeerd. Daarna maak je de begeleiding opnieuw op dat
+  tempo.
+
+De rekenkunde (tik-tempo, wanneer de klikken vallen, hoeveel tellen aftellen) staat in
+`lib/metronoom.js`; die wordt zowel door de server als door de app gebruikt, zodat er één versie is en
+de tests dezelfde rekenkunde raken als de app.
 
 ## Oefenen met moeilijke stukken
 
@@ -569,6 +598,30 @@ Onderaan de kop kies je met wie je meekijkt (het toestel onthoudt die keuze). Da
   laatste veertien dagen en de akkoorden waar je het meest mee bezig bent. De trainer en de tik sturen hun sessie
   naar de server, dus je hoeft niets bij te houden.
 
+## Back-up naar een NAS of map
+
+Alles wat je zelf hebt gemaakt — profielen, favorieten, labels, setlists, oefencijfers, je eigen liedjes
+en de instellingen — kan de app elke dag als één bestand wegschrijven naar een map die jij kiest,
+bijvoorbeeld op de NAS. In het tabblad **Toevoegen** onder *Beheer en bijwerken*:
+
+- vul de **back-upmap** in (bijvoorbeeld `/mnt/Nas/Nas-Opslag/akkoordkast-backup`) en druk op
+  **Back-up aanzetten**;
+- met **Nu een back-up maken** doe je het meteen;
+- de laatste tien blijven staan (aan te passen met *Bewaren*), de rest wordt opgeruimd;
+- onder de knoppen zie je de bestanden met hun grootte, zodat je kunt zien dat het loopt.
+
+Het bestand heet `akkoordkast-backup-jaar-maand-dag-uur-minuut-seconde.json`, dus op naam gesorteerd is
+het oudste vooraan. **Wachtwoorden en API-sleutels gaan er niet in**: een back-up belandt op een NAS of
+in een cloudmap en daar horen geen geheimen te staan. Staat de map er niet (NAS uit, koppeling weg), dan
+zegt de app dat en maakt ze niets.
+
+## Jouw oefenen per week
+
+Het tabblad **Leren** laat onder je oefencijfers een overzicht per week zien: hoeveel minuten, hoe vaak,
+en met welke akkoorden je die week bezig was. Weken zonder oefening staan er ook in (met een streepje in
+plaats van een staaf), zodat je in één oogopslag ziet of je een week hebt overgeslagen. De weken lopen
+volgens de ISO-kalender, dus precies zoals je agenda ze nummert.
+
 ## Beheer en bijwerken
 
 Onderaan het tabblad Toevoegen staat welke **versie** er draait en welke aanpassing daarbij hoort. Met één knop
@@ -598,7 +651,7 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 114 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+node --test test/*.test.js          # 141 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
                                     # setlists, akkoordenboek, de wachter en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL

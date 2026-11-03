@@ -282,6 +282,8 @@ Twee hulpscripts horen erbij:
 | Script | Waar het draait | Wat het doet |
 | --- | --- | --- |
 | [`deploy/proxmox/nas-koppelen.sh`](deploy/proxmox/nas-koppelen.sh) | op de **Proxmox-host**, als root | koppelt een NAS-map (SMB of NFS) en hangt die in de container |
+| [`deploy/proxmox/nas-koppelen-lxc.sh`](deploy/proxmox/nas-koppelen-lxc.sh) | op de **Proxmox-host**, als root | zet fuse in de container en laat de container de NAS zelf koppelen (route 1b) |
+| [`deploy/proxmox/nas-mount-lxc.sh`](deploy/proxmox/nas-mount-lxc.sh) | **in de container**, als root | het containerdeel van route 1b: rclone koppelt de NAS-share |
 | [`deploy/proxmox/drive-koppelen.sh`](deploy/proxmox/drive-koppelen.sh) | **in de container**, als root | koppelt Google Drive met rclone, als systemd-dienst met een controletimer |
 
 ### Route 1: een NAS in hetzelfde netwerk
@@ -314,6 +316,34 @@ Twee hulpscripts horen erbij:
 Je wachtwoord komt nooit in de proceslijst of de shell-historie: je typt het met `read -s`, en
 de koppeling leest het uit `/etc/akkoordkast/nas.credentials` met rechten 600. Nooit
 `mount -o pass=…` op de opdrachtregel — die is voor iedereen leesbaar via `/proc`.
+
+### Route 1b: de NAS rechtstreeks in de container (fuse)
+
+Wil je de map liever niet op de Proxmox-host maar alleen in de AkkoordKast-container, dan kan dat
+met fuse. Op de host zet je eenmalig fuse in de container, waarna de container de share zelf koppelt:
+
+```bash
+CTID=225 NAS_HOST=192.168.1.100 NAS_SHARE=muziek NAS_USER=thuis bash deploy/proxmox/nas-koppelen-lxc.sh
+```
+
+Het hostscript zet twee regels in `/etc/pve/lxc/<CTID>.conf` (de oude configuratie wordt bewaard),
+herstart de container één keer — dat moet, want zonder `/dev/fuse` kan de container niet koppelen — en
+draait daarna het containerdeel. Dat installeert rclone, schrijft de share in
+`/root/.config/rclone/rclone.conf` (rechten 600, het wachtwoord gaat niet mee als opdrachtregel),
+koppelt de map als systemd-dienst en zet een timer die elke vijf minuten kijkt of de map er nog is.
+Ook zet het `MUSIC_DIR` in de dienst van de app, zodat de app de map zelf voorstelt.
+
+Eerst kijken wat het zou doen, zonder iets te veranderen:
+
+```bash
+pct exec 225 -- env PROEF=1 GEGEVENS=/root/nas-gegevens.env bash /root/nas-mount-lxc.sh
+```
+
+**Wat je hiervoor moet weten.** Een ongeprivilegieerde container mag van de kernel geen SMB- of
+NFS-map koppelen; daarom gaat het hier via fuse (rclone), niet met `mount -t cifs`. Dat werkt zonder
+privileges, maar rclone doet het lees- en schrijfwerk zelf: bij heel grote mappen (duizenden
+bestanden) is route 1 — koppelen op de host — merkbaar sneller. Voor een gewone muziekmap merk je
+het verschil niet.
 
 ### Route 2: Google Drive
 

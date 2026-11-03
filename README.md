@@ -312,6 +312,22 @@ Twee hulpscripts horen erbij:
 5. Het script koppelt, doet een **lees- en schrijftest** op de host en in de container, en
    herstart de container zodat de bind-mount actief wordt. Gaat er iets mis, dan ontkoppelt het
    de map weer en zet de oude `fstab` terug.
+6. Als laatste zet het `MUSIC_DIR` in de dienst van de app (drop-in op
+   `akkoordkast.service.d/music-dir.conf`) en herstart de app, zodat het pad bij *Muziekmap
+   scannen* al ingevuld staat.
+
+**NFS kan alleen via deze route.** rclone spreekt geen NFS en de kernel laat een
+ongeprivilegieerde container geen NFS-koppeling maken, dus voor NFS is de host de enige weg.
+Geef dan het **exportpad** mee in `NAS_EXPORT` (niet in `NAS_SHARE`; dat is voor SMB):
+
+```bash
+NAS_PROTO=nfs NAS_HOST=192.168.1.100 NAS_EXPORT=/mnt/Nas/Nas-Opslag/Muziek \
+CTID=106 bash deploy/proxmox/nas-koppelen.sh
+```
+
+De NFS-server van de NAS moet dit host-adres wel toelaten (`*`, of het netwerk/de host van de
+Proxmox-server). Een export die alleen `localhost` of één gast toestaat, geeft bij het koppelen
+`access denied`.
 
 Je wachtwoord komt nooit in de proceslijst of de shell-historie: je typt het met `read -s`, en
 de koppeling leest het uit `/etc/akkoordkast/nas.credentials` met rechten 600. Nooit

@@ -380,6 +380,24 @@ if ! pct exec "$CTID" -- bash -c "touch $KOPPELPUNT/.akkoordkast-proef && rm -f 
 fi
 zeg "   de container kan lezen en schrijven in $KOPPELPUNT"
 
+# --- De app op de map wijzen (MUSIC_DIR) ------------------------------------
+# Zonder dit weet de app niet waar de muziek staat en moet je het pad zelf
+# intikken. Net als bij de route waarbij de container zelf koppelt, zetten we
+# het in een drop-in op de dienst van de app.
+
+zeg "== MUSIC_DIR in de app zetten ($KOPPELPUNT)"
+pct exec "$CTID" -- bash -s <<BINNEN
+install -d /etc/systemd/system/akkoordkast.service.d
+printf '[Service]\nEnvironment=MUSIC_DIR=%s\n' "$KOPPELPUNT" > /etc/systemd/system/akkoordkast.service.d/music-dir.conf
+BINNEN
+if pct exec "$CTID" -- bash -c "systemctl list-unit-files 2>/dev/null | grep -q '^akkoordkast.service'"; then
+  pct exec "$CTID" -- bash -c "systemctl daemon-reload && systemctl restart akkoordkast" || true
+  zeg "   de app is herstart met MUSIC_DIR=$KOPPELPUNT"
+else
+  fout "   De dienst akkoordkast vond ik niet in de container."
+  fout "   MUSIC_DIR staat wel klaar in de drop-in op $KOPPELPUNT."
+fi
+
 # --- Klaar ------------------------------------------------------------------
 
 cat <<KLAAR
@@ -390,14 +408,11 @@ cat <<KLAAR
    op de host : $HOST_MNT  ($NAS_PROTO van $NAS_HOST)
    in de app  : $KOPPELPUNT
 
- Nu de app erop wijzen:
+ De app weet het pad al: MUSIC_DIR staat op $KOPPELPUNT.
    1. Open AkkoordKast in je browser.
    2. Ga naar het tabblad Toevoegen en zoek Muziekmap scannen op.
-   3. Vul bij Map op deze machine in:  $KOPPELPUNT
-   4. Klik op Kijk wat erin zit, en daarna op Alles omzetten.
-
- De map die de app scant hoort in de omgevingsvariabele MUSIC_DIR te staan
- (standaard $KOPPELPUNT); vul datzelfde pad in het vak hierboven in.
+   3. Het pad staat al ingevuld; klik op Kijk wat erin zit, en daarna op Alles omzetten.
+      Staat er iets anders, vul dan in: $KOPPELPUNT
 
  Controle later: pct exec $CTID -- mountpoint -q $KOPPELPUNT && echo gekoppeld
  Losmaken:   umount $HOST_MNT   (zet de fstab-regel uit als je dat blijvend wilt)

@@ -1021,6 +1021,14 @@ function toonTab(naam) {
   window.scrollTo(0, 0);
 }
 
+// Een tabblad kan ook uit het adres komen: .../#toevoegen opent de app meteen op dat
+// tabblad. Handig om een link naar iets door te sturen.
+function tabUitAdres() {
+  var naam = String(location.hash || '').replace(/^#/, '').trim().toLowerCase();
+  if (TABS.indexOf(naam) >= 0) toonTab(naam);
+}
+window.addEventListener('hashchange', tabUitAdres);
+
 // ------------------------------------------------------------- liedlijst ---
 function sterren(n) {
   var uit = '';
@@ -1355,6 +1363,7 @@ $('versie-controle').addEventListener('click', controleerVersie);
 $('versie-update').addEventListener('click', werkBij);
 laadVersie();
 laadMappen();
+tabUitAdres();
 
 // ------------------------------------------------------------ liedjesboek ---
 // Van de huidige selectie één document maken: titelblad, inhoudsopgave en elk liedje

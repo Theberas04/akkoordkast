@@ -142,6 +142,7 @@ Type=simple
 User=$GEBRUIKER
 Group=$GEBRUIKER
 WorkingDirectory=$APP_DIR
+ExecStart=/usr/bin/node $APP_DIR/server.js
 Environment=NODE_ENV=production
 Environment=PORT=$POORT
 Environment=DATA_DIR=$DATA_DIR

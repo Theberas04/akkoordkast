@@ -5,6 +5,7 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
@@ -191,6 +192,47 @@ test('de installatie laat het apparaat zijn eigen bestanden serveren, zonder pro
   assert.match(provision, /Environment=PORT=/, 'de poort hoort in de systemd-unit te staan');
   assert.match(provision, /CAST_PYTHON=/, 'het pad naar de cast-hulp hoort in de unit te staan');
   assert.match(provision, /node:sqlite/, 'de installatie hoort node:sqlite te controleren');
+});
+
+test('de systemd-eenheid van de app is compleet en door systemd te lezen', () => {
+  // Uit een echte installatie: "Failed to restart akkoordkast.service: Unit
+  // akkoordkast.service has a bad unit file setting." De eenheid had geen ExecStart=, dus
+  // de dienst startte nooit. systemd zelf zegt dan "Service has no ExecStart= ... Refusing."
+  // Daarom laten we systemd-analyze hier meelezen in plaats van alleen naar de tekst te kijken.
+  const tekst = lees('provision-akkoordkast.sh');
+  const m = tekst.match(/cat > "\$UNIT" <<UNITEOF\n([\s\S]*?)\nUNITEOF/);
+  assert.ok(m, 'geen systemd-eenheid gevonden in provision-akkoordkast.sh');
+  const waarden = {
+    GEBRUIKER: 'akkoordkast', APP_DIR: '/opt/akkoordkast', DATA_DIR: '/var/lib/akkoordkast',
+    POORT: '80', MUZIEKMAP: '/home/akkoordkast/muziek',
+  };
+  let unit = m[1];
+  for (const [naam, waarde] of Object.entries(waarden)) unit = unit.split('$' + naam).join(waarde);
+
+  assert.match(unit, /^ExecStart=\/usr\/bin\/node \/opt\/akkoordkast\/server\.js$/m,
+    'de eenheid start de app niet (ExecStart ontbreekt of wijst niet naar server.js)');
+  assert.match(unit, /^WorkingDirectory=\/opt\/akkoordkast$/m, 'geen werkmap');
+  assert.match(unit, /^User=/m, 'geen gebruiker: de dienst zou als root draaien');
+  assert.match(unit, /MUSIC_DIR=/, 'de muziekmap wordt niet meegegeven');
+  assert.match(unit, /AmbientCapabilities=CAP_NET_BIND_SERVICE/, 'geen recht om poort 80 te openen');
+  assert.match(unit, /^WantedBy=multi-user\.target$/m, 'de dienst wordt niet mee gestart bij het opstarten');
+  const nietIngevuld = unit.match(/\$[A-Z_]+\b/);
+  assert.equal(nietIngevuld, null, 'een variabele is niet ingevuld: ' + (nietIngevuld || '')[0]);
+
+  // En echt door systemd laten lezen.
+  const eenheidPad = path.join(os.tmpdir(), 'akkoordkast-eenheid.service');
+  fs.writeFileSync(eenheidPad, unit + '\n');
+  let uit = '';
+  try {
+    uit = execFileSync('systemd-analyze', ['verify', eenheidPad], {
+      encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+    });
+  } catch (fout) {
+    if (fout.code === 'ENOENT') return;   // geen systemd op deze machine: tekstuele controle is genoeg
+    uit = String(fout.stdout || '') + String(fout.stderr || '');
+  }
+  assert.doesNotMatch(uit, /bad unit file setting|Refusing/, 'systemd keurt de eenheid af: ' + uit);
+  fs.unlinkSync(eenheidPad);
 });
 
 test('de gezondheidscontrole eist de app-marker en een node-proces op de poort', () => {

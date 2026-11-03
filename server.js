@@ -14,6 +14,7 @@ const grepen = require('./lib/grepen');
 const gitaar = require('./lib/gitaar');
 const tijdlijn = require('./lib/tijdlijn');
 const analyse = require('./lib/analyse');
+const spotify = require('./lib/spotify');
 const theorie = require('./lib/theorie');
 const bron = require('./liedjes-bron');
 
@@ -51,6 +52,16 @@ db.exec(`
     audio_titel TEXT NOT NULL DEFAULT '',
     aangemaakt TEXT NOT NULL DEFAULT ''
   );
+  CREATE TABLE IF NOT EXISTS spotify_koppelingen (
+    liedje_id INTEGER PRIMARY KEY,
+    uri TEXT NOT NULL DEFAULT '',
+    soort TEXT NOT NULL DEFAULT 'track',
+    id TEXT NOT NULL DEFAULT '',
+    titel TEXT NOT NULL DEFAULT '',
+    artiest TEXT NOT NULL DEFAULT '',
+    embed TEXT NOT NULL DEFAULT '',
+    toegevoegd TEXT NOT NULL DEFAULT ''
+  );
   CREATE TABLE IF NOT EXISTS instellingen (
     sleutel TEXT PRIMARY KEY,
     waarde TEXT NOT NULL DEFAULT ''
@@ -67,7 +78,7 @@ for (const kolom of [
   try { db.exec(kolom); } catch (e) { /* de kolom bestaat al */ }
 }
 
-const SLEUTELS = ['cast_apparaat', 'cast_naam', 'laatste_liedje'];
+const SLEUTELS = ['cast_apparaat', 'cast_naam', 'laatste_liedje', 'spotify_client_id', 'spotify_client_secret', 'spotify_markt', 'spotify_token', 'spotify_token_verloopt'];
 
 function zetInstelling(sleutel, waarde) {
   db.prepare('INSERT INTO instellingen (sleutel, waarde) VALUES (?, ?) ON CONFLICT(sleutel) DO UPDATE SET waarde = excluded.waarde')
@@ -222,6 +233,7 @@ function weergave(lied, opties) {
     // een liedje dat uit een upload is herkend, heeft een akkoordschema per maat
     akkoordenPerMaat: lied.akkoordenPerMaat || [],
     heeftEigenOpname: !!(lied.audio_bestand && lied.akkoordenPerMaat && lied.akkoordenPerMaat.length),
+    spotify: koppelingVan(lied.id),
     maatsoort: lied.maatsoort || 4,
     licentie: lied.licentie || '',
     audio: {
@@ -535,6 +547,45 @@ function maakMeespeelAudio(lied, query) {
   const resultaat = bewaarAudio(sleutel, gitaar.maakPlanWav(plan));
   audioBezig.set(sleutel, resultaat);
   return resultaat;
+}
+
+// ------------------------------------------------------------------ spotify ---
+function spotifyInstellingen() {
+  const inst = alleInstellingen();
+  return {
+    clientId: String(inst.spotify_client_id || ''),
+    clientSecret: String(inst.spotify_client_secret || ''),
+    markt: String(inst.spotify_markt || 'NL').toUpperCase().slice(0, 2) || 'NL'
+  };
+}
+
+// Een token voor de Web API, met cache. Alleen als de gebruiker zelf een
+// Client ID en Secret heeft ingevuld.
+async function spotifyToken() {
+  const inst = spotifyInstellingen();
+  if (!inst.clientId || !inst.clientSecret) return '';
+  const bewaard = String(alleInstellingen().spotify_token || '');
+  const verloopt = Number(alleInstellingen().spotify_token_verloopt || 0);
+  if (bewaard && verloopt > Date.now() + 30000) return bewaard;
+  const nieuw = await spotify.tokenMetClientId(inst.clientId, inst.clientSecret);
+  zetInstelling('spotify_token', nieuw.token);
+  zetInstelling('spotify_token_verloopt', String(nieuw.verloopt));
+  return nieuw.token;
+}
+
+function koppelingVan(liedjeId) {
+  const rij = db.prepare('SELECT * FROM spotify_koppelingen WHERE liedje_id = ?').get(Number(liedjeId));
+  if (!rij) return null;
+  return {
+    liedje: rij.liedje_id,
+    uri: rij.uri,
+    soort: rij.soort,
+    id: rij.id,
+    titel: rij.titel,
+    artiest: rij.artiest,
+    embed: rij.embed,
+    url: `https://open.spotify.com/${rij.soort}/${rij.id}`
+  };
 }
 
 // --------------------------------------------------- muziek- en videoanalyse ---
@@ -984,6 +1035,85 @@ async function verwerk(req, res) {
       gevonden: gevonden || null,
       audio: mp3Naam ? `/media/audio/${mp3Naam}` : ''
     });
+    return;
+  }
+
+  // --- spotify ---
+  if (pad === '/api/spotify/status' && methode === 'GET') {
+    const inst = spotifyInstellingen();
+    json(res, 200, {
+      kanZoeken: !!(inst.clientId && inst.clientSecret),
+      markt: inst.markt,
+      uitleg: inst.clientId && inst.clientSecret
+        ? 'Zoeken in Spotify staat aan. Voor afspelen op afstand is een accountkoppeling met inlog nodig; in de app zelf speelt de Spotify-speler gewoon af.'
+        : 'Koppelen en meespelen werkt met alleen een link. Voor zoeken vul je een eigen Client ID en Secret in bij Instellingen.'
+    });
+    return;
+  }
+  if (pad === '/api/spotify/instellingen' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    if (Object.prototype.hasOwnProperty.call(body, 'client_id')) zetInstelling('spotify_client_id', String(body.client_id || '').trim().slice(0, 120));
+    if (Object.prototype.hasOwnProperty.call(body, 'client_secret')) zetInstelling('spotify_client_secret', String(body.client_secret || '').trim().slice(0, 120));
+    if (Object.prototype.hasOwnProperty.call(body, 'markt')) zetInstelling('spotify_markt', String(body.markt || 'NL').toUpperCase().slice(0, 2));
+    zetInstelling('spotify_token', '');
+    const inst = spotifyInstellingen();
+    let proef = { ok: true };
+    try {
+      if (inst.clientId && inst.clientSecret) {
+        const token = await spotifyToken();
+        const gevonden = await spotify.zoek('test', { token, markt: inst.markt, aantal: 1 });
+        proef = { ok: true, gevonden: gevonden.length };
+      }
+    } catch (e) {
+      proef = { ok: false, fout: e.message };
+    }
+    json(res, proef.ok ? 200 : 400, { ok: proef.ok, kanZoeken: !!(inst.clientId && inst.clientSecret), fout: proef.fout });
+    return;
+  }
+  if (pad === '/api/spotify/zoek' && methode === 'GET') {
+    const term = String(query.get('q') || '').trim();
+    if (term.length < 2) { json(res, 400, { fout: 'Typ minstens twee letters.' }); return; }
+    try {
+      const token = await spotifyToken();
+      const inst = spotifyInstellingen();
+      const uit = await spotify.zoek(term, { token, markt: inst.markt, aantal: Math.max(1, Math.min(20, parseInt(query.get('aantal'), 10) || 8)) });
+      json(res, 200, { zoekterm: term, resultaten: uit });
+    } catch (e) {
+      json(res, 400, { fout: e.message });
+    }
+    return;
+  }
+  if (pad === '/api/spotify/koppeling' && methode === 'GET') {
+    const lied = vindLiedje(query.get('liedje'));
+    if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    json(res, 200, { koppeling: koppelingVan(lied.id) });
+    return;
+  }
+  if (pad === '/api/spotify/koppeling' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    const lied = vindLiedje(body.liedje);
+    if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    const koppeling = spotify.leesLink(body.link || body.uri || '');
+    if (!koppeling) {
+      json(res, 400, { fout: 'Dat lijkt geen Spotify-link. Plak bijvoorbeeld https://open.spotify.com/track/… of spotify:track:…' });
+      return;
+    }
+    let token = '';
+    try { token = await spotifyToken(); } catch (e) { token = ''; }
+    const kaart = await spotify.beschrijf(koppeling, token);
+    db.prepare(`INSERT INTO spotify_koppelingen (liedje_id, uri, soort, id, titel, artiest, embed, toegevoegd)
+      VALUES (?,?,?,?,?,?,?,?)
+      ON CONFLICT(liedje_id) DO UPDATE SET uri = excluded.uri, soort = excluded.soort, id = excluded.id,
+        titel = excluded.titel, artiest = excluded.artiest, embed = excluded.embed, toegevoegd = excluded.toegevoegd`)
+      .run(Number(lied.id), kaart.uri, kaart.soort, kaart.id, kaart.titel || '', kaart.artiest || '', kaart.embed, new Date().toISOString());
+    json(res, 201, { ok: true, koppeling: koppelingVan(lied.id) });
+    return;
+  }
+  if (pad === '/api/spotify/koppeling' && methode === 'DELETE') {
+    const lied = vindLiedje(query.get('liedje'));
+    if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    db.prepare('DELETE FROM spotify_koppelingen WHERE liedje_id = ?').run(Number(lied.id));
+    json(res, 200, { ok: true });
     return;
   }
 

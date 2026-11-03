@@ -23,6 +23,9 @@ Die begeleiding cast je naar een Chromecast in je netwerk.
 | ![bladmuziek](docs/img/bladmuziek-telefoon.png) | **Bladmuziek op je telefoon** — akkoorden boven de lettergreep waar ze vallen, refreinen apart, tabblokken in monospace. Ook te printen. |
 | ![toevoegen](docs/img/toevoegen-desktop.png) | **Eigen liedjes** — ChordPro plakken of een bestand kiezen. Aan je eigen liedjes hang je je eigen opname. |
 | ![casten](docs/img/casten-desktop.png) | **Casten** — Chromecasts zoeken (of een IP intypen), casten, stoppen en het volume regelen. |
+| ![upload](docs/img/upload-herkend.png) | **Mp3 of mp4 uploaden** — de app haalt het geluid uit je bestand, herkent tempo, toonsoort en akkoorden en zoekt het liedje er meteen bij in de bibliotheek. |
+| ![meespelen](docs/img/meespelen-opname.png) | **Meespelen met je eigen opname** — je opname is de muziek; de akkoorden, de maat, de hals en de grepen lopen ermee mee. |
+| ![spotify](docs/img/spotify-blok.png) | **Spotify** — plak een link en de speler staat erbij; de noten lopen mee met wat je hoort. Met een eigen Client ID kun je ook zoeken. |
 
 ## Rondleiding van 56 seconden
 
@@ -96,6 +99,29 @@ worden meegeleverd — de meeste muziek van na ~1928 valt onder auteursrecht. Da
 zo gebouwd dat jij zelf alles kunt toevoegen wat je wilt spelen: plak de ChordPro-tekst van je
 eigen liedjesboek, of maak een eigen kopie van een meegeleverd liedje en hang er je eigen audio
 aan. De app zelf levert alleen de akkoordenreeks, de grepen en de capo-adviezen.
+
+## Muziek of video erbij zoeken
+
+Kies in het tabblad **Toevoegen** een **mp3, mp4, m4a, wav, ogg of webm**. De app:
+
+1. haalt met `ffmpeg` het geluid uit het bestand;
+2. bepaalt het tempo, de maatsoort en de toonsoort (FFT, chromagram, tikherkenning);
+3. herkent per maat het akkoord dat het beste bij de klankkleur past, met een zekerheid per maat;
+4. maakt er een eigen liedje van, zet het schema in de bladmuziek en hangt je opname eraan;
+5. zoekt in de bibliotheek of de bestandsnaam bij een bestaand liedje hoort ("Amazing Grace (official video).mp3" → het liedje *Amazing Grace*), zodat je meteen de grepen en het capo-advies hebt.
+
+Daarna speel je mee met je eigen opname: geen aftelmaat, één keer door het schema, en het beeld volgt het geluid.
+Het is automatische herkenning — het resultaat is een voorstel, dus controleer het schema en pas het gerust aan.
+
+## Spotify
+
+Plak in het liedpaneel een Spotify-link (`open.spotify.com/track/…`, `spotify:track:…` of een losse id). De speler
+verschijnt in de app en geeft zijn positie terug via de Spotify iFrame-API, zodat de noten, de grepen en de akkoorden
+meelopen met de echte muziek. Dit werkt zonder account of sleutel.
+
+Wil je ook *in* Spotify zoeken, vul dan bij **Casten → Spotify** een eigen Client ID en Secret in (gratis aan te maken
+op `developer.spotify.com/dashboard`). Die sleutels blijven in de database van deze server staan. Afspelen op afstand
+(Spotify Connect) vraagt daarnaast een accountkoppeling met inlog; daar is nog geen knop voor.
 
 ## Hoe het werkt
 

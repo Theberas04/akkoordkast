@@ -39,6 +39,7 @@ RUNTIME=(
   "lib/tijdlijn.js"
   "lib/akkoorden.js"
   "lib/analyse.js"
+  "lib/spotify.js"
 )
 PAGINA=(
   "public/index.html"

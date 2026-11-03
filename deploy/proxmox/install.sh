@@ -32,6 +32,7 @@ FILES=(
   "lib/tijdlijn.js"
   "lib/akkoorden.js"
   "lib/analyse.js"
+  "lib/spotify.js"
   "song-data/liedjes.json"
   "song-data/volkswijsjes.json"
   "song-data/kerkwijsjes.json"

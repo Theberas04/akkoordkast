@@ -44,6 +44,7 @@ FILES=(
   "lib/tijdlijn.js"
   "lib/akkoorden.js"
   "lib/analyse.js"
+  "lib/spotify.js"
   "public/index.html"
   "public/favicon.svg"
   "public/manifest.webmanifest"
@@ -69,6 +70,7 @@ RUNTIME=(
   "lib/tijdlijn.js"
   "lib/akkoorden.js"
   "lib/analyse.js"
+  "lib/spotify.js"
 )
 PAGINA=(
   "public/index.html"

@@ -172,6 +172,13 @@
   .mees-noten b.klinkt{color:var(--amber)}
   .grepen figure[data-akkoord].klinkt{outline:2px solid var(--amber);outline-offset:2px;border-radius:10px}
   .seg .ak.klinkt{background:var(--amber);color:#241a03;border-radius:4px;padding:0 3px}
+  .spotify-speler{margin-top:8px}
+  .spotify-speler div{min-height:152px}
+  .spotify-speler iframe{border-radius:12px;border:0;width:100%;min-height:152px;background:#0d1526}
+  .spotify-resultaat{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;
+    background:var(--pane);border:1px solid var(--lijn);border-radius:10px;padding:8px 10px;margin-top:6px}
+  .spotify-resultaat .naam{font-weight:700;font-size:.9rem}
+  .spotify-resultaat .meta{color:var(--tekst2);font-size:.78rem}
   .rij.mees-knoppen{margin-top:10px;align-items:center}
   .rij.mees-knoppen input[type=range]{width:120px;min-height:auto;background:transparent;border:0;padding:0}
   label.mees-schakel{display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--tekst2);min-height:auto;margin:0}
@@ -347,6 +354,24 @@
       </div>
       <div class="melding" id="cast-melding" hidden></div>
       <div class="apparaten" id="cast-apparaten"></div>
+      <h3>Spotify</h3>
+      <p class="melding" id="spotify-status">Status wordt opgehaald…</p>
+      <div class="veld2">
+        <div><label for="spotify-client-id">Client ID (voor zoeken in Spotify)</label>
+          <input id="spotify-client-id" type="text" placeholder="bv. 1a2b3c…"></div>
+        <div><label for="spotify-client-secret">Client Secret</label>
+          <input id="spotify-client-secret" type="password" placeholder="blijft op deze server staan"></div>
+        <div><label for="spotify-markt">Land voor zoeken</label>
+          <input id="spotify-markt" type="text" value="NL" maxlength="2"></div>
+      </div>
+      <div class="rij" style="margin-top:10px">
+        <button class="knop" id="spotify-instellingen">Bewaren en testen</button>
+      </div>
+      <details class="help"><summary>Waar vind ik een Client ID?</summary>
+        <p>Maak op <code>developer.spotify.com/dashboard</code> een app aan (gratis) en kopieer de Client ID en het
+        Client Secret hierheen. Koppelen en meespelen met een link werkt ook zónder deze sleutels; met sleutels kun je
+        daarnaast in Spotify zoeken. Het Client Secret staat alleen in de database van deze server.</p></details>
+
       <h3>Nu ingesteld apparaat</h3>
       <p class="melding" id="cast-huidig">Er is nog geen apparaat gekozen.</p>
       <h3>Wat wordt er gecast?</h3>
@@ -621,6 +646,23 @@ function tekenLiedje(l) {
       '<audio id="mees-audio" preload="none"></audio>' +
       '<div class="melding" id="mees-melding" hidden></div>' +
 
+      '<h3>Spotify</h3>' +
+      '<p class="melding">Plak de link van dit nummer op Spotify en de speler staat er meteen bij. Druk daar op play: ' +
+        'de noten, de grepen en de akkoorden lopen mee met wat je hoort. Met een eigen Client ID en Secret (bij Casten) kun je ook in Spotify zoeken.</p>' +
+      '<div class="rij">' +
+        '<input id="spotify-link" type="text" placeholder="https://open.spotify.com/track/… of spotify:track:…" style="flex:1;min-width:220px">' +
+        '<button class="knop" id="spotify-koppel">Koppelen</button>' +
+        '<button class="knop zacht" id="spotify-los" hidden>Losmaken</button>' +
+        '<button class="knop zacht" id="spotify-zoek-toggle">Zoeken in Spotify</button>' +
+      '</div>' +
+      '<div class="rij" id="spotify-zoekrij" hidden>' +
+        '<input id="spotify-zoek" type="text" placeholder="Zoek een nummer, artiest of album…" style="flex:1;min-width:200px">' +
+        '<button class="knop zacht" id="spotify-zoek-knop">Zoek</button>' +
+      '</div>' +
+      '<div class="melding" id="spotify-melding" hidden></div>' +
+      '<div id="spotify-resultaten"></div>' +
+      '<div class="spotify-speler" id="spotify-speler"></div>' +
+
       '<h3>Begeleiding</h3>' +
       '<div class="veld2">' +
         '<div><label for="speler-reeks">Akkoordenreeks</label>' +
@@ -658,6 +700,17 @@ function tekenLiedje(l) {
   $('beluister').addEventListener('click', function () { maakBegeleiding(l); });
   $('speler-tempo').addEventListener('change', function () { maakBegeleiding(l); });
   $('cast-dit').addEventListener('click', function () { castLiedje(l); });
+  // spotify
+  $('spotify-koppel').addEventListener('click', function () { spotifyKoppel(l, $('spotify-link').value); });
+  $('spotify-los').addEventListener('click', function () { spotifyLos(l); });
+  $('spotify-zoek-toggle').addEventListener('click', function () {
+    var rij = $('spotify-zoekrij');
+    rij.hidden = !rij.hidden;
+    if (!rij.hidden) $('spotify-zoek').focus();
+  });
+  $('spotify-zoek-knop').addEventListener('click', function () { spotifyZoek(l, $('spotify-zoek').value); });
+  $('spotify-zoek').addEventListener('keydown', function (e) { if (e.key === 'Enter') spotifyZoek(l, this.value); });
+  tekenSpotify(l);
   // meespelen
   $('mees-start').addEventListener('click', function () { meespelStart(l); });
   $('mees-stop').addEventListener('click', function () { meespelStop(); });
@@ -823,6 +876,119 @@ function tekenAkkoordschema(perMaat) {
     }).join('') + '</div>';
   }
   return uit;
+}
+
+// ------------------------------------------------------------------ spotify ---
+// De speler van Spotify vertelt zijn positie terug via de iFrame-API. Daarmee
+// laten we de noten, de grepen en de akkoorden meelopen met de echte muziek.
+var SPOTIFY = { controller: null, positie: 0, bijgewerkt: 0, speelt: false, duur: 0, wacht: null };
+
+function laadSpotifyApi(cb) {
+  if (window.SpotifyIframeApi) { cb(); return; }
+  window.onSpotifyIframeApiReady = function (api) {
+    window.SpotifyIframeApi = api;
+    if (SPOTIFY.wacht) { var w = SPOTIFY.wacht; SPOTIFY.wacht = null; w(); }
+  };
+  if (!document.getElementById('spotify-iframe-api')) {
+    var script = document.createElement('script');
+    script.id = 'spotify-iframe-api';
+    script.src = 'https://open.spotify.com/embed/iframe-api/v1';
+    script.async = true;
+    document.head.appendChild(script);
+  }
+  SPOTIFY.wacht = cb;
+  // als het script niet laadt (geen internet), niet eindeloos blijven wachten
+  window.setTimeout(function () {
+    if (SPOTIFY.wacht) { var w = SPOTIFY.wacht; SPOTIFY.wacht = null; w(); }
+  }, 5000);
+}
+
+function tekenSpotify(l) {
+  var vak = $('spotify-speler');
+  if (!vak) return;
+  vak.innerHTML = '';
+  SPOTIFY.controller = null;
+  SPOTIFY.speelt = false;
+  SPOTIFY.positie = 0;
+  if ($('spotify-los')) $('spotify-los').hidden = !l.spotify;
+  if ($('spotify-link')) $('spotify-link').value = l.spotify ? l.spotify.url : '';
+  if (!l.spotify) {
+    toonMelding('spotify-melding', 'Nog geen Spotify-nummer gekoppeld aan dit liedje.', '');
+    return;
+  }
+  toonMelding('spotify-melding', 'Gekoppeld aan ' + (l.spotify.titel ? l.spotify.titel + (l.spotify.artiest ? ' — ' + l.spotify.artiest : '') : l.spotify.uri) +
+    '. Druk in de speler op play: het beeld loopt mee.', 'goed');
+  var houder = document.createElement('div');
+  vak.appendChild(houder);
+  laadSpotifyApi(function () {
+    if (!window.SpotifyIframeApi) {
+      toonMelding('spotify-melding', 'De Spotify-speler kon niet geladen worden (geen internet?). De koppeling blijft bewaard.', 'fout');
+      return;
+    }
+    window.SpotifyIframeApi.createController(houder, { uri: l.spotify.uri, width: '100%', height: 152 }, function (controller) {
+      SPOTIFY.controller = controller;
+      controller.addListener('playback_update', function (gebeurtenis) {
+        if (!gebeurtenis || !gebeurtenis.data) return;
+        SPOTIFY.positie = (gebeurtenis.data.position || 0) / 1000;
+        SPOTIFY.bijgewerkt = Date.now();
+        SPOTIFY.speelt = !gebeurtenis.data.isPaused;
+        SPOTIFY.duur = (gebeurtenis.data.duration || 0) / 1000;
+        // de muziek speelt: laat het beeld meelopen, ook zonder op Meespelen te drukken
+        if (SPOTIFY.speelt && staat.meespelen && !MEES.loop) {
+          MEES.loop = true;
+          requestAnimationFrame(meespelTik);
+        }
+      });
+    });
+  });
+}
+
+function spotifyKoppel(l, link) {
+  if (!link || !link.trim()) { toonMelding('spotify-melding', 'Plak eerst een Spotify-link.', 'fout'); return; }
+  toonMelding('spotify-melding', 'Bezig met koppelen…', '');
+  api('/api/spotify/koppeling', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ liedje: l.id, link: link.trim() })
+  }).then(function (r) {
+    l.spotify = r.koppeling;
+    tekenSpotify(l);
+  }).catch(function (e) { toonMelding('spotify-melding', e.message, 'fout'); });
+}
+
+function spotifyLos(l) {
+  api('/api/spotify/koppeling?liedje=' + l.id, { method: 'DELETE' }).then(function () {
+    l.spotify = null;
+    tekenSpotify(l);
+  }).catch(function (e) { toonMelding('spotify-melding', e.message, 'fout'); });
+}
+
+function spotifyZoek(l, term) {
+  if (!term || term.trim().length < 2) { toonMelding('spotify-melding', 'Typ minstens twee letters.', 'fout'); return; }
+  toonMelding('spotify-melding', 'Zoeken in Spotify…', '');
+  api('/api/spotify/zoek?q=' + encodeURIComponent(term.trim())).then(function (r) {
+    var uit = (r.resultaten || []);
+    if (!uit.length) { toonMelding('spotify-melding', 'Niets gevonden.', 'fout'); $('spotify-resultaten').innerHTML = ''; return; }
+    toonMelding('spotify-melding', uit.length + ' nummer(s) gevonden. Kies er een om te koppelen.', 'goed');
+    $('spotify-resultaten').innerHTML = uit.map(function (t) {
+      return '<div class="spotify-resultaat"><div><div class="naam">' + esc(t.titel) + '</div>' +
+        '<div class="meta">' + esc(t.artiest) + (t.album ? ' · ' + esc(t.album) : '') + (t.duurSeconden ? ' · ' + Math.floor(t.duurSeconden / 60) + ':' + ('0' + (t.duurSeconden % 60)).slice(-2) : '') + '</div></div>' +
+        '<button class="knop zacht" data-spotify-uri="' + esc(t.uri) + '">Koppelen</button></div>';
+    }).join('');
+    Array.prototype.forEach.call($('spotify-resultaten').querySelectorAll('[data-spotify-uri]'), function (b) {
+      b.addEventListener('click', function () { spotifyKoppel(l, b.getAttribute('data-spotify-uri')); });
+    });
+  }).catch(function (e) { toonMelding('spotify-melding', e.message, 'fout'); });
+}
+
+// De tijd die het beeld volgt: de Spotify-speler als die speelt, anders onze audio.
+function meespeelTijd() {
+  var a = $('mees-audio');
+  var eigenSpeelt = !!(a && !a.paused && !a.ended);
+  if (!eigenSpeelt && SPOTIFY.speelt) {
+    var doorloop = SPOTIFY.speelt ? (Date.now() - SPOTIFY.bijgewerkt) / 1000 : 0;
+    return SPOTIFY.positie + doorloop;
+  }
+  return a ? a.currentTime : 0;
 }
 
 // ---------------------------------------------------------------- meespelen ---
@@ -1082,6 +1248,7 @@ function meespelLaad(l, spelen) {
         : 'Dit liedje heeft alleen akkoorden: druk op Meespelen voor de maat, de slagen en de akkoordnoten.', '');
       return;
     }
+    if (SPOTIFY.controller && SPOTIFY.speelt) { try { SPOTIFY.controller.pause(); } catch (e) {} }
     a.currentTime = 0;
     a.onended = function () {
       if ($('mees-herhaal') && $('mees-herhaal').classList.contains('actief')) {
@@ -1122,7 +1289,8 @@ function meespelTik() {
   var a = $('mees-audio');
   if (!s || !a || !MEES.audioEl || a !== MEES.audioEl) { MEES.loop = false; return; }
   var tl = s.tijdlijn;
-  var t = a.currentTime;
+  var t = meespeelTijd();
+  if (t > tl.duurSeconden + 3) { MEES.loop = false; return; }
   var i, iMaat = 0, iSlag = -1, iNoot = -1;
   for (i = 0; i < tl.maten.length; i++) if (tl.maten[i].startSeconden <= t) iMaat = i;
   for (i = 0; i < tl.slagen.length; i++) if (tl.slagen[i].startSeconden <= t) iSlag = i;
@@ -1287,7 +1455,27 @@ function kiesApparaat(ip, naam) {
   toonMelding('cast-melding', 'Apparaat gekozen. Open een liedje en druk op "Cast dit liedje".', 'goed');
 }
 $('upload-start').addEventListener('click', uploadMuziek);
+$('spotify-instellingen').addEventListener('click', function () {
+  toonMelding('spotify-status', 'Bezig met bewaren en testen…', '');
+  api('/api/spotify/instellingen', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      client_id: $('spotify-client-id').value.trim(),
+      client_secret: $('spotify-client-secret').value.trim(),
+      markt: $('spotify-markt').value.trim() || 'NL'
+    })
+  }).then(function (r) {
+    toonMelding('spotify-status', r.kanZoeken ? 'Zoeken in Spotify staat aan.' : 'Zonder sleutels blijft koppelen met een link werken.', r.kanZoeken ? 'goed' : '');
+  }).catch(function (e) { toonMelding('spotify-status', e.message, 'fout'); });
+});
+function laadSpotifyStatus() {
+  api('/api/spotify/status').then(function (r) {
+    toonMelding('spotify-status', r.uitleg, r.kanZoeken ? 'goed' : '');
+    $('spotify-markt').value = r.markt || 'NL';
+  }).catch(function () {});
+}
 $('cast-zoeken').addEventListener('click', function () { laadApparaten(false); });
+laadSpotifyStatus();
 $('cast-verbind-ip').addEventListener('click', function () {
   var ip = $('cast-handmatig').value.trim();
   if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(ip)) { toonMelding('cast-melding', 'Dat lijkt geen IP-adres.', 'fout'); return; }

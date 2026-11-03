@@ -136,25 +136,28 @@ fi
 # Het wachtwoord staat alleen in dit bestand (rechten 600). Het gaat niet mee als
 # opdrachtregel, dus het staat ook niet in de proceslijst.
 if [ "$NAS_PROTO" = "nfs" ]; then
-  cat > "$RCLONE_CONF" <<CONFEOF
-[$REMOTE]
-type = nfs
-host = $NAS_HOST
-CONFEOF
-  if [ -n "$NAS_SHARE" ]; then
-    printf '%s\n' "path = $NAS_SHARE" >> "$RCLONE_CONF"
-  fi
-else
-  cat > "$RCLONE_CONF" <<CONFEOF
+  fout "NFS kan niet rechtstreeks in de container."
+  fout ""
+  fout "rclone spreekt geen NFS (het heeft alleen 'serve nfs', en dat is de andere kant"
+  fout "op) en de kernel laat een ongeprivilegieerde container geen NFS-koppeling maken."
+  fout "Er is in Debian wel een NFS-client, maar die werkt via de kernel en dus ook"
+  fout "alleen op de host."
+  fout ""
+  fout "Twee mogelijkheden:"
+  fout "  - deel de map op de NAS ook als SMB-share en draai dit script met NAS_PROTO=cifs"
+  fout "  - of gebruik route 1: bash deploy/proxmox/nas-koppelen.sh (de host koppelt)"
+  exit 1
+fi
+
+cat > "$RCLONE_CONF" <<CONFEOF
 [$REMOTE]
 type = smb
 host = $NAS_HOST
 user = $NAS_USER
 pass = $VERSLUIERD
 CONFEOF
-  if [ -n "$NAS_POORT" ]; then
-    printf '%s\n' "port = $NAS_POORT" >> "$RCLONE_CONF"
-  fi
+if [ -n "$NAS_POORT" ]; then
+  printf '%s\n' "port = $NAS_POORT" >> "$RCLONE_CONF"
 fi
 doe chmod 600 "$RCLONE_CONF"
 zeg "   $RCLONE_CONF geschreven (rechten 600)."
@@ -183,9 +186,7 @@ else
 fi
 
 zeg "== Schrijfrechten controleren"
-if [ "$NAS_PROTO" = "nfs" ] && [ -n "$NAS_SHARE" ]; then
-  DOEL="$REMOTE:$NAS_SHARE"
-elif [ -n "$NAS_SHARE" ]; then
+if [ -n "$NAS_SHARE" ]; then
   DOEL="$REMOTE:$NAS_SHARE"
 else
   DOEL="$REMOTE:"

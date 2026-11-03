@@ -362,9 +362,12 @@ het verschil niet.
      bash deploy/proxmox/nas-koppelen-lxc.sh
    ```
 
-4. Gebruik je **NFS** in plaats van SMB, dan zet je `NAS_PROTO=nfs NAS_SHARE=/mnt/pool/muziek` (het
-   exportpad). Let op de NFS-exportopties: met root squash mag de container niet schrijven; zet voor
-   dit export `mapall` op de gebruiker die eigenaar van de dataset is.
+4. **NFS kan niet via deze route.** rclone spreekt geen NFS — het heeft alleen `serve nfs` en dat
+   is de andere kant op — en de kernel laat een ongeprivilegieerde container geen NFS-koppeling
+   maken (`mount -t nfs` werkt alleen op de host). De NFS-client van Debian (`nfs-common`) werkt
+   ook via de kernel en is dus geen uitweg. Heb je je map alleen via NFS gedeeld, deel hem dan ook
+   als SMB-share, of gebruik route 1 (`nas-koppelen.sh`), waar de host koppelt. Deze scripts zeggen
+   dit ook zelf als je `NAS_PROTO=nfs` meegeeft, in plaats van iets te proberen wat niet kan.
 
 ### Route 2: Google Drive
 

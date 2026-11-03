@@ -24,6 +24,22 @@ set -euo pipefail
 CTID="${CTID:-${1:-}}"
 MOUNT="${MOUNT:-/home/akkoordkast/muziek}"
 NAS_PROTO="${NAS_PROTO:-cifs}"
+
+# NFS kan niet via deze route. rclone spreekt geen NFS (het heeft alleen 'serve nfs',
+# en dat is de andere kant op) en 'mount -t nfs' mag een ongeprivilegieerde container
+# van de kernel niet. Voor NFS gebruik je nas-koppelen.sh: daar koppelt de host.
+if [ "$NAS_PROTO" = "nfs" ]; then
+  {
+    printf '%s\n' "NFS kan niet rechtstreeks in de container (route 1b)."
+    printf '%s\n' ""
+    printf '%s\n' "rclone spreekt geen NFS en de container mag zelf geen NFS koppelen."
+    printf '%s\n' "Twee mogelijkheden:"
+    printf '%s\n' "  - deel de map op de NAS ook als SMB-share en draai dit script met NAS_PROTO=cifs"
+    printf '%s\n' "  - of gebruik route 1: bash deploy/proxmox/nas-koppelen.sh (de host koppelt en"
+    printf '%s\n' "    hangt de map in de container)"
+  } >&2
+  exit 1
+fi
 NAS_HOST="${NAS_HOST:-}"
 NAS_SHARE="${NAS_SHARE:-}"
 NAS_USER="${NAS_USER:-}"

@@ -32,6 +32,23 @@ NAS_POORT="${NAS_POORT:-}"
 HERSTART="${HERSTART:-ja}"
 HIER="$(cd "$(dirname "$0")" && pwd)"
 BINNEN_SCRIPT="$HIER/nas-mount-lxc.sh"
+BASIS_URL="${BASIS_URL:-https://raw.githubusercontent.com/Theberas04/akkoordkast/main/deploy/proxmox}"
+
+# Draai je dit script via een one-liner van GitHub, dan staat nas-mount-lxc.sh hier
+# niet naast. Dan halen we hem op; mislukt dat, dan zeggen we het gewoon.
+haal_binnen_script() {
+  [ -f "$BINNEN_SCRIPT" ] && return 0
+  BINNEN_SCRIPT="$(mktemp)"
+  zeg_tijdelijk="   Ik haal nas-mount-lxc.sh op van GitHub..."
+  printf '%s\n' "$zeg_tijdelijk"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "$BASIS_URL/nas-mount-lxc.sh" -o "$BINNEN_SCRIPT" || true
+  elif command -v wget >/dev/null 2>&1; then
+    wget -qO "$BINNEN_SCRIPT" "$BASIS_URL/nas-mount-lxc.sh" || true
+  fi
+  [ -s "$BINNEN_SCRIPT" ] || return 1
+  return 0
+}
 
 zeg() { printf '%s\n' "$*"; }
 fout() { printf '%s\n' "$*" >&2; }
@@ -40,8 +57,9 @@ stop() { fout "$*"; exit 1; }
 [ "$(id -u)" = "0" ] || stop "Draai dit als root op de Proxmox-host."
 command -v pct >/dev/null 2>&1 || stop "Dit script hoort op de Proxmox-host te draaien (pct ontbreekt)."
 [ -n "$CTID" ] || stop "Geef het container-id mee, bijvoorbeeld: CTID=225 bash $0"
-[ -f "$BINNEN_SCRIPT" ] || stop "Ik mis $BINNEN_SCRIPT; haal het op met hetzelfde commando als dit script."
 pct status "$CTID" >/dev/null 2>&1 || stop "Container $CTID bestaat niet op deze host."
+haal_binnen_script || stop "Ik kan nas-mount-lxc.sh niet vinden en ook niet ophalen van GitHub. Zet hem naast dit script of geef BASIS_URL mee."
+zeg "   Container $CTID gevonden; nas-mount-lxc.sh staat klaar."
 
 CONF="/etc/pve/lxc/$CTID.conf"
 [ -f "$CONF" ] || stop "Ik kan de configuratie van container $CTID niet vinden: $CONF"

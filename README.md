@@ -345,6 +345,27 @@ privileges, maar rclone doet het lees- en schrijfwerk zelf: bij heel grote mappe
 bestanden) is route 1 — koppelen op de host — merkbaar sneller. Voor een gewone muziekmap merk je
 het verschil niet.
 
+**TrueNAS en andere SMB-servers.** Op de NAS zelf hoef je niets te installeren:
+
+1. Zet de **SMB-dienst** aan (TrueNAS: Services → SMB) en deel de dataset met de muziek
+   (Shares → Windows (SMB) → Add). TrueNAS heeft SMB1 uit staan; dat is geen probleem, rclone
+   praat SMB2 en SMB3.
+2. Maak op de NAS een **gebruiker** aan die bij die share mag, en geef die gebruiker **eigenaarschap
+   of schrijfrechten op de dataset** (TrueNAS: Datasets → Edit Permissions). Het script zet een
+   proefbestandje in de share om dit te controleren; lukt schrijven niet, dan zegt het dat met de
+   reden erbij — dat is bijna altijd een dataset waar de gebruiker geen rechten op heeft.
+3. Vul in de opdracht het IP of de hostnaam van de NAS, de **sharenaam** (niet het volledige pad en
+   zonder `\\nas\`) en de gebruikersnaam. Voorbeeld voor een TrueNAS met de share `muziek`:
+
+   ```bash
+   CTID=225 NAS_HOST=192.168.1.100 NAS_SHARE=muziek NAS_USER=thuis \
+     bash deploy/proxmox/nas-koppelen-lxc.sh
+   ```
+
+4. Gebruik je **NFS** in plaats van SMB, dan zet je `NAS_PROTO=nfs NAS_SHARE=/mnt/pool/muziek` (het
+   exportpad). Let op de NFS-exportopties: met root squash mag de container niet schrijven; zet voor
+   dit export `mapall` op de gebruiker die eigenaar van de dataset is.
+
 ### Route 2: Google Drive
 
 1. In de container, als root:

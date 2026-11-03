@@ -182,6 +182,30 @@ else
   exit 1
 fi
 
+zeg "== Schrijfrechten controleren"
+if [ "$NAS_PROTO" = "nfs" ] && [ -n "$NAS_SHARE" ]; then
+  DOEL="$REMOTE:$NAS_SHARE"
+elif [ -n "$NAS_SHARE" ]; then
+  DOEL="$REMOTE:$NAS_SHARE"
+else
+  DOEL="$REMOTE:"
+fi
+
+if [ -n "$PROEF" ] && [ "${PROEF_SHARE:-}" != "ja" ]; then
+  zeg "   [proef] ik schrijf geen proefbestand."
+elif rclone touch "$DOEL/akkoordkast-proef.txt" --timeout 20s >/dev/null 2>&1; then
+  rclone deletefile "$DOEL/akkoordkast-proef.txt" --timeout 20s >/dev/null 2>&1 || true
+  zeg "   Schrijven in de share werkt."
+else
+  fout "   Let op: ik kan wel lezen maar niet schrijven in $DOEL."
+  fout "   De app zet nieuwe liedjes in deze map, dus dat moet wel kunnen."
+  fout "   Op een TrueNAS bijvoorbeeld: kijk bij Datasets of de gebruiker van deze"
+  fout "   koppeling eigenaar is van de dataset (of in de groep zit) en of de share"
+  fout "   geen alleen-lezen vinkje heeft. Daarna dit script opnieuw draaien."
+  fout "   Alleen lezen kan genoeg zijn als je de map niet laat bijhouden; dan mag je"
+  fout "   dit negeren, maar dan kun je in de app ook geen nieuwe muziek omzetten."
+fi
+
 zeg "== De map koppelen op $MOUNT"
 mkdir -p "$MOUNT"
 if ! grep -q "^user_allow_other" "$FUSE_CONF" 2>/dev/null; then

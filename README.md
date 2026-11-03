@@ -604,8 +604,11 @@ Alles wat je zelf hebt gemaakt — profielen, favorieten, labels, setlists, oefe
 en de instellingen — kan de app elke dag als één bestand wegschrijven naar een map die jij kiest,
 bijvoorbeeld op de NAS. In het tabblad **Toevoegen** onder *Beheer en bijwerken*:
 
-- vul de **back-upmap** in (bijvoorbeeld `/mnt/Nas/Nas-Opslag/akkoordkast-backup`) en druk op
-  **Back-up aanzetten**;
+- vul de **back-upmap** in en druk op
+  **Back-up aanzetten**. Standaard stelt de app een map **in** je muziekmap voor
+  (`.../Muziek/akkoordkast-backup`); dat is bewust, want de container ziet alleen wat daar gekoppeld
+  is. Wil je de back-ups ergens anders op de NAS, koppel die map dan ook in de container (met
+  `nas-koppelen.sh` en een eigen `KOPPELPUNT`);
 - met **Nu een back-up maken** doe je het meteen;
 - de laatste tien blijven staan (aan te passen met *Bewaren*), de rest wordt opgeruimd;
 - onder de knoppen zie je de bestanden met hun grootte, zodat je kunt zien dat het loopt.

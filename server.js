@@ -1143,8 +1143,12 @@ function wachterBeeld() {
 // Een kopie van alles wat je zelf hebt gemaakt — profielen, favorieten, setlists,
 // oefencijfers, je eigen liedjes en de instellingen — naar een map die jij kiest,
 // bijvoorbeeld op de NAS. De app bewaart de laatste N en ruimt de rest op.
+// De voorgestelde back-upmap staat *in* de muziekmap. Reden: de container ziet alleen wat
+// daar gekoppeld is, en een map naast de muziekmap (bijvoorbeeld /mnt/Nas/Nas-Opslag/backup)
+// bestaat binnen de container niet. Zo werkt het voorstel meteen, ook op een NAS. De app
+// slaat geluidsbestanden over bij het scannen, dus die JSON-bestanden storen niet.
 const STANDAARD_BACKUPMAP = String(process.env.BACKUP_DIR || '').trim() ||
-  (STANDAARD_MUZIEKMAP ? path.join(path.dirname(STANDAARD_MUZIEKMAP), 'akkoordkast-backup') : '');
+  (STANDAARD_MUZIEKMAP ? path.join(STANDAARD_MUZIEKMAP, 'akkoordkast-backup') : '');
 
 const BACKUP = {
   aan: leesInstelling('backup_aan', '0') === '1',

@@ -310,38 +310,5 @@
   "strum": "D DU UDU",
   "bron": "Public domain (traditional English, 16th century)",
   "chordpro": "{title: Greensleeves (instrumentaal)}\n{key: Am}\n{tempo: 100}\n\n{comment: Thema}\n[Am]    [C]    [G]    [Am]\n\n{sot}\n0 1 2 2 0 0\n3 3 0 0 0 0\n0 2 0 0 0 0\n1 0 2 0 0 0\n{eot}\n\n{comment: Variatie}\n[Am]    [E7]    [Am]    [E7]\n\n{sot}\n0 1 0 2 2 0\n0 0 2 0 0 0\n2 2 0 0 0 0\n0 1 2 0 0 0\n{eot}\n"
- },
- {
-  "titel": "Limburg, mijn Vaderland (Waar in 't bronsgroen eikenhout)",
-  "artiest": "Henri Tijssen (melodie, 1909) · Gerard Krekelberg (tekst, 1909)",
-  "taal": "nl",
-  "genre": "Volkslied",
-  "moeilijkheid": 2,
-  "toonsoort": "G",
-  "tempo": 96,
-  "maatsoort": 4,
-  "strum": "D DU UDU",
-  "bron": "Limburgs volkslied, 1909 (bladmuziek uit een openbaar-domein liedbundel, Wikimedia Commons)",
-  "licentie": "Publiek domein (Tijssen overleed 1926, Krekelberg 1937)",
-  "chordpro": "{title: Limburg, mijn Vaderland}\n{subtitle: Waar in 't bronsgroen eikenhout}\n{key: G}\n{tempo: 96}\n\n{comment: Eerste couplet}\n[G]Waar in 't bronsgroen [D7]eikenhout, 't [G]nachtegaaltje [D7]zingt;\n[G]Over 't malse [C]korenveld, 't [D7]lied des leeuweriks [G]klinkt;\n[G]Waar de hoorn des [D7]herders schalt, langs des [G]beekjes [Em]boord:\n[C]Daar is mijn [G]vaderland, [D7]Limburgs dierbaar [G]oord!\n[C]Daar is mijn [G]vaderland, [D7]Limburgs dierbaar [G]oord!\n\n{comment: Tweede couplet}\n[G]Waar de brede [D7]stroom der Maas, [G]statig zeewaarts [D7]vloeit;\n[G]Weeldrig sappig [C]veldgewas, [D7]kostelijk groeit en [G]bloeit;\n[G]Bloemengaard en [D7]beemd en bos, [G]overheerlijk [Em]gloort:\n[C]Daar is mijn [G]vaderland, [D7]Limburgs dierbaar [G]oord!\n[C]Daar is mijn [G]vaderland, [D7]Limburgs dierbaar [G]oord!\n\n{comment: Derde couplet}\n[G]Waar der vaadren [D7]schone taal, [G]klinkt met heldre [D7]kracht;\n[G]Waar men kloek en [C]fier van aard, [D7]vreemde praal ver[G]acht;\n[G]Eigen zeden, [D7]eigen schoon, 't [G]hart des volks be[Em]koort:\n[C]Daar is mijn [G]vaderland, [D7]Limburgs dierbaar [G]oord!\n[C]Daar is mijn [G]vaderland, [D7]Limburgs dierbaar [G]oord!",
-  "akkoordenPerMaat": [
-   "G",
-   "D7",
-   "G",
-   "D7",
-   "G",
-   "C",
-   "D7",
-   "G",
-   "C",
-   "G",
-   "D7",
-   "G",
-   "C",
-   "G",
-   "D7",
-   "G"
-  ],
-  "noten": []
  }
 ]

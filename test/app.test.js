@@ -67,7 +67,8 @@ test('de PWA-assets worden geserveerd met het juiste type', async () => {
 
 test('de service worker houdt /api/ en /media/ buiten de cache', () => {
   const sw = fs.readFileSync(path.join(__dirname, '..', 'public', 'sw.js'), 'utf8');
-  assert.match(sw, /akkoordkast-v2/);
+  // de naam mag opschuiven als de app-schil verandert; hij moet wel een versie hebben
+  assert.match(sw, /const CACHE = 'akkoordkast-v\d+';/);
   assert.match(sw, /startsWith\('\/api\/'\)/);
   assert.match(sw, /startsWith\('\/media\/'\)/);
 });
@@ -386,4 +387,78 @@ test('het liedpaneel heeft een eigen start- en stopknop bij het spelen', () => {
   assert.match(html, /koppelSpeler\('opname-audio', 'opname-start', 'opname-stop', 'opname-stand'\)/);
   // stoppen zet de speler ook echt terug naar het begin
   assert.match(html, /a\.pause\(\);\s*\n\s*try \{ a\.currentTime = 0; \}/);
+});
+
+// ------------------------------------------------------------ leermodus ---
+
+test('de leermodus staat in de pagina: leslijst, trainer, stemmen, ritme en grepen', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  assert.match(html, /id="tab-leren"[^>]*data-paneel="paneel-leren"/);
+  assert.match(html, /var TABS = \['liedjes', 'spelen', 'leren', 'toevoegen', 'casten'\]/);
+  for (const id of ['paneel-leren', 'leren-lessen', 'leren-balk', 'leren-voortgang', 'trein-set', 'trein-tempo',
+    'trein-maten', 'trein-start', 'trein-stop', 'trein-akkoord', 'trein-volgend', 'trein-greep', 'trein-tellen',
+    'trein-stats', 'stem-rij', 'ritme-rij', 'ritme-start', 'ritme-stop', 'ritme-tellen', 'ritme-uitleg', 'leren-grepen']) {
+    assert.ok(html.includes('id="' + id + '"'), 'id ontbreekt in de leermodus: ' + id);
+  }
+  // acht lessen met alle vier de onderdelen
+  assert.match(html, /var LESSEN = \[/);
+  const lessen = html.match(/titel: '[^']+',\s*\n\s*kort:/g) || [];
+  assert.equal(lessen.length, 8, 'verwacht acht lessen, gevonden: ' + lessen.length);
+  for (const woord of ['doel:', 'tekst: [', 'oefening:', 'knop: {']) {
+    assert.ok(html.includes(woord), 'lesonderdeel ontbreekt: ' + woord);
+  }
+  // het geluid wordt zelf gemaakt: geen geluidsbestanden of externe bronnen
+  assert.match(html, /window\.AudioContext \|\| window\.webkitAudioContext/);
+  assert.match(html, /new Ctx\(\)/);
+  assert.ok(!/\.mp3|\.wav|\.ogg/.test(html.split('id="paneel-leren"')[1].split('</section>')[0]), 'leermodus verwijst naar geluidsbestanden');
+});
+
+test('de grepen-API geeft diagram plus posities en noten voor alle grepen', async () => {
+  const r = await haal(omgeving.basis, '/api/grepen');
+  assert.equal(r.status, 200);
+  const data = r.data;
+  assert.ok(Array.isArray(data.grepen));
+  assert.ok(data.grepen.length >= 26, 'te weinig grepen: ' + data.grepen.length);
+  for (const g of data.grepen) {
+    assert.ok(typeof g.naam === 'string' && g.naam);
+    assert.match(g.svg, /^<svg/);
+    assert.equal(g.frets.length, 6, g.naam + ': frets horen zes snaren te hebben');
+    assert.ok(g.noten.length >= 3, g.naam + ': te weinig klinkende snaren');
+    for (const midi of g.noten) assert.ok(midi >= 36 && midi <= 84, g.naam + ': noot buiten bereik: ' + midi);
+  }
+  const f = data.grepen.find(g => g.naam === 'F');
+  assert.equal(f.isBarre, true);
+  assert.ok(f.barre && f.barre.fret === 1, 'de F-greep hoort een barré op fret 1 te hebben');
+  const em = data.grepen.find(g => g.naam === 'Em');
+  assert.equal(em.isBarre, false);
+  assert.deepEqual(em.noten, [40, 47, 52, 55, 59, 64]);
+});
+
+test('de grepen-API geeft één greep en weigert een akkoord zonder diagram', async () => {
+  const een = await haal(omgeving.basis, '/api/greep?akkoord=Am7');
+  assert.equal(een.status, 200);
+  const g = een.data;
+  assert.equal(g.naam, 'Am7');
+  assert.match(g.svg, /^<svg/);
+
+  const mis = await haal(omgeving.basis, '/api/greep?akkoord=Cadd9');
+  assert.equal(mis.status, 404);
+  assert.match(mis.data.fout, /Geen greep/);
+});
+
+test('de leermodus rekent de lesknoppen om naar de trainer', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  // elke les met een trainerknop moet een set, tempo en aantal maten meegeven
+  const knoppen = html.match(/knop: \{ tekst: '[^']+', naar: 'trainer', set: '[^']+', tempo: \d+, maten: \d+ \}/g) || [];
+  assert.ok(knoppen.length >= 3, 'verwacht minstens drie trainerknoppen, gevonden: ' + knoppen.length);
+  for (const k of knoppen) {
+    const set = k.match(/set: '([^']+)'/)[1].split(' ');
+    assert.ok(set.length >= 2, 'een trainerset hoort minstens twee akkoorden te hebben: ' + k);
+    const tempo = Number(k.match(/tempo: (\d+)/)[1]);
+    assert.ok(tempo >= 40 && tempo <= 140, 'tempo buiten bereik: ' + tempo);
+  }
+  assert.match(html, /function startTrainer\(\)/);
+  assert.match(html, /function stopTrainer\(/);
+  assert.match(html, /localStorage\.setItem\(LEER_SLEUTEL/);
+  assert.match(html, /document\.addEventListener\('visibilitychange'/);
 });

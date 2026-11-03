@@ -29,6 +29,11 @@
       "bestand": "song-data/oude-bundels.json",
       "vanaf": 400000,
       "soort": "wijsjes uit historische dansbundels"
+    },
+    {
+      "bestand": "song-data/limburg-liedjes.json",
+      "vanaf": 600000,
+      "soort": "Limburgse liedjes met tekst (Jo Erens en het Limburgs volkslied)"
     }
   ]
 }

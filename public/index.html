@@ -30,7 +30,7 @@
   .onderkop{color:var(--tekst2);font-size:.82rem;margin-top:2px}
   .pilletje{background:var(--pane2);border:1px solid var(--lijn);color:var(--tekst2);
     border-radius:999px;padding:3px 9px;font-size:.74rem;white-space:nowrap}
-  nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:10px 12px 0;max-width:660px;margin:0 auto}
+  nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;padding:10px 12px 0;max-width:760px;margin:0 auto}
   nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
     min-height:52px;background:var(--pane);border:1px solid var(--lijn);border-radius:12px;color:var(--tekst);
     font-size:.78rem;font-weight:600;padding:6px 4px;cursor:pointer;text-align:center}
@@ -318,11 +318,63 @@
     .lied .titel{font-family:var(--kop);font-size:1.05rem}
   }
   section.paneel, .kaart{scroll-margin-top:96px}
+  /* ------- leermodus ------- */
+  .leren-kop{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
+  .voortgang{flex:1 1 240px;min-width:200px}
+  .voortgang-balk{height:10px;border-radius:999px;background:#0c1425;border:1px solid var(--lijn);overflow:hidden}
+  .voortgang-balk span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--amber2),var(--groen));transition:width .3s ease}
+  .voortgang-tekst{font-size:.78rem;color:var(--tekst2);margin-top:6px}
+  .les{border:1px solid var(--lijn);border-radius:var(--r);background:rgba(16,26,46,.55);margin-bottom:10px;overflow:hidden}
+  .les[open]{background:rgba(20,32,56,.75)}
+  .les summary{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer}
+  .les summary::before{content:none}
+  .les .les-nr{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+    background:rgba(28,43,74,.9);border:1px solid var(--lijn);font-weight:700;font-size:.86rem}
+  .les.doen .les-nr{background:linear-gradient(180deg,var(--amber2),var(--amber));color:#23180a;border-color:#ffd479}
+  .les .les-titel{font-weight:700;font-family:var(--kop);font-size:1rem}
+  .les .les-klein{font-size:.78rem;color:var(--tekst2)}
+  .les .les-inhoud{padding:0 16px 16px;border-top:1px solid rgba(37,54,92,.7)}
+  .les .les-inhoud p{margin:10px 0;font-size:.9rem;line-height:1.6;color:#c7d3e6}
+  .les .les-inhoud ul{margin:8px 0 8px 18px;font-size:.9rem;color:#c7d3e6;line-height:1.6}
+  .les .doel{background:rgba(28,43,74,.6);border-left:3px solid var(--amber);border-radius:0 9px 9px 0;
+    padding:10px 13px;font-size:.87rem;color:#dfe8f5;margin:12px 0 6px}
+  .les .klaar-rij{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:.84rem;color:var(--tekst2)}
+  .les .klaar-rij input{width:20px;height:20px;min-height:0;accent-color:var(--amber)}
+  .leer-raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px}
+  .greep-kaart{background:#0d1526;border:1px solid var(--lijn);border-radius:var(--r);padding:8px;
+    display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:border-color .15s ease,transform .1s ease}
+  .greep-kaart:hover{border-color:#3f5586;transform:translateY(-1px)}
+  .greep-kaart.vast{border-color:var(--amber);box-shadow:0 0 0 1px rgba(245,165,36,.3) inset}
+  .greep-kaart .naam{font-weight:700;font-size:.92rem}
+  .greep-kaart .klein{font-size:.7rem;color:var(--tekst2)}
+  .trein{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+  @media (min-width:820px){.trein{grid-template-columns:300px minmax(0,1fr)}}
+  .trein-dans{display:flex;flex-direction:column;gap:12px}
+  .trein-beeld{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+    background:radial-gradient(520px 260px at 50% 0%,rgba(36,31,66,.75),rgba(13,21,38,.9));
+    border:1px solid var(--lijn);border-radius:var(--r-groot);min-height:270px;padding:16px}
+  .trein-akkoord{font-family:var(--kop);font-size:3.2rem;font-weight:700;line-height:1}
+  .trein-volgend{font-size:.82rem;color:var(--tekst2)}
+  .tellen{display:flex;gap:8px}
+  .tellen span{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;
+    background:#0c1425;border:1px solid var(--lijn);color:var(--tekst2)}
+  .tellen span.nu{background:linear-gradient(180deg,var(--amber2),var(--amber));color:#23180a;border-color:#ffd479}
+  .tellen span.kop{box-shadow:0 0 0 2px rgba(52,211,153,.35)}
+  .trein-stats{font-size:.84rem;color:var(--tekst2);line-height:1.6}
+  .stem-rij{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  @media (min-width:620px){.stem-rij{grid-template-columns:repeat(6,minmax(0,1fr))}}
+  .stem-rij .knop{flex-direction:column;gap:2px;line-height:1.2}
+  .stem-rij .dik{font-weight:800;font-size:1.05rem}
+  .stem-rij .dun{font-size:.7rem;opacity:.85}
+  .ritme-rij{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .ritme-rij .patroon{font-family:var(--mono,monospace);font-size:1.05rem;letter-spacing:.12em}
+  .leren-links{display:flex;flex-wrap:wrap;gap:8px}
   @media (max-width:760px){
     header{padding:10px 12px 8px}
     .onderkop{display:none}
     h1{font-size:1.1rem}
-    nav{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:8px 8px 0}
+    nav{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;padding:8px 8px 0}
+    nav button{font-size:.68rem;min-height:52px}
     nav button{font-size:.7rem;min-height:50px;padding:5px 2px}
     main{padding:10px 8px 24px}
     .veld2{grid-template-columns:1fr}
@@ -353,6 +405,7 @@
 <nav>
   <button id="tab-liedjes" class="actief" data-paneel="paneel-liedjes"><span class="ic">🎵</span><span>Liedjes</span></button>
   <button id="tab-spelen" data-paneel="paneel-spelen"><span class="ic">🎸</span><span>Spelen</span></button>
+  <button id="tab-leren" data-paneel="paneel-leren"><span class="ic">🎓</span><span>Leren</span></button>
   <button id="tab-toevoegen" data-paneel="paneel-toevoegen"><span class="ic">➕</span><span>Toevoegen</span></button>
   <button id="tab-casten" data-paneel="paneel-casten"><span class="ic">📺</span><span>Casten</span></button>
 </nav>
@@ -404,6 +457,113 @@
       <div class="melding">Kies eerst een liedje in het tabblad <strong>Liedjes</strong>.</div>
     </div>
     <div id="spelen-inhoud" hidden></div>
+  </section>
+
+
+  <!-- ------------------------------------------------------------- leren -->
+  <section id="paneel-leren" class="paneel">
+    <div class="kaart">
+      <div class="leren-kop">
+        <div>
+          <h2>Leren gitaarspelen</h2>
+          <div class="les-klein">Acht lessen van het vasthouden van de gitaar tot je eerste barré-akkoord, met per les een oefening in de app.</div>
+        </div>
+        <div class="voortgang">
+          <div class="voortgang-balk"><span id="leren-balk"></span></div>
+          <div class="voortgang-tekst" id="leren-voortgang">Nog geen les afgerond.</div>
+        </div>
+      </div>
+      <div class="leren-links" style="margin-top:14px">
+        <button class="knop zacht" id="leren-naar-trainer">Naar de akkoordentrainer</button>
+        <button class="knop zacht" id="leren-naar-stemmen">Naar het stemmen</button>
+        <button class="knop zacht" id="leren-naar-akkoorden">Alle grepen bekijken</button>
+      </div>
+    </div>
+
+    <div class="kaart">
+      <h2>De cursus</h2>
+      <div id="leren-lessen"></div>
+    </div>
+
+    <div class="kaart">
+      <h2>Akkoordentrainer</h2>
+      <p class="les-klein" style="margin:0 0 12px">Kies een set akkoorden, zet het tempo laag, en wissel op de tik van de metronoom.
+        De app telt de maten voor je en laat het volgende akkoord alvast zien — precies waar het bij akkoorden wisselen om gaat.</p>
+      <div class="trein">
+        <div class="trein-dans">
+          <div>
+            <label for="trein-set">Akkoorden</label>
+            <select id="trein-set">
+              <option value="Em Am C">Beginner: Em · Am · C</option>
+              <option value="C G D7">Eerste liedjes: C · G · D7</option>
+              <option value="G Em C D7">Volkswijsjes: G · Em · C · D7</option>
+              <option value="C Am F G7">Klassieke reeks: C · Am · F · G7</option>
+              <option value="F Bm">Barré: F · Bm</option>
+              <option value="C C7 Cm Cmaj7 D D7 Dm Dm7 E E7 Em Em7 F F7 Fm Fmaj7 G G7 Gm A A7 Am Am7 Bb B7 Bm">Alles door elkaar (26 grepen)</option>
+            </select>
+          </div>
+          <div>
+            <label for="trein-tempo">Tempo: <span id="trein-tempo-waarde">60</span> bpm</label>
+            <input id="trein-tempo" type="range" min="40" max="140" step="2" value="60">
+          </div>
+          <div>
+            <label for="trein-maten">Maten per akkoord</label>
+            <select id="trein-maten">
+              <option value="1">1 maat (vlug wisselen)</option>
+              <option value="2" selected>2 maten</option>
+              <option value="4">4 maten (rustig)</option>
+            </select>
+          </div>
+          <div>
+            <label for="trein-metronoom">Metronoom</label>
+            <select id="trein-metronoom">
+              <option value="aan" selected>Aan</option>
+              <option value="uit">Uit (alleen de wissel)</option>
+            </select>
+          </div>
+          <div class="rij">
+            <button class="knop" id="trein-start">Start</button>
+            <button class="knop zacht" id="trein-stop" disabled>Stop</button>
+          </div>
+          <div class="trein-stats" id="trein-stats">Nog niet getraind.</div>
+        </div>
+        <div class="trein-beeld">
+          <div class="trein-volgend" id="trein-volgend">Klaar om te beginnen</div>
+          <div class="trein-akkoord" id="trein-akkoord">–</div>
+          <div id="trein-greep"></div>
+          <div class="tellen" id="trein-tellen"><span>1</span><span>2</span><span>3</span><span>4</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kaart">
+      <h2>Stemmen</h2>
+      <p class="les-klein" style="margin:0 0 12px">Klik op een snaar om de toon te horen. Stem de dikste snaar eerst, dan de rest.
+        Op een gitaar van dik naar dun: E · A · D · G · B · e (de dikke E is de laagste toon).</p>
+      <div class="stem-rij" id="stem-rij"></div>
+      <p class="les-klein" style="margin:12px 0 0">Hoor je een zweving (een wiebelend geluid) als je de snaar ernaast aanslaat? Dan zit je nog niet gelijk.
+        Zweeft het niet meer, dan klinken ze hetzelfde.</p>
+    </div>
+
+    <div class="kaart">
+      <h2>Ritme en slagpatronen</h2>
+      <p class="les-klein" style="margin:0 0 12px">D = naar beneden slaan, U = naar boven. Tel hardop mee: <strong>1</strong> en <strong>2</strong> en 3 en 4 en.
+        Begin op 60 bpm en ga pas sneller als het gelijkmatig klinkt.</p>
+      <div class="ritme-rij" id="ritme-rij" style="margin-bottom:12px"></div>
+      <div class="rij">
+        <button class="knop" id="ritme-start">Start de tik</button>
+        <button class="knop zacht" id="ritme-stop" disabled>Stop</button>
+        <span class="tellen" id="ritme-tellen"><span>1</span><span>2</span><span>3</span><span>4</span></span>
+      </div>
+      <div class="les-klein" id="ritme-uitleg" style="margin-top:10px"></div>
+    </div>
+
+    <div class="kaart">
+      <h2>Alle grepen</h2>
+      <p class="les-klein" style="margin:0 0 12px">Klik op een greep om hem te horen. De cijfers in de bolletjes zijn je vingers:
+        1 = wijsvinger, 2 = middelvinger, 3 = ringvinger, 4 = pink. Een boogje over de snaren betekent dat je één vinger plat over alle snaren legt (barré).</p>
+      <div class="leer-raster" id="leren-grepen"></div>
+    </div>
   </section>
 
   <!-- ------------------------------------------------ toevoegen -->
@@ -562,7 +722,7 @@ function toonMelding(id, tekst, soort) {
 }
 
 // --------------------------------------------------------------- navigatie ---
-var TABS = ['liedjes', 'spelen', 'toevoegen', 'casten'];
+var TABS = ['liedjes', 'spelen', 'leren', 'toevoegen', 'casten'];
 TABS.forEach(function (naam) {
   $('tab-' + naam).addEventListener('click', function () { toonTab(naam); });
 });
@@ -572,6 +732,7 @@ function toonTab(naam) {
     $('tab-' + t).classList.toggle('actief', t === naam);
   });
   if (naam === 'casten') laadApparaten(true);
+  if (naam === 'leren') laadLeren();
   window.scrollTo(0, 0);
 }
 
@@ -594,7 +755,7 @@ function tekenLiedjes() {
     return '<div class="lied" data-id="' + l.id + '">' +
       '<div>' +
         '<div class="titel">' + esc(l.titel) + '</div>' +
-        '<div class="artiest">' + esc(l.artiest || 'onbekend') + ' · ' + esc(l.genre) + ' · ' + esc(l.taal) + '</div>' +
+        '<div class="artiest">' + esc(l.artiest || 'onbekend') + ' · ' + esc(l.genre) + ' · ' + esc(taalNaam(l.taal)) + '</div>' +
         '<div class="chips">' + capo +
           '<span class="chip sterren">' + sterren(l.moeilijkheid) + '</span>' +
           '<span class="chip">' + esc(l.toonsoort) + '</span>' +
@@ -638,6 +799,11 @@ function laadLiedjes(ververs) {
     toonMelding('lijst-melding', staat.meer ? 'Nog ' + (data.totaal - staat.liedjes.length) + ' liedjes te laden.' : '', '');
   }).catch(function (e) { toonMelding('lijst-melding', e.message, 'fout'); });
 }
+// De taalcodes zijn kort (nl, en, li); in de keuzelijst en op de kaartjes staat
+// de leesbare naam, zodat er "Limburgs (4)" staat in plaats van "li (4)".
+var TAALNAMEN = { nl: 'Nederlands', en: 'Engels', de: 'Duits', af: 'Afrikaans', li: 'Limburgs', instrumentaal: 'instrumentaal' };
+function taalNaam(code) { return TAALNAMEN[code] || code; }
+
 function vulFilters(data) {
   var talen = Object.keys(data.statistieken.talen).sort();
   var genres = Object.keys(data.statistieken.genres).sort();
@@ -645,7 +811,7 @@ function vulFilters(data) {
   if (taalSel.options.length <= 1) {
     talen.forEach(function (t) {
       var o = document.createElement('option');
-      o.value = t; o.textContent = t + ' (' + data.statistieken.talen[t] + ')';
+      o.value = t; o.textContent = taalNaam(t) + ' (' + data.statistieken.talen[t] + ')';
       taalSel.appendChild(o);
     });
   }
@@ -1842,8 +2008,535 @@ api('/api/instellingen').then(function (s) {
     $('cast-huidig').textContent = 'Casten naar: ' + staat.apparaatNaam + ' (' + s.cast_apparaat + ')';
   }
 }).catch(function () {});
+// ==================================================================== leren ===
+// De leermodus: een cursus van acht lessen, een akkoordentrainer met metronoom,
+// een stemhulp, slagpatronen en alle grepen. Alles wat klinkt maken we zelf met
+// Web Audio (geen geluidsbestanden, geen internet), en wat je afrondt bewaren we
+// in localStorage zodat je verder kunt waar je gebleven was.
+
+var LEER_SLEUTEL = 'akkoordkast-leren';
+var leerGrepen = null;          // grepen van de server, met noten erbij
+var leerAudio = null;
+
+function leerStand() {
+  try {
+    var ruw = JSON.parse(localStorage.getItem(LEER_SLEUTEL) || '{}');
+    return {
+      lessen: ruw.lessen || {},
+      minuten: ruw.minuten || 0,
+      oefeningen: ruw.oefeningen || 0,
+      wissels: ruw.wissels || 0
+    };
+  } catch (e) {
+    return { lessen: {}, minuten: 0, oefeningen: 0, wissels: 0 };
+  }
+}
+
+function bewaarLeerStand(stand) {
+  try { localStorage.setItem(LEER_SLEUTEL, JSON.stringify(stand)); } catch (e) {}
+}
+
+function leerBij(veld, aantal) {
+  var stand = leerStand();
+  stand[veld] = (stand[veld] || 0) + (aantal || 1);
+  bewaarLeerStand(stand);
+  toonLeerVoortgang(stand);
+}
+
+// --------------------------------------------------------------- geluid ---
+function leerCtx() {
+  if (!leerAudio) {
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    leerAudio = new Ctx();
+  }
+  if (leerAudio.state === 'suspended') leerAudio.resume();
+  return leerAudio;
+}
+
+function midiNaarFrequentie(midi) {
+  return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+// Een toon met een snaarachtig verloop: een driehoek met een zachte aanslag en een
+// lang uitstervende klank, plus een octaaf erboven voor de helderheid.
+function speelToon(midi, wanneer, duur, volume) {
+  var ctx = leerCtx();
+  if (!ctx) return;
+  var t = ctx.currentTime + (wanneer || 0);
+  var lengte = duur || 1.6;
+  var aanslag = ctx.createGain();
+  aanslag.gain.setValueAtTime(0.0001, t);
+  aanslag.gain.exponentialRampToValueAtTime(volume || 0.17, t + 0.012);
+  aanslag.gain.exponentialRampToValueAtTime(0.0001, t + lengte);
+  aanslag.connect(ctx.destination);
+
+  var laag = ctx.createOscillator();
+  laag.type = 'triangle';
+  laag.frequency.value = midiNaarFrequentie(midi);
+  var hoog = ctx.createOscillator();
+  hoog.type = 'sine';
+  hoog.frequency.value = midiNaarFrequentie(midi + 12);
+  var hoogGain = ctx.createGain();
+  hoogGain.gain.value = 0.3;
+  hoog.connect(hoogGain); hoogGain.connect(aanslag);
+  laag.connect(aanslag);
+  laag.start(t); laag.stop(t + lengte + 0.05);
+  hoog.start(t); hoog.stop(t + lengte + 0.05);
+}
+
+// Een akkoord van boven naar beneden: elke snaar een fractie later, alsof je slaat.
+function speelGreep(midis) {
+  (midis || []).forEach(function (m, i) {
+    if (typeof m === 'number') speelToon(m, i * 0.05, 2.0, 0.14);
+  });
+}
+
+function speelKlik(accent, wanneer) {
+  var ctx = leerCtx();
+  if (!ctx) return;
+  var t = ctx.currentTime + (wanneer || 0);
+  var osc = ctx.createOscillator();
+  osc.type = 'square';
+  osc.frequency.value = accent ? 1600 : 1100;
+  var g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(accent ? 0.1 : 0.06, t + 0.004);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+  osc.connect(g); g.connect(ctx.destination);
+  osc.start(t); osc.stop(t + 0.08);
+}
+
+// ------------------------------------------------------------ de cursus ---
+var LESSEN = [
+  {
+    titel: 'De gitaar vasthouden en de zes snaren',
+    kort: 'Kennen: de snaren, de frets en je vingers',
+    doel: 'Je weet hoe je de gitaar vasthoudt en hoe de zes snaren heten.',
+    tekst: [
+      'Zit rechtop met de gitaar op je rechterbeen (of links, als je linkshandig speelt). De hals wijst naar voren en een beetje omhoog, zodat je linkerhand ontspannen bij de fretten kan.',
+      'De dikste snaar zit boven en heet E (de lage E). Van dik naar dun: <strong>E · A · D · G · B · e</strong>. Onthoud het met het zinnetje "Een Aap Die Graag Bananen Eet".',
+      'De metalen staafjes op de hals zijn de fretten. Je vingertoppen komen net achter een fret te staan, niet erbovenop. Je vingers hebben nummers: 1 = wijsvinger, 2 = middelvinger, 3 = ringvinger, 4 = pink.'
+    ],
+    oefening: 'Klik bij het stemmen op elke snaar en zeg hardop de naam die erbij hoort.',
+    knop: { tekst: 'Toon de zes snaren', naar: 'stemmen', set: null }
+  },
+  {
+    titel: 'Stemmen',
+    kort: 'Je gitaar op toon krijgen',
+    doel: 'Je kunt je gitaar stemmen met de toonbank in de app.',
+    tekst: [
+      'Stem altijd van dik naar dun: eerst de lage E, dan A, D, G, B en tot slot de dunne e.',
+      'Klik in de app op de snaar, laat de toon klinken en draai aan de stemknop tot je snaar precies hetzelfde klinkt. Bij een lage toon hoor je een langzame wiebel (zweving) als je er nog naast zit; hoe sneller de wiebel, hoe verder je ervan af zit.',
+      'Draai niet in één keer veel: kleine kwartslagen zijn genoeg. Stem je gitaar liever elke keer dat je gaat spelen — ook als je even niet gespeeld hebt.'
+    ],
+    oefening: 'Stem alle zes snaren met de toonbank. Controleer daarna de lage E en de dunne e nog eens.',
+    knop: { tekst: 'Naar het stemmen', naar: 'stemmen', set: null }
+  },
+  {
+    titel: 'Je eerste drie akkoorden: Em, Am en C',
+    kort: 'Drie akkoorden waar je al liedjes mee kunt spelen',
+    doel: 'Je kunt Em, Am en C pakken en elke snaar laten klinken.',
+    tekst: [
+      'Druk je vingertoppen net achter de fret, met je vingers zo recht mogelijk op de snaren. Je duim zit achter de hals, ongeveer op de helft.',
+      'Sla de snaren één voor één aan en luister of ze allemaal klinken. Een doffe of snerpende snaar? Meestal raakt een andere vinger hem aan, of druk je niet hard genoeg.',
+      'Zet je vingers <strong>één voor één</strong> neer en pas als alles staat: sla je. Dat kost in het begin tijd, dat hoort bij het leren.'
+    ],
+    oefening: 'Trainer op 60 bpm met Em · Am · C, twee maten per akkoord. Blijf doorgaan tot alle drie zonder hapering klinken.',
+    knop: { tekst: 'Oefen Em · Am · C op 60 bpm', naar: 'trainer', set: 'Em Am C', tempo: 60, maten: 2 }
+  },
+  {
+    titel: 'C, G en D7 — en leren wisselen',
+    kort: 'De akkoorden van heel veel liedjes',
+    doel: 'Je kunt tussen C, G en D7 wisselen zonder te stoppen.',
+    tekst: [
+      'Bij het wisselen hoef je zelden alle vingers op te tillen. Kijk welke vinger hetzelfde blijft liggen: dat is je anker.',
+      'Kijk tijdens het spelen alvast naar het <em>volgende</em> akkoord — de trainer in deze app laat het volgende akkoord daarom bovenin zien.',
+      'Wissel op de tik, niet halverwege. Een akkoord dat een tel te laat komt klinkt rommeliger dan een akkoord dat even dof is.'
+    ],
+    oefening: 'Trainer op 60 bpm met C · G · D7, twee maten per akkoord. Lukt het rustig? Zet het tempo met stapjes van 4 hoger.',
+    knop: { tekst: 'Oefen C · G · D7 op 60 bpm', naar: 'trainer', set: 'C G D7', tempo: 60, maten: 2 }
+  },
+  {
+    titel: 'Slagritme met de rechterhand',
+    kort: 'Niet tokkelen maar slaan, op de maat',
+    doel: 'Je kunt gelijkmatig aanslaan en het patroon D DU UDU spelen.',
+    tekst: [
+      'Tel hardop: <strong>1</strong> en <strong>2</strong> en <strong>3</strong> en <strong>4</strong> en. Elke tel is één tik van de metronoom.',
+      'De standaardslag is <span class="patroon">D – D U – U D U</span>: neer op 1, neer op 2, op, neer op 3, op, neer, op.',
+      'Sla met je pols, niet met je hele arm, en houd je hand losjes. Sla de snaren bij het oefenen met een akkoord dat je al kunt (Em bijvoorbeeld), zodat je op het ritme kunt letten.'
+    ],
+    oefening: 'Start de tik op 60 bpm en sla mee met patroon D DU UDU. Doe dit twee minuten.',
+    knop: { tekst: 'Naar de slagpatronen', naar: 'ritme', set: null }
+  },
+  {
+    titel: 'Maatsoort en meespelen met een liedje',
+    kort: 'Van oefening naar een echt liedje',
+    doel: 'Je kunt een liedje uit de app helemaal meespelen.',
+    tekst: [
+      'De meeste liedjes in de app staan in 4/4 (vier tellen per maat). Walsen staan in 3/4: daar is de eerste tel zwaar en de andere twee licht.',
+      'Zoek in het tabblad <strong>Liedjes</strong> een liedje dat je kent, filter op moeilijkheid 1 of 2 en open het. Je ziet het akkoordschema en, als de bron het heeft, de noten die meelopen.',
+      'Begin met een laag tempo. Zit het in je vingers? Verhoog dan in stapjes. Onderweg foutjes maken mag: doorgaan is belangrijker dan netjes zijn.'
+    ],
+    oefening: 'Speel één liedje van moeilijkheid 1 of 2 helemaal mee, van begin tot eind.',
+    knop: { tekst: 'Naar de makkelijke liedjes', naar: 'liedjes', set: null }
+  },
+  {
+    titel: 'Capo en toonsoort',
+    kort: 'Waarom capo 2 hetzelfde klinkt maar makkelijker speelt',
+    doel: 'Je begrijpt wat een capo doet en waarom de app er advies over geeft.',
+    tekst: [
+      'Een capo klem je over de hals. Alles klinkt dan een of meer halve tonen hoger, maar je blijft dezelfde grepen gebruiken. Met capo 2 en de grepen van G klinkt het als A.',
+      'Daarom geeft de app per liedje capo-advies: met een capo kunnen akkoorden die lastig zijn (zoals F en Bm) vervangen worden door makkelijke grepen, en klinkt het liedje toch in dezelfde toonsoort.',
+      'De grepen in de app worden altijd gerekend vanaf de capo: met capo 2 ziet de speler dezelfde greep als zonder.'
+    ],
+    oefening: 'Zoek een liedje met een capo-advies en speel het met en zonder capo. Hoor je het verschil?',
+    knop: { tekst: 'Liedjes met capo-advies', naar: 'liedjes', set: null }
+  },
+  {
+    titel: 'Barré-akkoorden: F en Bm',
+    kort: 'De laatste drempel, met geduld',
+    doel: 'Je kunt een barré-akkoord pakken en alle snaren laten klinken.',
+    tekst: [
+      'Bij een barré leg je één vinger plat over meerdere snaren: dat is je "liggende" vinger, bij F en Bm is dat je wijsvinger.',
+      'Druk niet met het kussentje van je vinger maar met de zijkant, iets gedraaid, en houd je duim laag achter de hals. Zo komt er meer kracht op de snaren.',
+      'Begin met het barré-akkoord in stukjes: eerst alleen de lage snaren laten klinken, dan de hoge erbij. Lukt het niet vandaag, dan lukt het volgende week — dit is het akkoord waar iedereen het langst over doet.'
+    ],
+    oefening: 'Trainer op 45 bpm met F · Bm, vier maten per akkoord. Neem de tijd om je vingers neer te zetten.',
+    knop: { tekst: 'Oefen F · Bm op 45 bpm', naar: 'trainer', set: 'F Bm', tempo: 45, maten: 4 }
+  }
+];
+
+function toonLeerVoortgang(stand) {
+  stand = stand || leerStand();
+  var gedaan = LESSEN.filter(function (l, i) { return stand.lessen[i]; }).length;
+  var balk = $('leren-balk');
+  if (balk) balk.style.width = Math.round(gedaan / LESSEN.length * 100) + '%';
+  var tekst = $('leren-voortgang');
+  if (tekst) {
+    if (!gedaan) tekst.textContent = 'Nog geen les afgerond.';
+    else {
+      tekst.textContent = gedaan + ' van ' + LESSEN.length + ' lessen afgerond · ' +
+        stand.oefeningen + ' oefeningen · ' + stand.wissels + ' akkoordwissels getraind';
+    }
+  }
+}
+
+function tekenLessen() {
+  var stand = leerStand();
+  var vak = $('leren-lessen');
+  vak.innerHTML = LESSEN.map(function (les, i) {
+    var af = !!stand.lessen[i];
+    var lijst = les.tekst.map(function (p) { return '<p>' + p + '</p>'; }).join('');
+    var knop = les.knop
+      ? '<button class="knop zacht" data-les-knop="' + i + '">' + esc(les.knop.tekst) + '</button>'
+      : '';
+    return '<details class="les' + (af ? ' doen' : '') + '" data-les="' + i + '">' +
+      '<summary><span class="les-nr">' + (af ? '✓' : (i + 1)) + '</span>' +
+      '<span><span class="les-titel">' + esc(les.titel) + '</span><br><span class="les-klein">' + esc(les.kort) + '</span></span></summary>' +
+      '<div class="les-inhoud">' +
+      '<div class="doel"><strong>Doel:</strong> ' + esc(les.doel) + '</div>' + lijst +
+      '<p><strong>Oefening:</strong> ' + esc(les.oefening) + '</p>' +
+      '<div class="klaar-rij">' + knop +
+      '<label style="display:flex;align-items:center;gap:8px;margin:0">' +
+      '<input type="checkbox" data-les-klaar="' + i + '"' + (af ? ' checked' : '') + '> Deze les afgerond</label></div>' +
+      '</div></details>';
+  }).join('');
+
+  vak.querySelectorAll('[data-les-klaar]').forEach(function (vakje) {
+    vakje.addEventListener('change', function () {
+      var stand = leerStand();
+      var i = vakje.getAttribute('data-les-klaar');
+      if (vakje.checked) stand.lessen[i] = true; else delete stand.lessen[i];
+      bewaarLeerStand(stand);
+      tekenLessen();
+      toonLeerVoortgang(stand);
+    });
+  });
+  vak.querySelectorAll('[data-les-knop]').forEach(function (knop) {
+    knop.addEventListener('click', function () {
+      var les = LESSEN[Number(knop.getAttribute('data-les-knop'))];
+      if (!les.knop) return;
+      if (les.knop.naar === 'trainer') {
+        $('trein-set').value = les.knop.set;
+        $('trein-tempo').value = les.knop.tempo;
+        $('trein-tempo-waarde').textContent = les.knop.tempo;
+        $('trein-maten').value = String(les.knop.maten);
+        startTrainer();
+      } else if (les.knop.naar === 'stemmen') {
+        toonTab('leren');
+        $('stem-rij').scrollIntoView({ block: 'center' });
+      } else if (les.knop.naar === 'ritme') {
+        toonTab('leren');
+        $('ritme-rij').scrollIntoView({ block: 'center' });
+      } else if (les.knop.naar === 'liedjes') {
+        toonTab('liedjes');
+        $('filter-moeilijkheid').value = '2';
+        $('zoek').focus();
+        laadLiedjes(true);
+      }
+    });
+  });
+  toonLeerVoortgang(stand);
+}
+
+// -------------------------------------------------------------- grepen ---
+function laadLeerGrepen() {
+  if (leerGrepen) return Promise.resolve(leerGrepen);
+  return api('/api/grepen').then(function (data) {
+    leerGrepen = data.grepen || [];
+    tekenLeerGrepen();
+    return leerGrepen;
+  });
+}
+
+function greepVan(naam) {
+  if (!leerGrepen) return null;
+  return leerGrepen.filter(function (g) { return g.naam === naam; })[0] || null;
+}
+
+function tekenLeerGrepen() {
+  var vak = $('leren-grepen');
+  if (!vak || !leerGrepen) return;
+  vak.innerHTML = leerGrepen.map(function (g) {
+    var extra = [];
+    if (g.isBarre) extra.push('barré');
+    extra.push(g.noten.length + ' snaren');
+    return '<div class="greep-kaart" data-akkoord="' + esc(g.naam) + '" role="button" tabindex="0">' +
+      g.svg + '<div class="naam">' + esc(g.naam) + '</div><div class="klein">' + esc(extra.join(' · ')) + '</div></div>';
+  }).join('');
+  vak.querySelectorAll('.greep-kaart').forEach(function (kaart) {
+    var naam = kaart.getAttribute('data-akkoord');
+    var doe = function () {
+      var g = greepVan(naam);
+      if (!g) return;
+      kaart.classList.add('vast');
+      setTimeout(function () { kaart.classList.remove('vast'); }, 700);
+      speelGreep(g.noten);
+    };
+    kaart.addEventListener('click', doe);
+    kaart.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); doe(); }
+    });
+  });
+}
+
+// ------------------------------------------------------------ trainer ---
+var trainer = {
+  bezig: false, akkoorden: [], index: 0, maten: 2, bpm: 60, maat: 4,
+  volgendeTijd: 0, timer: null, tellen: 0, matenInAkkoord: 0, wissels: 0, start: 0,
+  metronoom: true
+};
+
+function trainerSet() {
+  return ($('trein-set').value || '').split(/\s+/).filter(Boolean);
+}
+
+function tekenTrainer(akkoord, volgend) {
+  $('trein-akkoord').textContent = akkoord || '–';
+  $('trein-volgend').textContent = volgend ? 'Straks: ' + volgend : 'Klaar om te beginnen';
+  var vak = $('trein-greep');
+  var g = akkoord ? greepVan(akkoord) : null;
+  vak.innerHTML = g ? g.svg : '';
+}
+
+function startTrainer() {
+  var akkoorden = trainerSet();
+  if (!akkoorden.length) return;
+  laadLeerGrepen().then(function () {
+    trainer.akkoorden = akkoorden;
+    trainer.index = 0;
+    trainer.maten = Number($('trein-maten').value) || 2;
+    trainer.bpm = Number($('trein-tempo').value) || 60;
+    trainer.metronoom = $('trein-metronoom').value === 'aan';
+    trainer.bezig = true;
+    trainer.tellen = 0;
+    trainer.matenInAkkoord = 0;
+    trainer.wissels = 0;
+    trainer.start = Date.now();
+    trainer.volgendeTijd = leerCtx() ? leerCtx().currentTime + 0.15 : 0;
+    $('trein-start').disabled = true;
+    $('trein-stop').disabled = false;
+    tekenTrainer(trainer.akkoorden[0], trainer.akkoorden[1] || trainer.akkoorden[0]);
+    var g = greepVan(trainer.akkoorden[0]);
+    if (g) speelGreep(g.noten);
+    trainerLoop();
+  });
+}
+
+function trainerLoop() {
+  if (!trainer.bezig) return;
+  var ctx = leerCtx();
+  var secondePerTel = 60 / trainer.bpm;
+  if (ctx && ctx.currentTime >= trainer.volgendeTijd - 0.12) {
+    var accent = trainer.tellen === 0;
+    if (trainer.metronoom) speelKlik(accent, Math.max(0, trainer.volgendeTijd - ctx.currentTime));
+    toonTel(trainer.tellen);
+    if (accent) {
+      // nieuwe maat: is het tijd voor het volgende akkoord?
+      if (trainer.matenInAkkoord >= trainer.maten) {
+        trainer.matenInAkkoord = 0;
+        trainer.index = (trainer.index + 1) % trainer.akkoorden.length;
+        trainer.wissels += 1;
+        var naam = trainer.akkoorden[trainer.index];
+        var volgend = trainer.akkoorden[(trainer.index + 1) % trainer.akkoorden.length];
+        tekenTrainer(naam, volgend);
+        var g = greepVan(naam);
+        if (g) speelGreep(g.noten);
+      }
+      trainer.matenInAkkoord += 1;
+    }
+    trainer.tellen = (trainer.tellen + 1) % trainer.maat;
+    trainer.volgendeTijd += secondePerTel;
+  }
+  trainer.timer = requestAnimationFrame(trainerLoop);
+}
+
+function toonTel(n) {
+  var vak = $('trein-tellen');
+  if (!vak) return;
+  var bollen = vak.querySelectorAll('span');
+  for (var i = 0; i < bollen.length; i++) {
+    bollen[i].classList.toggle('nu', i === n);
+    bollen[i].classList.toggle('kop', i === 0);
+  }
+}
+
+function stopTrainer(zonderMelding) {
+  if (!trainer.bezig) return;
+  trainer.bezig = false;
+  cancelAnimationFrame(trainer.timer);
+  $('trein-start').disabled = false;
+  $('trein-stop').disabled = true;
+  var seconden = Math.round((Date.now() - trainer.start) / 1000);
+  if (seconden >= 3 && !zonderMelding) {
+    leerBij('minuten', Math.max(0, Math.round(seconden / 60)));
+    leerBij('oefeningen', 1);
+    leerBij('wissels', trainer.wissels);
+    $('trein-stats').innerHTML = 'Klaar: <strong>' + trainer.wissels + ' akkoordwissels</strong> in ' +
+      seconden + ' seconden (' + trainer.bpm + ' bpm, ' + trainer.maten + ' maten per akkoord).';
+  }
+}
+
+// --------------------------------------------------------------- ritme ---
+var PATRONEN = [
+  { naam: 'Vier gelijke slagen', patroon: 'D – D – D – D –', maat: 4, uitleg: 'Eerst leren gelijkmatig te slaan: op elke tel één keer naar beneden.' },
+  { naam: 'De standaardslag', patroon: 'D – D U – U D U', maat: 4, uitleg: 'De bekendste slag voor liedjes in 4/4. Neer op 1 en 2, op tussen 2 en 3, neer op 3, dan op-neer-op.' },
+  { naam: 'Rustige slag', patroon: 'D – D U – – U –', maat: 4, uitleg: 'Minder slagen, meer ruimte. Mooi bij ballads.' },
+  { naam: 'Wals (3/4)', patroon: 'D – U – D U', maat: 3, uitleg: 'Drie tellen per maat: één zwaar, twee licht. Zo speel je walsen en veel oude liedjes.' },
+  { naam: 'Tokkelen', patroon: 'p i m a m i', maat: 4, uitleg: 'Met je duim (p) en vingers (i, m, a) één snaar per keer. Rustig en gelijkmatig, ook dit is tellen.' }
+];
+var ritme = { bezig: false, patroon: PATRONEN[1], bpm: 60, teltijd: 0, tellen: 0, timer: null };
+
+function tekenPatronen() {
+  var vak = $('ritme-rij');
+  vak.innerHTML = PATRONEN.map(function (p, i) {
+    return '<button class="knop zacht ritme-kies" data-patroon="' + i + '" title="' + esc(p.uitleg) + '">' +
+      esc(p.naam) + ' <span class="patroon">' + esc(p.patroon) + '</span></button>';
+  }).join('');
+  vak.querySelectorAll('[data-patroon]').forEach(function (knop) {
+    knop.addEventListener('click', function () {
+      ritme.patroon = PATRONEN[Number(knop.getAttribute('data-patroon'))];
+      $('ritme-uitleg').textContent = ritme.patroon.uitleg;
+    });
+  });
+  $('ritme-uitleg').textContent = PATRONEN[1].uitleg;
+}
+
+function startRitme() {
+  ritme.bezig = true;
+  ritme.tellen = 0;
+  ritme.teltijd = leerCtx() ? leerCtx().currentTime + 0.15 : 0;
+  $('ritme-start').disabled = true;
+  $('ritme-stop').disabled = false;
+  ritmeLoop();
+}
+
+function ritmeLoop() {
+  if (!ritme.bezig) return;
+  var ctx = leerCtx();
+  if (ctx && ctx.currentTime >= ritme.teltijd - 0.12) {
+    speelKlik(ritme.tellen === 0, Math.max(0, ritme.teltijd - ctx.currentTime));
+    var bollen = $('ritme-tellen').querySelectorAll('span');
+    bollen.forEach(function (b, i) { b.classList.toggle('nu', i === ritme.tellen); b.classList.toggle('kop', i === 0); });
+    // het slagpatroon meetikken: elke tel hoor je ook de gitaarsnaar
+    speelToon(52, Math.max(0, ritme.teltijd - ctx.currentTime) + 0.01, 0.5, 0.06);
+    ritme.tellen = (ritme.tellen + 1) % ritme.patroon.maat;
+    ritme.teltijd += 60 / ritme.bpm;
+  }
+  ritme.timer = requestAnimationFrame(ritmeLoop);
+}
+
+function stopRitme() {
+  ritme.bezig = false;
+  cancelAnimationFrame(ritme.timer);
+  $('ritme-start').disabled = false;
+  $('ritme-stop').disabled = true;
+}
+
+// -------------------------------------------------------------- stemmen ---
+var SNAREN = [
+  { naam: 'E', dik: 'dikste snaar', midi: 40 },
+  { naam: 'A', dik: 'tweede snaar', midi: 45 },
+  { naam: 'D', dik: 'derde snaar', midi: 50 },
+  { naam: 'G', dik: 'vierde snaar', midi: 55 },
+  { naam: 'B', dik: 'vijfde snaar', midi: 59 },
+  { naam: 'e', dik: 'dunste snaar', midi: 64 }
+];
+
+function tekenSnaren() {
+  var vak = $('stem-rij');
+  vak.innerHTML = SNAREN.map(function (s) {
+    return '<button class="knop zacht" data-snaar="' + s.midi + '"><span class="dik">' + s.naam +
+      '</span><span class="dun">' + s.dik + '</span></button>';
+  }).join('');
+  vak.querySelectorAll('[data-snaar]').forEach(function (knop) {
+    knop.addEventListener('click', function () {
+      speelToon(Number(knop.getAttribute('data-snaar')), 0, 2.4, 0.22);
+    });
+  });
+}
+
+// ---------------------------------------------------------------- laden ---
+var lerenGeladen = false;
+function laadLeren() {
+  if (lerenGeladen) { toonLeerVoortgang(); return; }
+  lerenGeladen = true;
+  tekenLessen();
+  tekenPatronen();
+  tekenSnaren();
+  laadLeerGrepen();
+  $('leren-naar-trainer').addEventListener('click', function () {
+    $('trein-set').scrollIntoView({ block: 'center' });
+  });
+  $('leren-naar-stemmen').addEventListener('click', function () {
+    $('stem-rij').scrollIntoView({ block: 'center' });
+  });
+  $('leren-naar-akkoorden').addEventListener('click', function () {
+    $('leren-grepen').scrollIntoView({ block: 'center' });
+  });
+  $('trein-start').addEventListener('click', startTrainer);
+  $('trein-stop').addEventListener('click', function () { stopTrainer(false); });
+  $('trein-tempo').addEventListener('input', function () {
+    $('trein-tempo-waarde').textContent = $('trein-tempo').value;
+    trainer.bpm = Number($('trein-tempo').value) || 60;
+  });
+  $('trein-set').addEventListener('change', function () {
+    trainer.akkoorden = trainerSet();
+    var g = greepVan(trainer.akkoorden[0]);
+    if (g) speelGreep(g.noten);
+  });
+  $('ritme-start').addEventListener('click', startRitme);
+  $('ritme-stop').addEventListener('click', stopRitme);
+}
+
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden) { stopTrainer(true); stopRitme(); }
+});
+
 if (navigator.serviceWorker) {
-  navigator.serviceWorker.register('/sw.js').catch(function () {});
+  
+navigator.serviceWorker.register('/sw.js').catch(function () {});
 }
 </script>
 </body>

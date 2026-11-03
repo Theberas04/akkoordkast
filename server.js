@@ -802,6 +802,24 @@ function castHelper(args, timeout) {
   }
 }
 
+// Voor de leermodus: het diagram plus de posities en de klinkende noten. De pagina
+// speelt die noten zelf met Web Audio, dus de leermodus werkt ook zonder internet
+// en zonder geluidsbestanden.
+function greepVoorLeren(naam) {
+  const g = grepen.greep(naam) || {};
+  return {
+    naam,
+    vorm: naam,
+    frets: g.frets || [],
+    vingers: g.vingers || [],
+    barre: g.barre || null,
+    isBarre: grepen.isBarre(naam),
+    aantalVingers: grepen.aantalVingers(naam),
+    noten: grepen.noten(naam, 0).map(n => n.midi),
+    svg: grepen.svgDiagram(naam, { toonNaam: naam })
+  };
+}
+
 // ---------------------------------------------------------------- router ---
 async function verwerk(req, res) {
   const basis = 'http://localhost';
@@ -821,6 +839,18 @@ async function verwerk(req, res) {
   if (pad === '/healthz') {
     res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8', 'x-akkoordkast': 'app' });
     res.end('ok');
+    return;
+  }
+
+  // --- lesmateriaal: de grepen met hun noten, zodat de pagina ze ook kan laten horen ---
+  if (pad === '/api/grepen' && methode === 'GET') {
+    json(res, 200, { grepen: grepen.alleGrepen().map(naam => greepVoorLeren(naam)) });
+    return;
+  }
+  if (pad === '/api/greep' && methode === 'GET') {
+    const naam = (query.get('akkoord') || '').trim();
+    if (!grepen.heeftGreep(naam)) { json(res, 404, { fout: 'Geen greep voor ' + naam }); return; }
+    json(res, 200, greepVoorLeren(naam));
     return;
   }
 

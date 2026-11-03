@@ -8,7 +8,7 @@
 ![Node 22](https://img.shields.io/badge/Node.js-22%20(node%3Asqlite)-3c873a)
 ![geen npm-afhankelijkheden](https://img.shields.io/badge/dependencies-geen-34d399)
 ![taal](https://img.shields.io/badge/taal-Nederlands-60a5fa)
-![liedjes](https://img.shields.io/badge/liedjes-8680-f5a524)
+![liedjes](https://img.shields.io/badge/liedjes-8683-f5a524)
 ![bronnen](https://img.shields.io/badge/bronnen-publiek%20domein-34d399)
 
 Je opent AkkoordKast op je telefoon of laptop, zoekt een liedje en ziet meteen:
@@ -28,6 +28,8 @@ Die begeleiding cast je naar een Chromecast in je netwerk.
 | ![meespelen](docs/img/meespelen-opname.png) | **Meespelen met je eigen opname** — je opname is de muziek; de akkoorden, de maat, de hals en de grepen lopen ermee mee. |
 | ![spotify](docs/img/spotify-blok.png) | **Spotify** — plak een link en de speler staat erbij; de noten lopen mee met wat je hoort. Met een eigen Client ID kun je ook zoeken. |
 | ![muziekmap](docs/img/muziekmap-klaar.png) | **Een hele muziekmap in één keer** — geef een map op deze machine op en elk nummer erin wordt een eigen liedje met akkoordschema, tempo en toonsoort. |
+| ![leren](docs/img/leren-cursus.png) | **Gitaar leren spelen** — acht lessen van het vasthouden van de gitaar tot je eerste barré-akkoord, met per les een oefening in de app en je voortgang bewaard op je toestel. |
+| ![akkoordentrainer](docs/img/leren-trainer.png) | **Akkoordentrainer** — metronoom, een set akkoorden naar keuze en het volgende akkoord alvast in beeld, want daar gaat het bij leren wisselen om. |
 | ![start/stop](docs/img/start-stop.png) | **Start en stop bij het spelen** — naast de speler staan twee gewone knoppen (Start en Stop) met de stand ernaast; Stop zet de muziek ook echt terug naar het begin. |
 | ![tekst](docs/img/liedjestekst-bij-opname.png) | **De liedjestekst erbij** — lijkt de bestandsnaam op een liedje uit de bibliotheek, dan krijg je de tekst van dat liedje erbij te lezen, met de akkoorden uit jouw opname erboven. |
 
@@ -156,6 +158,36 @@ worden meegeleverd — de meeste muziek van na ~1928 valt onder auteursrecht. Da
 zo gebouwd dat jij zelf alles kunt toevoegen wat je wilt spelen: plak de ChordPro-tekst van je
 eigen liedjesboek, of maak een eigen kopie van een meegeleverd liedje en hang er je eigen audio
 aan. De app zelf levert alleen de akkoordenreeks, de grepen en de capo-adviezen.
+
+## Gitaar leren spelen
+
+In het tabblad **Leren** zit een cursus van acht lessen, van "hoe houd ik hem vast" tot het
+barré-akkoord. Elke les heeft een doel, uitleg in gewone taal en één oefening die je meteen in de
+app doet:
+
+1. De gitaar vasthouden en de zes snaren — E · A · D · G · B · e, en je vingernummers.
+2. Stemmen — met de toonbank in de app; welke snaar eerst en hoe je hoort dat je er nog naast zit.
+3. Je eerste drie akkoorden: Em, Am en C — vingers net achter de fret, elke snaar laten klinken.
+4. C, G en D7 — en leren wisselen, met je anker-vinger en vooruitkijken.
+5. Slagritme met de rechterhand — meetellen en het patroon D DU UDU.
+6. Maatsoort en meespelen met een liedje — van oefening naar een echt liedje uit de bibliotheek.
+7. Capo en toonsoort — waarom capo 2 hetzelfde klinkt met makkelijkere grepen.
+8. Barré-akkoorden: F en Bm — de liggende vinger, in stukjes opgebouwd.
+
+Daarnaast staat in hetzelfde tabblad:
+
+- **Akkoordentrainer** met metronoom: kies een set (van Em · Am · C tot alle 26 grepen door elkaar),
+  het tempo en het aantal maten per akkoord. De app laat het volgende akkoord alvast zien en telt de
+  maten voor je; na het stoppen zie je hoeveel akkoordwissels je gedaan hebt.
+- **Stemmen**: klik op een snaar en hoor de toon. Zes knoppen, dik naar dun.
+- **Slagpatronen**: vier patronen plus tokkelen, met een metronoom die meetelt.
+- **Alle grepen** op één plek: klik op een greep en je hoort hem.
+
+Wat je afrondt blijft bewaard: de lessen, het aantal oefeningen en het aantal getrainde akkoordwissels
+staan in je eigen browser (localStorage), niet op de server. Alles wat klinkt maakt de pagina zelf met
+Web Audio — geen geluidsbestanden, geen internet, en het werkt dus ook in de app op je telefoon.
+
+![stemmen en slagpatronen](docs/img/leren-stemmen.png)
 
 ## Muziek of video erbij zoeken
 

@@ -164,7 +164,7 @@ test('de meegeleverde liedjes-dataset is compleet en houdt zich aan de whitelist
     assert.ok(!perBestand.get(vak).has(vingerafdruk), 'dubbel liedje in hetzelfde bestand: ' + lied.titel);
     perBestand.get(vak).add(vingerafdruk);
     titels.add(lied.titel);
-    assert.ok(['nl', 'en', 'de', 'af', 'instrumentaal'].includes(lied.taal), 'taal onbekend: ' + lied.taal);
+    assert.ok(['nl', 'en', 'de', 'af', 'li', 'instrumentaal'].includes(lied.taal), 'taal onbekend: ' + lied.taal);
     assert.ok(lied.moeilijkheid >= 1 && lied.moeilijkheid <= 5, 'moeilijkheid buiten bereik');
     assert.ok(lied.tempo >= 40 && lied.tempo <= 200, 'tempo onrealistisch');
     assert.ok(lied.maatsoort >= 2 && lied.maatsoort <= 12, 'maatsoort onrealistisch: ' + lied.titel);

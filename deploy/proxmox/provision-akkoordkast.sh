@@ -56,6 +56,7 @@ DATA=(
   "song-data/volkswijsjes.json"
   "song-data/kerkwijsjes.json"
   "song-data/datasets.json"
+  "song-data/limburg-liedjes.json"
   "song-data/anthology-liedjes.json"
   "song-data/oneill-liedjes.json"
   "song-data/oude-bundels.json"

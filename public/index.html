@@ -327,6 +327,29 @@
     #leren-lessen{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;align-items:start}
     #leren-lessen .les-deel{grid-column:1 / -1}
   }
+  /* profiel, sterretjes en labels */
+  .onderkop{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+  .profiel-rij{display:inline-flex;align-items:center;gap:8px}
+  .profiel-rij label{color:var(--tekst2);font-size:.82rem}
+  .profiel-rij select{background:var(--pane);border:1px solid var(--lijn);color:var(--tekst);
+    border-radius:9px;padding:6px 10px;font-size:.9rem}
+  .profiel-rij .knop{padding:6px 11px;min-height:0}
+  .knop.ster{background:#ffffff0f;border:1px solid var(--lijn);color:var(--tekst2);font-size:1.05rem;
+    line-height:1;padding:8px 12px;min-width:44px;justify-content:center}
+  .knop.ster.aan{color:var(--amber2);border-color:var(--amber);background:#f5a5241f}
+  .chip.label{background:#60a5fa1f;border:1px solid #60a5fa55;color:#cfe1ff}
+  #speel-labels{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:4px}
+  #speel-labels input{background:var(--pane);border:1px solid var(--lijn);color:var(--tekst);
+    border-radius:8px;padding:5px 9px;font-size:.82rem;width:150px}
+  /* oefencijfers */
+  .cijfer-rij{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+  .cijfer{background:var(--pane);border:1px solid var(--lijn);border-radius:12px;padding:10px 12px}
+  .cijfer b{display:block;font-family:var(--kop);font-size:1.5rem;color:var(--amber2);line-height:1.1}
+  .cijfer span{color:var(--tekst2);font-size:.78rem}
+  .staafjes{display:flex;align-items:flex-end;gap:4px;height:74px;margin-top:12px;
+    padding:8px;background:var(--pane);border:1px solid var(--lijn);border-radius:12px}
+  .staaf{flex:1;background:#ffffff14;border-radius:4px 4px 0 0;min-height:3px}
+  .staaf.gevuld{background:linear-gradient(180deg,var(--amber2),var(--amber))}
   /* ------- leermodus ------- */
   .leren-kop{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
   .voortgang{flex:1 1 240px;min-width:200px}
@@ -408,7 +431,14 @@
     <span class="pilletje" id="kop-aantal">liedjes laden…</span>
     <span class="pilletje" id="kop-cast">cast: onbekend</span>
   </div>
-  <div class="onderkop">Bladmuziek met akkoorden, capo-advies, grepen en audio voor gitaar</div>
+  <div class="onderkop">
+    <span>Bladmuziek met akkoorden, capo-advies, grepen en audio voor gitaar</span>
+    <span class="profiel-rij">
+      <label for="profiel-kies">Profiel</label>
+      <select id="profiel-kies" title="Wiens favorieten en oefencijfers wil je zien?"></select>
+      <button class="knop zacht" id="profiel-nieuw" title="Een profiel erbij maken">+</button>
+    </span>
+  </div>
 </header>
 
 <nav>
@@ -433,6 +463,14 @@
           <select id="filter-genre"><option value="">Alle genres</option></select></div>
         <div><label for="filter-artiest">Artiest</label>
           <select id="filter-artiest"><option value="">Alle artiesten</option></select></div>
+        <div><label for="filter-bijzonder">Mijn lijstjes</label>
+          <select id="filter-bijzonder">
+            <option value="">Alles</option>
+            <option value="favoriet">Alleen mijn favorieten</option>
+            <option value="gespeeld">Laatst gespeeld</option>
+          </select></div>
+        <div><label for="filter-label">Label</label>
+          <select id="filter-label"><option value="">Alle labels</option></select></div>
         <div><label for="filter-capo">Capo</label>
           <select id="filter-capo">
             <option value="">Maakt niet uit</option>
@@ -477,7 +515,7 @@
       <div class="leren-kop">
         <div>
           <h2>Leren gitaarspelen</h2>
-          <div class="les-klein">Acht lessen van het vasthouden van de gitaar tot je eerste barré-akkoord, met per les een oefening in de app.</div>
+          <div class="les-klein">Zesentwintig lessen in vier delen, van het vasthouden van de gitaar tot een oefenplan dat je volhoudt — met per les een oefening in de app.</div>
         </div>
         <div class="voortgang">
           <div class="voortgang-balk"><span id="leren-balk"></span></div>
@@ -489,6 +527,17 @@
         <button class="knop zacht" id="leren-naar-stemmen">Naar het stemmen</button>
         <button class="knop zacht" id="leren-naar-akkoorden">Alle grepen bekijken</button>
       </div>
+    </div>
+
+    <div class="kaart">
+      <div class="leren-kop">
+        <div>
+          <h2>Mijn oefencijfers</h2>
+          <div class="les-klein">Wat je geoefend hebt, hoeveel dagen op een rij, en welke akkoorden
+            je het meest tegenkomt. Dit hoort bij jouw profiel.</div>
+        </div>
+      </div>
+      <div id="oefencijfers" style="margin-top:12px"></div>
     </div>
 
     <div class="kaart">
@@ -722,7 +771,19 @@ function esc(s) {
     return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
   });
 }
+// Wie de app gebruikt: elk profiel heeft zijn eigen favorieten, labels en
+// oefencijfers. De keuze staat in localStorage, want die hoort bij dit toestel.
+var PROFIEL_SLEUTEL = 'akkoordkast-profiel';
+function actiefProfiel() {
+  try { return Number(localStorage.getItem(PROFIEL_SLEUTEL)) || 1; } catch (e) { return 1; }
+}
+function zetActiefProfiel(id) {
+  try { localStorage.setItem(PROFIEL_SLEUTEL, String(id)); } catch (e) {}
+  staat.profiel = Number(id);
+}
 function api(pad, opties) {
+  opties = opties || {};
+  opties.headers = Object.assign({ 'x-profiel': String(actiefProfiel()) }, opties.headers || {});
   return fetch(pad, opties).then(function (r) {
     return r.json().catch(function () { return {}; }).then(function (data) {
       if (!r.ok) throw new Error(data.fout || ('Fout ' + r.status));
@@ -781,14 +842,78 @@ function tekenLiedjes() {
             : '<span class="chip geen">alleen tekst</span>') +
           (l.eigen ? '<span class="chip eigen">eigen</span>' : '') +
           (l.heeftOpname ? '<span class="chip">opname</span>' : '') +
+          (l.gespeeld ? '<span class="chip">gespeeld</span>' : '') +
+          l.labels.map(function (naam) { return '<span class="chip label">' + esc(naam) + '</span>'; }).join('') +
         '</div>' +
       '</div>' +
-      '<div class="rij"><button class="knop" data-open="' + l.id + '">Spelen</button></div>' +
+      '<div class="rij">' +
+        '<button class="knop ster' + (l.favoriet ? ' aan' : '') + '" data-ster="' + l.id + '" ' +
+          'title="' + (l.favoriet ? 'Uit mijn favorieten halen' : 'Bij mijn favorieten zetten') + '">' +
+          (l.favoriet ? '★' : '☆') + '</button>' +
+        '<button class="knop" data-open="' + l.id + '">Spelen</button>' +
+      '</div>' +
     '</div>';
   }).join('');
   Array.prototype.forEach.call(lijst.querySelectorAll('[data-open]'), function (knop) {
     knop.addEventListener('click', function () { openLiedje(knop.getAttribute('data-open')); });
   });
+  Array.prototype.forEach.call(lijst.querySelectorAll('[data-ster]'), function (knop) {
+    knop.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      zetFavoriet(knop.getAttribute('data-ster'), !knop.classList.contains('aan'));
+    });
+  });
+}
+
+// Een liedje bij de favorieten zetten of eruit halen, en meteen laten zien.
+function zetFavoriet(id, aan) {
+  api('/api/favoriet', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ liedje: Number(id), aan: !!aan })
+  }).then(function () {
+    if (staat.liedje && staat.liedje.id === Number(id)) {
+      staat.liedje.favoriet = !!aan;
+      toonFavorietKnop(staat.liedje);
+    }
+    laadLiedjes(true);
+  }).catch(function (e) { toonMelding('lijst-melding', e.message, 'fout'); });
+}
+
+// Het sterretje en de labels in het speelscherm bijwerken.
+function toonFavorietKnop(l) {
+  var knop = $('speel-ster');
+  if (knop) {
+    knop.textContent = l.favoriet ? '★ favoriet' : '☆ favoriet';
+    knop.className = 'knop ster' + (l.favoriet ? ' aan' : '');
+  }
+  var vak = $('speel-labels');
+  if (vak) {
+    var namen = (l.labels || []).map(function (x) { return x.naam || x; });
+    vak.innerHTML = namen.map(function (naam) {
+      return '<span class="chip label">' + esc(naam) + '</span>';
+    }).join('') + '<input id="label-nieuw" type="text" placeholder="label erbij…" autocomplete="off">';
+    var veld = $('label-nieuw');
+    if (veld) {
+      veld.addEventListener('keydown', function (ev) {
+        if (ev.key !== 'Enter') return;
+        var naam = veld.value.trim();
+        if (!naam) return;
+        voegLabelToe(l.id, naam);
+      });
+    }
+  }
+}
+
+function voegLabelToe(liedje, naam) {
+  api('/api/liedje-label', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ liedje: Number(liedje), naam: naam, aan: true })
+  }).then(function () {
+    openLiedje(liedje);
+    laadLabels();
+  }).catch(function (e) { toonMelding('speler-melding', e.message, 'fout'); });
 }
 function lijstQuery() {
   var p = new URLSearchParams();
@@ -799,6 +924,10 @@ function lijstQuery() {
   var t = $('filter-taal').value; if (t) p.set('taal', t);
   var g = $('filter-genre').value; if (g) p.set('genre', g);
   var a = $('filter-artiest').value; if (a) p.set('artiest', a);
+  var b = $('filter-bijzonder').value;
+  if (b === 'favoriet') p.set('favoriet', '1');
+  if (b === 'gespeeld') p.set('sorteer', 'gespeeld');
+  var lbl = $('filter-label').value; if (lbl) p.set('label', lbl);
   var c = $('filter-capo').value; if (c) p.set('capo', c);
   var m = $('filter-moeilijkheid').value; if (m) p.set('moeilijkheid', m);
   return p;
@@ -862,14 +991,40 @@ function vulFilters(data) {
   }
 }
 $('zoek').addEventListener('input', debounce(function () { laadLiedjes(true); }, 250));
-['filter-taal', 'filter-genre', 'filter-artiest', 'filter-capo', 'filter-moeilijkheid'].forEach(function (id) {
+['filter-taal', 'filter-genre', 'filter-artiest', 'filter-bijzonder', 'filter-label', 'filter-capo', 'filter-moeilijkheid'].forEach(function (id) {
   $(id).addEventListener('change', function () { laadLiedjes(true); });
 });
 $('filter-wis').addEventListener('click', function () {
   $('zoek').value = ''; $('filter-taal').value = ''; $('filter-genre').value = ''; $('filter-artiest').value = '';
+  $('filter-bijzonder').value = ''; $('filter-label').value = '';
   $('filter-capo').value = ''; $('filter-moeilijkheid').value = '';
   laadLiedjes(true);
 });
+// Van profiel wisselen: alles wat bij een profiel hoort verversen.
+$('profiel-kies').addEventListener('change', function () {
+  zetActiefProfiel($('profiel-kies').value);
+  laadLabels();
+  laadLiedjes(true);
+  laadOefencijfers();
+  if (staat.liedje) openLiedje(staat.liedje.id);
+});
+$('profiel-nieuw').addEventListener('click', function () {
+  var naam = window.prompt('Naam van het nieuwe profiel (bijvoorbeeld de naam van wie meespeelt):');
+  if (!naam || !naam.trim()) return;
+  api('/api/profielen', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ naam: naam.trim() })
+  }).then(function (data) {
+    zetActiefProfiel(data.profiel.id);
+    laadProfielen();
+    laadLabels();
+    laadLiedjes(true);
+    laadOefencijfers();
+    toonMelding('lijst-melding', 'Profiel "' + data.profiel.naam + '" erbij. Je favorieten en cijfers beginnen leeg.', 'goed');
+  }).catch(function (e) { toonMelding('lijst-melding', e.message, 'fout'); });
+});
+
 $('filter-toggle').addEventListener('click', function () {
   $('meer-filters').classList.toggle('open');
 });
@@ -922,8 +1077,10 @@ function tekenLiedje(l) {
             (l.eigen ? '<span class="chip eigen">eigen liedje</span>' : '<span class="chip">publiek domein</span>') +
             '<span class="chip">' + esc(l.bron || '') + '</span>' +
           '</div>' +
+          '<div class="chips" id="speel-labels"></div>' +
         '</div>' +
         '<div class="rij">' +
+          '<button class="knop ster" id="speel-ster">☆ favoriet</button>' +
           '<button class="knop zacht" id="print-liedje">Printen</button>' +
           (l.eigen ? '<button class="knop zacht" id="verwijder-liedje">Verwijderen</button>'
                    : '<button class="knop zacht" id="kopie-liedje">Eigen kopie maken</button>') +
@@ -1057,6 +1214,14 @@ function tekenLiedje(l) {
 
   // handlers van dit liedje
   $('print-liedje').addEventListener('click', function () { window.print(); });
+  toonFavorietKnop(l);
+  $('speel-ster').addEventListener('click', function () { zetFavoriet(l.id, !l.favoriet); });
+  // Onthouden dat je dit liedje hebt opengespeeld: daar leeft 'laatst gespeeld' van.
+  api('/api/gespeeld', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ liedje: l.id })
+  }).catch(function () {});
   Array.prototype.forEach.call(document.querySelectorAll('#capo-rij button'), function (b) {
     b.addEventListener('click', function () { openLiedje(l.id, { transpose: l.transpositie, capo: b.getAttribute('data-capo') }); });
   });
@@ -2044,6 +2209,8 @@ $('leegmaken').addEventListener('click', function () {
 // ------------------------------------------------------------------- start ---
 laadLiedjes(true);
 laadArtiesten();
+laadProfielen();
+laadLabels();
 api('/api/instellingen').then(function (s) {
   if (s.cast_apparaat) {
     staat.apparaat = s.cast_apparaat;
@@ -2756,6 +2923,7 @@ function stopTrainer(zonderMelding) {
   $('trein-stop').disabled = true;
   var seconden = Math.round((Date.now() - trainer.start) / 1000);
   if (seconden >= 3 && !zonderMelding) {
+    bewaarOefensessie('trainer', seconden, trainer.wissels, trainer.akkoorden);
     leerBij('minuten', Math.max(0, Math.round(seconden / 60)));
     leerBij('oefeningen', 1);
     leerBij('wissels', trainer.wissels);
@@ -2808,6 +2976,7 @@ function tekenPatronen() {
 }
 
 function startRitme() {
+  ritme.start = Date.now();
   ritme.bezig = true;
   ritme.tellen = 0;
   ritme.teltijd = leerCtx() ? leerCtx().currentTime + 0.15 : 0;
@@ -2832,10 +3001,23 @@ function ritmeLoop() {
 }
 
 function stopRitme() {
+  if (!ritme.bezig) return;
   ritme.bezig = false;
   cancelAnimationFrame(ritme.timer);
   $('ritme-start').disabled = false;
   $('ritme-stop').disabled = true;
+  var seconden = Math.round((Date.now() - (ritme.start || Date.now())) / 1000);
+  if (seconden >= 5) bewaarOefensessie('ritme', seconden, 0, []);
+}
+
+// Een oefensessie naar de server: de oefencijfers en de akkoorden waarop je oefent
+// komen daar vandaan. Mislukt het, dan gaat het oefenen gewoon door.
+function bewaarOefensessie(soort, seconden, wissels, akkoorden) {
+  api('/api/oefenen', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ soort: soort, seconden: seconden, wissels: wissels, akkoorden: akkoorden || [] })
+  }).then(function () { laadOefencijfers(); }).catch(function () {});
 }
 
 // -------------------------------------------------------------- stemmen ---
@@ -2863,7 +3045,85 @@ function tekenSnaren() {
 
 // ---------------------------------------------------------------- laden ---
 var lerenGeladen = false;
+// De oefencijfers van dit profiel: de laatste twee weken als staafjes, hoeveel dagen
+// je op een rij geoefend hebt en welke akkoorden het meest langskomen.
+function laadOefencijfers() {
+  api('/api/oefenen/statistieken?dagen=14').then(function (data) {
+    var vak = $('oefencijfers');
+    if (!vak) return;
+    var st = data.statistieken;
+    var hoogste = Math.max.apply(null, st.dagen.map(function (d) { return d.seconden; }).concat([60]));
+    var staafjes = st.dagen.map(function (d) {
+      var deel = Math.max(2, Math.round(d.seconden / hoogste * 100));
+      var minuten = Math.round(d.seconden / 60);
+      return '<span class="staaf" style="height:' + deel + '%" title="' +
+        d.dag + ': ' + minuten + ' minuten' + (d.wissels ? ', ' + d.wissels + ' wissels' : '') +
+        '" class="' + (d.seconden ? 'gevuld' : '') + '"></span>';
+    }).join('');
+    var akkoorden = st.geoefendeAkkoorden.length
+      ? st.geoefendeAkkoorden.map(function (a) {
+          return '<span class="chip">' + esc(a.akkoord) + ' · ' + a.aantal + '×</span>';
+        }).join('')
+      : '<span class="les-klein">Nog niets geoefend — de trainer en de tik onthouden het voor je.</span>';
+    var favorieten = data.aantalFavorieten
+      ? data.aantalFavorieten + ' favorieten · ' + data.aantalLabels + ' labels'
+      : 'Nog geen favorieten';
+    vak.innerHTML =
+      '<div class="cijfer-rij">' +
+        '<div class="cijfer"><b>' + Math.round(st.totaalSeconden / 60) + '</b><span>minuten geoefend</span></div>' +
+        '<div class="cijfer"><b>' + st.reeksDagen + '</b><span>dagen op een rij</span></div>' +
+        '<div class="cijfer"><b>' + st.aantalDagenGeoefend + '</b><span>dagen met een sessie</span></div>' +
+        '<div class="cijfer"><b>' + st.totaalWissels + '</b><span>akkoordwissels</span></div>' +
+      '</div>' +
+      '<div class="staafjes" title="De laatste veertien dagen">' + staafjes + '</div>' +
+      '<div class="les-klein" style="margin-top:6px">De laatste veertien dagen. ' + esc(favorieten) + '.</div>' +
+      '<div class="chips" style="margin-top:8px">' + akkoorden + '</div>' +
+      (data.gespeeldeLiedjes.length
+        ? '<div class="les-klein" style="margin-top:10px"><strong>Laatst gespeeld:</strong> ' +
+          data.gespeeldeLiedjes.slice(0, 6).map(function (l) {
+            return '<a href="#" data-open-gespeeld="' + l.id + '">' + esc(l.titel) + '</a>';
+          }).join(' · ') + '</div>'
+        : '');
+    Array.prototype.forEach.call(vak.querySelectorAll('[data-open-gespeeld]'), function (a) {
+      a.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        openLiedje(a.getAttribute('data-open-gespeeld'));
+      });
+    });
+  }).catch(function () {});
+}
+
+// De profielen ophalen en de keuzelijst vullen. Het actieve profiel staat in
+// localStorage, zodat elk toestel zijn eigen gebruiker onthoudt.
+function laadProfielen() {
+  api('/api/profielen').then(function (data) {
+    staat.profielen = data.profielen || [];
+    var sel = $('profiel-kies');
+    if (!sel) return;
+    var actief = actiefProfiel();
+    if (!staat.profielen.some(function (p) { return p.id === actief; })) actief = data.actief || staat.profielen[0].id;
+    zetActiefProfiel(actief);
+    sel.innerHTML = staat.profielen.map(function (p) {
+      return '<option value="' + p.id + '"' + (p.id === actief ? ' selected' : '') + '>' + esc(p.naam) + '</option>';
+    }).join('');
+  }).catch(function () {});
+}
+
+// De labels van dit profiel in het filter zetten.
+function laadLabels() {
+  api('/api/labels').then(function (data) {
+    var sel = $('filter-label');
+    if (!sel) return;
+    var gekozen = sel.value;
+    sel.innerHTML = '<option value="">Alle labels</option>' + (data.labels || []).map(function (l) {
+      return '<option value="' + l.id + '">' + esc(l.naam) + ' (' + l.aantal + ')</option>';
+    }).join('');
+    sel.value = gekozen;
+  }).catch(function () {});
+}
+
 function laadLeren() {
+  laadOefencijfers();
   if (lerenGeladen) { toonLeerVoortgang(); return; }
   lerenGeladen = true;
   tekenLessen();

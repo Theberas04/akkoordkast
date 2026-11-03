@@ -72,7 +72,55 @@ db.exec(`
     sleutel TEXT PRIMARY KEY,
     waarde TEXT NOT NULL DEFAULT ''
   );
+  -- Wie gebruikt de app: elk profiel heeft zijn eigen favorieten, labels,
+  -- speelgeschiedenis en oefensessies.
+  CREATE TABLE IF NOT EXISTS profielen (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    naam TEXT NOT NULL,
+    aangemaakt TEXT NOT NULL DEFAULT ''
+  );
+  CREATE TABLE IF NOT EXISTS favorieten (
+    profiel_id INTEGER NOT NULL,
+    liedje_id INTEGER NOT NULL,
+    aangeemaakt TEXT NOT NULL DEFAULT '',
+    PRIMARY KEY (profiel_id, liedje_id)
+  );
+  CREATE TABLE IF NOT EXISTS labels (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    profiel_id INTEGER NOT NULL,
+    naam TEXT NOT NULL,
+    aangemaakt TEXT NOT NULL DEFAULT ''
+  );
+  CREATE TABLE IF NOT EXISTS liedje_labels (
+    profiel_id INTEGER NOT NULL,
+    liedje_id INTEGER NOT NULL,
+    label_id INTEGER NOT NULL,
+    PRIMARY KEY (profiel_id, liedje_id, label_id)
+  );
+  -- Laatst gespeeld: één rij per liedje per profiel, met hoe vaak en wanneer.
+  CREATE TABLE IF NOT EXISTS gespeeld (
+    profiel_id INTEGER NOT NULL,
+    liedje_id INTEGER NOT NULL,
+    moment TEXT NOT NULL DEFAULT '',
+    aantal INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (profiel_id, liedje_id)
+  );
+  CREATE TABLE IF NOT EXISTS oefensessies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    profiel_id INTEGER NOT NULL,
+    moment TEXT NOT NULL DEFAULT '',
+    soort TEXT NOT NULL DEFAULT '',
+    seconden INTEGER NOT NULL DEFAULT 0,
+    wissels INTEGER NOT NULL DEFAULT 0,
+    akkoorden TEXT NOT NULL DEFAULT ''
+  );
 `);
+
+// Er is altijd minstens één profiel: zonder profiel weet de app niet van wie de
+// favorieten zijn.
+if (!db.prepare('SELECT COUNT(*) AS n FROM profielen').get().n) {
+  db.prepare('INSERT INTO profielen (naam, aangemaakt) VALUES (?, ?)').run('Standaard', new Date().toISOString());
+}
 
 // Migratie: een liedje kan een herkend akkoordschema per maat en een maatsoort
 // hebben (gevuld door de muziekanalyse van een upload).
@@ -100,6 +148,102 @@ function alleInstellingen() {
   const uit = {};
   for (const rij of db.prepare('SELECT sleutel, waarde FROM instellingen').all()) uit[rij.sleutel] = rij.waarde;
   return uit;
+}
+
+// ----------------------------------------------------------------- profielen ---
+function profielLijst() {
+  return db.prepare('SELECT id, naam, aangemaakt FROM profielen ORDER BY id').all();
+}
+
+// Welk profiel hoort bij dit verzoek? De pagina stuurt 'x-profiel' mee; onbekend of
+// ontbrekend valt terug op het eerste profiel. Zo blijft een oude bladwijzer werken.
+function profielVan(req, query) {
+  const gevraagd = Number((req && req.headers && req.headers['x-profiel']) || (query && query.get('profiel')) || 0);
+  if (gevraagd) {
+    const rij = db.prepare('SELECT id FROM profielen WHERE id = ?').get(gevraagd);
+    if (rij) return rij.id;
+  }
+  const eerste = db.prepare('SELECT MIN(id) AS id FROM profielen').get();
+  return Number(eerste && eerste.id) || 1;
+}
+
+// Alles wat de pagina van dit profiel nodig heeft om sterretjes, labels en de
+// geschiedenis te tonen — in één keer, zodat de liedlijst niet per liedje hoeft te
+// vragen.
+function persoonlijk(profielId) {
+  const favorieten = db.prepare('SELECT liedje_id FROM favorieten WHERE profiel_id = ?').all(profielId)
+    .map(r => Number(r.liedje_id));
+  const labels = db.prepare(`SELECT l.id, l.naam, COUNT(ll.liedje_id) AS aantal
+      FROM labels l LEFT JOIN liedje_labels ll ON ll.label_id = l.id AND ll.profiel_id = l.profiel_id
+      WHERE l.profiel_id = ? GROUP BY l.id ORDER BY l.naam`).all(profielId)
+    .map(r => ({ id: Number(r.id), naam: r.naam, aantal: Number(r.aantal) }));
+  const perLiedje = {};
+  for (const rij of db.prepare('SELECT liedje_id, label_id FROM liedje_labels WHERE profiel_id = ?').all(profielId)) {
+    const id = Number(rij.liedje_id);
+    if (!perLiedje[id]) perLiedje[id] = [];
+    perLiedje[id].push(Number(rij.label_id));
+  }
+  const gespeeld = {};
+  for (const rij of db.prepare('SELECT liedje_id, moment, aantal FROM gespeeld WHERE profiel_id = ?').all(profielId)) {
+    gespeeld[Number(rij.liedje_id)] = { moment: rij.moment, aantal: Number(rij.aantal) };
+  }
+  return { favorieten, labels, perLiedje, gespeeld };
+}
+
+// De oefensessies van dit profiel: per dag de tijd en de wissels, plus een reeks
+// voor de grafiek en de akkoorden waarop het meest geoefend is.
+function oefenstatistieken(profielId, dagen) {
+  const aantalDagen = Math.max(1, Math.min(365, Number(dagen) || 14));
+  const perDag = {};
+  let totaalSeconden = 0;
+  let totaalWissels = 0;
+  const akkoordTelling = {};
+  for (const rij of db.prepare(`SELECT moment, soort, seconden, wissels, akkoorden FROM oefensessies
+      WHERE profiel_id = ? ORDER BY moment`).all(profielId)) {
+    const dag = String(rij.moment || '').slice(0, 10);
+    if (!dag) continue;
+    if (!perDag[dag]) perDag[dag] = { dag, seconden: 0, wissels: 0, sessies: 0 };
+    perDag[dag].seconden += Number(rij.seconden) || 0;
+    perDag[dag].wissels += Number(rij.wissels) || 0;
+    perDag[dag].sessies += 1;
+    totaalSeconden += Number(rij.seconden) || 0;
+    totaalWissels += Number(rij.wissels) || 0;
+    for (const akkoord of String(rij.akkoorden || '').split(/\s+/).filter(Boolean)) {
+      akkoordTelling[akkoord] = (akkoordTelling[akkoord] || 0) + 1;
+    }
+  }
+  // De laatste N dagen op een rij, ook de dagen zonder oefening (voor de grafiek).
+  const reeks = [];
+  for (let i = aantalDagen - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const sleutel = d.toISOString().slice(0, 10);
+    reeks.push(perDag[sleutel] || { dag: sleutel, seconden: 0, wissels: 0, sessies: 0 });
+  }
+  // Hoeveel dagen op een rij is er geoefend, tot en met vandaag of gisteren?
+  let reeksDagen = 0;
+  const vandaag = new Date();
+  for (let i = 0; i < 400; i++) {
+    const d = new Date(vandaag);
+    d.setDate(d.getDate() - i);
+    const sleutel = d.toISOString().slice(0, 10);
+    const gehad = perDag[sleutel] && perDag[sleutel].seconden > 0;
+    if (gehad) reeksDagen++;
+    else if (i > 0 || true) { if (i === 0 && !gehad) continue; break; }
+  }
+  const lastige = Object.entries(akkoordTelling)
+    .map(([akkoord, aantal]) => ({ akkoord, aantal }))
+    .sort((a, b) => b.aantal - a.aantal || a.akkoord.localeCompare(b.akkoord))
+    .slice(0, 8);
+  return {
+    dagen: reeks,
+    vandaag: reeks[reeks.length - 1],
+    totaalSeconden,
+    totaalWissels,
+    aantalDagenGeoefend: Object.keys(perDag).length,
+    reeksDagen,
+    geoefendeAkkoorden: lastige
+  };
 }
 
 // ------------------------------------------------------------ eigen liedjes ---
@@ -276,11 +420,29 @@ function lijstItem(lied) {
     eigen: !!lied.eigen,
     heeftOpname: !!lied.audio_bestand,
     youtube: lied.youtube || '',
-    tempo: lied.tempo
+    tempo: lied.tempo,
+    // Van het actieve profiel: is dit een favoriet, welke labels hangen eraan en
+    // wanneer is het voor het laatst gespeeld?
+    favoriet: !!lied.favoriet,
+    labels: lied.labels || [],
+    gespeeld: lied.gespeeld || ''
   };
 }
 
-function zoekLiedjes(query) {
+// Zet bij een liedje wat dit profiel ermee te maken heeft: favoriet, labels en
+// wanneer het voor het laatst gespeeld is.
+function metPersoonlijk(lied, persoon) {
+  return Object.assign({}, lied, {
+    favoriet: persoon.favorieten.includes(lied.id),
+    labels: (persoon.perLiedje[lied.id] || []).map(id => {
+      const label = persoon.labels.find(l => l.id === id);
+      return label ? label.naam : '';
+    }).filter(Boolean),
+    gespeeld: (persoon.gespeeld[lied.id] || {}).moment || ''
+  });
+}
+
+function zoekLiedjes(query, profielId) {
   const q = (query.get('zoek') || '').trim().toLowerCase();
   const taal = (query.get('taal') || '').trim().toLowerCase();
   const genre = (query.get('genre') || '').trim().toLowerCase();
@@ -310,6 +472,26 @@ function zoekLiedjes(query) {
   if (Number.isFinite(moeilijk)) uit = uit.filter(l => l.moeilijkheid === moeilijk);
   if (capoFilter === 'ja') uit = uit.filter(l => l.advies.capo > 0);
   if (capoFilter === 'nee') uit = uit.filter(l => l.advies.capo === 0);
+
+  // De filters van dit profiel: alleen mijn favorieten, of juist één label.
+  const alleenFavoriet = (query.get('favoriet') || '').trim() === '1';
+  const labelFilter = parseInt(query.get('label'), 10);
+  const gesorteerd = (query.get('sorteer') || '').trim().toLowerCase();
+  if (alleenFavoriet || Number.isFinite(labelFilter)) {
+    const persoon = persoonlijk(profielId || 1);
+    if (alleenFavoriet) {
+      uit = uit.filter(l => persoon.favorieten.includes(l.id));
+    }
+    if (Number.isFinite(labelFilter)) {
+      uit = uit.filter(l => (persoon.perLiedje[l.id] || []).includes(labelFilter));
+    }
+  }
+  // 'Laatst gespeeld' laat zien wat je het laatst onder handen had, nieuwste eerst.
+  if (gesorteerd === 'gespeeld') {
+    const persoon = persoonlijk(profielId || 1);
+    uit = uit.filter(l => persoon.gespeeld[l.id])
+      .sort((a, b) => String(persoon.gespeeld[b.id].moment).localeCompare(String(persoon.gespeeld[a.id].moment)));
+  }
   return uit;
 }
 
@@ -867,6 +1049,186 @@ async function verwerk(req, res) {
     return;
   }
 
+  // --- profielen ---
+  if (pad === '/api/profielen' && methode === 'GET') {
+    json(res, 200, { profielen: profielLijst(), actief: profielVan(req, query) });
+    return;
+  }
+  if (pad === '/api/profielen' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    const naam = String(body.naam || '').trim().slice(0, 40);
+    if (!naam) { json(res, 400, { fout: 'Geef het profiel een naam.' }); return; }
+    if (profielLijst().some(p => p.naam.toLowerCase() === naam.toLowerCase())) {
+      json(res, 409, { fout: 'Er is al een profiel met die naam.' });
+      return;
+    }
+    const info = db.prepare('INSERT INTO profielen (naam, aangemaakt) VALUES (?, ?)').run(naam, new Date().toISOString());
+    json(res, 201, { ok: true, profiel: { id: Number(info.lastInsertRowid), naam }, profielen: profielLijst() });
+    return;
+  }
+  const profielMatch = pad.match(/^\/api\/profielen\/(\d+)$/);
+  if (profielMatch && (methode === 'PUT' || methode === 'PATCH')) {
+    const body = await leesJsonBody(req);
+    const naam = String(body.naam || '').trim().slice(0, 40);
+    if (!naam) { json(res, 400, { fout: 'Geef het profiel een naam.' }); return; }
+    const id = Number(profielMatch[1]);
+    if (!db.prepare('SELECT id FROM profielen WHERE id = ?').get(id)) { json(res, 404, { fout: 'Profiel niet gevonden' }); return; }
+    db.prepare('UPDATE profielen SET naam = ? WHERE id = ?').run(naam, id);
+    json(res, 200, { ok: true, profielen: profielLijst() });
+    return;
+  }
+  if (profielMatch && methode === 'DELETE') {
+    const id = Number(profielMatch[1]);
+    if (!db.prepare('SELECT id FROM profielen WHERE id = ?').get(id)) { json(res, 404, { fout: 'Profiel niet gevonden' }); return; }
+    if (profielLijst().length <= 1) { json(res, 400, { fout: 'Het laatste profiel kun je niet verwijderen.' }); return; }
+    for (const tabel of ['favorieten', 'liedje_labels', 'labels', 'gespeeld', 'oefensessies']) {
+      db.prepare(`DELETE FROM ${tabel} WHERE profiel_id = ?`).run(id);
+    }
+    db.prepare('DELETE FROM profielen WHERE id = ?').run(id);
+    json(res, 200, { ok: true, profielen: profielLijst() });
+    return;
+  }
+
+  // --- wat dit profiel heeft: favorieten, labels, geschiedenis ---
+  if (pad === '/api/persoonlijk' && methode === 'GET') {
+    const profielId = profielVan(req, query);
+    const p = persoonlijk(profielId);
+    json(res, 200, {
+      profiel: profielId,
+      profielen: profielLijst(),
+      favorieten: p.favorieten,
+      labels: p.labels,
+      perLiedje: p.perLiedje,
+      gespeeld: p.gespeeld
+    });
+    return;
+  }
+
+  // --- een liedje al dan niet favoriet maken ---
+  if (pad === '/api/favoriet' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    const profielId = profielVan(req, query);
+    if (!vindLiedje(body.liedje)) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    const nummer = Number(body.liedje);
+    const aan = body.aan === undefined ? true : !!body.aan;
+    if (aan) {
+      db.prepare('INSERT INTO favorieten (profiel_id, liedje_id, aangeemaakt) VALUES (?, ?, ?) ON CONFLICT(profiel_id, liedje_id) DO NOTHING')
+        .run(profielId, nummer, new Date().toISOString());
+    } else {
+      db.prepare('DELETE FROM favorieten WHERE profiel_id = ? AND liedje_id = ?').run(profielId, nummer);
+    }
+    json(res, 200, { ok: true, favoriet: aan, liedje: nummer });
+    return;
+  }
+
+  // --- labels van dit profiel ---
+  if (pad === '/api/labels' && methode === 'GET') {
+    json(res, 200, { labels: persoonlijk(profielVan(req, query)).labels });
+    return;
+  }
+  if (pad === '/api/labels' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    const profielId = profielVan(req, query);
+    const naam = String(body.naam || '').trim().slice(0, 30);
+    if (!naam) { json(res, 400, { fout: 'Geef het label een naam.' }); return; }
+    const bestaand = db.prepare('SELECT id FROM labels WHERE profiel_id = ? AND LOWER(naam) = LOWER(?)').get(profielId, naam);
+    if (bestaand) { json(res, 200, { ok: true, id: Number(bestaand.id), labels: persoonlijk(profielId).labels }); return; }
+    const info = db.prepare('INSERT INTO labels (profiel_id, naam, aangemaakt) VALUES (?, ?, ?)').run(profielId, naam, new Date().toISOString());
+    json(res, 201, { ok: true, id: Number(info.lastInsertRowid), labels: persoonlijk(profielId).labels });
+    return;
+  }
+  const labelMatch = pad.match(/^\/api\/labels\/(\d+)$/);
+  if (labelMatch && methode === 'DELETE') {
+    const profielId = profielVan(req, query);
+    const id = Number(labelMatch[1]);
+    const rij = db.prepare('SELECT id FROM labels WHERE id = ? AND profiel_id = ?').get(id, profielId);
+    if (!rij) { json(res, 404, { fout: 'Label niet gevonden' }); return; }
+    db.prepare('DELETE FROM liedje_labels WHERE profiel_id = ? AND label_id = ?').run(profielId, id);
+    db.prepare('DELETE FROM labels WHERE id = ? AND profiel_id = ?').run(id, profielId);
+    json(res, 200, { ok: true, labels: persoonlijk(profielId).labels });
+    return;
+  }
+
+  // --- een label aan een liedje hangen of eraf halen ---
+  if (pad === '/api/liedje-label' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    const profielId = profielVan(req, query);
+    if (!vindLiedje(body.liedje)) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    const nummer = Number(body.liedje);
+    let labelId = Number(body.label);
+    if (!labelId && body.naam) {
+      const naam = String(body.naam).trim().slice(0, 30);
+      if (!naam) { json(res, 400, { fout: 'Geef het label een naam.' }); return; }
+      const bestaand = db.prepare('SELECT id FROM labels WHERE profiel_id = ? AND LOWER(naam) = LOWER(?)').get(profielId, naam);
+      labelId = bestaand ? Number(bestaand.id)
+        : Number(db.prepare('INSERT INTO labels (profiel_id, naam, aangemaakt) VALUES (?, ?, ?)').run(profielId, naam, new Date().toISOString()).lastInsertRowid);
+    }
+    if (!db.prepare('SELECT id FROM labels WHERE id = ? AND profiel_id = ?').get(labelId, profielId)) {
+      json(res, 404, { fout: 'Label niet gevonden' });
+      return;
+    }
+    const aan = body.aan === undefined ? true : !!body.aan;
+    if (aan) {
+      db.prepare('INSERT INTO liedje_labels (profiel_id, liedje_id, label_id) VALUES (?, ?, ?) ON CONFLICT(profiel_id, liedje_id, label_id) DO NOTHING')
+        .run(profielId, nummer, labelId);
+    } else {
+      db.prepare('DELETE FROM liedje_labels WHERE profiel_id = ? AND liedje_id = ? AND label_id = ?').run(profielId, nummer, labelId);
+    }
+    json(res, 200, { ok: true, aan, labels: persoonlijk(profielId).labels });
+    return;
+  }
+
+  // --- een liedje als gespeeld noteren (voor 'laatst gespeeld') ---
+  if (pad === '/api/gespeeld' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    const profielId = profielVan(req, query);
+    if (!vindLiedje(body.liedje)) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    db.prepare(`INSERT INTO gespeeld (profiel_id, liedje_id, moment, aantal) VALUES (?, ?, ?, 1)
+        ON CONFLICT(profiel_id, liedje_id) DO UPDATE SET moment = excluded.moment, aantal = aantal + 1`)
+      .run(profielId, Number(body.liedje), new Date().toISOString());
+    json(res, 200, { ok: true });
+    return;
+  }
+
+  // --- een oefensessie opslaan (de trainer stuurt dit na het stoppen) ---
+  if (pad === '/api/oefenen' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    const profielId = profielVan(req, query);
+    const soort = String(body.soort || '').slice(0, 20) || 'oefening';
+    const seconden = Math.max(0, Math.min(4 * 3600, Math.round(Number(body.seconden) || 0)));
+    const wissels = Math.max(0, Math.min(100000, Math.round(Number(body.wissels) || 0)));
+    const akkoorden = Array.isArray(body.akkoorden) ? body.akkoorden.slice(0, 40).map(a => String(a).slice(0, 8)).join(' ') : '';
+    if (!seconden && !wissels) { json(res, 400, { fout: 'Een lege oefensessie slaan we niet op.' }); return; }
+    db.prepare('INSERT INTO oefensessies (profiel_id, moment, soort, seconden, wissels, akkoorden) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(profielId, new Date().toISOString(), soort, seconden, wissels, akkoorden);
+    json(res, 201, { ok: true, statistieken: oefenstatistieken(profielId, 14) });
+    return;
+  }
+
+  // --- oefenstatistieken van dit profiel ---
+  if (pad === '/api/oefenen/statistieken' && methode === 'GET') {
+    const profielId = profielVan(req, query);
+    const p = persoonlijk(profielId);
+    const statistieken = oefenstatistieken(profielId, query.get('dagen'));
+    // hoe vaak elk liedje gespeeld is, nieuwste eerst — dat is meteen 'laatst gespeeld'
+    const gespeeldeLiedjes = Object.entries(p.gespeeld)
+      .map(([id, g]) => {
+        const lied = vindLiedje(Number(id));
+        return lied ? { id: Number(id), titel: lied.titel, artiest: lied.artiest, moment: g.moment, aantal: g.aantal } : null;
+      })
+      .filter(Boolean)
+      .sort((a, b) => String(b.moment).localeCompare(String(a.moment)))
+      .slice(0, 20);
+    json(res, 200, {
+      profiel: profielId,
+      statistieken,
+      gespeeldeLiedjes,
+      aantalFavorieten: p.favorieten.length,
+      aantalLabels: p.labels.length
+    });
+    return;
+  }
+
   // --- artiesten (voor het filter) ---
   if (pad === '/api/artiesten' && methode === 'GET') {
     json(res, 200, { artiesten: bron.artiesten() });
@@ -876,7 +1238,9 @@ async function verwerk(req, res) {
   // --- liedjes ---
   if (pad === '/api/liedjes' && methode === 'GET') {
     const compact = query.get('compact') === '1';
-    let uit = zoekLiedjes(query);
+    const profielId = profielVan(req, query);
+    const persoon = persoonlijk(profielId);
+    let uit = zoekLiedjes(query, profielId);
     const totaal = uit.length;
     const vanaf = Math.max(0, parseInt(query.get('vanaf'), 10) || 0);
     const aantal = Math.max(1, Math.min(200, parseInt(query.get('aantal'), 10) || (compact ? 48 : 200)));
@@ -887,7 +1251,8 @@ async function verwerk(req, res) {
       aantal: pagina.length,
       meer: vanaf + pagina.length < totaal,
       statistieken: bron.statistieken(),
-      liedjes: pagina.map(lijstItem)
+      profiel: profielId,
+      liedjes: pagina.map(l => lijstItem(metPersoonlijk(l, persoon)))
     });
     return;
   }
@@ -952,7 +1317,18 @@ async function verwerk(req, res) {
     const lied = vindLiedje(m[1]);
     if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
     zetInstelling('laatste_liedje', String(m[1]));
-    json(res, 200, weergave(lied, { transpose: query.get('transpose'), capoStand: query.get('capo') }));
+    const profielId = profielVan(req, query);
+    const persoon = persoonlijk(profielId);
+    const antwoord = weergave(lied, { transpose: query.get('transpose'), capoStand: query.get('capo') });
+    const nummer = Number(m[1]);
+    antwoord.favoriet = persoon.favorieten.includes(nummer);
+    antwoord.labels = (persoon.perLiedje[nummer] || []).map(id => {
+      const label = persoon.labels.find(l => l.id === id);
+      return label ? { id: label.id, naam: label.naam } : null;
+    }).filter(Boolean);
+    antwoord.gespeeld = (persoon.gespeeld[nummer] || {}).moment || '';
+    antwoord.gespeeldAantal = (persoon.gespeeld[nummer] || {}).aantal || 0;
+    json(res, 200, antwoord);
     return;
   }
 

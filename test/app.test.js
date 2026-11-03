@@ -514,8 +514,9 @@ test('de pagina heeft de filters voor genre en artiest', () => {
   assert.match(html, /<label for="filter-genre">Genre<\/label>/);
   assert.match(html, /<select id="filter-artiest"><option value="">Alle artiesten<\/option><\/select>/);
   assert.match(html, /function laadArtiesten\(\)/);
+  assert.match(html, /function laadLabels\(\)/);
   assert.match(html, /p\.set\('artiest', a\)/);
-  assert.match(html, /\['filter-taal', 'filter-genre', 'filter-artiest', 'filter-capo', 'filter-moeilijkheid'\]/);
+  assert.match(html, /\['filter-taal', 'filter-genre', 'filter-artiest', 'filter-bijzonder', 'filter-label', 'filter-capo', 'filter-moeilijkheid'\]/);
   // de filters wissen zet ze ook echt terug
   assert.match(html, /\$\('filter-artiest'\)\.value = ''/);
 });

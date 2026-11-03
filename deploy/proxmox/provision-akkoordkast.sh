@@ -37,6 +37,8 @@ RUNTIME=(
   "lib/capo.js"
   "lib/gitaar.js"
   "lib/tijdlijn.js"
+  "lib/akkoorden.js"
+  "lib/analyse.js"
 )
 PAGINA=(
   "public/index.html"

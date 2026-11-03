@@ -281,6 +281,26 @@
   <!-- ------------------------------------------------ toevoegen -->
   <section id="paneel-toevoegen" class="paneel">
     <div class="kaart">
+      <h2>Muziek of video uploaden</h2>
+      <p class="melding">Kies een <strong>mp3</strong>, <strong>mp4</strong>, m4a, wav of webm. De software haalt het geluid
+        eruit, zoekt het tempo, de toonsoort en de akkoorden, en zoekt er meteen het bijpassende liedje bij in de
+        bibliotheek. Je kunt daarna meespelen: de akkoorden lopen mee met jouw opname. Het is een automatische
+        herkenning, dus controleer het schema vooral even.</p>
+      <label for="upload-bestand">Bestand kiezen</label>
+      <input id="upload-bestand" type="file" accept="audio/*,video/*,.mp3,.mp4,.m4a,.wav,.ogg,.webm">
+      <div class="veld2" style="margin-top:8px">
+        <div><label for="upload-titel">Titel (leeg = uit de bestandsnaam)</label>
+          <input id="upload-titel" type="text" placeholder="bv. Amazing Grace"></div>
+        <div><label for="upload-maatsoort">Maatsoort (0 = zelf herkennen)</label>
+          <input id="upload-maatsoort" type="number" min="0" max="12" value="0" onfocus="this.select()"></div>
+      </div>
+      <div class="rij" style="margin-top:10px">
+        <button class="knop" id="upload-start">Uploaden en akkoorden zoeken</button>
+      </div>
+      <div class="melding" id="upload-melding" hidden></div>
+      <div id="upload-uitkomst" hidden></div>
+    </div>
+    <div class="kaart">
       <h2>Eigen liedje toevoegen</h2>
       <p class="melding">Zet akkoorden tussen rechte haken vóór de lettergreep waar ze vallen:
         <code>[G]Dit is een [C]regel</code>. Een refrein zet je tussen <code>{soc}</code> en <code>{eoc}</code>,
@@ -569,9 +589,12 @@ function tekenLiedje(l) {
       '<div class="songtekst" id="songtekst">' + tekenSongtekst(l.model) + '</div>' +
 
       '<h3>Meespelen</h3>' +
-      '<p class="melding">Druk op <strong>Meespelen</strong> en speel mee: de noten, de tabulatuur, de hals en de grepen lopen mee met de audio.' +
-        (l.heeftMelodie ? ' Dit liedje heeft een volledige melodie, dus je ziet elke noot langskomen.' : ' Dit liedje heeft alleen akkoorden: je ziet de maat, de slagen en de noten van elk akkoord.') +
-        ' Het tempo kun je trager zetten om mee te oefenen.</p>' +
+      '<p class="melding">' + (l.heeftEigenOpname
+          ? 'Druk op <strong>Meespelen</strong> en je hoort <strong>je eigen opname</strong>; de akkoorden, de maat en de hals lopen daarmee mee.' +
+            ' De akkoorden zijn automatisch herkend (' + l.akkoordenPerMaat.length + ' maten), dus controleer ze gerust.'
+          : 'Druk op <strong>Meespelen</strong> en speel mee: de noten, de tabulatuur, de hals en de grepen lopen mee met de audio.' +
+            (l.heeftMelodie ? ' Dit liedje heeft een volledige melodie, dus je ziet elke noot langskomen.' : ' Dit liedje heeft alleen akkoorden: je ziet de maat, de slagen en de noten van elk akkoord.') +
+            ' Het tempo kun je trager zetten om mee te oefenen.') + '</p>' +
       '<div class="mees-kop">' +
         '<div class="mees-nu"><span class="mees-label">Nu</span>' +
           '<span class="mees-akkoord" id="mees-akkoord">–</span>' +
@@ -587,7 +610,7 @@ function tekenLiedje(l) {
         '<div class="mees-aftel" id="mees-aftel" hidden><div><span>Aftellen</span><em id="mees-aftel-nummer">4</em></div></div>' +
       '</div>' +
       '<div class="rij mees-knoppen">' +
-        '<button class="knop" id="mees-start">Meespelen</button>' +
+        '<button class="knop" id="mees-start">' + (l.heeftEigenOpname ? 'Meespelen met je opname' : 'Meespelen') + '</button>' +
         '<button class="knop zacht" id="mees-stop" hidden>Stoppen</button>' +
         '<button class="knop zacht" id="mees-herhaal">Herhalen</button>' +
         '<label class="mees-schakel">tempo <input id="mees-tempo" type="range" min="40" max="160" value="100" step="5"><span id="mees-tempo-waarde">100%</span></label>' +
@@ -744,6 +767,62 @@ function uploadOpname(l) {
   }).then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.fout || 'upload mislukt'); return d; }); })
     .then(function () { toonMelding('speler-melding', 'Opname toegevoegd.', 'goed'); openLiedje(l.id); })
     .catch(function (e) { toonMelding('speler-melding', e.message, 'fout'); });
+}
+
+// ------------------------------------------------------------------ uploaden ---
+// Een mp3 of mp4 wordt naar de server gestuurd; die haalt er het geluid uit,
+// herkent tempo, toonsoort en akkoorden en maakt er een eigen liedje van.
+function uploadMuziek() {
+  var veld = $('upload-bestand');
+  if (!veld || !veld.files || !veld.files.length) { toonMelding('upload-melding', 'Kies eerst een bestand.', 'fout'); return; }
+  var bestand = veld.files[0];
+  if (bestand.size > 200 * 1024 * 1024) { toonMelding('upload-melding', 'Dit bestand is groter dan 200 MB.', 'fout'); return; }
+  toonMelding('upload-melding', 'Bezig: het geluid wordt gelezen en de akkoorden worden gezocht. Bij een lang nummer duurt dit even.', '');
+  $('upload-start').disabled = true;
+  var p = new URLSearchParams();
+  var maat = Number($('upload-maatsoort').value);
+  if (maat) p.set('maatsoort', maat);
+  fetch('/api/analyse?' + p.toString(), {
+    method: 'POST',
+    headers: {
+      'content-type': bestand.type || 'audio/mpeg',
+      'x-bestandsnaam': encodeURIComponent($('upload-titel').value.trim() || bestand.name)
+    },
+    body: bestand
+  }).then(function (r) {
+    return r.json().then(function (d) { if (!r.ok) throw new Error(d.fout || 'upload mislukt'); return d; });
+  }).then(function (d) {
+    $('upload-start').disabled = false;
+    var a = d.analyse;
+    var gevonden = d.gevonden
+      ? '<p class="melding">Dit lijkt op <strong>' + esc(d.gevonden.titel) + '</strong> uit de bibliotheek. ' +
+        'Het herkende schema staat eronder; open het liedje in de bibliotheek voor grepen en capo-advies.</p>'
+      : '';
+    $('upload-uitkomst').hidden = false;
+    $('upload-uitkomst').innerHTML =
+      '<h3>Wat de software herkende</h3>' + gevonden +
+      '<p class="melding">' + a.aantalMaten + ' maten, ' + a.seconden + ' seconden, tempo <strong>' + a.tempo +
+      ' BPM</strong>, maatsoort <strong>' + a.maatsoort + '/4</strong>, toonsoort <strong>' + esc(a.toonsoort) +
+      '</strong>, zekerheid <strong>' + Math.round(a.gemiddeldeZekerheid * 100) + '%</strong></p>' +
+      '<div class="songtekst">' + tekenAkkoordschema(a.akkoordenPerMaat) + '</div>' +
+      '<div class="rij"><button class="knop" id="upload-open">Open het liedje en speel mee</button></div>';
+    toonMelding('upload-melding', 'Klaar. Het liedje staat nu in de bibliotheek als eigen liedje.', 'goed');
+    $('upload-open').addEventListener('click', function () { openLiedje(d.id); });
+    laadLiedjes(true);
+  }).catch(function (e) {
+    $('upload-start').disabled = false;
+    toonMelding('upload-melding', e.message, 'fout');
+  });
+}
+
+function tekenAkkoordschema(perMaat) {
+  var uit = '';
+  for (var i = 0; i < perMaat.length; i += 4) {
+    uit += '<div class="regel">' + perMaat.slice(i, i + 4).map(function (a) {
+      return '<span class="seg"><span class="ak">' + esc(a) + '</span><span class="tx">\u2014\u2014\u2014\u00a0</span></span>';
+    }).join('') + '</div>';
+  }
+  return uit;
 }
 
 // ---------------------------------------------------------------- meespelen ---
@@ -1207,6 +1286,7 @@ function kiesApparaat(ip, naam) {
   }).catch(function () {});
   toonMelding('cast-melding', 'Apparaat gekozen. Open een liedje en druk op "Cast dit liedje".', 'goed');
 }
+$('upload-start').addEventListener('click', uploadMuziek);
 $('cast-zoeken').addEventListener('click', function () { laadApparaten(false); });
 $('cast-verbind-ip').addEventListener('click', function () {
   var ip = $('cast-handmatig').value.trim();

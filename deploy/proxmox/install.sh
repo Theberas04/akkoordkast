@@ -30,6 +30,8 @@ FILES=(
   "lib/capo.js"
   "lib/gitaar.js"
   "lib/tijdlijn.js"
+  "lib/akkoorden.js"
+  "lib/analyse.js"
   "song-data/liedjes.json"
   "song-data/volkswijsjes.json"
   "song-data/kerkwijsjes.json"

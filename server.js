@@ -13,6 +13,7 @@ const capo = require('./lib/capo');
 const grepen = require('./lib/grepen');
 const gitaar = require('./lib/gitaar');
 const tijdlijn = require('./lib/tijdlijn');
+const analyse = require('./lib/analyse');
 const theorie = require('./lib/theorie');
 const bron = require('./liedjes-bron');
 
@@ -55,6 +56,16 @@ db.exec(`
     waarde TEXT NOT NULL DEFAULT ''
   );
 `);
+
+// Migratie: een liedje kan een herkend akkoordschema per maat en een maatsoort
+// hebben (gevuld door de muziekanalyse van een upload).
+for (const kolom of [
+  "ALTER TABLE liedjes ADD COLUMN akkoorden_per_maat TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE liedjes ADD COLUMN maatsoort INTEGER NOT NULL DEFAULT 4",
+  "ALTER TABLE liedjes ADD COLUMN eerste_tel REAL NOT NULL DEFAULT 0"
+]) {
+  try { db.exec(kolom); } catch (e) { /* de kolom bestaat al */ }
+}
 
 const SLEUTELS = ['cast_apparaat', 'cast_naam', 'laatste_liedje'];
 
@@ -115,12 +126,34 @@ function eigenRij(id) {
     youtube: rij.youtube,
     notitie: rij.notitie,
     chordpro: rij.chordpro,
+    maatsoort: Math.max(2, Math.min(12, Number(rij.maatsoort) || 4)),
+    eersteTel: Number(rij.eerste_tel) || 0,
+    akkoordenPerMaat: leesAkkoordenPerMaat(rij.akkoorden_per_maat),
+    noten: [],
     audio_bestand: rij.audio_bestand,
     audio_titel: rij.audio_titel,
     eigen: true,
     model,
     advies: capo.advies(model.akkoorden, toonsoort)
   };
+}
+
+function leesAkkoordenPerMaat(tekst) {
+  if (!tekst) return [];
+  try {
+    const lijst = JSON.parse(tekst);
+    return Array.isArray(lijst) ? lijst.filter(a => typeof a === 'string' && a) : [];
+  } catch (e) { return []; }
+}
+
+// Het akkoordschema als ChordPro-schema: vier maten per regel.
+function schemaAlsChordpro(titel, toonsoort, tempo, perMaat) {
+  const regels = [];
+  for (let i = 0; i < perMaat.length; i += 4) {
+    regels.push(perMaat.slice(i, i + 4).map(a => `[${a}]\u2014\u2014\u2014`).join('   '));
+    regels.push('');
+  }
+  return `{title: ${titel}}\n{key: ${toonsoort}}\n{tempo: ${tempo}}\n\n${regels.join('\n').trim()}`;
 }
 
 function eigenLiedjes() {
@@ -186,6 +219,9 @@ function weergave(lied, opties) {
     model,
     heeftMelodie: !!(lied.noten && lied.noten.length),
     melodie: lied.noten || [],
+    // een liedje dat uit een upload is herkend, heeft een akkoordschema per maat
+    akkoordenPerMaat: lied.akkoordenPerMaat || [],
+    heeftEigenOpname: !!(lied.audio_bestand && lied.akkoordenPerMaat && lied.akkoordenPerMaat.length),
     maatsoort: lied.maatsoort || 4,
     licentie: lied.licentie || '',
     audio: {
@@ -434,8 +470,11 @@ function meespeelPlan(lied, query) {
   const perMaat = (lied.akkoordenPerMaat && lied.akkoordenPerMaat.length)
     ? lied.akkoordenPerMaat.map(a => theorie.transponeer(a, stappen, mol))
     : chordpro.akkoordenReeks(model, 8);
-  const rondes = heeftMelodie ? 1 : waarheidsgetrouw(query, 'rondes', 3, 1, 8);
+  // een liedje met melodie en een eigen opname spelen één keer: het beeld moet
+  // bij de muziek blijven horen
+  const rondes = (heeftMelodie || meespeelEigenAudio(lied)) ? 1 : waarheidsgetrouw(query, 'rondes', 3, 1, 8);
 
+  const metEigenAudio = meespeelEigenAudio(lied) && query.get('bron') !== 'synth';
   const plan = tijdlijn.maakPlan({
     akkoorden: perMaat,
     rondes: rondes,
@@ -445,14 +484,22 @@ function meespeelPlan(lied, query) {
     strum: strum,
     // de melodie schuift mee met de transpose, niet met de capo: je zingt even hoog
     noten: (lied.noten || []).map(n => ({ start: n.start, duur: n.duur, midi: n.midi + stappen })),
-    aftellen: query.get('aftellen') !== '0',
-    klik: query.get('klik') === '1'
+    aftellen: metEigenAudio ? false : query.get('aftellen') !== '0',
+    klik: query.get('klik') === '1',
+    // de opname begint niet altijd op de eerste tel: schuif de maten op
+    vertraging: metEigenAudio ? (lied.eersteTel || 0) : 0
   });
   return plan;
 }
 
 function meespeelVoorLiedje(lied, query) {
   return meespeelPlan(lied, query);
+}
+
+// Speelt dit liedje met een eigen opname mee? Dan is de opname de muziek en
+// loopt het herkende akkoordschema daarlangs.
+function meespeelEigenAudio(lied) {
+  return !!(lied.audio_bestand && lied.akkoordenPerMaat && lied.akkoordenPerMaat.length);
 }
 
 // Dezelfde query, maar dan voor het audio-adres onder de tijdlijn.
@@ -488,6 +535,79 @@ function maakMeespeelAudio(lied, query) {
   const resultaat = bewaarAudio(sleutel, gitaar.maakPlanWav(plan));
   audioBezig.set(sleutel, resultaat);
   return resultaat;
+}
+
+// --------------------------------------------------- muziek- en videoanalyse ---
+
+// Bestandsnaam opschonen tot een titel die je kunt herkennen.
+function titelUitBestandsnaam(naam) {
+  return String(naam || '')
+    .replace(/\.[A-Za-z0-9]{2,5}$/, '')
+    .replace(/[_]+/g, ' ')
+    .replace(/\s*-\s*/g, ' - ')
+    .replace(/\b(official|video|lyrics|lyric|audio|hd|hq|4k|mp3|mp4|live|clip|remaster(ed)?)\b/gi, ' ')
+    .replace(/\(\s*\)|\[\s*\]/g, ' ')               // lege haakjes na het schrappen
+    .replace(/^\s*\d{1,3}[\s.\-]+/, '')
+    .replace(/[\s\-_(]+$/, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+    .slice(0, 120) || 'Eigen opname';
+}
+
+function zonderLidwoorden(tekst) {
+  return String(tekst || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9 ]+/g, ' ')
+    .replace(/\b(de|het|een|the|a|an|van|of|my|mijn)\b/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Lijkt de bestandsnaam op een liedje uit de bibliotheek? Dan kunnen we meteen
+// het bestaande akkoordschema en de grepen laten zien.
+function zoekInBibliotheek(titel) {
+  const gezocht = zonderLidwoorden(titel);
+  if (gezocht.length < 4) return null;
+  let beste = null;
+  for (const lied of bron.alle()) {
+    const naam = zonderLidwoorden(lied.titel);
+    if (!naam) continue;
+    if (naam === gezocht) return { id: lied.id, titel: lied.titel, toonsoort: lied.toonsoort, soort: 'gelijk' };
+    if (naam.length >= 6 && (gezocht.includes(naam) || naam.includes(gezocht))) {
+      const verschil = Math.abs(naam.length - gezocht.length);
+      if (!beste || verschil < beste.verschil) {
+        beste = { id: lied.id, titel: lied.titel, toonsoort: lied.toonsoort, soort: 'lijkt-op', verschil };
+      }
+    }
+  }
+  return beste;
+}
+
+// Geluid uit een upload halen en daar een akkoordschema van maken.
+function analyseerUpload(bestandPad, opties) {
+  const o = Object.assign({ maatsoort: 0 }, opties || {});
+  const wavPad = path.join(MEDIA_DIR, 'preview', `upload-${Date.now()}.wav`);
+  const omzetten = spawnSync(FFMPEG, ['-v', 'error', '-y', '-i', bestandPad, '-ac', '1', '-ar', '22050', '-vn', wavPad], { timeout: 180000 });
+  if (omzetten.status !== 0 || !fs.existsSync(wavPad)) {
+    throw new Error('Het geluid uit dit bestand kon niet worden gelezen. Is het een echt geluids- of videobestand?');
+  }
+  try {
+    const { samples, rate } = analyse.leesWav(fs.readFileSync(wavPad));
+    return analyse.analyseer(samples, rate, o);
+  } finally {
+    try { fs.unlinkSync(wavPad); } catch (e) {}
+  }
+}
+
+function maakMp3Van(bestandPad, naam) {
+  const mp3Pad = path.join(MEDIA_DIR, 'audio', naam);
+  const omzetten = spawnSync(FFMPEG, ['-v', 'error', '-y', '-i', bestandPad, '-vn', '-codec:a', 'libmp3lame', '-b:a', '128k', mp3Pad], { timeout: 180000 });
+  if (omzetten.status !== 0 || !fs.existsSync(mp3Pad)) {
+    try { fs.unlinkSync(mp3Pad); } catch (e) {}
+    return null;
+  }
+  return naam;
 }
 
 // ---------------------------------------------------------------------- cast ---
@@ -753,10 +873,17 @@ async function verwerk(req, res) {
       json(res, 400, { fout: e.message });
       return;
     }
+    const metOpname = meespeelEigenAudio(lied) && query.get('bron') !== 'synth';
     json(res, 200, {
-      liedje: { id: lied.id, titel: lied.titel, artiest: lied.artiest, heeftMelodie: !!(lied.noten && lied.noten.length) },
+      liedje: {
+        id: lied.id,
+        titel: lied.titel,
+        artiest: lied.artiest,
+        heeftMelodie: !!(lied.noten && lied.noten.length),
+        eigenAudio: metOpname
+      },
       tijdlijn: tijdlijn.tijdlijnVanPlan(plan),
-      audio: `/api/meespelen/audio?${meespeelQuery(query)}`
+      audio: metOpname ? `/media/audio/${lied.audio_bestand}` : `/api/meespelen/audio?${meespeelQuery(query)}`
     });
     return;
   }
@@ -785,6 +912,78 @@ async function verwerk(req, res) {
       if (Object.prototype.hasOwnProperty.call(body, sleutel)) zetInstelling(sleutel, body[sleutel]);
     }
     json(res, 200, { ok: true, instellingen: alleInstellingen() });
+    return;
+  }
+
+  // --- muziek of video uploaden en er het akkoordschema bij zoeken ---
+  if (pad === '/api/analyse' && methode === 'POST') {
+    const soort = String(req.headers['content-type'] || '').toLowerCase();
+    if (!/^(audio|video)\//.test(soort)) {
+      json(res, 400, { fout: 'Stuur een geluids- of videobestand (mp3, m4a, wav, ogg, webm of mp4).' });
+      return;
+    }
+    let buffer;
+    try {
+      buffer = await leesBody(req, 200 * 1024 * 1024);
+    } catch (e) {
+      json(res, 400, { fout: 'Dit bestand is groter dan 200 MB.' });
+      return;
+    }
+    if (buffer.length < 1024) { json(res, 400, { fout: 'Het bestand is leeg of te klein.' }); return; }
+    // de bestandsnaam komt als URL-gecodeerde kop binnen (spa_ties en haakjes)
+    let naamKop = String(req.headers['x-bestandsnaam'] || 'opname');
+    try { naamKop = decodeURIComponent(naamKop); } catch (e) { /* laat staan */ }
+    const ruweNaam = veiligeNaam(naamKop);
+    const tijdelijk = path.join(MEDIA_DIR, 'preview', `upload-${Date.now()}-${ruweNaam}`);
+    fs.writeFileSync(tijdelijk, buffer);
+    let uitkomst;
+    try {
+      uitkomst = analyseerUpload(tijdelijk, {
+        maatsoort: query.get('maatsoort') ? waarheidsgetrouw(query, 'maatsoort', 0, 0, 12) : 0
+      });
+    } catch (e) {
+      try { fs.unlinkSync(tijdelijk); } catch (x) {}
+      json(res, 400, { fout: e.message });
+      return;
+    }
+    const titel = titelUitBestandsnaam(naamKop);
+    const gevonden = zoekInBibliotheek(titel);
+    const mp3Naam = maakMp3Van(tijdelijk, `upload-${Date.now()}-${ruweNaam.replace(/\.[A-Za-z0-9]+$/, '')}.mp3`.slice(-160));
+    try { fs.unlinkSync(tijdelijk); } catch (e) {}
+    const accordeerschema = uitkomst.akkoordenPerMaat.length
+      ? schemaAlsChordpro(titel, uitkomst.toonsoort, Math.round(uitkomst.tempo), uitkomst.akkoordenPerMaat)
+      : `{title: ${titel}}\n{key: ${uitkomst.toonsoort}}\n`;
+    const nu = new Date().toISOString();
+    const notitie = `Automatisch herkend uit een upload (${uitkomst.aantalMaten} maten, zekerheid ${Math.round(uitkomst.gemiddeldeZekerheid * 100)}%). Controleer het schema en pas het gerust aan.`;
+    const info = db.prepare(`INSERT INTO liedjes (titel, artiest, taal, genre, moeilijkheid, toonsoort, tempo, strum, bron, youtube, notitie, chordpro, aangemaakt, akkoorden_per_maat, maatsoort, eerste_tel)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
+      titel, '', 'nl', gevonden ? 'Overgenomen' : 'Eigen opname', 2, uitkomst.toonsoort,
+      Math.max(40, Math.min(200, Math.round(uitkomst.tempo))), 'D DU UDU',
+      gevonden ? `Herkend uit upload; lijkt op "${gevonden.titel}"` : 'Herkend uit upload',
+      '', notitie, accordeerschema, nu,
+      JSON.stringify(uitkomst.akkoordenPerMaat), uitkomst.maatsoort,
+      Math.max(0, Number(uitkomst.eersteTelSeconden) || 0));
+    const id = EIGEN_START + Number(info.lastInsertRowid);
+    if (mp3Naam) {
+      db.prepare('UPDATE liedjes SET audio_bestand = ?, audio_titel = ? WHERE id = ?')
+        .run(mp3Naam, `Opname: ${titel}`.slice(0, 120), Number(info.lastInsertRowid));
+    }
+    json(res, 201, {
+      ok: true,
+      id,
+      titel,
+      analyse: {
+        tempo: Math.round(uitkomst.tempo * 10) / 10,
+        maatsoort: uitkomst.maatsoort,
+        toonsoort: uitkomst.toonsoort,
+        akkoordenPerMaat: uitkomst.akkoordenPerMaat,
+        gemiddeldeZekerheid: uitkomst.gemiddeldeZekerheid,
+        aantalMaten: uitkomst.aantalMaten,
+        seconden: uitkomst.seconden
+      },
+      gevonden: gevonden || null,
+      audio: mp3Naam ? `/media/audio/${mp3Naam}` : ''
+    });
     return;
   }
 

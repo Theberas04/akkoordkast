@@ -42,6 +42,8 @@ FILES=(
   "lib/capo.js"
   "lib/gitaar.js"
   "lib/tijdlijn.js"
+  "lib/akkoorden.js"
+  "lib/analyse.js"
   "public/index.html"
   "public/favicon.svg"
   "public/manifest.webmanifest"
@@ -65,6 +67,8 @@ RUNTIME=(
   "lib/capo.js"
   "lib/gitaar.js"
   "lib/tijdlijn.js"
+  "lib/akkoorden.js"
+  "lib/analyse.js"
 )
 PAGINA=(
   "public/index.html"

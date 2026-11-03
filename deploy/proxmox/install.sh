@@ -54,6 +54,7 @@ FILES=(
   "public/icon-512.png"
   "public/icon-512-maskable.png"
   "public/apple-touch-icon.png"
+  "deploy/proxmox/create-akkoordkast-lxc.sh"
   "deploy/proxmox/provision-akkoordkast.sh"
   "deploy/proxmox/update-from-github.sh"
 )

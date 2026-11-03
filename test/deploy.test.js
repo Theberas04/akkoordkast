@@ -83,6 +83,22 @@ test('de downloadlijst van install.sh bestaat volledig in de repository', () => 
   assert.match(install, /Interne fout: bestandsnaam met een spatie/, 'geen spatiescheiding-guard in de downloadlus');
 });
 
+test('de installer haalt elk script op dat hij zelf aanroept', () => {
+  // install.sh voert iets uit met bash "$TARGET_DIR/deploy/proxmox/...". Staat dat bestand
+  // niet in FILES, dan stopt de installatie met "No such file or directory" — en dat merk je
+  // pas op de host van de gebruiker, na het ophalen van alle andere bestanden.
+  const install = lees('install.sh');
+  const files = shellArray(install, 'FILES');
+  const aangeroepen = [...install.matchAll(/bash\s+"?\$\{?(?:TARGET_DIR|STAGING)\}?\/([\w./-]+)"?/g)].map(m => m[1]);
+  assert.ok(aangeroepen.length >= 2, 'geen aangeroepen scripts gevonden in install.sh: ' + aangeroepen.join(', '));
+  for (const rel of aangeroepen) {
+    assert.ok(files.includes(rel), `install.sh roept ${rel} aan maar haalt het niet op`);
+    assert.ok(bestaatInRepo(rel), `install.sh noemt ${rel}, maar dat bestaat niet in de repo`);
+  }
+  assert.ok(aangeroepen.some(r => r.includes('create-akkoordkast-lxc')),
+    'de installer hoort de container-maker aan te roepen');
+});
+
 test('de updater haalt alles op wat hij in de container zet, en niet minder', () => {
   const install = shellArray(lees('install.sh'), 'FILES');
   const update = shellArray(lees('update-from-github.sh'), 'FILES');

@@ -22,12 +22,34 @@ fi
 
 # Vrije container-id zoeken als er geen is opgegeven.
 if [ -z "$CTID" ]; then
-  for kandidaat in $(seq 200 299); do
+  for kandidaat in $(seq "${CTID_VANAF:-100}" 299); do
     if ! pct status "$kandidaat" >/dev/null 2>&1; then CTID="$kandidaat"; break; fi
   done
 fi
 if pct status "$CTID" >/dev/null 2>&1; then
   melding "Container $CTID bestaat al. Kies een andere CTID of verwijder hem eerst."
+  exit 1
+fi
+
+# Opslag die een containerschijf aankan. 'local-lvm' is de gewoonte, maar een host met ZFS
+# heeft 'local-zfs' en dan stopt 'pct create' met een onduidelijke fout. Daarom zoeken we er
+# zelf een als de ingestelde opslag het niet kan.
+if ! pvesm status --content rootdir 2>/dev/null | awk 'NR>1 {print $1}' | grep -qx "$OPSLAG"; then
+  GEVONDEN="$(pvesm status --content rootdir 2>/dev/null | awk 'NR>1 {print $1}' | head -1)"
+  if [ -n "$GEVONDEN" ]; then
+    melding "Opslag '$OPSLAG' kan geen containerschijf aan; ik gebruik '$GEVONDEN'."
+    OPSLAG="$GEVONDEN"
+  else
+    melding "Geen opslag gevonden voor een containerschijf. Kijk met 'pvesm status' welke opslag je hebt en geef die mee: OPSLAG=<naam>."
+    exit 1
+  fi
+fi
+
+# De bridge moet bestaan, anders krijgt de container geen netwerk.
+if ! ip -o link show "$BRIDGE" >/dev/null 2>&1; then
+  melding "Bridge '$BRIDGE' bestaat niet op deze host."
+  melding "Beschikbare bridges: $(ip -o link show | awk -F': ' '{print $2}' | grep '^vmbr' | tr '\n' ' ')"
+  melding "Geef de juiste mee: BRIDGE=vmbr1 ..."
   exit 1
 fi
 

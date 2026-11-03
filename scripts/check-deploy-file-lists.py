@@ -68,6 +68,17 @@ def bestandslijsten(pad: Path) -> list[list[str]]:
     return lijsten
 
 
+def aangeroepen_bestanden(pad: Path) -> list[str]:
+    """De scripts die dit script zelf uitvoert uit de map die het net gevuld heeft.
+
+    `install.sh` roept `bash "$TARGET_DIR/deploy/proxmox/...sh"` aan. Staat zo'n bestand
+    niet in zijn eigen FILES-lijst, dan valt dat pas op de host op met
+    "No such file or directory" — precies de fout die deze controle moet voorkomen.
+    """
+    return [t.group(1) for t in
+            re.finditer(r'\bbash\s+"?\$\{?(?:TARGET_DIR|STAGING)\}?/([\w./-]+)"?', pad.read_text())]
+
+
 def naar_repo_pad(element: str) -> str:
     """Strip the shell prefixes a list may carry so the element can be tested against the repo."""
     return re.sub(r'^\$\{?APP_DIR\}?/', '', element).strip('"')
@@ -108,7 +119,12 @@ def controleer(repo: Path, deploy: Path, remote: bool) -> int:
         if fout:
             fouten.append(f'{pad.name}: bash -n faalt\n    {fout}')
         basis = raw_basis(pad) if remote else None
-        for lijst in bestandslijsten(pad):
+        alle_lijsten = bestandslijsten(pad)
+        opgehaald = {naar_repo_pad(el) for lijst in alle_lijsten for el in lijst}
+        for rel in aangeroepen_bestanden(pad):
+            if rel not in opgehaald:
+                fouten.append(f'{pad.name}: roept {rel} aan maar haalt het niet op (zet het in FILES)')
+        for lijst in alle_lijsten:
             if not lijst:
                 continue
             gezien += len(lijst)

@@ -520,14 +520,167 @@
     .seg .ak{color:#000}
     .refrein{background:#f3f4f6}
   }
+  /* ==================== vormgeving 2.0 ====================
+     Doel: rustiger en professioneler. Vaste maatvoering voor knoppen en velden,
+     één duidelijke hoofdkleur per kaart, en een kop en tabbalk die op elkaar
+     aansluiten. Alles hieronder komt ná de eerdere regels, dus het wint waar het
+     botst — zonder de mobiele- en printregels te raken. */
+  :root{
+    --bg:#070c16; --bg2:#0d1526; --pane:#111c30; --pane2:#16243c; --pane3:#1b2b47;
+    --tekst:#eaf1fd; --tekst2:#9aabc9; --tekst3:#6f83a6;
+    --lijn:#22314d; --lijn-zacht:rgba(255,255,255,.06);
+    --amber:#f5a524; --amber2:#ffc75a; --gitaar:#e0a45e;
+    --groen:#3ed598; --rood:#f87171; --blauw:#6aa8ff;
+    --r-klein:9px; --r:13px; --r-groot:17px;
+    --schaduw-1:0 1px 2px rgba(3,7,15,.5);
+    --schaduw-2:0 18px 40px -24px rgba(3,7,15,.9);
+    --schaduw-3:0 30px 70px -30px rgba(3,7,15,.95);
+    --ring:0 0 0 3px rgba(245,165,36,.28);
+    --hoogte:38px; --hoogte-klein:32px;
+  }
+  body{background:var(--bg);-webkit-font-smoothing:antialiased;line-height:1.5}
+  /* Eén rustige gloed bovenin in plaats van een losse kleurvlek. */
+  body::before{content:'';position:fixed;inset:0 0 auto 0;height:420px;pointer-events:none;z-index:-1;
+    background:radial-gradient(60% 100% at 22% 0%,rgba(245,165,36,.14),rgba(245,165,36,0) 68%),
+               radial-gradient(50% 100% at 78% 0%,rgba(106,168,255,.13),rgba(106,168,255,0) 70%)}
+
+  /* --- kop --- */
+  header{padding:12px 20px 10px;background:rgba(8,13,24,.82);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--lijn-zacht);box-shadow:0 1px 0 rgba(255,255,255,.03) inset}
+  .kop{max-width:1080px;margin:0 auto;gap:12px}
+  h1{font-size:1.42rem;letter-spacing:.01em;margin:0;line-height:1.1}
+  h1 span{color:var(--amber)}
+  .kop-meta{display:flex;flex-wrap:wrap;align-items:center;gap:0;color:var(--tekst3);font-size:.78rem;
+    font-weight:600;letter-spacing:.01em}
+  .kop-meta .pilletje{background:none;border:0;padding:0;font-weight:600;color:var(--tekst3);font-size:.78rem}
+  .kop-meta .pilletje + .pilletje::before{content:'·';margin:0 8px;color:var(--lijn)}
+  .onderkop{max-width:1080px;margin:2px auto 0;color:var(--tekst2);font-size:.83rem;font-weight:500}
+  .profiel-rij select{height:var(--hoogte-klein);padding:0 10px;font-size:.85rem}
+  .profiel-rij .knop{height:var(--hoogte-klein);min-height:0;padding:0 12px}
+
+  /* --- tabbalk: dezelfde breedte als de kaarten eronder --- */
+  nav{display:flex;gap:6px;padding:12px 20px 0;max-width:1080px;margin:0 auto;
+    background:none;border:0;position:static}
+  nav button{flex:1 1 0;flex-direction:row;gap:8px;min-height:44px;padding:0 14px;
+    background:transparent;border:1px solid transparent;border-radius:var(--r);
+    color:var(--tekst2);font-weight:650;font-size:.9rem;letter-spacing:.01em;
+    transition:background .15s ease,color .15s ease,border-color .15s ease}
+  nav button:hover{background:rgba(255,255,255,.035);color:var(--tekst)}
+  nav button .ic{display:inline-flex;width:18px;height:18px;font-size:0;line-height:0}
+  nav button .ic svg{width:18px;height:18px}
+  nav button.actief{color:var(--amber);background:rgba(245,165,36,.10);border-color:rgba(245,165,36,.28)}
+  nav button.actief .ic{color:var(--amber)}
+
+  main{max-width:1080px;margin:0 auto;padding:16px 20px 60px}
+
+  /* --- kaarten --- */
+  .kaart{background:linear-gradient(180deg,var(--pane),var(--bg2));border:1px solid var(--lijn-zacht);
+    border-radius:var(--r-groot);padding:16px 18px;margin-bottom:14px;box-shadow:var(--schaduw-2)}
+  .kaart h2{margin:0 0 10px;font-size:1.02rem;letter-spacing:.01em}
+  .kaart h3{margin:0 0 12px;font-size:.74rem;color:var(--tekst3);text-transform:uppercase;
+    letter-spacing:.11em;font-weight:700;padding-bottom:9px;border-bottom:1px solid var(--lijn-zacht);
+    display:flex;align-items:center;gap:8px}
+  .kaart > h3:first-child{margin-top:0}
+
+  /* --- velden --- */
+  .veld2{grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px 12px}
+  .veld2 > div{display:flex;flex-direction:column;gap:5px}
+  .veld2 label,.rij label{color:var(--tekst3);font-size:.7rem;font-weight:700;
+    text-transform:uppercase;letter-spacing:.09em}
+  input,select,textarea{background:#0a1322;border:1px solid var(--lijn);border-radius:var(--r-klein);
+    color:var(--tekst);height:var(--hoogte);padding:0 11px;font-size:.92rem;
+    transition:border-color .15s ease,box-shadow .15s ease}
+  textarea{height:auto;padding:10px 11px}
+  input[type=search]{height:42px}
+  select{appearance:none;padding-right:30px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239aabc9' stroke-width='2.4'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat:no-repeat;background-position:right 10px center}
+  input:focus,select:focus,textarea:focus,button:focus-visible{outline:none;
+    border-color:rgba(245,165,36,.55);box-shadow:var(--ring)}
+  input[type=checkbox]{height:auto}
+
+  /* --- knoppen: vaste hoogte, duidelijke rollen --- */
+  .knop{height:var(--hoogte);min-height:0;padding:0 15px;border-radius:var(--r-klein);
+    font-size:.86rem;font-weight:650;letter-spacing:.01em;display:inline-flex;align-items:center;
+    gap:7px;justify-content:center;transition:transform .12s ease,filter .15s ease,background .15s ease}
+  .knop:active{transform:translateY(1px)}
+  .knop.zacht{background:rgba(255,255,255,.035);border:1px solid var(--lijn);
+    color:var(--tekst);font-weight:600}
+  .knop.zacht:hover{background:rgba(255,255,255,.07);border-color:#2c3f60}
+  .knop.goed{background:var(--groen);color:#04231a}
+  .knop.rood{background:var(--rood);color:#2b0a0a}
+  .knop.mini{height:var(--hoogte-klein);padding:0 11px;font-size:.78rem}
+  .rij{gap:9px}
+
+  /* --- pijltjes, chips, meldingen --- */
+  .pilletje{background:rgba(255,255,255,.05);border:1px solid var(--lijn-zacht);color:var(--tekst2);
+    border-radius:999px;padding:4px 11px;font-size:.74rem;font-weight:650}
+  .chip{background:rgba(255,255,255,.04);border:1px solid var(--lijn-zacht);color:var(--tekst2);
+    border-radius:999px;padding:3px 9px;font-size:.72rem;font-weight:600}
+  .chip.capo{color:var(--amber2);border-color:rgba(245,165,36,.32);background:rgba(245,165,36,.09)}
+  .chip.eigen{color:var(--blauw);border-color:rgba(106,168,255,.3);background:rgba(106,168,255,.09)}
+  .chip.geen{color:var(--tekst3)}
+  .melding{background:rgba(17,28,48,.9);border:1px solid var(--lijn-zacht);border-left:3px solid var(--blauw);
+    border-radius:var(--r-klein);padding:10px 12px;font-size:.85rem}
+  .melding.goed{border-left-color:var(--groen)}
+  .melding.fout{border-left-color:var(--rood)}
+
+  /* --- liedjeslijst --- */
+  .liedlijst{gap:8px}
+  .lied{background:rgba(255,255,255,.022);border:1px solid var(--lijn-zacht);border-radius:var(--r);
+    padding:11px 13px;transition:background .15s ease,border-color .15s ease,transform .12s ease}
+  .lied:hover{background:rgba(255,255,255,.05);border-color:#2b3d5d;transform:translateY(-1px)}
+  .lied .titel{font-size:.96rem;font-weight:650;letter-spacing:.01em}
+  .lied .artiest{font-size:.79rem;color:var(--tekst3);margin-top:2px}
+  .lied .chips{margin-top:7px}
+  #meer-laden{display:block;width:100%;margin:12px 0 0;height:var(--hoogte-klein);
+    background:transparent;border:1px dashed var(--lijn);color:var(--tekst2);font-size:.82rem;
+    font-weight:600;border-radius:var(--r-klein)}
+  #meer-laden:hover{background:rgba(255,255,255,.04);color:var(--tekst)}
+
+  /* --- rijen in lijsten (mappen, back-ups, overgangen) --- */
+  .scan-regel,.map-regel,.overgang-regel{background:rgba(255,255,255,.022);border:1px solid var(--lijn-zacht);
+    border-radius:var(--r);padding:9px 12px}
+  .scan-regel .naam,.map-regel .naam{font-weight:620;font-size:.88rem}
+  .map-regel .meta,.scan-regel .meta{font-size:.75rem;color:var(--tekst3)}
+  .overgang-regel .meta{font-size:.84rem;line-height:1.5}
+
+  /* --- spelersgereedschap --- */
+  .speel-gereedschap{background:rgba(255,255,255,.02);border:1px solid var(--lijn-zacht);
+    border-radius:var(--r);padding:9px 11px}
+  .les-klein{color:var(--tekst3);font-size:.79rem;line-height:1.5}
+
+  /* --- weekoverzicht --- */
+  .week-staaf{height:8px;border:0;background:rgba(255,255,255,.06)}
+  .week-staaf span{background:linear-gradient(90deg,var(--amber),var(--groen))}
+  .week-naam{font-size:.79rem;color:var(--tekst2)}
+
+  @media (min-width:761px){
+    #filter-toggle{display:inline-flex}
+    #meer-filters{display:none}
+    #meer-filters.open{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  }
+  @media (max-width:760px){
+    header{padding:10px 14px 8px}
+    nav{padding:10px 14px 0;gap:4px}
+    nav button{flex-direction:column;gap:3px;min-height:52px;padding:6px 4px;font-size:.74rem}
+    main{padding:14px 14px 50px}
+    .kaart{padding:14px;border-radius:var(--r)}
+  }
+  @media print{
+    body::before{display:none}
+    .kaart{background:#fff!important;border-color:#ddd;box-shadow:none}
+  }
 </style>
 </head>
 <body>
 <header>
   <div class="kop">
     <h1>Akkoord<span>Kast</span></h1>
-    <span class="pilletje" id="kop-aantal">liedjes laden…</span>
-    <span class="pilletje" id="kop-cast">cast: onbekend</span>
+    <span class="kop-meta">
+      <span class="pilletje" id="kop-aantal">liedjes laden…</span>
+      <span class="pilletje" id="kop-cast">cast: onbekend</span>
+    </span>
   </div>
   <div class="onderkop">
     <span>Bladmuziek met akkoorden, capo-advies, grepen en audio voor gitaar</span>
@@ -540,11 +693,11 @@
 </header>
 
 <nav>
-  <button id="tab-liedjes" class="actief" data-paneel="paneel-liedjes"><span class="ic">🎵</span><span>Liedjes</span></button>
-  <button id="tab-spelen" data-paneel="paneel-spelen"><span class="ic">🎸</span><span>Spelen</span></button>
-  <button id="tab-leren" data-paneel="paneel-leren"><span class="ic">🎓</span><span>Leren</span></button>
-  <button id="tab-toevoegen" data-paneel="paneel-toevoegen"><span class="ic">➕</span><span>Toevoegen</span></button>
-  <button id="tab-casten" data-paneel="paneel-casten"><span class="ic">📺</span><span>Casten</span></button>
+  <button id="tab-liedjes" class="actief" data-paneel="paneel-liedjes"><span class="ic" aria-hidden="true"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M9 17.5V6.2l10-1.9v11.2'/><circle cx='6.6' cy='17.6' r='2.4'/><circle cx='16.6' cy='15.5' r='2.4'/></svg></span><span>Liedjes</span></button>
+  <button id="tab-spelen" data-paneel="paneel-spelen"><span class="ic" aria-hidden="true"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M8.5 5.6v12.8L19 12z'/></svg></span><span>Spelen</span></button>
+  <button id="tab-leren" data-paneel="paneel-leren"><span class="ic" aria-hidden="true"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M4 5.6A2.6 2.6 0 0 1 6.6 3H19v14.6H6.6A2.6 2.6 0 0 0 4 20.2z'/><path d='M8.2 7.4h7M8.2 10.6h4.6'/></svg></span><span>Leren</span></button>
+  <button id="tab-toevoegen" data-paneel="paneel-toevoegen"><span class="ic" aria-hidden="true"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M12 5.5v13M5.5 12h13'/></svg></span><span>Toevoegen</span></button>
+  <button id="tab-casten" data-paneel="paneel-casten"><span class="ic" aria-hidden="true"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M3.2 19.8h.1M3.2 15.4a4.4 4.4 0 0 1 4.4 4.4M3.2 11a8.8 8.8 0 0 1 8.8 8.8'/><rect x='13.6' y='3.8' width='7.2' height='9.6' rx='1.6'/></svg></span><span>Casten</span></button>
 </nav>
 
 <main>
@@ -589,7 +742,7 @@
         <button class="knop zacht" id="filter-toggle">Zoeken en filters</button>
         <button class="knop zacht" id="filter-wis">Filters wissen</button>
         <button class="knop zacht" id="boek-printen" title="Alle liedjes van deze selectie als één document">Boek maken</button>
-        <span class="pilletje" id="lijst-teller"></span>
+        <span class="pilletje" id="lijst-teller">…</span>
       </div>
       <div class="melding" id="lijst-melding" hidden></div>
     </div>
@@ -607,16 +760,14 @@
       <div class="rij" style="margin-top:8px">
         <input id="setlist-naam" type="text" placeholder="Naam voor een nieuwe setlist (bv. Kroeg vrijdag)" autocomplete="off">
         <button class="knop zacht" id="setlist-nieuw">Nieuwe setlist</button>
-        <span class="les-klein">Zet liedjes erin met <strong>+ setlist</strong> in de lijst of in het spelscherm.</span>
+        <span class="les-klein"><span id="setlist-hint">Zet liedjes erin met <strong>+ setlist</strong> in de lijst of in het spelscherm.</span></span>
       </div>
       <div id="setlist-inhoud"></div>
       <div id="setlist-overgangen-lijst" class="scan-lijst" style="margin-top:8px"></div>
       <div class="melding" id="setlist-melding" hidden></div>
     </div>
     <div class="liedlijst" id="liedlijst"></div>
-    <div class="rij" style="margin-top:10px">
-      <button class="knop zacht" id="meer-laden" hidden>Nog liedjes laden</button>
-    </div>
+    <button class="knop zacht" id="meer-laden" hidden>Nog liedjes laden</button>
   </section>
 
   <!-- ------------------------------------------------ spelen -->
@@ -1208,7 +1359,7 @@ function laadLiedjes(ververs) {
     $('lijst-teller').textContent = staat.liedjes.length + ' van ' + data.totaal + ' liedjes';
     $('kop-aantal').textContent = data.statistieken.aantal + ' meegeleverde liedjes';
     vulFilters(data);
-    toonMelding('lijst-melding', staat.meer ? 'Nog ' + (data.totaal - staat.liedjes.length) + ' liedjes te laden.' : '', '');
+    toonMelding('lijst-melding', '', '');
   }).catch(function (e) { toonMelding('lijst-melding', e.message, 'fout'); });
 }
 // De taalcodes zijn kort (nl, en, li); in de keuzelijst en op de kaartjes staat
@@ -1288,11 +1439,24 @@ $('profiel-nieuw').addEventListener('click', function () {
   }).catch(function (e) { toonMelding('lijst-melding', e.message, 'fout'); });
 });
 
+// De filters staan standaard dicht, zodat je de liedjes meteen ziet in plaats van een
+// muur aan keuzelijsten. Wat je kiest onthouden we, zodat ze de volgende keer staan zoals
+// je ze achterliet.
+function filterStand() {
+  var open = false;
+  try { open = localStorage.getItem('akkoordkast-filters') === '1'; } catch (e) {}
+  return open;
+}
+function zetFilters(open) {
+  $('meer-filters').classList.toggle('open', open);
+  var knop = $('filter-toggle');
+  if (knop) knop.textContent = open ? 'Filters verbergen' : 'Filters';
+  try { localStorage.setItem('akkoordkast-filters', open ? '1' : '0'); } catch (e) {}
+}
 $('filter-toggle').addEventListener('click', function () {
-  $('meer-filters').classList.toggle('open');
+  zetFilters(!$('meer-filters').classList.contains('open'));
 });
-// Op een breed scherm staan de filters meteen open, op een telefoon achter de knop.
-if (window.innerWidth > 760) $('meer-filters').classList.add('open');
+zetFilters(filterStand());
 $('meer-laden').addEventListener('click', function () { laadLiedjes(false); });
 function debounce(fn, ms) {
   var t = null;
@@ -1545,11 +1709,13 @@ function laadSetlists(kiesId) {
     var nu = heeft ? gewenst : (staat.setlists.length ? staat.setlists[0].id : 0);
     zetActieveSetlist(nu);
     if (kies.value !== String(nu)) kies.value = String(nu);
+    if ($('setlist-hint')) $('setlist-hint').hidden = false;
     if (nu) laadSetlistInhoud(nu);
     else {
       $('setlist-inhoud').innerHTML = '<div class="les-klein">Nog geen setlist. Geef er hierboven een naam en druk op ' +
         '<strong>Nieuwe setlist</strong>.</div>';
       $('setlist-teller').textContent = '';
+      if ($('setlist-hint')) $('setlist-hint').hidden = true;
     }
   }).catch(function (e) { toonMelding('setlist-melding', e.message, 'fout'); });
 }

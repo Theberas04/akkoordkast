@@ -24,10 +24,14 @@ Die begeleiding cast je naar een Chromecast in je netwerk.
 [op een NAS of in Drive](#de-muziekmap-op-een-nas-of-in-google-drive) ·
 [spelen op het podium](#spelen-op-het-podium) · [een setlist en optredenmodus](#een-setlist-en-optredenmodus) ·
 [oefenen met moeilijke stukken](#oefenen-met-moeilijke-stukken) ·
+[metronoom en tik-tempo](#metronoom-aftellen-en-tik-tempo) ·
+[back-up](#back-up-naar-een-nas-of-map) · [je oefenen per week](#jouw-oefenen-per-week) ·
+[akkoordovergangen](#akkoordovergangen-in-een-setlist) ·
 [gehoor-trainer](#gehoor-trainer-akkoorden-herkennen) ·
 [het akkoordenboek](#akkoordenboek-alle-posities-over-de-hals) ·
 [jouw eigen lijstjes](#jouw-eigen-lijstjes) · [beheer en bijwerken](#beheer-en-bijwerken) ·
-[Spotify](#spotify) · [hoe het werkt](#hoe-het-werkt) · [tests](#tests) · [licentie](#licentie)
+[Spotify](#spotify) · [hoe het werkt](#hoe-het-werkt) · [tests](#tests) · [licentie](#licentie) ·
+[wat er veranderd is](CHANGELOG.md)
 
 | Scherm | Wat je ziet |
 | --- | --- |
@@ -38,6 +42,11 @@ Die begeleiding cast je naar een Chromecast in je netwerk.
 | ![toevoegen](docs/img/toevoegen-desktop.png) | **Eigen liedjes** — ChordPro plakken of een bestand kiezen. Aan je eigen liedjes hang je je eigen opname. |
 | ![casten](docs/img/casten-desktop.png) | **Casten** — Chromecasts zoeken (of een IP intypen), casten, stoppen en het volume regelen. |
 | ![upload](docs/img/upload-herkend.png) | **Mp3 of mp4 uploaden** — de app haalt het geluid uit je bestand, herkent tempo, toonsoort en akkoorden en zoekt het liedje er meteen bij in de bibliotheek. |
+| ![metronoom](docs/img/metronoom.png) | **Metronoom en tik-tempo** — klikt de maat mee, telt af voor je begint en neemt het tempo over als je meetikt. |
+| ![overgangen](docs/img/setlist-overgangen.png) | **Akkoordovergangen** — hoe je van het ene liedje in het andere komt, met de capo erbij. |
+| ![week](docs/img/oefenen-per-week.png) | **Je oefenen per week** — minuten, aantal keer en de akkoorden waar je mee bezig was. |
+| ![backup](docs/img/backup-naar-nas.png) | **Back-up naar je NAS** — één bestand met je eigen gegevens, zonder wachtwoorden. |
+| ![mappen](docs/img/mappen-toevoegen.png) | **Meer dan één muziekmap** — je NAS-map naast de map op de machine zelf. |
 | ![meespelen](docs/img/meespelen-opname.png) | **Meespelen met je eigen opname** — je opname is de muziek; de akkoorden, de maat, de hals en de grepen lopen ermee mee. |
 | ![spotify](docs/img/spotify-blok.png) | **Spotify** — plak een link en de speler staat erbij; de noten lopen mee met wat je hoort. Met een eigen Client ID kun je ook zoeken. |
 | ![muziekmap](docs/img/muziekmap-klaar.png) | **Een hele muziekmap in één keer** — geef een map op deze machine op en elk nummer erin wordt een eigen liedje met akkoordschema, tempo en toonsoort. |
@@ -123,6 +132,20 @@ in plaats van wav. Geen npm-afhankelijkheden.
   het toestel moet de container kunnen bereiken.
 - **Een akkoordenboek met alle posities.** Van elk akkoord niet één greep maar alles wat je
   kunt pakken: de open positie en de barré-vormen verder naar boven, met de tekening erbij.
+- **Metronoom, aftellen en tik-tempo.** In de speler klikt de maat mee (met een zware tik op
+  de eerste tel), telt de app de maat af voor je begint, en neemt hij het tempo over als je vier
+  keer meetikt. De klikken komen uit Web Audio en volgen je oefentempo.
+- **Back-up naar een map die jij kiest.** Eén bestand per keer met alles wat je zelf hebt gemaakt —
+  profielen, favorieten, labels, setlists, oefencijfers, je eigen liedjes en de instellingen — naar
+  bijvoorbeeld je NAS. De laatste tien blijven staan; wachtwoorden en sleutels gaan er niet in.
+- **Overzicht per week.** In het tabblad Leren zie je per week hoeveel minuten je geoefend hebt, hoe
+  vaak, en met welke akkoorden je bezig was. Weken zonder oefening staan er ook in.
+- **Akkoordovergangen in een setlist.** Per paar opeenvolgende liedjes zegt de app in welke toonsoort
+  je het tweede speelt (of welke capo), welke akkoorden je in allebei hebt, en welk akkoord als
+  bruggetje werkt als ze niets gemeen hebben.
+- **Meerdere muziekmappen.** Je muziek mag op meer dan één plek staan: een map op de machine zelf en
+  een map op de NAS. Je voegt ze toe in het tabblad Toevoegen; omzetten en de wachter lopen ze alle
+  langs.
 - **Setlists en een optredenmodus.** Zet liedjes in een vaste volgorde en speel ze achter elkaar
   door: groot beeld, alleen het liedje van nu, met de knoppen om verder te gaan en een pauzeklok.
 - **Gehoor-trainer.** De app speelt een akkoord en jij zegt welk het is; of ze speelt er twee en

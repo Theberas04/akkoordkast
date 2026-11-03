@@ -80,6 +80,8 @@ def hero():
           <span class="pil">meespelen met noten en tab</span>
           <span class="pil">cursus: 26 gitaarlessen</span>
           <span class="pil">eigen muziekmap in &eacute;&eacute;n keer</span>
+          <span class="pil">metronoom &amp; tik-tempo</span>
+          <span class="pil">back-up naar je NAS</span>
           <span class="pil">Spotify &amp; Chromecast</span>
         </div>
         <p class="sub" style="font-size:20px;margin-top:20px">Draait op je eigen Proxmox&#8209;server &middot; mobiel en op de pc</p>

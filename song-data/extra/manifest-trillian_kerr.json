@@ -1,0 +1,34 @@
+{
+  "source": "JC's Online Music Books - James Kerr's 'Merry Melodies' (Volumes 1-4)",
+  "source_url": "https://trillian.mit.edu/~jc/music/book/Kerr/",
+  "license": "Public domain (per site owner John Chambers)",
+  "license_url": "https://trillian.mit.edu/~jc/music/book/JohnWalsh/HEADER",
+  "license_text": "People are free to copy the files here and put them on your own web sites. The music is all public domain, and good ABC transcriptions shouldn't add anything (other than clarifying some things by using modern notation), so it's not obvious that ABC like you'll find here is even subject to copyright. It's merely a transcription to a different medium, and the real \"value added\" is availability.",
+  "license_statement_location": "Stated by John Chambers (transcriber/site owner) on his online music books pages, e.g. https://trillian.mit.edu/~jc/music/book/JohnWalsh/HEADER : \"People are free to copy the files here and put them on your own web sites. The music is all public domain...\"",
+  "license_scope_note": "This is the site owner's explicit public-domain declaration for his ABC transcriptions of the historical tune books on trillian.mit.edu/~jc/music/book/. The Kerr transcriptions are by John Chambers (Z: 2017 John Chambers). The statement as quoted is published on the site's book pages.",
+  "description": "James Kerr 'Merry Melodies' four volumes (Glasgow, 1870s-1880s), transcribed from the printed books by John Chambers. Files mmN_v1.abc are the ABC 1.x transcriptions (one tune set per file).",
+  "tunes": 1773,
+  "file_count": 4,
+  "files": [
+    {
+      "saved": "mm1_v1.abc",
+      "original": "MM1-V1.abc",
+      "tunes": 448
+    },
+    {
+      "saved": "mm2_v1.abc",
+      "original": "MM2-V1.abc",
+      "tunes": 446
+    },
+    {
+      "saved": "mm3_v1.abc",
+      "original": "MM3-V1.abc",
+      "tunes": 434
+    },
+    {
+      "saved": "mm4_v1.abc",
+      "original": "MM4-V1.abc",
+      "tunes": 445
+    }
+  ]
+}

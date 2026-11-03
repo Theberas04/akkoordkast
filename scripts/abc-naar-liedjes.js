@@ -358,6 +358,11 @@ function liedjeVanAbc(tekst, bestandsnaam, opties) {
   })();
   const tellenPerMaat = Math.max(2, Math.round(maatDelen[0] * 4 / maatDelen[1]));
   const toonsoortSleutel = (kop.K && kop.K[0]) || 'C';
+  // Soms staat er geen wijsje in een bundel maar een inhoudsopgave of legenda die
+  // toevallig ook een X:-regel heeft. Die hoort niet in een liedjesboek.
+  if (/^\s*(appendix|index|contents|legend|introduction|preface|foreword|notes?|the end)\b/i.test(titel)) {
+    return { fout: 'geen wijsje maar een inhoudsopgave of legenda' };
+  }
   const stemmen = leesStemmen(muziek);
   if (!stemmen.length) return { fout: 'geen noten gevonden' };
   const melodie = leesNoten(stemmen[0].regels, L, toonsoortSleutel);
@@ -425,7 +430,14 @@ function liedjeVanAbc(tekst, bestandsnaam, opties) {
   const trans = besteTranspositie(akkoordenPerMaat, gewenst);
   const omgezet = trans.omgezet || akkoordenPerMaat;
   const toonsoort = theorie.transponeerToonsoort(gewenst, trans.stappen);
+  // Onmogelijke noten eruit. In de handschriftbundels zitten wijsjes met een noot die
+  // veel langer duurt dan een maat (vergeten maatstreep of een fermate in de bron) of
+  // juist korter dan een duizendste tel (een siernoot die naar nul afrondt). Zulke
+  // noten laten de tijdlijn ontsporen, dus we wijzen het hele liedje af. Let op: dit
+  // keurt de AFGERONDE waarden, want dat zijn de waarden die de app te zien krijgt.
   const noten = melodie.noten.map(n => ({ start: rond(n.start), duur: rond(n.duur), midi: n.midi - 0 * 12 }));
+  const rareNoot = noten.find(n => !(n.duur > 0) || n.duur > tellenPerMaat * 2);
+  if (rareNoot) return { fout: 'nootduur buiten de maat (' + rareNoot.duur + ')' };
 
   // ChordPro: een akkoordschema van vier maten per regel (geen tekst: instrumentaal)
   const regels = [];
@@ -472,6 +484,7 @@ function main() {
   const bronMap = optie('bron', 'song-data/hymnen/raw');
   const uitPad = optie('uit', 'song-data/kerkwijsjes.json');
   const max = Number(optie('max', '9999'));
+  const meerdere = args.includes('--meerdere');
   const opties = {
     genre: optie('genre', 'Kerkwijsje'),
     bronNaam: optie('bron-naam', 'Open Hymnal Project'),
@@ -485,9 +498,18 @@ function main() {
   const fouten = {};
   const gezien = new Set();
   let zonderDiagram = 0;
+  // Een ABC-bestand kan meerdere wijsjes bevatten (bundels zoals Kerr's Merry
+  // Melodies en Ryan's Mammoth Collection): met --meerdere splitsen we die op
+  // elke X:-regel, anders zou alleen het eerste wijsje van een bundel meetellen.
+  const taken = [];
   for (const bestand of bestanden) {
+    const ruw = fs.readFileSync(path.join(map, bestand), 'utf8');
+    if (!meerdere) { taken.push({ bestand, tekst: ruw }); continue; }
+    const delen = ruw.split(/^(?=X:\s*\d)/m).filter(d => /\S/.test(d));
+    delen.forEach((deel, i) => taken.push({ bestand: bestand + '#' + (i + 1), tekst: deel }));
+  }
+  for (const { bestand, tekst } of taken) {
     if (uit.length >= max) break;
-    const tekst = fs.readFileSync(path.join(map, bestand), 'utf8');
     let resultaat;
     try {
       resultaat = liedjeVanAbc(tekst, bestand, opties);
@@ -526,7 +548,7 @@ function main() {
     noten += l.noten.length;
     for (const a of new Set(l.akkoordenPerMaat)) akkoorden[a] = (akkoorden[a] || 0) + 1;
   }
-  console.log('gelezen bestanden : ' + bestanden.length);
+  console.log('gelezen bestanden : ' + bestanden.length + ' (' + taken.length + ' wijsjes na splitsen)');
   console.log('omgezet           : ' + uit.length + ' -> ' + uitPad);
   console.log('afgewezen         : ' + JSON.stringify(fouten));
   console.log('akkoorden uit     : ' + JSON.stringify(perHerkomst));

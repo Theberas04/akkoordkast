@@ -8,7 +8,7 @@
 ![Node 22](https://img.shields.io/badge/Node.js-22%20(node%3Asqlite)-3c873a)
 ![geen npm-afhankelijkheden](https://img.shields.io/badge/dependencies-geen-34d399)
 ![taal](https://img.shields.io/badge/taal-Nederlands-60a5fa)
-![liedjes](https://img.shields.io/badge/liedjes-1325-f5a524)
+![liedjes](https://img.shields.io/badge/liedjes-8679-f5a524)
 ![bronnen](https://img.shields.io/badge/bronnen-publiek%20domein-34d399)
 
 Je opent AkkoordKast op je telefoon of laptop, zoekt een liedje en ziet meteen:
@@ -94,25 +94,50 @@ in plaats van wav. Geen npm-afhankelijkheden.
 
 ## De liedjes
 
-Meegeleverd: **1.325 liedjes**, allemaal met akkoorden per maat en (waar de bron dat heeft) de melodie,
-verdeeld over drie bestanden met eigen id-bereiken:
+Meegeleverd: **8.679 liedjes**, allemaal met akkoorden per maat en (waar de bron dat heeft) de melodie,
+verdeeld over zes bestanden met eigen id-bereiken. Welke bestanden meegaan staat in
+[`song-data/datasets.json`](song-data/datasets.json); een test controleert dat die lijst, de bestanden
+op schijf en de installatiescripts hetzelfde zeggen.
 
 | Bestand | Aantal | Wat | Id's |
 | --- | --- | --- | --- |
 | [`song-data/liedjes.json`](song-data/liedjes.json) | 26 | met tekst en akkoorden: Nederlandse kinder- en Sinterklaasliedjes, kerstliedjes, het Wilhelmus, Engelstalige en Afrikaanse traditionals, plus instrumentale stukken met tab | 1–26 |
 | [`song-data/volkswijsjes.json`](song-data/volkswijsjes.json) | 971 | melodieën uit de Nottingham-collectie (jigs, reels, waltzes, morris, Playford), instrumentaal, akkoorden uit de bron | 100.000+ |
 | [`song-data/kerkwijsjes.json`](song-data/kerkwijsjes.json) | 328 | kerkwijsjes uit het Open Hymnal Project, instrumentaal, akkoorden uit de vierstemmige zetting | 200.000+ |
+| [`song-data/anthology-liedjes.json`](song-data/anthology-liedjes.json) | 314 | liedjes **met tekst** uit The Public Domain Song Anthology (CC0), Engelstalig, akkoorden uit de harmonisatie, noten uit de zangstem | 500.000+ |
+| [`song-data/oneill-liedjes.json`](song-data/oneill-liedjes.json) | 2.352 | Ierse wijsjes uit O'Neill's *Music of Ireland* en *Dance Music of Ireland* (1903): jigs, reels, hornpipes, airs | 300.000+ |
+| [`song-data/oude-bundels.json`](song-data/oude-bundels.json) | 4.688 | historische dansbundels: Kerr's *Merry Melodies*, Ryan's *Mammoth Collection* / Cole's *1000 Fiddle Tunes*, en achttiende-eeuwse Engelse manuscripten | 400.000+ |
 
 Elk liedje houdt de toonsoort die de bron aangeeft; waar een akkoord geen greep heeft zoekt de
 app de dichtstbijzijnde toonsoort waarin alles speelbaar is, en verder lost het capo-advies het op.
 
-**Over de licenties.** De 26 liedjes met tekst zijn publiek domein. De volkswijsjes komen uit een
-collectie zonder expliciete licentieverklaring op de bronpagina — het zijn negentiende-eeuwse
-traditionals, maar er is geen licentie-grant; daarom staan ze in een **apart bestand** dat je met één
-regel kunt weglaten als je dat niet wilt. De kerkwijsjes komen uit het Open Hymnal Project, dat zijn
-publiek-domeinstatus in elk bestand zelf verklaart. De bronvermelding en de letterlijke
-licentieverklaringen staan in `song-data/abc/manifest-nmd.json` en
-`song-data/hymnen/manifest-hymnen.json`, plus per liedje in de dataset.
+**Over de licenties.** Er komt niets in de app zonder een licentie die publiek domein, CC0, CC-BY of
+MIT is; bronnen met "niet-commercieel", "geen afgeleiden" of share-alike vallen af, en The Session
+(thesession.org, ~10.000 Ierse tunes) valt af omdat de licentie daarvan gebruik met Large Language
+Models verbiedt. Per groep:
+
+- **De 26 liedjes met tekst** zijn publiek domein.
+- **De volkswijsjes** komen uit een collectie zonder expliciete licentieverklaring op de bronpagina —
+  negentiende-eeuwse traditionals, maar zonder licentie-grant; daarom staan ze in een **apart bestand**
+  dat je met één regel kunt weglaten. De kerkwijsjes komen uit het Open Hymnal Project, dat zijn
+  publiek-domeinstatus in elk bestand zelf verklaart.
+- **The Public Domain Song Anthology** (David Berger en Chuck Israels, Aperio Press) is CC0 1.0.
+- **O'Neill (1903)** is publiek domein; de ABC-transcripties eisen **naamsvermelding van de
+  transcribers** (folkies/oneill-project, 1997-2000) — die staat per liedje in de dataset.
+- **De oude bundels**: de achttiende-eeuwse Engelse manuscripten komen van Gubbledenut/ABC TuneBooks
+  (CC0 1.0), de historische collecties van Eric Conrad (MIT), en Kerr's en Ryan's Mammoth Collection
+  zijn getranscribeerd door **John Chambers** (JC's Online Music Books), die ze publiek domein en vrij
+  te kopiëren verklaart.
+
+De bronvermelding en de letterlijke licentieverklaringen staan per bron in de manifesten onder
+`song-data/` (bijvoorbeeld `oneill/manifest-oneill.json` en `anthology/manifest-anthology.json`),
+plus per liedje in de dataset zelf.
+
+**Over dubbelen.** De bundels overlappen elkaar: hetzelfde wijsje staat in O'Neill, in Kerr's én in
+Ryan's. `scripts/ontdubbel.js` haalt die eruit op titel plus het verloop van de melodie (los van de
+toonsoort, zodat ook een getransponeerde transcriptie als dubbel geldt) — 300 dubbelen eruit. De
+eerste drie bestanden blijven daarbij ongemoeid, omdat hun liedjesnummers al in de database van
+bestaande installaties kunnen zitten.
 
 Eerlijk over de grens: een app met de bladmuziek van *alle* nummers die bestaan kan niet legaal
 worden meegeleverd — de meeste muziek van na ~1928 valt onder auteursrecht. Daarom is AkkoordKast

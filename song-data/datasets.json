@@ -1,7 +1,34 @@
 {
   "datasets": [
-    { "bestand": "song-data/liedjes.json", "vanaf": 1, "soort": "liedjes met tekst en akkoorden" },
-    { "bestand": "song-data/volkswijsjes.json", "vanaf": 100000, "soort": "volkswijsjes met melodie" },
-    { "bestand": "song-data/kerkwijsjes.json", "vanaf": 200000, "soort": "kerkwijsjes met melodie" }
+    {
+      "bestand": "song-data/liedjes.json",
+      "vanaf": 1,
+      "soort": "liedjes met tekst en akkoorden"
+    },
+    {
+      "bestand": "song-data/volkswijsjes.json",
+      "vanaf": 100000,
+      "soort": "volkswijsjes met melodie"
+    },
+    {
+      "bestand": "song-data/kerkwijsjes.json",
+      "vanaf": 200000,
+      "soort": "kerkwijsjes met melodie"
+    },
+    {
+      "bestand": "song-data/anthology-liedjes.json",
+      "vanaf": 500000,
+      "soort": "liedjes met tekst uit The Public Domain Song Anthology (CC0)"
+    },
+    {
+      "bestand": "song-data/oneill-liedjes.json",
+      "vanaf": 300000,
+      "soort": "Ierse wijsjes uit O'Neill (1903)"
+    },
+    {
+      "bestand": "song-data/oude-bundels.json",
+      "vanaf": 400000,
+      "soort": "wijsjes uit historische dansbundels"
+    }
   ]
 }

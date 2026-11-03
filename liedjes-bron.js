@@ -68,11 +68,23 @@ function netteMaatakkoorden(lijst, model, maatsoort) {
   return uit.map(a => a || eerste).filter(Boolean);
 }
 
+// Het liedje zoals de app het gebruikt. Het zware werk — de ChordPro ontleden, de
+// capo-adviesberekening en het netmaken van de maatakkoorden — gebeurt pas als er
+// echt om gevraagd wordt. Met ruim achtduizend liedjes scheelt dat bij het starten
+// seconden en honderden megabytes: de server leest alleen de titels en de teksten in.
 function maakLiedje(lied, id) {
-  const model = chordpro.parse(lied.chordpro || '');
-  const toonsoort = lied.toonsoort || model.meta.toonsoort || (model.akkoorden[0] || 'C');
-  const advies = capo.advies(model.akkoorden, toonsoort);
-  return {
+  let model = null;
+  let advies = null;
+  let maatakkoorden = null;
+  const hetModel = () => {
+    if (!model) model = chordpro.parse(lied.chordpro || '');
+    return model;
+  };
+  const toonsoort = lied.toonsoort || (() => {
+    const m = hetModel();
+    return m.meta.toonsoort || (m.akkoorden[0] || 'C');
+  })();
+  const liedje = {
     id,
     titel: lied.titel || model.meta.titel || `Liedje ${id}`,
     artiest: lied.artiest || '',
@@ -89,11 +101,29 @@ function maakLiedje(lied, id) {
     // Melodie: noten in tellen vanaf het begin van het liedje, met midi-nummers.
     // Alleen liedjes met noten kunnen meespelen met de notenbalk en de tabulatuur.
     noten: Array.isArray(lied.noten) ? lied.noten : [],
-    maatsoort: Math.max(2, Math.min(12, parseInt(lied.maatsoort, 10) || 4)),
-    akkoordenPerMaat: netteMaatakkoorden(lied.akkoordenPerMaat, model, lied.maatsoort),
-    model,
-    advies
+    // Een liedje met noten heeft per maat een akkoord nodig; de controle daarop zit
+    // in de tests. We vullen pas aan als iemand de maatakkoorden echt opvraagt.
+    maatsoort: Math.max(2, Math.min(12, parseInt(lied.maatsoort, 10) || 4))
   };
+  Object.defineProperty(liedje, 'model', {
+    enumerable: true,
+    get: hetModel
+  });
+  Object.defineProperty(liedje, 'advies', {
+    enumerable: true,
+    get: () => {
+      if (!advies) advies = capo.advies(hetModel().akkoorden, toonsoort);
+      return advies;
+    }
+  });
+  Object.defineProperty(liedje, 'akkoordenPerMaat', {
+    enumerable: true,
+    get: () => {
+      if (!maatakkoorden) maatakkoorden = netteMaatakkoorden(lied.akkoordenPerMaat, hetModel(), lied.maatsoort);
+      return maatakkoorden;
+    }
+  });
+  return liedje;
 }
 
 const LIEDJES = [];

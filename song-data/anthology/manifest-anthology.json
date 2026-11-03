@@ -1,0 +1,3193 @@
+{
+  "collection": "The Public Domain Song Anthology with Modern and Traditional Harmonization",
+  "authors": [
+    "David Berger",
+    "Chuck Israels"
+  ],
+  "publisher": "Aperio Press, University of Virginia",
+  "publication_year": 2020,
+  "book_doi": "10.32881/book2",
+  "book_isbn": "978-1-7333543-0-1",
+  "dataset_doi": "10.18130/V3/C4RD06",
+  "dataset_url": "https://dataverse.lib.virginia.edu/dataset.xhtml?persistentId=doi:10.18130/V3/C4RD06",
+  "retrieved_at": "2026-11-03",
+  "license": {
+    "name": "CC0 1.0 Universal",
+    "spdx": "CC0-1.0",
+    "uri": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "legalcode_url": "https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt",
+    "literal_statement": "To the extent possible under law, David Berger and Chuck Israels has waived all copyright and related or neighboring rights to The Public Domain Song Anthology. This work is published from: United States.",
+    "literal_statement_source": "https://aperio.press/site/books/series/oer (and Dataverse dataset metadata license field: name=\"CC0 1.0\", uri=\"http://creativecommons.org/publicdomain/zero/1.0\", rightsIdentifier=\"CC0-1.0\")",
+    "rights_note": "CC0 = public domain dedication, no NC/ND restrictions. Free to copy, adapt, remix, share, including commercially."
+  },
+  "machine_readable_formats_found": {
+    "MusicXML": {
+      "available": 348,
+      "filetype": "text/xml, MusicXML 3.0 partwise (DTD -//Recordare//DTD MusicXML 3.0 Partwise//EN)",
+      "source_directory_label": "PDSA XML Files",
+      "has_lyrics_element": "all 348 files contain <lyric> elements",
+      "has_harmony_element": "all 348 files contain <harmony> (chord) elements"
+    },
+    "Sibelius": {
+      "available": 348,
+      "note": "proprietary .sib, not machine-readable open format; NOT included"
+    },
+    "PDF": {
+      "available": 349,
+      "note": "page images/notation PDFs; NOT machine-readable; NOT included"
+    },
+    "RTF": {
+      "available": 3,
+      "note": "introduction text; NOT included"
+    },
+    "ABC": {
+      "available": 0
+    },
+    "MIDI": {
+      "available": 0
+    },
+    "LilyPond": {
+      "available": 0
+    }
+  },
+  "songs_available_with_machine_readable_source": 348,
+  "songs_included": 348,
+  "included_format": "MusicXML (.xml), UTF-8, no BOM",
+  "bundle_split_needed": false,
+  "bundle_split_note": "Source already provides one MusicXML file per song; no bundling to split.",
+  "naming_convention": "lowercase [a-z0-9_-] derived from source filename; guaranteed unique",
+  "files": [
+    {
+      "file": "song-data/anthology/raw/abide_with_me.xml",
+      "source_filename": "ABIDE WITH ME.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3913",
+      "format": "MusicXML",
+      "md5_local": "eba1c3de916ef0a9e03569e6a69c2a59",
+      "md5_source": "eba1c3de916ef0a9e03569e6a69c2a59",
+      "bytes": 50623
+    },
+    {
+      "file": "song-data/anthology/raw/adeste_fideles.xml",
+      "source_filename": "ADESTE FIDELES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4018",
+      "format": "MusicXML",
+      "md5_local": "f45300b3cc203a57c15a5836fe378527",
+      "md5_source": "f45300b3cc203a57c15a5836fe378527",
+      "bytes": 55473
+    },
+    {
+      "file": "song-data/anthology/raw/after_the_ball.xml",
+      "source_filename": "AFTER THE BALL.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4209",
+      "format": "MusicXML",
+      "md5_local": "59551c03f464efb64f4a996871eae3c9",
+      "md5_source": "59551c03f464efb64f4a996871eae3c9",
+      "bytes": 46829
+    },
+    {
+      "file": "song-data/anthology/raw/after_you_ve_gone.xml",
+      "source_filename": "AFTER YOU_VE GONE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3822",
+      "format": "MusicXML",
+      "md5_local": "3708aaa6da3d787f684c032a01f49653",
+      "md5_source": "3708aaa6da3d787f684c032a01f49653",
+      "bytes": 57726
+    },
+    {
+      "file": "song-data/anthology/raw/aggravatin_papa_don_t_you_try_to_two_time_me.xml",
+      "source_filename": "AGGRAVATIN_ PAPA (DON_T YOU TRY TO TWO-TIME ME).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3970",
+      "format": "MusicXML",
+      "md5_local": "4752ff5d27258ac19f0e5797e438c0db",
+      "md5_source": "4752ff5d27258ac19f0e5797e438c0db",
+      "bytes": 102715
+    },
+    {
+      "file": "song-data/anthology/raw/ah_sweet_mystery_of_life.xml",
+      "source_filename": "AH! SWEET MYSTERY OF LIFE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3768",
+      "format": "MusicXML",
+      "md5_local": "5ec28c74af79485e10b00e93e5b3b7bc",
+      "md5_source": "5ec28c74af79485e10b00e93e5b3b7bc",
+      "bytes": 76112
+    },
+    {
+      "file": "song-data/anthology/raw/ain_t_we_got_fun.xml",
+      "source_filename": "AIN_T WE GOT FUN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3705",
+      "format": "MusicXML",
+      "md5_local": "174c34ff76847d385ec16aa3c4967ffd",
+      "md5_source": "174c34ff76847d385ec16aa3c4967ffd",
+      "bytes": 77800
+    },
+    {
+      "file": "song-data/anthology/raw/alexander_s_ragtime_band.xml",
+      "source_filename": "ALEXANDER_S RAGTIME BAND.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4276",
+      "format": "MusicXML",
+      "md5_local": "c1b0cfcc5fa9f5eace39d64dedc3c261",
+      "md5_source": "c1b0cfcc5fa9f5eace39d64dedc3c261",
+      "bytes": 83022
+    },
+    {
+      "file": "song-data/anthology/raw/alice_blue_gown.xml",
+      "source_filename": "ALICE BLUE GOWN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4348",
+      "format": "MusicXML",
+      "md5_local": "edbe543ebb7a4fd35b9a05d025283d55",
+      "md5_source": "edbe543ebb7a4fd35b9a05d025283d55",
+      "bytes": 61282
+    },
+    {
+      "file": "song-data/anthology/raw/all_by_myself.xml",
+      "source_filename": "ALL BY MYSELF.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4088",
+      "format": "MusicXML",
+      "md5_local": "0732bb002c778f448906b3d337e43596",
+      "md5_source": "0732bb002c778f448906b3d337e43596",
+      "bytes": 72670
+    },
+    {
+      "file": "song-data/anthology/raw/all_the_pretty_little_horses.xml",
+      "source_filename": "ALL THE PRETTY LITTLE HORSES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3991",
+      "format": "MusicXML",
+      "md5_local": "beff3c585eb2debff443b8cb684f7690",
+      "md5_source": "beff3c585eb2debff443b8cb684f7690",
+      "bytes": 50415
+    },
+    {
+      "file": "song-data/anthology/raw/alma_mater.xml",
+      "source_filename": "ALMA MATER.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4132",
+      "format": "MusicXML",
+      "md5_local": "6f3272729bccf2ce0847a227f65965cb",
+      "md5_source": "6f3272729bccf2ce0847a227f65965cb",
+      "bytes": 47986
+    },
+    {
+      "file": "song-data/anthology/raw/aloha_oe.xml",
+      "source_filename": "ALOHA OE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4167",
+      "format": "MusicXML",
+      "md5_local": "6e07998ef170da7a89b555603eaa4809",
+      "md5_source": "6e07998ef170da7a89b555603eaa4809",
+      "bytes": 27700
+    },
+    {
+      "file": "song-data/anthology/raw/alouette.xml",
+      "source_filename": "ALOUETTE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4067",
+      "format": "MusicXML",
+      "md5_local": "63dd766328c470ff20171fe00091ce17",
+      "md5_source": "63dd766328c470ff20171fe00091ce17",
+      "bytes": 46940
+    },
+    {
+      "file": "song-data/anthology/raw/amazing_grace.xml",
+      "source_filename": "AMAZING GRACE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4270",
+      "format": "MusicXML",
+      "md5_local": "30e3440071a487dfc2de3cb8da1418a3",
+      "md5_source": "30e3440071a487dfc2de3cb8da1418a3",
+      "bytes": 29504
+    },
+    {
+      "file": "song-data/anthology/raw/america_my_country_tis_of_thee.xml",
+      "source_filename": "AMERICA (MY COUNTRY, _TIS OF THEE).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4086",
+      "format": "MusicXML",
+      "md5_local": "dc9990c399d3a17d55bce94b1521f0ed",
+      "md5_source": "dc9990c399d3a17d55bce94b1521f0ed",
+      "bytes": 36775
+    },
+    {
+      "file": "song-data/anthology/raw/america_the_beautiful.xml",
+      "source_filename": "AMERICA THE BEAUTIFUL.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4114",
+      "format": "MusicXML",
+      "md5_local": "77846f875c67181f3c94e13c8b172d76",
+      "md5_source": "77846f875c67181f3c94e13c8b172d76",
+      "bytes": 50981
+    },
+    {
+      "file": "song-data/anthology/raw/anchors_aweigh.xml",
+      "source_filename": "ANCHORS AWEIGH.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3934",
+      "format": "MusicXML",
+      "md5_local": "47f4e8cb5ec83f949f52ec701e93a066",
+      "md5_source": "47f4e8cb5ec83f949f52ec701e93a066",
+      "bytes": 33929
+    },
+    {
+      "file": "song-data/anthology/raw/angels_we_have_heard_on_high.xml",
+      "source_filename": "ANGELS WE HAVE HEARD ON HIGH.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4125",
+      "format": "MusicXML",
+      "md5_local": "7f4fa03aca9c6cb193c2c9851de9e7ee",
+      "md5_source": "7f4fa03aca9c6cb193c2c9851de9e7ee",
+      "bytes": 66412
+    },
+    {
+      "file": "song-data/anthology/raw/annie_laurie.xml",
+      "source_filename": "ANNIE LAURIE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3778",
+      "format": "MusicXML",
+      "md5_local": "b88f050a92472e26944736e15fde3c40",
+      "md5_source": "b88f050a92472e26944736e15fde3c40",
+      "bytes": 46652
+    },
+    {
+      "file": "song-data/anthology/raw/apple_blossom_time.xml",
+      "source_filename": "APPLE BLOSSOM TIME.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3750",
+      "format": "MusicXML",
+      "md5_local": "46713ae50d9ac7b2d2ffe1f1d9e99de3",
+      "md5_source": "46713ae50d9ac7b2d2ffe1f1d9e99de3",
+      "bytes": 56398
+    },
+    {
+      "file": "song-data/anthology/raw/april_showers.xml",
+      "source_filename": "APRIL SHOWERS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3910",
+      "format": "MusicXML",
+      "md5_local": "fa94dae62538a363f9f753249730281b",
+      "md5_source": "fa94dae62538a363f9f753249730281b",
+      "bytes": 74631
+    },
+    {
+      "file": "song-data/anthology/raw/arkansas_traveler.xml",
+      "source_filename": "ARKANSAS TRAVELER.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3782",
+      "format": "MusicXML",
+      "md5_local": "416118fefd624a171ca70bc8f2481b2c",
+      "md5_source": "416118fefd624a171ca70bc8f2481b2c",
+      "bytes": 70270
+    },
+    {
+      "file": "song-data/anthology/raw/asleep_in_the_deep.xml",
+      "source_filename": "ASLEEP IN THE DEEP.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3947",
+      "format": "MusicXML",
+      "md5_local": "afc00730f46ff425a97e4a9fb28bcd78",
+      "md5_source": "afc00730f46ff425a97e4a9fb28bcd78",
+      "bytes": 115742
+    },
+    {
+      "file": "song-data/anthology/raw/at_the_jazz_band_ball.xml",
+      "source_filename": "AT THE JAZZ BAND BALL.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4352",
+      "format": "MusicXML",
+      "md5_local": "ba3d176e7d1f1f785aa8d5e353f045e0",
+      "md5_source": "ba3d176e7d1f1f785aa8d5e353f045e0",
+      "bytes": 77750
+    },
+    {
+      "file": "song-data/anthology/raw/auld_lang_syne.xml",
+      "source_filename": "AULD LANG SYNE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3972",
+      "format": "MusicXML",
+      "md5_local": "af63938387f34084131a72aaef261fcc",
+      "md5_source": "af63938387f34084131a72aaef261fcc",
+      "bytes": 59430
+    },
+    {
+      "file": "song-data/anthology/raw/aunt_hagar_s_blues.xml",
+      "source_filename": "AUNT HAGAR_S BLUES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4356",
+      "format": "MusicXML",
+      "md5_local": "68bb43feb8b31b88399edb041845af83",
+      "md5_source": "68bb43feb8b31b88399edb041845af83",
+      "bytes": 115179
+    },
+    {
+      "file": "song-data/anthology/raw/aura_lee.xml",
+      "source_filename": "AURA LEE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4332",
+      "format": "MusicXML",
+      "md5_local": "d047b8cbd39a7215da9994eef5df6efb",
+      "md5_source": "d047b8cbd39a7215da9994eef5df6efb",
+      "bytes": 40328
+    },
+    {
+      "file": "song-data/anthology/raw/avalon.xml",
+      "source_filename": "AVALON.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4036",
+      "format": "MusicXML",
+      "md5_local": "b9ae5ed5484b3cd1db0e09eea4c31d06",
+      "md5_source": "b9ae5ed5484b3cd1db0e09eea4c31d06",
+      "bytes": 46319
+    },
+    {
+      "file": "song-data/anthology/raw/ave_maria.xml",
+      "source_filename": "AVE MARIA.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3922",
+      "format": "MusicXML",
+      "md5_local": "dbfcc4fac338c4b2411eb2eea50f0cd0",
+      "md5_source": "dbfcc4fac338c4b2411eb2eea50f0cd0",
+      "bytes": 80585
+    },
+    {
+      "file": "song-data/anthology/raw/away_in_a_manger.xml",
+      "source_filename": "AWAY IN A MANGER.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4005",
+      "format": "MusicXML",
+      "md5_local": "33ae44de391740d9e8641c92d4b1edde",
+      "md5_source": "33ae44de391740d9e8641c92d4b1edde",
+      "bytes": 36827
+    },
+    {
+      "file": "song-data/anthology/raw/baby_won_t_you_please_come_home.xml",
+      "source_filename": "BABY, WON_T YOU PLEASE COME HOME.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4053",
+      "format": "MusicXML",
+      "md5_local": "83ed00ead6725dabc473e0e07c640b35",
+      "md5_source": "83ed00ead6725dabc473e0e07c640b35",
+      "bytes": 53687
+    },
+    {
+      "file": "song-data/anthology/raw/ballin_the_jack.xml",
+      "source_filename": "BALLIN' THE JACK.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3777",
+      "format": "MusicXML",
+      "md5_local": "e3a476b53dbe501b960d40ca339df9c1",
+      "md5_source": "e3a476b53dbe501b960d40ca339df9c1",
+      "bytes": 55921
+    },
+    {
+      "file": "song-data/anthology/raw/balm_in_gilead.xml",
+      "source_filename": "BALM IN GILEAD.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4328",
+      "format": "MusicXML",
+      "md5_local": "4fd911033a0195114bf1d22a76d73a79",
+      "md5_source": "4fd911033a0195114bf1d22a76d73a79",
+      "bytes": 79607
+    },
+    {
+      "file": "song-data/anthology/raw/band_played_on.xml",
+      "source_filename": "BAND PLAYED ON.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4077",
+      "format": "MusicXML",
+      "md5_local": "73a73b62a004d0a14ce74f9fe4e0f952",
+      "md5_source": "73a73b62a004d0a14ce74f9fe4e0f952",
+      "bytes": 53734
+    },
+    {
+      "file": "song-data/anthology/raw/battle_hymn_of_the_republic.xml",
+      "source_filename": "BATTLE HYMN OF THE REPUBLIC.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4163",
+      "format": "MusicXML",
+      "md5_local": "ba36e5ca546db43743f3312ca0366652",
+      "md5_source": "ba36e5ca546db43743f3312ca0366652",
+      "bytes": 55026
+    },
+    {
+      "file": "song-data/anthology/raw/beale_street_blues.xml",
+      "source_filename": "BEALE STREET BLUES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3775",
+      "format": "MusicXML",
+      "md5_local": "fc6b340f625a3add88307044b7d1714f",
+      "md5_source": "fc6b340f625a3add88307044b7d1714f",
+      "bytes": 123678
+    },
+    {
+      "file": "song-data/anthology/raw/beautiful_dreamer.xml",
+      "source_filename": "BEAUTIFUL DREAMER.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3853",
+      "format": "MusicXML",
+      "md5_local": "5888e0a25811221d9a4778b3e6f11f5d",
+      "md5_source": "5888e0a25811221d9a4778b3e6f11f5d",
+      "bytes": 69361
+    },
+    {
+      "file": "song-data/anthology/raw/beautiful_ohio.xml",
+      "source_filename": "BEAUTIFUL OHIO.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4360",
+      "format": "MusicXML",
+      "md5_local": "643207b8c17457904dbb28a2bc8b23ec",
+      "md5_source": "643207b8c17457904dbb28a2bc8b23ec",
+      "bytes": 84035
+    },
+    {
+      "file": "song-data/anthology/raw/bill_bailey_won_t_you_please_come_home.xml",
+      "source_filename": "BILL BAILEY, WON_T YOU PLEASE COME HOME.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3781",
+      "format": "MusicXML",
+      "md5_local": "f37da3803be5585fed2c0d6e0b98782e",
+      "md5_source": "f37da3803be5585fed2c0d6e0b98782e",
+      "bytes": 49981
+    },
+    {
+      "file": "song-data/anthology/raw/billy_boy.xml",
+      "source_filename": "BILLY BOY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4191",
+      "format": "MusicXML",
+      "md5_local": "04a00333837cc940e1c54c5c52d0aab9",
+      "md5_source": "04a00333837cc940e1c54c5c52d0aab9",
+      "bytes": 36181
+    },
+    {
+      "file": "song-data/anthology/raw/blow_the_man_down.xml",
+      "source_filename": "BLOW THE MAN DOWN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3767",
+      "format": "MusicXML",
+      "md5_local": "4e5acd715d4e0574873dc06c6a654acf",
+      "md5_source": "4e5acd715d4e0574873dc06c6a654acf",
+      "bytes": 30191
+    },
+    {
+      "file": "song-data/anthology/raw/bowery.xml",
+      "source_filename": "BOWERY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3946",
+      "format": "MusicXML",
+      "md5_local": "5f4ce0b24d81d18bc1c50c2720be9da1",
+      "md5_source": "5f4ce0b24d81d18bc1c50c2720be9da1",
+      "bytes": 27726
+    },
+    {
+      "file": "song-data/anthology/raw/buddy_bolden_s_blues.xml",
+      "source_filename": "BUDDY BOLDEN_S BLUES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4211",
+      "format": "MusicXML",
+      "md5_local": "84eabb80a92d99bac23d46c99e53cb4a",
+      "md5_source": "84eabb80a92d99bac23d46c99e53cb4a",
+      "bytes": 60213
+    },
+    {
+      "file": "song-data/anthology/raw/buffalo_gals.xml",
+      "source_filename": "BUFFALO GALS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4073",
+      "format": "MusicXML",
+      "md5_local": "4ff34b619f1f7ef95fc24663c0ddb697",
+      "md5_source": "4ff34b619f1f7ef95fc24663c0ddb697",
+      "bytes": 51613
+    },
+    {
+      "file": "song-data/anthology/raw/bugle_call_rag.xml",
+      "source_filename": "BUGLE CALL RAG.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3971",
+      "format": "MusicXML",
+      "md5_local": "53f389ee8bda4fd486256531634a4e8d",
+      "md5_source": "53f389ee8bda4fd486256531634a4e8d",
+      "bytes": 43298
+    },
+    {
+      "file": "song-data/anthology/raw/by_the_beautiful_sea.xml",
+      "source_filename": "BY THE BEAUTIFUL SEA.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3976",
+      "format": "MusicXML",
+      "md5_local": "cdc2da3f96ade3d0f68ca7de26b87b5d",
+      "md5_source": "cdc2da3f96ade3d0f68ca7de26b87b5d",
+      "bytes": 69796
+    },
+    {
+      "file": "song-data/anthology/raw/by_the_light_of_the_silvery_moon.xml",
+      "source_filename": "BY THE LIGHT OF THE SILVERY MOON.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3734",
+      "format": "MusicXML",
+      "md5_local": "a4bc15911ab6931d335042edd94f50da",
+      "md5_source": "a4bc15911ab6931d335042edd94f50da",
+      "bytes": 38860
+    },
+    {
+      "file": "song-data/anthology/raw/caissons_go_rolling_along.xml",
+      "source_filename": "CAISSONS GO ROLLING ALONG.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4145",
+      "format": "MusicXML",
+      "md5_local": "aa529a4569319278423de021cdaf2fd3",
+      "md5_source": "aa529a4569319278423de021cdaf2fd3",
+      "bytes": 53549
+    },
+    {
+      "file": "song-data/anthology/raw/camptown_races.xml",
+      "source_filename": "CAMPTOWN RACES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3679",
+      "format": "MusicXML",
+      "md5_local": "d3db0bf6bd6f2f17b0aa18fc0b2b8c31",
+      "md5_source": "d3db0bf6bd6f2f17b0aa18fc0b2b8c31",
+      "bytes": 42844
+    },
+    {
+      "file": "song-data/anthology/raw/careless_love.xml",
+      "source_filename": "CARELESS LOVE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3691",
+      "format": "MusicXML",
+      "md5_local": "86d55dba149b3996a60a76203758f9ae",
+      "md5_source": "86d55dba149b3996a60a76203758f9ae",
+      "bytes": 31957
+    },
+    {
+      "file": "song-data/anthology/raw/carol_of_the_bells.xml",
+      "source_filename": "CAROL OF THE BELLS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4029",
+      "format": "MusicXML",
+      "md5_local": "6941c65563ce88d8283af1044ae724a5",
+      "md5_source": "6941c65563ce88d8283af1044ae724a5",
+      "bytes": 68077
+    },
+    {
+      "file": "song-data/anthology/raw/carolina_in_the_morning.xml",
+      "source_filename": "CAROLINA IN THE MORNING.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3756",
+      "format": "MusicXML",
+      "md5_local": "99f9d8102ed5fa8d775769f3721a823e",
+      "md5_source": "99f9d8102ed5fa8d775769f3721a823e",
+      "bytes": 101548
+    },
+    {
+      "file": "song-data/anthology/raw/carry_me_back_to_old_virginia.xml",
+      "source_filename": "CARRY ME BACK TO OLD VIRGINIA.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4314",
+      "format": "MusicXML",
+      "md5_local": "65223a46147bb38d6b9a284ec6ead5fc",
+      "md5_source": "65223a46147bb38d6b9a284ec6ead5fc",
+      "bytes": 67885
+    },
+    {
+      "file": "song-data/anthology/raw/casey_jones.xml",
+      "source_filename": "CASEY JONES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4327",
+      "format": "MusicXML",
+      "md5_local": "ae75ee422bc3027beff5dab25d055847",
+      "md5_source": "ae75ee422bc3027beff5dab25d055847",
+      "bytes": 89526
+    },
+    {
+      "file": "song-data/anthology/raw/charleston.xml",
+      "source_filename": "CHARLESTON.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4171",
+      "format": "MusicXML",
+      "md5_local": "f20e871c2375493cd580cc264374f4fb",
+      "md5_source": "f20e871c2375493cd580cc264374f4fb",
+      "bytes": 85141
+    },
+    {
+      "file": "song-data/anthology/raw/chicago.xml",
+      "source_filename": "CHICAGO.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3877",
+      "format": "MusicXML",
+      "md5_local": "e8ba485cbc3c08fbe0cbfb8cf5f41366",
+      "md5_source": "e8ba485cbc3c08fbe0cbfb8cf5f41366",
+      "bytes": 86893
+    },
+    {
+      "file": "song-data/anthology/raw/ciribiribin.xml",
+      "source_filename": "CIRIBIRIBIN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4250",
+      "format": "MusicXML",
+      "md5_local": "a983e07d131c333b995ee1b609e52424",
+      "md5_source": "a983e07d131c333b995ee1b609e52424",
+      "bytes": 41829
+    },
+    {
+      "file": "song-data/anthology/raw/columbia_the_gem_of_the_ocean.xml",
+      "source_filename": "COLUMBIA, THE GEM OF THE OCEAN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4066",
+      "format": "MusicXML",
+      "md5_local": "5006a6a97eac2908ce40ab587ef6435a",
+      "md5_source": "5006a6a97eac2908ce40ab587ef6435a",
+      "bytes": 77457
+    },
+    {
+      "file": "song-data/anthology/raw/come_back_to_sorrento_torna_a_surriento.xml",
+      "source_filename": "COME BACK TO SORRENTO (TORNA A SURRIENTO).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3786",
+      "format": "MusicXML",
+      "md5_local": "a26dcda7142ef627fa88c55cf20c421b",
+      "md5_source": "a26dcda7142ef627fa88c55cf20c421b",
+      "bytes": 78597
+    },
+    {
+      "file": "song-data/anthology/raw/comin_thro_the_rye.xml",
+      "source_filename": "COMIN_ THRO_ THE RYE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3815",
+      "format": "MusicXML",
+      "md5_local": "3799302e1fe18966c5e5e1afa1dc6141",
+      "md5_source": "3799302e1fe18966c5e5e1afa1dc6141",
+      "bytes": 45855
+    },
+    {
+      "file": "song-data/anthology/raw/country_gardens.xml",
+      "source_filename": "COUNTRY GARDENS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3668",
+      "format": "MusicXML",
+      "md5_local": "77c42608e7d6e29c26ede456e5e11575",
+      "md5_source": "77c42608e7d6e29c26ede456e5e11575",
+      "bytes": 50111
+    },
+    {
+      "file": "song-data/anthology/raw/cradle_song_wiegenlied.xml",
+      "source_filename": "CRADLE SONG (WIEGENLIED).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4123",
+      "format": "MusicXML",
+      "md5_local": "701d86db408aba4cc7c76f753fe350f5",
+      "md5_source": "701d86db408aba4cc7c76f753fe350f5",
+      "bytes": 32506
+    },
+    {
+      "file": "song-data/anthology/raw/daisy_bell.xml",
+      "source_filename": "DAISY BELL.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4069",
+      "format": "MusicXML",
+      "md5_local": "b2d4edef199d24745dc91d3d137a5d38",
+      "md5_source": "b2d4edef199d24745dc91d3d137a5d38",
+      "bytes": 45888
+    },
+    {
+      "file": "song-data/anthology/raw/dallas_blues.xml",
+      "source_filename": "DALLAS BLUES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3995",
+      "format": "MusicXML",
+      "md5_local": "bd258755362592cec097cf0359407cd3",
+      "md5_source": "bd258755362592cec097cf0359407cd3",
+      "bytes": 54513
+    },
+    {
+      "file": "song-data/anthology/raw/dardanella.xml",
+      "source_filename": "DARDANELLA.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4302",
+      "format": "MusicXML",
+      "md5_local": "a019dd1d00f666278d11131db824a401",
+      "md5_source": "a019dd1d00f666278d11131db824a401",
+      "bytes": 63806
+    },
+    {
+      "file": "song-data/anthology/raw/dark_eyes.xml",
+      "source_filename": "DARK EYES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3686",
+      "format": "MusicXML",
+      "md5_local": "d1a0e0d1f31fd51c3bbf147c740f6870",
+      "md5_source": "d1a0e0d1f31fd51c3bbf147c740f6870",
+      "bytes": 31904
+    },
+    {
+      "file": "song-data/anthology/raw/dear_old_southland.xml",
+      "source_filename": "DEAR OLD SOUTHLAND.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3790",
+      "format": "MusicXML",
+      "md5_local": "e3a907e3551fa5f4baa7e926a9de8bc7",
+      "md5_source": "e3a907e3551fa5f4baa7e926a9de8bc7",
+      "bytes": 70033
+    },
+    {
+      "file": "song-data/anthology/raw/dear_old_stockholm.xml",
+      "source_filename": "DEAR OLD STOCKHOLM.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3918",
+      "format": "MusicXML",
+      "md5_local": "d2cf5c04dcd7b2892ba30f0c353c5002",
+      "md5_source": "d2cf5c04dcd7b2892ba30f0c353c5002",
+      "bytes": 64098
+    },
+    {
+      "file": "song-data/anthology/raw/deck_the_halls.xml",
+      "source_filename": "DECK THE HALLS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4188",
+      "format": "MusicXML",
+      "md5_local": "cf9013d65ec4336cc04cf436f7174216",
+      "md5_source": "cf9013d65ec4336cc04cf436f7174216",
+      "bytes": 43983
+    },
+    {
+      "file": "song-data/anthology/raw/deep_river.xml",
+      "source_filename": "DEEP RIVER.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3711",
+      "format": "MusicXML",
+      "md5_local": "3ef1da8a78f356b1d008ac3455f28952",
+      "md5_source": "3ef1da8a78f356b1d008ac3455f28952",
+      "bytes": 86835
+    },
+    {
+      "file": "song-data/anthology/raw/do_it_again.xml",
+      "source_filename": "DO IT AGAIN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3859",
+      "format": "MusicXML",
+      "md5_local": "2b2e0c0e1edcc7eec63cceace37fdaa7",
+      "md5_source": "2b2e0c0e1edcc7eec63cceace37fdaa7",
+      "bytes": 75298
+    },
+    {
+      "file": "song-data/anthology/raw/down_among_the_sheltering_palms.xml",
+      "source_filename": "DOWN AMONG THE SHELTERING PALMS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4280",
+      "format": "MusicXML",
+      "md5_local": "703838e6b268707bd7d9762b434e589c",
+      "md5_source": "703838e6b268707bd7d9762b434e589c",
+      "bytes": 57442
+    },
+    {
+      "file": "song-data/anthology/raw/down_by_the_old_mill_stream.xml",
+      "source_filename": "DOWN BY THE OLD MILL STREAM.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3819",
+      "format": "MusicXML",
+      "md5_local": "045ff7ff2ed03c394a6e546729d63dac",
+      "md5_source": "045ff7ff2ed03c394a6e546729d63dac",
+      "bytes": 46497
+    },
+    {
+      "file": "song-data/anthology/raw/down_by_the_riverside.xml",
+      "source_filename": "DOWN BY THE RIVERSIDE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4283",
+      "format": "MusicXML",
+      "md5_local": "b7c2eb858829a0debc2b5fb28bf5b4e0",
+      "md5_source": "b7c2eb858829a0debc2b5fb28bf5b4e0",
+      "bytes": 77317
+    },
+    {
+      "file": "song-data/anthology/raw/down_home_rag.xml",
+      "source_filename": "DOWN HOME RAG.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3907",
+      "format": "MusicXML",
+      "md5_local": "182b9dcb34f8ac7479e2eab8957318ef",
+      "md5_source": "182b9dcb34f8ac7479e2eab8957318ef",
+      "bytes": 58660
+    },
+    {
+      "file": "song-data/anthology/raw/down_in_the_valley.xml",
+      "source_filename": "DOWN IN THE VALLEY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3898",
+      "format": "MusicXML",
+      "md5_local": "3575b2c78e0b695e55c5ae0356cae8a5",
+      "md5_source": "3575b2c78e0b695e55c5ae0356cae8a5",
+      "bytes": 32868
+    },
+    {
+      "file": "song-data/anthology/raw/estrellita.xml",
+      "source_filename": "ESTRELLITA.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3936",
+      "format": "MusicXML",
+      "md5_local": "607f9b10dee693cd70ee4bb6b920ca9d",
+      "md5_source": "607f9b10dee693cd70ee4bb6b920ca9d",
+      "bytes": 75833
+    },
+    {
+      "file": "song-data/anthology/raw/farewell_blues.xml",
+      "source_filename": "FAREWELL BLUES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3809",
+      "format": "MusicXML",
+      "md5_local": "d3b85258a89297f78a0bb83f06747d60",
+      "md5_source": "d3b85258a89297f78a0bb83f06747d60",
+      "bytes": 40968
+    },
+    {
+      "file": "song-data/anthology/raw/fascination.xml",
+      "source_filename": "FASCINATION.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4175",
+      "format": "MusicXML",
+      "md5_local": "1f980d67c1962c6d35f97e2796a77b07",
+      "md5_source": "1f980d67c1962c6d35f97e2796a77b07",
+      "bytes": 44327
+    },
+    {
+      "file": "song-data/anthology/raw/first_noel_the.xml",
+      "source_filename": "FIRST NOEL, The.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4203",
+      "format": "MusicXML",
+      "md5_local": "6189b20d19a4c4140f9c6ab25941bd92",
+      "md5_source": "6189b20d19a4c4140f9c6ab25941bd92",
+      "bytes": 51961
+    },
+    {
+      "file": "song-data/anthology/raw/flee_as_a_bird.xml",
+      "source_filename": "FLEE AS A BIRD.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3854",
+      "format": "MusicXML",
+      "md5_local": "b71b907ac21a1b8b3959535ef8370990",
+      "md5_source": "b71b907ac21a1b8b3959535ef8370990",
+      "bytes": 70617
+    },
+    {
+      "file": "song-data/anthology/raw/flow_gently_sweet_afton.xml",
+      "source_filename": "FLOW GENTLY, SWEET AFTON.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4230",
+      "format": "MusicXML",
+      "md5_local": "a0340b9a69bd8f3251f4ba69d9a017f0",
+      "md5_source": "a0340b9a69bd8f3251f4ba69d9a017f0",
+      "bytes": 70731
+    },
+    {
+      "file": "song-data/anthology/raw/flying_trapeze_the.xml",
+      "source_filename": "FLYING TRAPEZE, The.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3702",
+      "format": "MusicXML",
+      "md5_local": "52ca1ad81dade80d6074e5231b587a81",
+      "md5_source": "52ca1ad81dade80d6074e5231b587a81",
+      "bytes": 85091
+    },
+    {
+      "file": "song-data/anthology/raw/foggy_foggy_dew.xml",
+      "source_filename": "FOGGY, FOGGY DEW.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3779",
+      "format": "MusicXML",
+      "md5_local": "c41cee2edbefe04e994fa515748cfd7a",
+      "md5_source": "c41cee2edbefe04e994fa515748cfd7a",
+      "bytes": 59975
+    },
+    {
+      "file": "song-data/anthology/raw/for_me_and_my_gal.xml",
+      "source_filename": "FOR ME AND MY GAL.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3753",
+      "format": "MusicXML",
+      "md5_local": "507dbe2fac2bb5aacc0736f804a4de27",
+      "md5_source": "507dbe2fac2bb5aacc0736f804a4de27",
+      "bytes": 77307
+    },
+    {
+      "file": "song-data/anthology/raw/forty_five_minutes_from_broadway.xml",
+      "source_filename": "FORTY-FIVE MINUTES FROM BROADWAY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3784",
+      "format": "MusicXML",
+      "md5_local": "f6cbf14d5661ffbd4379c8e4ab0a94aa",
+      "md5_source": "f6cbf14d5661ffbd4379c8e4ab0a94aa",
+      "bytes": 51955
+    },
+    {
+      "file": "song-data/anthology/raw/frankie_and_johnny.xml",
+      "source_filename": "FRANKIE AND JOHNNY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3745",
+      "format": "MusicXML",
+      "md5_local": "f5acfccc2c69d3d72006aa904ee858e3",
+      "md5_source": "f5acfccc2c69d3d72006aa904ee858e3",
+      "bytes": 37626
+    },
+    {
+      "file": "song-data/anthology/raw/frere_jacques.xml",
+      "source_filename": "FRERE JACQUES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3871",
+      "format": "MusicXML",
+      "md5_local": "4766780e563b6cfb04b7ca71fa11b911",
+      "md5_source": "4766780e563b6cfb04b7ca71fa11b911",
+      "bytes": 35310
+    },
+    {
+      "file": "song-data/anthology/raw/funiculi_funicula.xml",
+      "source_filename": "FUNICULI-FUNICULA.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4261",
+      "format": "MusicXML",
+      "md5_local": "a0d5a957ab7cee1b2e01c06c4e6b2006",
+      "md5_source": "a0d5a957ab7cee1b2e01c06c4e6b2006",
+      "bytes": 90250
+    },
+    {
+      "file": "song-data/anthology/raw/gee_but_it_s_great_to_meet_a_friend_from_your_home_town.xml",
+      "source_filename": "GEE, BUT IT_S GREAT TO MEET A FRIEND FROM YOUR HOME TOWN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4358",
+      "format": "MusicXML",
+      "md5_local": "13890c49dac4ec7864a6256f3974f796",
+      "md5_source": "13890c49dac4ec7864a6256f3974f796",
+      "bytes": 56352
+    },
+    {
+      "file": "song-data/anthology/raw/git_along_little_dogies_whoopee_ti_yi_yo.xml",
+      "source_filename": "GIT ALONG, LITTLE DOGIES (WHOOPEE TI YI YO).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3785",
+      "format": "MusicXML",
+      "md5_local": "7bc66804e04ffae4195a71283343f628",
+      "md5_source": "7bc66804e04ffae4195a71283343f628",
+      "bytes": 60102
+    },
+    {
+      "file": "song-data/anthology/raw/give_my_regards_to_broadway.xml",
+      "source_filename": "GIVE MY REGARDS TO BROADWAY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3894",
+      "format": "MusicXML",
+      "md5_local": "efd42a5ca8531a7f2586b4079dabe825",
+      "md5_source": "efd42a5ca8531a7f2586b4079dabe825",
+      "bytes": 51785
+    },
+    {
+      "file": "song-data/anthology/raw/glow_worm.xml",
+      "source_filename": "GLOW WORM.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3845",
+      "format": "MusicXML",
+      "md5_local": "54cf7c3299b17ff13454f34cee53d156",
+      "md5_source": "54cf7c3299b17ff13454f34cee53d156",
+      "bytes": 49910
+    },
+    {
+      "file": "song-data/anthology/raw/go_down_moses_let_my_people_go.xml",
+      "source_filename": "GO DOWN, MOSES (Let My People Go).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4042",
+      "format": "MusicXML",
+      "md5_local": "cd9dcbc45ba53c2cc7636b53cc159eed",
+      "md5_source": "cd9dcbc45ba53c2cc7636b53cc159eed",
+      "bytes": 41975
+    },
+    {
+      "file": "song-data/anthology/raw/go_tell_aunt_rhody.xml",
+      "source_filename": "GO TELL AUNT RHODY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4057",
+      "format": "MusicXML",
+      "md5_local": "47a3839ade661fa3b1f92eed8bd2db9c",
+      "md5_source": "47a3839ade661fa3b1f92eed8bd2db9c",
+      "bytes": 20595
+    },
+    {
+      "file": "song-data/anthology/raw/go_tell_it_on_the_mountain.xml",
+      "source_filename": "GO TELL IT ON THE MOUNTAIN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4050",
+      "format": "MusicXML",
+      "md5_local": "87a741d1744d66f166ad4fd84d1e8af3",
+      "md5_source": "87a741d1744d66f166ad4fd84d1e8af3",
+      "bytes": 44688
+    },
+    {
+      "file": "song-data/anthology/raw/god_rest_ye_merry_gentlemen.xml",
+      "source_filename": "GOD REST YE MERRY GENTLEMEN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3986",
+      "format": "MusicXML",
+      "md5_local": "1838ab4b657ddcdb412dc3512a144ee6",
+      "md5_source": "1838ab4b657ddcdb412dc3512a144ee6",
+      "bytes": 56905
+    },
+    {
+      "file": "song-data/anthology/raw/gold_and_silver_waltz.xml",
+      "source_filename": "GOLD AND SILVER WALTZ.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4172",
+      "format": "MusicXML",
+      "md5_local": "cfbde628379221430479141f1fe124fc",
+      "md5_source": "cfbde628379221430479141f1fe124fc",
+      "bytes": 37180
+    },
+    {
+      "file": "song-data/anthology/raw/goober_peas.xml",
+      "source_filename": "GOOBER PEAS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3829",
+      "format": "MusicXML",
+      "md5_local": "fa77f6a6aaff43f2799ab15d3f7804f8",
+      "md5_source": "fa77f6a6aaff43f2799ab15d3f7804f8",
+      "bytes": 50096
+    },
+    {
+      "file": "song-data/anthology/raw/good_king_wenceslas.xml",
+      "source_filename": "GOOD KING WENCESLAS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4317",
+      "format": "MusicXML",
+      "md5_local": "56e2362b4b365465bb1ab5f2a27db0df",
+      "md5_source": "56e2362b4b365465bb1ab5f2a27db0df",
+      "bytes": 48753
+    },
+    {
+      "file": "song-data/anthology/raw/good_man_is_hard_to_find_a.xml",
+      "source_filename": "GOOD MAN IS HARD TO FIND, A.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4060",
+      "format": "MusicXML",
+      "md5_local": "1ce5029f97e741605ff8697529292dcf",
+      "md5_source": "1ce5029f97e741605ff8697529292dcf",
+      "bytes": 65308
+    },
+    {
+      "file": "song-data/anthology/raw/goodnight_ladies.xml",
+      "source_filename": "GOODNIGHT, LADIES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4087",
+      "format": "MusicXML",
+      "md5_local": "be711961c05263ba63c3f5d6934524cb",
+      "md5_source": "be711961c05263ba63c3f5d6934524cb",
+      "bytes": 39479
+    },
+    {
+      "file": "song-data/anthology/raw/greensleeves.xml",
+      "source_filename": "GREENSLEEVES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3749",
+      "format": "MusicXML",
+      "md5_local": "9b01ba87fe9090880e7f1f04f584b183",
+      "md5_source": "9b01ba87fe9090880e7f1f04f584b183",
+      "bytes": 53893
+    },
+    {
+      "file": "song-data/anthology/raw/hail_to_the_chief.xml",
+      "source_filename": "HAIL TO THE CHIEF.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4059",
+      "format": "MusicXML",
+      "md5_local": "1849081a05b558ab1478f413632aa082",
+      "md5_source": "1849081a05b558ab1478f413632aa082",
+      "bytes": 34920
+    },
+    {
+      "file": "song-data/anthology/raw/hail_hail_the_gang_s_all_here.xml",
+      "source_filename": "HAIL! HAIL! THE GANG_S ALL HERE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4225",
+      "format": "MusicXML",
+      "md5_local": "09574ff0f85099538c2c3cf65251a308",
+      "md5_source": "09574ff0f85099538c2c3cf65251a308",
+      "bytes": 27488
+    },
+    {
+      "file": "song-data/anthology/raw/happy_birthday.xml",
+      "source_filename": "HAPPY BIRTHDAY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4095",
+      "format": "MusicXML",
+      "md5_local": "1c3e61183fe3bda25803e9b2dea246ce",
+      "md5_source": "1c3e61183fe3bda25803e9b2dea246ce",
+      "bytes": 19619
+    },
+    {
+      "file": "song-data/anthology/raw/hark_the_herald_angels_sing.xml",
+      "source_filename": "HARK! THE HERALD ANGELS SING.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4133",
+      "format": "MusicXML",
+      "md5_local": "eb98ac450b0ba63a06bf94457b01a1a1",
+      "md5_source": "eb98ac450b0ba63a06bf94457b01a1a1",
+      "bytes": 62935
+    },
+    {
+      "file": "song-data/anthology/raw/harrigan.xml",
+      "source_filename": "HARRIGAN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4017",
+      "format": "MusicXML",
+      "md5_local": "b776f931322df7cd73e1957117a6ad1f",
+      "md5_source": "b776f931322df7cd73e1957117a6ad1f",
+      "bytes": 56896
+    },
+    {
+      "file": "song-data/anthology/raw/has_anybody_here_seen_kelly.xml",
+      "source_filename": "HAS ANYBODY HERE SEEN KELLY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3951",
+      "format": "MusicXML",
+      "md5_local": "a873f8b16b01df6510ba986cbf48145a",
+      "md5_source": "a873f8b16b01df6510ba986cbf48145a",
+      "bytes": 49713
+    },
+    {
+      "file": "song-data/anthology/raw/hearts_and_flowers.xml",
+      "source_filename": "HEARTS AND FLOWERS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3763",
+      "format": "MusicXML",
+      "md5_local": "68713824b46143b4769dc0b1eb718bb7",
+      "md5_source": "68713824b46143b4769dc0b1eb718bb7",
+      "bytes": 62285
+    },
+    {
+      "file": "song-data/anthology/raw/hello_my_baby.xml",
+      "source_filename": "HELLO! MY BABY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3698",
+      "format": "MusicXML",
+      "md5_local": "d4b0f5a71dd89de843cffe2fbb68429d",
+      "md5_source": "d4b0f5a71dd89de843cffe2fbb68429d",
+      "bytes": 47862
+    },
+    {
+      "file": "song-data/anthology/raw/here_we_go_round_the_mulberry_bush.xml",
+      "source_filename": "HERE WE GO _ROUND THE MULBERRY BUSH.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3911",
+      "format": "MusicXML",
+      "md5_local": "7ed41636f26f35f549818a482c63a945",
+      "md5_source": "7ed41636f26f35f549818a482c63a945",
+      "bytes": 53669
+    },
+    {
+      "file": "song-data/anthology/raw/hesitation_waltz.xml",
+      "source_filename": "HESITATION WALTZ.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3962",
+      "format": "MusicXML",
+      "md5_local": "ec0814c9f61cea903f592bd1d9c40217",
+      "md5_source": "ec0814c9f61cea903f592bd1d9c40217",
+      "bytes": 37615
+    },
+    {
+      "file": "song-data/anthology/raw/high_society.xml",
+      "source_filename": "HIGH SOCIETY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4208",
+      "format": "MusicXML",
+      "md5_local": "4a03fe7324d8a9adc1b7c1ca2ab405dd",
+      "md5_source": "4a03fe7324d8a9adc1b7c1ca2ab405dd",
+      "bytes": 36839
+    },
+    {
+      "file": "song-data/anthology/raw/hindustan.xml",
+      "source_filename": "HINDUSTAN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4183",
+      "format": "MusicXML",
+      "md5_local": "8a82b2eabf8ed830c7c74b751fd9e44b",
+      "md5_source": "8a82b2eabf8ed830c7c74b751fd9e44b",
+      "bytes": 48959
+    },
+    {
+      "file": "song-data/anthology/raw/home_on_the_range.xml",
+      "source_filename": "HOME ON THE RANGE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3773",
+      "format": "MusicXML",
+      "md5_local": "821e4090cb59b9a51090c0adec9c31f8",
+      "md5_source": "821e4090cb59b9a51090c0adec9c31f8",
+      "bytes": 57663
+    },
+    {
+      "file": "song-data/anthology/raw/hot_time_in_the_old_town_a.xml",
+      "source_filename": "HOT TIME IN THE OLD TOWN, A.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4240",
+      "format": "MusicXML",
+      "md5_local": "29c80136d35d29edc88a846407ca6d63",
+      "md5_source": "29c80136d35d29edc88a846407ca6d63",
+      "bytes": 35221
+    },
+    {
+      "file": "song-data/anthology/raw/how_ya_gonna_keep_em_down_on_the_farm_after_they_ve_seen_paree.xml",
+      "source_filename": "HOW _YA GONNA KEEP _EM DOWN ON THE FARM (After They_ve Seen Paree).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3761",
+      "format": "MusicXML",
+      "md5_local": "115ef84533434d64bcb8d5f677a4ef33",
+      "md5_source": "115ef84533434d64bcb8d5f677a4ef33",
+      "bytes": 84349
+    },
+    {
+      "file": "song-data/anthology/raw/humoresque.xml",
+      "source_filename": "HUMORESQUE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4142",
+      "format": "MusicXML",
+      "md5_local": "7b77617923aedd7b05bf1b973906f180",
+      "md5_source": "7b77617923aedd7b05bf1b973906f180",
+      "bytes": 47796
+    },
+    {
+      "file": "song-data/anthology/raw/i_ain_t_gonna_give_nobody_none_of_my_jelly_roll.xml",
+      "source_filename": "I AIN_T GONNA GIVE NOBODY NONE OF MY JELLY ROLL.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4097",
+      "format": "MusicXML",
+      "md5_local": "a64ec284b9d73c43e40d094151b1ca55",
+      "md5_source": "a64ec284b9d73c43e40d094151b1ca55",
+      "bytes": 85154
+    },
+    {
+      "file": "song-data/anthology/raw/i_ain_t_got_nobody_and_nobody_cares_for_me.xml",
+      "source_filename": "I AIN_T GOT NOBODY (And Nobody Cares For Me).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3833",
+      "format": "MusicXML",
+      "md5_local": "67e2ae33b24aaa627a8eaa1ed1908457",
+      "md5_source": "67e2ae33b24aaa627a8eaa1ed1908457",
+      "bytes": 57739
+    },
+    {
+      "file": "song-data/anthology/raw/i_cried_for_you.xml",
+      "source_filename": "I CRIED FOR YOU.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3710",
+      "format": "MusicXML",
+      "md5_local": "fe4f8ee3c99364311601161f08b780ea",
+      "md5_source": "fe4f8ee3c99364311601161f08b780ea",
+      "bytes": 70988
+    },
+    {
+      "file": "song-data/anthology/raw/i_don_t_want_to_play_in_your_yard.xml",
+      "source_filename": "I DON_T WANT TO PLAY IN YOUR YARD.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3808",
+      "format": "MusicXML",
+      "md5_local": "9929c33da22acfbd8a2990d21b9e4541",
+      "md5_source": "9929c33da22acfbd8a2990d21b9e4541",
+      "bytes": 47642
+    },
+    {
+      "file": "song-data/anthology/raw/i_hear_a_rhapsody.xml",
+      "source_filename": "I HEAR A RHAPSODY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4047",
+      "format": "MusicXML",
+      "md5_local": "69917dfb74a6d5718b7641eb3099b1db",
+      "md5_source": "69917dfb74a6d5718b7641eb3099b1db",
+      "bytes": 61133
+    },
+    {
+      "file": "song-data/anthology/raw/i_love_a_piano.xml",
+      "source_filename": "I LOVE A PIANO.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3916",
+      "format": "MusicXML",
+      "md5_local": "bc52a93a601efaf8c47dcbbd30b2911e",
+      "md5_source": "bc52a93a601efaf8c47dcbbd30b2911e",
+      "bytes": 107922
+    },
+    {
+      "file": "song-data/anthology/raw/i_love_you_truly.xml",
+      "source_filename": "I LOVE YOU TRULY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4062",
+      "format": "MusicXML",
+      "md5_local": "cae0a0748bf815635ead9254e524f507",
+      "md5_source": "cae0a0748bf815635ead9254e524f507",
+      "bytes": 55442
+    },
+    {
+      "file": "song-data/anthology/raw/i_love_you.xml",
+      "source_filename": "I LOVE YOU.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4121",
+      "format": "MusicXML",
+      "md5_local": "9b307e454c156816d4815a702fe2bd59",
+      "md5_source": "9b307e454c156816d4815a702fe2bd59",
+      "bytes": 48539
+    },
+    {
+      "file": "song-data/anthology/raw/i_never_knew_i_could_love_anybody.xml",
+      "source_filename": "I NEVER KNEW (I Could Love Anybody).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3765",
+      "format": "MusicXML",
+      "md5_local": "e76cae06b94037c81bee6e20f50c4471",
+      "md5_source": "e76cae06b94037c81bee6e20f50c4471",
+      "bytes": 57621
+    },
+    {
+      "file": "song-data/anthology/raw/i_shall_not_be_moved.xml",
+      "source_filename": "I SHALL NOT BE MOVED.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4316",
+      "format": "MusicXML",
+      "md5_local": "53ca207cf554b36572e56fe599304f14",
+      "md5_source": "53ca207cf554b36572e56fe599304f14",
+      "bytes": 32286
+    },
+    {
+      "file": "song-data/anthology/raw/i_used_to_love_you_but_it_s_all_over_now.xml",
+      "source_filename": "I USED TO LOVE YOU (But It_s All Over Now).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3848",
+      "format": "MusicXML",
+      "md5_local": "737e09fcc89be842132efb415e4c4f7e",
+      "md5_source": "737e09fcc89be842132efb415e4c4f7e",
+      "bytes": 69436
+    },
+    {
+      "file": "song-data/anthology/raw/i_want_a_girl_just_like_the_girl_that_married_dear_old_dad.xml",
+      "source_filename": "I WANT A GIRL Just Like The Girl That Married Dear Old Dad.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4074",
+      "format": "MusicXML",
+      "md5_local": "f09e53d083e93031fbb0b927f0a5e993",
+      "md5_source": "f09e53d083e93031fbb0b927f0a5e993",
+      "bytes": 61167
+    },
+    {
+      "file": "song-data/anthology/raw/i_was_so_young_you_were_so_beautiful.xml",
+      "source_filename": "I WAS SO YOUNG (You Were So Beautiful).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3982",
+      "format": "MusicXML",
+      "md5_local": "0ed03f23da299205f0fc344cd2acdb1b",
+      "md5_source": "0ed03f23da299205f0fc344cd2acdb1b",
+      "bytes": 83353
+    },
+    {
+      "file": "song-data/anthology/raw/i_wish_i_could_shimmy_like_my_sister_kate.xml",
+      "source_filename": "I WISH I COULD SHIMMY LIKE MY SISTER KATE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3704",
+      "format": "MusicXML",
+      "md5_local": "346684add58574e9fa6044817d75d54b",
+      "md5_source": "346684add58574e9fa6044817d75d54b",
+      "bytes": 72739
+    },
+    {
+      "file": "song-data/anthology/raw/i_ll_take_you_home_again_kathleen.xml",
+      "source_filename": "I_LL TAKE YOU HOME AGAIN, KATHLEEN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3860",
+      "format": "MusicXML",
+      "md5_local": "07f54078027ff9ddcc80345c5acfec77",
+      "md5_source": "07f54078027ff9ddcc80345c5acfec77",
+      "bytes": 77641
+    },
+    {
+      "file": "song-data/anthology/raw/i_m_always_chasing_rainbows.xml",
+      "source_filename": "I_M ALWAYS CHASING RAINBOWS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4297",
+      "format": "MusicXML",
+      "md5_local": "2f48a8b12a2986c74243af8a23ed9108",
+      "md5_source": "2f48a8b12a2986c74243af8a23ed9108",
+      "bytes": 67894
+    },
+    {
+      "file": "song-data/anthology/raw/i_m_forever_blowing_bubbles.xml",
+      "source_filename": "I_M FOREVER BLOWING BUBBLES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3792",
+      "format": "MusicXML",
+      "md5_local": "30c0cd91aae474ac92b4bd723a50a3c2",
+      "md5_source": "30c0cd91aae474ac92b4bd723a50a3c2",
+      "bytes": 55414
+    },
+    {
+      "file": "song-data/anthology/raw/i_m_just_wild_about_harry.xml",
+      "source_filename": "I_M JUST WILD ABOUT HARRY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3892",
+      "format": "MusicXML",
+      "md5_local": "73f3b226a29e411e313a31b6b3865727",
+      "md5_source": "73f3b226a29e411e313a31b6b3865727",
+      "bytes": 66137
+    },
+    {
+      "file": "song-data/anthology/raw/i_ve_been_working_on_the_railroad.xml",
+      "source_filename": "I_VE BEEN WORKING ON THE RAILROAD.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4122",
+      "format": "MusicXML",
+      "md5_local": "86b45dcd8900e62e8dd72faca6e1b11a",
+      "md5_source": "86b45dcd8900e62e8dd72faca6e1b11a",
+      "bytes": 119319
+    },
+    {
+      "file": "song-data/anthology/raw/i_ve_got_rings_on_my_fingers.xml",
+      "source_filename": "I_VE GOT RINGS ON MY FINGERS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4079",
+      "format": "MusicXML",
+      "md5_local": "170a70f205d2d1c511ee1acf44c9fde8",
+      "md5_source": "170a70f205d2d1c511ee1acf44c9fde8",
+      "bytes": 40154
+    },
+    {
+      "file": "song-data/anthology/raw/ida_sweet_as_apple_cider.xml",
+      "source_filename": "IDA! SWEET AS APPLE CIDER.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4099",
+      "format": "MusicXML",
+      "md5_local": "142f4852c64054ea906a0df120b4bfde",
+      "md5_source": "142f4852c64054ea906a0df120b4bfde",
+      "bytes": 57838
+    },
+    {
+      "file": "song-data/anthology/raw/if_you_were_the_only_girl_in_the_world.xml",
+      "source_filename": "IF YOU WERE THE ONLY GIRL IN THE WORLD.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4078",
+      "format": "MusicXML",
+      "md5_local": "56ac25421e4a1cf9b6bf9f91e4db7bf3",
+      "md5_source": "56ac25421e4a1cf9b6bf9f91e4db7bf3",
+      "bytes": 70359
+    },
+    {
+      "file": "song-data/anthology/raw/in_my_merry_oldsmobile.xml",
+      "source_filename": "IN MY MERRY OLDSMOBILE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4286",
+      "format": "MusicXML",
+      "md5_local": "1cb4e625a1c6baa5148c17be212e40f6",
+      "md5_source": "1cb4e625a1c6baa5148c17be212e40f6",
+      "bytes": 46514
+    },
+    {
+      "file": "song-data/anthology/raw/in_the_evening_by_the_moonlight.xml",
+      "source_filename": "IN THE EVENING BY THE MOONLIGHT.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4204",
+      "format": "MusicXML",
+      "md5_local": "5ee5171fe553993e29c3ee3d05b377c7",
+      "md5_source": "5ee5171fe553993e29c3ee3d05b377c7",
+      "bytes": 39350
+    },
+    {
+      "file": "song-data/anthology/raw/in_the_gloaming.xml",
+      "source_filename": "IN THE GLOAMING.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3737",
+      "format": "MusicXML",
+      "md5_local": "80c2353004c71575d6d05d1b5ab226ea",
+      "md5_source": "80c2353004c71575d6d05d1b5ab226ea",
+      "bytes": 57588
+    },
+    {
+      "file": "song-data/anthology/raw/in_the_good_old_summertime.xml",
+      "source_filename": "IN THE GOOD OLD SUMMERTIME.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3742",
+      "format": "MusicXML",
+      "md5_local": "a4e776a83b57db64e2ba95075971a915",
+      "md5_source": "a4e776a83b57db64e2ba95075971a915",
+      "bytes": 49759
+    },
+    {
+      "file": "song-data/anthology/raw/in_the_shade_of_the_old_apple_tree.xml",
+      "source_filename": "IN THE SHADE OF THE OLD APPLE TREE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3664",
+      "format": "MusicXML",
+      "md5_local": "7514e761d46dc0b9d6459ee5959d02e8",
+      "md5_source": "7514e761d46dc0b9d6459ee5959d02e8",
+      "bytes": 58127
+    },
+    {
+      "file": "song-data/anthology/raw/in_the_sweet_bye_and_bye.xml",
+      "source_filename": "IN THE SWEET BYE AND BYE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3841",
+      "format": "MusicXML",
+      "md5_local": "202ea2c9cf236881edc1b195de5495e4",
+      "md5_source": "202ea2c9cf236881edc1b195de5495e4",
+      "bytes": 55587
+    },
+    {
+      "file": "song-data/anthology/raw/indian_summer.xml",
+      "source_filename": "INDIAN SUMMER.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3807",
+      "format": "MusicXML",
+      "md5_local": "3686991e4313d64a3a8b39225b7862ed",
+      "md5_source": "3686991e4313d64a3a8b39225b7862ed",
+      "bytes": 83682
+    },
+    {
+      "file": "song-data/anthology/raw/indiana_back_home_in.xml",
+      "source_filename": "INDIANA (Back Home In).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4116",
+      "format": "MusicXML",
+      "md5_local": "fef34916af0c62a49a417f04822a3e83",
+      "md5_source": "fef34916af0c62a49a417f04822a3e83",
+      "bytes": 55533
+    },
+    {
+      "file": "song-data/anthology/raw/it_ain_t_gonna_rain_no_mo.xml",
+      "source_filename": "IT AIN_T GONNA RAIN NO MO_.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3956",
+      "format": "MusicXML",
+      "md5_local": "e4583fdff8669f3828e5fa7e92406624",
+      "md5_source": "e4583fdff8669f3828e5fa7e92406624",
+      "bytes": 56585
+    },
+    {
+      "file": "song-data/anthology/raw/it_came_upon_a_midnight_clear.xml",
+      "source_filename": "IT CAME UPON A MIDNIGHT CLEAR.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3789",
+      "format": "MusicXML",
+      "md5_local": "72062fdebacc4d3ac3e29267fb6f013a",
+      "md5_source": "72062fdebacc4d3ac3e29267fb6f013a",
+      "bytes": 50619
+    },
+    {
+      "file": "song-data/anthology/raw/it_s_a_long_way_to_tipperary.xml",
+      "source_filename": "IT_S A LONG WAY TO TIPPERARY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4196",
+      "format": "MusicXML",
+      "md5_local": "721c39eb48ec443e226229dfc3e53061",
+      "md5_source": "721c39eb48ec443e226229dfc3e53061",
+      "bytes": 57541
+    },
+    {
+      "file": "song-data/anthology/raw/jada.xml",
+      "source_filename": "JADA.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3980",
+      "format": "MusicXML",
+      "md5_local": "c2edcec18c0f329c8277977767ab4858",
+      "md5_source": "c2edcec18c0f329c8277977767ab4858",
+      "bytes": 43911
+    },
+    {
+      "file": "song-data/anthology/raw/jazz_me_blues.xml",
+      "source_filename": "JAZZ ME BLUES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3825",
+      "format": "MusicXML",
+      "md5_local": "79050afec6c87bdc3ee2e7572e999a0b",
+      "md5_source": "79050afec6c87bdc3ee2e7572e999a0b",
+      "bytes": 156906
+    },
+    {
+      "file": "song-data/anthology/raw/jeanie_with_the_light_brown_hair.xml",
+      "source_filename": "JEANIE WITH THE LIGHT BROWN HAIR.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3678",
+      "format": "MusicXML",
+      "md5_local": "8b6e22aee0934b802fdd15d255de3aeb",
+      "md5_source": "8b6e22aee0934b802fdd15d255de3aeb",
+      "bytes": 71393
+    },
+    {
+      "file": "song-data/anthology/raw/jingle_bells.xml",
+      "source_filename": "JINGLE BELLS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4004",
+      "format": "MusicXML",
+      "md5_local": "8e36a544b0022eab74d09503124a24c6",
+      "md5_source": "8e36a544b0022eab74d09503124a24c6",
+      "bytes": 83388
+    },
+    {
+      "file": "song-data/anthology/raw/john_henry.xml",
+      "source_filename": "JOHN HENRY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3856",
+      "format": "MusicXML",
+      "md5_local": "a6ae026e59d99bc20aa64063370dc4b3",
+      "md5_source": "a6ae026e59d99bc20aa64063370dc4b3",
+      "bytes": 39006
+    },
+    {
+      "file": "song-data/anthology/raw/joshua_fit_the_battle_of_jericho.xml",
+      "source_filename": "JOSHUA FIT THE BATTLE OF JERICHO.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4296",
+      "format": "MusicXML",
+      "md5_local": "2237f09822dd6ce59ff17b6e72eb3fcb",
+      "md5_source": "2237f09822dd6ce59ff17b6e72eb3fcb",
+      "bytes": 56010
+    },
+    {
+      "file": "song-data/anthology/raw/joy_to_the_world.xml",
+      "source_filename": "JOY TO THE WORLD.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4080",
+      "format": "MusicXML",
+      "md5_local": "030bd81021d0576532579d24cc24655a",
+      "md5_source": "030bd81021d0576532579d24cc24655a",
+      "bytes": 50331
+    },
+    {
+      "file": "song-data/anthology/raw/juanita.xml",
+      "source_filename": "JUANITA.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4181",
+      "format": "MusicXML",
+      "md5_local": "6e49f05679fbded46e094501082d5956",
+      "md5_source": "6e49f05679fbded46e094501082d5956",
+      "bytes": 54610
+    },
+    {
+      "file": "song-data/anthology/raw/just_a_closer_walk_with_thee.xml",
+      "source_filename": "JUST A CLOSER WALK WITH THEE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4106",
+      "format": "MusicXML",
+      "md5_local": "b433e444e90ac336e10c499b9f607aac",
+      "md5_source": "b433e444e90ac336e10c499b9f607aac",
+      "bytes": 31001
+    },
+    {
+      "file": "song-data/anthology/raw/la_cucaracha.xml",
+      "source_filename": "LA CUCARACHA.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3681",
+      "format": "MusicXML",
+      "md5_local": "8372288013cfa1ba3a790cfd2a26bd0f",
+      "md5_source": "8372288013cfa1ba3a790cfd2a26bd0f",
+      "bytes": 48228
+    },
+    {
+      "file": "song-data/anthology/raw/la_marseillaise.xml",
+      "source_filename": "LA MARSEILLAISE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4138",
+      "format": "MusicXML",
+      "md5_local": "79c7d41dd56f64de3bd536246f917e4d",
+      "md5_source": "79c7d41dd56f64de3bd536246f917e4d",
+      "bytes": 82511
+    },
+    {
+      "file": "song-data/anthology/raw/la_paloma.xml",
+      "source_filename": "LA PALOMA.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4273",
+      "format": "MusicXML",
+      "md5_local": "6785a00cac20b61b4cac4049718e94d6",
+      "md5_source": "6785a00cac20b61b4cac4049718e94d6",
+      "bytes": 157965
+    },
+    {
+      "file": "song-data/anthology/raw/last_night_on_the_back_porch_i_loved_her_best_of_all.xml",
+      "source_filename": "LAST NIGHT ON THE BACK PORCH (I Loved Her Best Of All).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3967",
+      "format": "MusicXML",
+      "md5_local": "53792bdf4a36f6a069c36e3ccd4c87eb",
+      "md5_source": "53792bdf4a36f6a069c36e3ccd4c87eb",
+      "bytes": 42119
+    },
+    {
+      "file": "song-data/anthology/raw/let_me_call_you_sweetheart.xml",
+      "source_filename": "LET ME CALL YOU SWEETHEART.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3888",
+      "format": "MusicXML",
+      "md5_local": "ef436c58cceaa240e43a4dac9bf713f6",
+      "md5_source": "ef436c58cceaa240e43a4dac9bf713f6",
+      "bytes": 46416
+    },
+    {
+      "file": "song-data/anthology/raw/li_l_liza_jane.xml",
+      "source_filename": "LI_L LIZA JANE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4170",
+      "format": "MusicXML",
+      "md5_local": "bd6c7e973cd05f3a4610164dc14e4ea9",
+      "md5_source": "bd6c7e973cd05f3a4610164dc14e4ea9",
+      "bytes": 38477
+    },
+    {
+      "file": "song-data/anthology/raw/linger_awhile.xml",
+      "source_filename": "LINGER AWHILE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4064",
+      "format": "MusicXML",
+      "md5_local": "4cae92ea0a8b041613b82dfa3449293e",
+      "md5_source": "4cae92ea0a8b041613b82dfa3449293e",
+      "bytes": 49864
+    },
+    {
+      "file": "song-data/anthology/raw/listen_to_the_mockingbird.xml",
+      "source_filename": "LISTEN TO THE MOCKINGBIRD.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4357",
+      "format": "MusicXML",
+      "md5_local": "4e9314b20d635c8bcbae393344425c75",
+      "md5_source": "4e9314b20d635c8bcbae393344425c75",
+      "bytes": 36845
+    },
+    {
+      "file": "song-data/anthology/raw/little_brown_jug.xml",
+      "source_filename": "LITTLE BROWN JUG.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3729",
+      "format": "MusicXML",
+      "md5_local": "249322d9e42d0e6a04eb9c1a185ef7a9",
+      "md5_source": "249322d9e42d0e6a04eb9c1a185ef7a9",
+      "bytes": 44049
+    },
+    {
+      "file": "song-data/anthology/raw/livery_stable_blues.xml",
+      "source_filename": "LIVERY STABLE BLUES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4146",
+      "format": "MusicXML",
+      "md5_local": "80f7513b451766cff534de51db121e71",
+      "md5_source": "80f7513b451766cff534de51db121e71",
+      "bytes": 38512
+    },
+    {
+      "file": "song-data/anthology/raw/loch_lomond.xml",
+      "source_filename": "LOCH LOMOND.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3832",
+      "format": "MusicXML",
+      "md5_local": "16c843d9d30a138c585f3f8181cdfe93",
+      "md5_source": "16c843d9d30a138c585f3f8181cdfe93",
+      "bytes": 66606
+    },
+    {
+      "file": "song-data/anthology/raw/london_bridge_is_falling_down.xml",
+      "source_filename": "LONDON BRIDGE IS FALLING DOWN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4144",
+      "format": "MusicXML",
+      "md5_local": "590f3b233f918d71d952d6f826db3471",
+      "md5_source": "590f3b233f918d71d952d6f826db3471",
+      "bytes": 22404
+    },
+    {
+      "file": "song-data/anthology/raw/londonderry_air.xml",
+      "source_filename": "LONDONDERRY AIR.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4180",
+      "format": "MusicXML",
+      "md5_local": "379099e1a63a8efcebea8e51d5282f58",
+      "md5_source": "379099e1a63a8efcebea8e51d5282f58",
+      "bytes": 75809
+    },
+    {
+      "file": "song-data/anthology/raw/look_for_the_silver_lining.xml",
+      "source_filename": "LOOK FOR THE SILVER LINING.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4190",
+      "format": "MusicXML",
+      "md5_local": "57b9d8aec106e33976c88a7f96218c14",
+      "md5_source": "57b9d8aec106e33976c88a7f96218c14",
+      "bytes": 70958
+    },
+    {
+      "file": "song-data/anthology/raw/love_nest.xml",
+      "source_filename": "LOVE NEST.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3816",
+      "format": "MusicXML",
+      "md5_local": "249492d5f8403e16ce26b4bbcdb5a3f1",
+      "md5_source": "249492d5f8403e16ce26b4bbcdb5a3f1",
+      "bytes": 64769
+    },
+    {
+      "file": "song-data/anthology/raw/love_will_find_a_way.xml",
+      "source_filename": "LOVE WILL FIND A WAY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4091",
+      "format": "MusicXML",
+      "md5_local": "8ce8c3cde6ea70b85d63d94066e1e9c6",
+      "md5_source": "8ce8c3cde6ea70b85d63d94066e1e9c6",
+      "bytes": 51979
+    },
+    {
+      "file": "song-data/anthology/raw/low_bridge_everybody_down_fifteen_years_on_the_erie_canal.xml",
+      "source_filename": "LOW BRIDGE! EVERYBODY DOWN (FIFTEEN YEARS ON THE ERIE CANAL).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3927",
+      "format": "MusicXML",
+      "md5_local": "687030dce3ffaebf396a1f35109d863c",
+      "md5_source": "687030dce3ffaebf396a1f35109d863c",
+      "bytes": 89277
+    },
+    {
+      "file": "song-data/anthology/raw/m_o_t_h_e_r.xml",
+      "source_filename": "M-O-T-H-E-R.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4232",
+      "format": "MusicXML",
+      "md5_local": "2ba17525f3353ad81a82c6712fce5ece",
+      "md5_source": "2ba17525f3353ad81a82c6712fce5ece",
+      "bytes": 67433
+    },
+    {
+      "file": "song-data/anthology/raw/ma_he_s_making_eyes_at_me.xml",
+      "source_filename": "MA, HE_S MAKING EYES AT ME.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4000",
+      "format": "MusicXML",
+      "md5_local": "5080930b51b9b35e5ec0e912552b7da5",
+      "md5_source": "5080930b51b9b35e5ec0e912552b7da5",
+      "bytes": 54187
+    },
+    {
+      "file": "song-data/anthology/raw/macnamara_s_band.xml",
+      "source_filename": "MACNAMARA_S BAND.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4200",
+      "format": "MusicXML",
+      "md5_local": "9522bcbf1534bdbd7c1e00c332af8d60",
+      "md5_source": "9522bcbf1534bdbd7c1e00c332af8d60",
+      "bytes": 86057
+    },
+    {
+      "file": "song-data/anthology/raw/mademoiselle_from_armentieres.xml",
+      "source_filename": "MADEMOISELLE FROM ARMENTIERES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3873",
+      "format": "MusicXML",
+      "md5_local": "74a5b9d3f5d1458ed207e062f8a622b2",
+      "md5_source": "74a5b9d3f5d1458ed207e062f8a622b2",
+      "bytes": 36220
+    },
+    {
+      "file": "song-data/anthology/raw/make_me_a_pallet_on_the_floor_atlanta_blues.xml",
+      "source_filename": "MAKE ME A PALLET ON THE FLOOR (ATLANTA BLUES).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4037",
+      "format": "MusicXML",
+      "md5_local": "933f24b59d2532359bd9050adc8ec454",
+      "md5_source": "933f24b59d2532359bd9050adc8ec454",
+      "bytes": 28427
+    },
+    {
+      "file": "song-data/anthology/raw/man_who_broke_the_bank_at_monte_carlo.xml",
+      "source_filename": "MAN WHO BROKE THE BANK AT MONTE CARLO.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4277",
+      "format": "MusicXML",
+      "md5_local": "b7797d6bf8537f144c192be97d34f7b0",
+      "md5_source": "b7797d6bf8537f144c192be97d34f7b0",
+      "bytes": 43702
+    },
+    {
+      "file": "song-data/anthology/raw/mandy.xml",
+      "source_filename": "MANDY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4016",
+      "format": "MusicXML",
+      "md5_local": "02f5d8d0930263ebdf6e129f7e255141",
+      "md5_source": "02f5d8d0930263ebdf6e129f7e255141",
+      "bytes": 48052
+    },
+    {
+      "file": "song-data/anthology/raw/margie.xml",
+      "source_filename": "MARGIE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3772",
+      "format": "MusicXML",
+      "md5_local": "b8f2527055bc548b82119c6e3a80978c",
+      "md5_source": "b8f2527055bc548b82119c6e3a80978c",
+      "bytes": 56728
+    },
+    {
+      "file": "song-data/anthology/raw/mary_had_a_little_lamb.xml",
+      "source_filename": "MARY HAD A LITTLE LAMB.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4139",
+      "format": "MusicXML",
+      "md5_local": "8ce2a51595c289f36d9d5130758418fc",
+      "md5_source": "8ce2a51595c289f36d9d5130758418fc",
+      "bytes": 42123
+    },
+    {
+      "file": "song-data/anthology/raw/mary_s_a_grand_old_name.xml",
+      "source_filename": "MARY_S A GRAND OLD NAME.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3908",
+      "format": "MusicXML",
+      "md5_local": "43e6451d581b8526fc9d496cb8f87bec",
+      "md5_source": "43e6451d581b8526fc9d496cb8f87bec",
+      "bytes": 49321
+    },
+    {
+      "file": "song-data/anthology/raw/meet_me_in_st_louis_louis.xml",
+      "source_filename": "MEET ME IN ST LOUIS, LOUIS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3741",
+      "format": "MusicXML",
+      "md5_local": "a45de18bfe7d842e414b7f5e5eea21d3",
+      "md5_source": "a45de18bfe7d842e414b7f5e5eea21d3",
+      "bytes": 51685
+    },
+    {
+      "file": "song-data/anthology/raw/memories.xml",
+      "source_filename": "MEMORIES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3935",
+      "format": "MusicXML",
+      "md5_local": "d91ac13ea5bccb74ea779a42a19adea9",
+      "md5_source": "d91ac13ea5bccb74ea779a42a19adea9",
+      "bytes": 45756
+    },
+    {
+      "file": "song-data/anthology/raw/memphis_blues.xml",
+      "source_filename": "MEMPHIS BLUES .xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3981",
+      "format": "MusicXML",
+      "md5_local": "7e3e080cf7547ab908e2b68b7c5e31ab",
+      "md5_source": "7e3e080cf7547ab908e2b68b7c5e31ab",
+      "bytes": 92807
+    },
+    {
+      "file": "song-data/anthology/raw/merry_widow_waltz.xml",
+      "source_filename": "MERRY WIDOW WALTZ.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4246",
+      "format": "MusicXML",
+      "md5_local": "21edf77451c50bd9bf5dfa8c0b141979",
+      "md5_source": "21edf77451c50bd9bf5dfa8c0b141979",
+      "bytes": 42538
+    },
+    {
+      "file": "song-data/anthology/raw/michael_row_the_boat_ashore.xml",
+      "source_filename": "MICHAEL, ROW THE BOAT ASHORE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3997",
+      "format": "MusicXML",
+      "md5_local": "666ff3e49746fcfc33b64b04ebde71cf",
+      "md5_source": "666ff3e49746fcfc33b64b04ebde71cf",
+      "bytes": 26481
+    },
+    {
+      "file": "song-data/anthology/raw/moonlight_bay.xml",
+      "source_filename": "MOONLIGHT BAY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4260",
+      "format": "MusicXML",
+      "md5_local": "4e9c4868a53afdf0eb3f315f0f45a54b",
+      "md5_source": "4e9c4868a53afdf0eb3f315f0f45a54b",
+      "bytes": 42646
+    },
+    {
+      "file": "song-data/anthology/raw/mother_machree.xml",
+      "source_filename": "MOTHER MACHREE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4289",
+      "format": "MusicXML",
+      "md5_local": "9540019992f19ebc72597bbbfd924985",
+      "md5_source": "9540019992f19ebc72597bbbfd924985",
+      "bytes": 44316
+    },
+    {
+      "file": "song-data/anthology/raw/my_bonnie_lies_over_the_ocean.xml",
+      "source_filename": "MY BONNIE LIES OVER THE OCEAN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4109",
+      "format": "MusicXML",
+      "md5_local": "749656ce003ff0e087e6669070d3ce86",
+      "md5_source": "749656ce003ff0e087e6669070d3ce86",
+      "bytes": 50911
+    },
+    {
+      "file": "song-data/anthology/raw/my_buddy.xml",
+      "source_filename": "MY BUDDY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3900",
+      "format": "MusicXML",
+      "md5_local": "db11d6590b277329b45b74a67d37c867",
+      "md5_source": "db11d6590b277329b45b74a67d37c867",
+      "bytes": 46684
+    },
+    {
+      "file": "song-data/anthology/raw/my_gal_sal.xml",
+      "source_filename": "MY GAL SAL.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4185",
+      "format": "MusicXML",
+      "md5_local": "6e21b982777c090dbb6f87f64427e2ec",
+      "md5_source": "6e21b982777c090dbb6f87f64427e2ec",
+      "bytes": 52738
+    },
+    {
+      "file": "song-data/anthology/raw/my_honey_s_lovin_arms.xml",
+      "source_filename": "MY HONEY_S LOVIN_ ARMS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3882",
+      "format": "MusicXML",
+      "md5_local": "ad53df3be0c5074d7733f4c16cb456eb",
+      "md5_source": "ad53df3be0c5074d7733f4c16cb456eb",
+      "bytes": 67560
+    },
+    {
+      "file": "song-data/anthology/raw/my_love_is_like_a_red_red_rose.xml",
+      "source_filename": "MY LOVE IS LIKE A RED, RED ROSE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3993",
+      "format": "MusicXML",
+      "md5_local": "be3d56950ab6ffa24a0e9589ba92aa4a",
+      "md5_source": "be3d56950ab6ffa24a0e9589ba92aa4a",
+      "bytes": 72635
+    },
+    {
+      "file": "song-data/anthology/raw/my_man.xml",
+      "source_filename": "MY MAN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3831",
+      "format": "MusicXML",
+      "md5_local": "897172aec982e1ff34eee1266d0b628c",
+      "md5_source": "897172aec982e1ff34eee1266d0b628c",
+      "bytes": 99610
+    },
+    {
+      "file": "song-data/anthology/raw/my_melancholy_baby.xml",
+      "source_filename": "MY MELANCHOLY BABY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4003",
+      "format": "MusicXML",
+      "md5_local": "50accdcc9d18231b3655017fa62f9392",
+      "md5_source": "50accdcc9d18231b3655017fa62f9392",
+      "bytes": 63288
+    },
+    {
+      "file": "song-data/anthology/raw/my_old_kentucky_home.xml",
+      "source_filename": "MY OLD KENTUCKY HOME.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4031",
+      "format": "MusicXML",
+      "md5_local": "3f39e9c611b5400f1f8e81a9920e7a6c",
+      "md5_source": "3f39e9c611b5400f1f8e81a9920e7a6c",
+      "bytes": 81120
+    },
+    {
+      "file": "song-data/anthology/raw/my_wild_irish_rose.xml",
+      "source_filename": "MY WILD IRISH ROSE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4323",
+      "format": "MusicXML",
+      "md5_local": "4a6524b968897ce2b8aba7129d9ba606",
+      "md5_source": "4a6524b968897ce2b8aba7129d9ba606",
+      "bytes": 54980
+    },
+    {
+      "file": "song-data/anthology/raw/nearer_my_god_to_thee.xml",
+      "source_filename": "NEARER, MY GOD, TO THEE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4103",
+      "format": "MusicXML",
+      "md5_local": "7d85bd4e713599d97c506945bdae621a",
+      "md5_source": "7d85bd4e713599d97c506945bdae621a",
+      "bytes": 35716
+    },
+    {
+      "file": "song-data/anthology/raw/nobody_knows_the_trouble_i_ve_seen.xml",
+      "source_filename": "NOBODY KNOWS THE TROUBLE I_VE SEEN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4179",
+      "format": "MusicXML",
+      "md5_local": "be7be1a75ad8c8d07865e538fb4edad8",
+      "md5_source": "be7be1a75ad8c8d07865e538fb4edad8",
+      "bytes": 49062
+    },
+    {
+      "file": "song-data/anthology/raw/nobody_knows_you_when_you_re_down_and_out.xml",
+      "source_filename": "NOBODY KNOWS YOU WHEN YOU_RE DOWN AND OUT.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3774",
+      "format": "MusicXML",
+      "md5_local": "6f9d3443ba78b2d92ac4027188add5c9",
+      "md5_source": "6f9d3443ba78b2d92ac4027188add5c9",
+      "bytes": 101378
+    },
+    {
+      "file": "song-data/anthology/raw/nobody.xml",
+      "source_filename": "NOBODY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3685",
+      "format": "MusicXML",
+      "md5_local": "f1f90d8cfc81e9389577e1cecc91e804",
+      "md5_source": "f1f90d8cfc81e9389577e1cecc91e804",
+      "bytes": 66709
+    },
+    {
+      "file": "song-data/anthology/raw/o_little_town_of_bethlehem.xml",
+      "source_filename": "O LITTLE TOWN OF BETHLEHEM.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4266",
+      "format": "MusicXML",
+      "md5_local": "ddfd36ccc1ca7192ca548ae499bc5e0a",
+      "md5_source": "ddfd36ccc1ca7192ca548ae499bc5e0a",
+      "bytes": 48057
+    },
+    {
+      "file": "song-data/anthology/raw/o_sole_mio.xml",
+      "source_filename": "O SOLE MIO!.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3897",
+      "format": "MusicXML",
+      "md5_local": "4d864626459e01100a39017cc69a6332",
+      "md5_source": "4d864626459e01100a39017cc69a6332",
+      "bytes": 66186
+    },
+    {
+      "file": "song-data/anthology/raw/o_tannenbaum_o_christmas_tree.xml",
+      "source_filename": "O TANNENBAUM (O CHRISTMAS TREE).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3776",
+      "format": "MusicXML",
+      "md5_local": "eaa0a59cb0995f2e010df58e7d64ff45",
+      "md5_source": "eaa0a59cb0995f2e010df58e7d64ff45",
+      "bytes": 42346
+    },
+    {
+      "file": "song-data/anthology/raw/oh_my_darling_clementine.xml",
+      "source_filename": "OH MY DARLING CLEMENTINE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3924",
+      "format": "MusicXML",
+      "md5_local": "aea24d6252d66d0bd775c1b37bd4e74a",
+      "md5_source": "aea24d6252d66d0bd775c1b37bd4e74a",
+      "bytes": 46392
+    },
+    {
+      "file": "song-data/anthology/raw/oh_promise_me.xml",
+      "source_filename": "OH PROMISE ME.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3835",
+      "format": "MusicXML",
+      "md5_local": "fdfdbd666029f24ac4a7b51a2e15366c",
+      "md5_source": "fdfdbd666029f24ac4a7b51a2e15366c",
+      "bytes": 112703
+    },
+    {
+      "file": "song-data/anthology/raw/oh_how_i_hate_to_get_up_in_the_morning.xml",
+      "source_filename": "OH! HOW I HATE TO GET UP IN THE MORNING.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3891",
+      "format": "MusicXML",
+      "md5_local": "d9aa0399cca7e89b5dd15561f6a49751",
+      "md5_source": "d9aa0399cca7e89b5dd15561f6a49751",
+      "bytes": 79008
+    },
+    {
+      "file": "song-data/anthology/raw/oh_you_beautiful_doll.xml",
+      "source_filename": "OH! YOU BEAUTIFUL DOLL.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4118",
+      "format": "MusicXML",
+      "md5_local": "2ac6bca3e49713e1b2dd06df9c2a0692",
+      "md5_source": "2ac6bca3e49713e1b2dd06df9c2a0692",
+      "bytes": 58264
+    },
+    {
+      "file": "song-data/anthology/raw/oh_a_rock_a_my_soul_bosom_of_abraham.xml",
+      "source_filename": "OH, A-ROCK-A MY SOUL (BOSOM OF ABRAHAM).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4321",
+      "format": "MusicXML",
+      "md5_local": "4d1395ff0688e85ba645940cc74130d7",
+      "md5_source": "4d1395ff0688e85ba645940cc74130d7",
+      "bytes": 54617
+    },
+    {
+      "file": "song-data/anthology/raw/oh_dear_what_can_the_matter_be.xml",
+      "source_filename": "OH, DEAR! WHAT CAN THE MATTER BE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3954",
+      "format": "MusicXML",
+      "md5_local": "d9bd6cfc88a564e5be994004928e0b00",
+      "md5_source": "d9bd6cfc88a564e5be994004928e0b00",
+      "bytes": 56982
+    },
+    {
+      "file": "song-data/anthology/raw/oh_dem_golden_slippers.xml",
+      "source_filename": "OH, DEM GOLDEN SLIPPERS!.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3847",
+      "format": "MusicXML",
+      "md5_local": "d08f3c699975b3d695fee3551edec9d1",
+      "md5_source": "d08f3c699975b3d695fee3551edec9d1",
+      "bytes": 94175
+    },
+    {
+      "file": "song-data/anthology/raw/oh_didn_t_he_ramble.xml",
+      "source_filename": "OH, DIDN_T HE RAMBLE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3707",
+      "format": "MusicXML",
+      "md5_local": "31646180b26ca712efe4a152deef0758",
+      "md5_source": "31646180b26ca712efe4a152deef0758",
+      "bytes": 34660
+    },
+    {
+      "file": "song-data/anthology/raw/old_folks_at_home_swanee_river.xml",
+      "source_filename": "OLD FOLKS AT HOME (SWANEE RIVER).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3851",
+      "format": "MusicXML",
+      "md5_local": "ee14b2d5e4e865430ff61bfeb9fb75db",
+      "md5_source": "ee14b2d5e4e865430ff61bfeb9fb75db",
+      "bytes": 73625
+    },
+    {
+      "file": "song-data/anthology/raw/old_gray_mare.xml",
+      "source_filename": "OLD GRAY MARE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4309",
+      "format": "MusicXML",
+      "md5_local": "762704bd8e4119fe45e8188a83fb68f7",
+      "md5_source": "762704bd8e4119fe45e8188a83fb68f7",
+      "bytes": 47827
+    },
+    {
+      "file": "song-data/anthology/raw/old_macdonald_had_a_farm.xml",
+      "source_filename": "OLD MACDONALD HAD A FARM.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4245",
+      "format": "MusicXML",
+      "md5_local": "fd04987a8fb3fd979b914402acf95106",
+      "md5_source": "fd04987a8fb3fd979b914402acf95106",
+      "bytes": 45248
+    },
+    {
+      "file": "song-data/anthology/raw/on_the_alamo.xml",
+      "source_filename": "ON THE ALAMO.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3708",
+      "format": "MusicXML",
+      "md5_local": "d6ecbc62fd893a2da5248acdcbc00774",
+      "md5_source": "d6ecbc62fd893a2da5248acdcbc00774",
+      "bytes": 57381
+    },
+    {
+      "file": "song-data/anthology/raw/on_the_banks_of_the_wabash.xml",
+      "source_filename": "ON THE BANKS OF THE WABASH.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3805",
+      "format": "MusicXML",
+      "md5_local": "7d44d729b65c74ac817bcbeb3453ea88",
+      "md5_source": "7d44d729b65c74ac817bcbeb3453ea88",
+      "bytes": 35611
+    },
+    {
+      "file": "song-data/anthology/raw/on_top_of_old_smoky.xml",
+      "source_filename": "ON TOP OF OLD SMOKY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3812",
+      "format": "MusicXML",
+      "md5_local": "ba09325476837d6014957e2cb8223b05",
+      "md5_source": "ba09325476837d6014957e2cb8223b05",
+      "bytes": 31278
+    },
+    {
+      "file": "song-data/anthology/raw/onward_christian_soldiers.xml",
+      "source_filename": "ONWARD CHRISTIAN SOLDIERS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4290",
+      "format": "MusicXML",
+      "md5_local": "c66f4dc4b72006e5486c95c46c01bf64",
+      "md5_source": "c66f4dc4b72006e5486c95c46c01bf64",
+      "bytes": 66055
+    },
+    {
+      "file": "song-data/anthology/raw/over_there.xml",
+      "source_filename": "OVER THERE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4020",
+      "format": "MusicXML",
+      "md5_local": "31d33789d3d9abeebfd506c99d304ad3",
+      "md5_source": "31d33789d3d9abeebfd506c99d304ad3",
+      "bytes": 61337
+    },
+    {
+      "file": "song-data/anthology/raw/pack_up_your_troubles_in_your_old_kit_bag_and_smile_smile_smile.xml",
+      "source_filename": "PACK UP YOUR TROUBLES IN YOUR OLD KIT-BAG AND SMILE, SMILE, SMILE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4187",
+      "format": "MusicXML",
+      "md5_local": "5eeba2a5f5a0840bdcdd12eada92febc",
+      "md5_source": "5eeba2a5f5a0840bdcdd12eada92febc",
+      "bytes": 55284
+    },
+    {
+      "file": "song-data/anthology/raw/paper_doll.xml",
+      "source_filename": "PAPER DOLL.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3939",
+      "format": "MusicXML",
+      "md5_local": "1e9f5b194b10d021834a524b86e94dbd",
+      "md5_source": "1e9f5b194b10d021834a524b86e94dbd",
+      "bytes": 59933
+    },
+    {
+      "file": "song-data/anthology/raw/parade_of_the_wooden_soldiers.xml",
+      "source_filename": "PARADE OF THE WOODEN SOLDIERS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3912",
+      "format": "MusicXML",
+      "md5_local": "a08b7b38ee9c8b6aa6b06c6ca0a664e0",
+      "md5_source": "a08b7b38ee9c8b6aa6b06c6ca0a664e0",
+      "bytes": 100241
+    },
+    {
+      "file": "song-data/anthology/raw/peg_o_my_heart.xml",
+      "source_filename": "PEG O_ MY HEART.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4107",
+      "format": "MusicXML",
+      "md5_local": "be9fa95b1b51f896b001d46c3a9fedff",
+      "md5_source": "be9fa95b1b51f896b001d46c3a9fedff",
+      "bytes": 45502
+    },
+    {
+      "file": "song-data/anthology/raw/perfect_day_a.xml",
+      "source_filename": "PERFECT DAY, A.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4068",
+      "format": "MusicXML",
+      "md5_local": "35332d6e0d8491fe274d69c609f905ed",
+      "md5_source": "35332d6e0d8491fe274d69c609f905ed",
+      "bytes": 58231
+    },
+    {
+      "file": "song-data/anthology/raw/play_a_simple_melody.xml",
+      "source_filename": "PLAY A SIMPLE MELODY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3673",
+      "format": "MusicXML",
+      "md5_local": "e7acf4eb8eddbaf35fecd3844221d88f",
+      "md5_source": "e7acf4eb8eddbaf35fecd3844221d88f",
+      "bytes": 78015
+    },
+    {
+      "file": "song-data/anthology/raw/polly_wolly_doodle.xml",
+      "source_filename": "POLLY WOLLY DOODLE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4242",
+      "format": "MusicXML",
+      "md5_local": "b06f1b3ba686c77619f6f59a79dbb1e0",
+      "md5_source": "b06f1b3ba686c77619f6f59a79dbb1e0",
+      "bytes": 53824
+    },
+    {
+      "file": "song-data/anthology/raw/pomp_and_circumstance.xml",
+      "source_filename": "POMP AND CIRCUMSTANCE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4154",
+      "format": "MusicXML",
+      "md5_local": "2e3690d75822829c42028aaf4053fe39",
+      "md5_source": "2e3690d75822829c42028aaf4053fe39",
+      "bytes": 48363
+    },
+    {
+      "file": "song-data/anthology/raw/poor_butterfly.xml",
+      "source_filename": "POOR BUTTERFLY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3731",
+      "format": "MusicXML",
+      "md5_local": "c690d85e85477e11e9e8db3ca1f716b5",
+      "md5_source": "c690d85e85477e11e9e8db3ca1f716b5",
+      "bytes": 68712
+    },
+    {
+      "file": "song-data/anthology/raw/pop_goes_the_weasel.xml",
+      "source_filename": "POP GOES THE WEASEL.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3842",
+      "format": "MusicXML",
+      "md5_local": "1aabab0ee6da124e8f6c0b779edcc874",
+      "md5_source": "1aabab0ee6da124e8f6c0b779edcc874",
+      "bytes": 46728
+    },
+    {
+      "file": "song-data/anthology/raw/pretty_baby.xml",
+      "source_filename": "PRETTY BABY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4111",
+      "format": "MusicXML",
+      "md5_local": "5b309c84c1fc94b16cabb4e0e997701f",
+      "md5_source": "5b309c84c1fc94b16cabb4e0e997701f",
+      "bytes": 59780
+    },
+    {
+      "file": "song-data/anthology/raw/pretty_girl_is_like_a_melody_a.xml",
+      "source_filename": "PRETTY GIRL IS LIKE A MELODY, A.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4152",
+      "format": "MusicXML",
+      "md5_local": "293b255183f89994c29afe5a4670562a",
+      "md5_source": "293b255183f89994c29afe5a4670562a",
+      "bytes": 67685
+    },
+    {
+      "file": "song-data/anthology/raw/put_on_your_old_grey_bonnet.xml",
+      "source_filename": "PUT ON YOUR OLD GREY BONNET.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4264",
+      "format": "MusicXML",
+      "md5_local": "ddb6fc65f97e06abb4367372e7d359f1",
+      "md5_source": "ddb6fc65f97e06abb4367372e7d359f1",
+      "bytes": 37263
+    },
+    {
+      "file": "song-data/anthology/raw/put_your_arms_around_me_honey.xml",
+      "source_filename": "PUT YOUR ARMS AROUND ME, HONEY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3914",
+      "format": "MusicXML",
+      "md5_local": "1dfa77c674aaace20f0cc24390af780d",
+      "md5_source": "1dfa77c674aaace20f0cc24390af780d",
+      "bytes": 51431
+    },
+    {
+      "file": "song-data/anthology/raw/red_river_valley.xml",
+      "source_filename": "RED RIVER VALLEY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4176",
+      "format": "MusicXML",
+      "md5_local": "3032540bc299d50ae1210eeee99b2fbb",
+      "md5_source": "3032540bc299d50ae1210eeee99b2fbb",
+      "bytes": 33713
+    },
+    {
+      "file": "song-data/anthology/raw/reuben_and_rachel.xml",
+      "source_filename": "REUBEN AND RACHEL.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3783",
+      "format": "MusicXML",
+      "md5_local": "6884c779ef84e5801bc9e63d62a3afdd",
+      "md5_source": "6884c779ef84e5801bc9e63d62a3afdd",
+      "bytes": 57208
+    },
+    {
+      "file": "song-data/anthology/raw/rock_a_bye_baby.xml",
+      "source_filename": "ROCK-A-BYE BABY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4046",
+      "format": "MusicXML",
+      "md5_local": "f27df870c1ab713c39edbf57be0f3219",
+      "md5_source": "f27df870c1ab713c39edbf57be0f3219",
+      "bytes": 32428
+    },
+    {
+      "file": "song-data/anthology/raw/rose_of_the_rio_grande.xml",
+      "source_filename": "ROSE OF THE RIO GRANDE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4342",
+      "format": "MusicXML",
+      "md5_local": "315339f228c98095a7f1cdb482c2de85",
+      "md5_source": "315339f228c98095a7f1cdb482c2de85",
+      "bytes": 44786
+    },
+    {
+      "file": "song-data/anthology/raw/rose_of_washington_square.xml",
+      "source_filename": "ROSE OF WASHINGTON SQUARE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4287",
+      "format": "MusicXML",
+      "md5_local": "c235d8f032416cc5317cad5a07e36362",
+      "md5_source": "c235d8f032416cc5317cad5a07e36362",
+      "bytes": 65915
+    },
+    {
+      "file": "song-data/anthology/raw/rose_room.xml",
+      "source_filename": "ROSE ROOM.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3864",
+      "format": "MusicXML",
+      "md5_local": "729dbc56e200d0194e9633d263ab0a51",
+      "md5_source": "729dbc56e200d0194e9633d263ab0a51",
+      "bytes": 60537
+    },
+    {
+      "file": "song-data/anthology/raw/roses_of_picardy.xml",
+      "source_filename": "ROSES OF PICARDY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4293",
+      "format": "MusicXML",
+      "md5_local": "9d4499b859058f6a0aca05c6476f1d34",
+      "md5_source": "9d4499b859058f6a0aca05c6476f1d34",
+      "bytes": 53285
+    },
+    {
+      "file": "song-data/anthology/raw/row_row_row_your_boat_4_part_round.xml",
+      "source_filename": "ROW, ROW, ROW YOUR BOAT (4-part round).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4096",
+      "format": "MusicXML",
+      "md5_local": "7c5b49794338b8069efda821bcb3a1b1",
+      "md5_source": "7c5b49794338b8069efda821bcb3a1b1",
+      "bytes": 22279
+    },
+    {
+      "file": "song-data/anthology/raw/runnin_wild.xml",
+      "source_filename": "RUNNIN_ WILD.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4001",
+      "format": "MusicXML",
+      "md5_local": "ff1b7ee8f5eb3e04e2dd3728d1ed88da",
+      "md5_source": "ff1b7ee8f5eb3e04e2dd3728d1ed88da",
+      "bytes": 72197
+    },
+    {
+      "file": "song-data/anthology/raw/sailor_s_hornpipe.xml",
+      "source_filename": "SAILOR_S HORNPIPE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4070",
+      "format": "MusicXML",
+      "md5_local": "2ba9418f90fb52fb4b884b998c47fbde",
+      "md5_source": "2ba9418f90fb52fb4b884b998c47fbde",
+      "bytes": 61911
+    },
+    {
+      "file": "song-data/anthology/raw/santa_lucia.xml",
+      "source_filename": "SANTA LUCIA.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4105",
+      "format": "MusicXML",
+      "md5_local": "af946620059d4b6c5a3b39b71a8981cb",
+      "md5_source": "af946620059d4b6c5a3b39b71a8981cb",
+      "bytes": 44472
+    },
+    {
+      "file": "song-data/anthology/raw/say_it_with_music.xml",
+      "source_filename": "SAY IT WITH MUSIC.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4115",
+      "format": "MusicXML",
+      "md5_local": "e22055523974f4c315f5e4891cfc01b8",
+      "md5_source": "e22055523974f4c315f5e4891cfc01b8",
+      "bytes": 49572
+    },
+    {
+      "file": "song-data/anthology/raw/scarborough_fair.xml",
+      "source_filename": "SCARBOROUGH FAIR.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4275",
+      "format": "MusicXML",
+      "md5_local": "2a7ef683ff9e9489f00a096805eac38c",
+      "md5_source": "2a7ef683ff9e9489f00a096805eac38c",
+      "bytes": 32908
+    },
+    {
+      "file": "song-data/anthology/raw/school_days.xml",
+      "source_filename": "SCHOOL DAYS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3674",
+      "format": "MusicXML",
+      "md5_local": "e5778df1ad90fefad2aaadeb63544919",
+      "md5_source": "e5778df1ad90fefad2aaadeb63544919",
+      "bytes": 48830
+    },
+    {
+      "file": "song-data/anthology/raw/second_line_the_original_joe_avery_blues.xml",
+      "source_filename": "SECOND LINE, (THE ORIGINAL) (JOE AVERY BLUES).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3747",
+      "format": "MusicXML",
+      "md5_local": "359d49ab6b9c14c567a9f3c1ade8b968",
+      "md5_source": "359d49ab6b9c14c567a9f3c1ade8b968",
+      "bytes": 41854
+    },
+    {
+      "file": "song-data/anthology/raw/shall_we_gather_at_the_river.xml",
+      "source_filename": "SHALL WE GATHER AT THE RIVER.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3872",
+      "format": "MusicXML",
+      "md5_local": "ff24310be0c6fdbaf7803579ea4d758b",
+      "md5_source": "ff24310be0c6fdbaf7803579ea4d758b",
+      "bytes": 54335
+    },
+    {
+      "file": "song-data/anthology/raw/she_is_ma_daisy.xml",
+      "source_filename": "SHE IS MA DAISY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4236",
+      "format": "MusicXML",
+      "md5_local": "8f56a58e98ab7dc3d99803295251905e",
+      "md5_source": "8f56a58e98ab7dc3d99803295251905e",
+      "bytes": 44403
+    },
+    {
+      "file": "song-data/anthology/raw/she_ll_be_comin_round_the_mountain.xml",
+      "source_filename": "SHE_LL BE COMIN_ _ROUND THE MOUNTAIN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4223",
+      "format": "MusicXML",
+      "md5_local": "0f59f120f80cf616713618424c6739e8",
+      "md5_source": "0f59f120f80cf616713618424c6739e8",
+      "bytes": 41905
+    },
+    {
+      "file": "song-data/anthology/raw/shenandoah.xml",
+      "source_filename": "SHENANDOAH.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4051",
+      "format": "MusicXML",
+      "md5_local": "5140037b976a564312b6f5f29c53582a",
+      "md5_source": "5140037b976a564312b6f5f29c53582a",
+      "bytes": 35089
+    },
+    {
+      "file": "song-data/anthology/raw/shim_me_sha_wabble.xml",
+      "source_filename": "SHIM-ME-SHA-WABBLE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4326",
+      "format": "MusicXML",
+      "md5_local": "125fa953de8a1cfb08f08437230a38d5",
+      "md5_source": "125fa953de8a1cfb08f08437230a38d5",
+      "bytes": 49819
+    },
+    {
+      "file": "song-data/anthology/raw/shine_on_harvest_moon.xml",
+      "source_filename": "SHINE ON, HARVEST MOON.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4110",
+      "format": "MusicXML",
+      "md5_local": "ecf6f8ab6cb0c13508ee816e3b0ff88d",
+      "md5_source": "ecf6f8ab6cb0c13508ee816e3b0ff88d",
+      "bytes": 41476
+    },
+    {
+      "file": "song-data/anthology/raw/shoo_fly_don_t_bother_me.xml",
+      "source_filename": "SHOO FLY, DON_T BOTHER ME.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3865",
+      "format": "MusicXML",
+      "md5_local": "4bea91d5ae8fece0bcdeea9a350bb8c0",
+      "md5_source": "4bea91d5ae8fece0bcdeea9a350bb8c0",
+      "bytes": 55463
+    },
+    {
+      "file": "song-data/anthology/raw/sidewalks_of_new_york_the.xml",
+      "source_filename": "SIDEWALKS OF NEW YORK, THE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3746",
+      "format": "MusicXML",
+      "md5_local": "0620c185a971190ad5b3372de57693ce",
+      "md5_source": "0620c185a971190ad5b3372de57693ce",
+      "bytes": 42654
+    },
+    {
+      "file": "song-data/anthology/raw/silent_night.xml",
+      "source_filename": "SILENT NIGHT.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3926",
+      "format": "MusicXML",
+      "md5_local": "68d865136733c7ab3b3b4ed2e31d24f1",
+      "md5_source": "68d865136733c7ab3b3b4ed2e31d24f1",
+      "bytes": 38376
+    },
+    {
+      "file": "song-data/anthology/raw/silver_threads_among_the_gold.xml",
+      "source_filename": "SILVER THREADS AMONG THE GOLD.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3733",
+      "format": "MusicXML",
+      "md5_local": "ecffbe7787d4c8ada6cef4f051c1eedf",
+      "md5_source": "ecffbe7787d4c8ada6cef4f051c1eedf",
+      "bytes": 73054
+    },
+    {
+      "file": "song-data/anthology/raw/simple_gifts.xml",
+      "source_filename": "SIMPLE GIFTS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4119",
+      "format": "MusicXML",
+      "md5_local": "8875dddbde6b9ff701c7e09f70445b2c",
+      "md5_source": "8875dddbde6b9ff701c7e09f70445b2c",
+      "bytes": 62780
+    },
+    {
+      "file": "song-data/anthology/raw/singin_the_blues_til_my_daddy_comes_home.xml",
+      "source_filename": "SINGIN_ THE BLUES _TIL MY DADDY COMES HOME.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4158",
+      "format": "MusicXML",
+      "md5_local": "4362daf4b56d02b0c105239e9367b658",
+      "md5_source": "4362daf4b56d02b0c105239e9367b658",
+      "bytes": 80051
+    },
+    {
+      "file": "song-data/anthology/raw/sleep.xml",
+      "source_filename": "SLEEP.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3838",
+      "format": "MusicXML",
+      "md5_local": "78586cc5c3212a8b903fe693d6a4c024",
+      "md5_source": "78586cc5c3212a8b903fe693d6a4c024",
+      "bytes": 41662
+    },
+    {
+      "file": "song-data/anthology/raw/sleeping_beauty_waltz.xml",
+      "source_filename": "SLEEPING BEAUTY WALTZ.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4315",
+      "format": "MusicXML",
+      "md5_local": "7b9c52df09ececfc2fba6dde59adff78",
+      "md5_source": "7b9c52df09ececfc2fba6dde59adff78",
+      "bytes": 41583
+    },
+    {
+      "file": "song-data/anthology/raw/smiles.xml",
+      "source_filename": "SMILES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4292",
+      "format": "MusicXML",
+      "md5_local": "099b3fa72581e7c986e729888ce165af",
+      "md5_source": "099b3fa72581e7c986e729888ce165af",
+      "bytes": 58777
+    },
+    {
+      "file": "song-data/anthology/raw/some_of_these_days.xml",
+      "source_filename": "SOME OF THESE DAYS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4173",
+      "format": "MusicXML",
+      "md5_local": "add242a579712f45ad4af2c0ceb5159d",
+      "md5_source": "add242a579712f45ad4af2c0ceb5159d",
+      "bytes": 65542
+    },
+    {
+      "file": "song-data/anthology/raw/somebody_stole_my_gal.xml",
+      "source_filename": "SOMEBODY STOLE MY GAL.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3754",
+      "format": "MusicXML",
+      "md5_local": "3512625db1547ce68ba89d6d612007f4",
+      "md5_source": "3512625db1547ce68ba89d6d612007f4",
+      "bytes": 66095
+    },
+    {
+      "file": "song-data/anthology/raw/someday_sweetheart.xml",
+      "source_filename": "SOMEDAY SWEETHEART.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4148",
+      "format": "MusicXML",
+      "md5_local": "db5d0da8a7f8d5ed2819697b19e2976a",
+      "md5_source": "db5d0da8a7f8d5ed2819697b19e2976a",
+      "bytes": 58334
+    },
+    {
+      "file": "song-data/anthology/raw/sometimes_i_feel_like_a_motherless_child.xml",
+      "source_filename": "SOMETIMES I FEEL LIKE A MOTHERLESS CHILD.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4199",
+      "format": "MusicXML",
+      "md5_local": "c3fe7988b472a09742659a1672fd9e06",
+      "md5_source": "c3fe7988b472a09742659a1672fd9e06",
+      "bytes": 47378
+    },
+    {
+      "file": "song-data/anthology/raw/song_of_india.xml",
+      "source_filename": "SONG OF INDIA.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3693",
+      "format": "MusicXML",
+      "md5_local": "a4f84ace757becdd04bbd233598da76b",
+      "md5_source": "a4f84ace757becdd04bbd233598da76b",
+      "bytes": 73388
+    },
+    {
+      "file": "song-data/anthology/raw/song_of_the_volga_boatmen.xml",
+      "source_filename": "SONG OF THE VOLGA BOATMEN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4271",
+      "format": "MusicXML",
+      "md5_local": "fe6a3e171027ab801606f1172246c58f",
+      "md5_source": "fe6a3e171027ab801606f1172246c58f",
+      "bytes": 80308
+    },
+    {
+      "file": "song-data/anthology/raw/st_james_infirmary.xml",
+      "source_filename": "ST JAMES INFIRMARY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3948",
+      "format": "MusicXML",
+      "md5_local": "25bf24885956cfd9f8fcc7dcd059fb4a",
+      "md5_source": "25bf24885956cfd9f8fcc7dcd059fb4a",
+      "bytes": 50238
+    },
+    {
+      "file": "song-data/anthology/raw/st_louis_blues.xml",
+      "source_filename": "ST LOUIS BLUES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4345",
+      "format": "MusicXML",
+      "md5_local": "c5720832d73f18431a4d3a960980b9ed",
+      "md5_source": "c5720832d73f18431a4d3a960980b9ed",
+      "bytes": 118260
+    },
+    {
+      "file": "song-data/anthology/raw/stairway_to_paradise.xml",
+      "source_filename": "STAIRWAY TO PARADISE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4098",
+      "format": "MusicXML",
+      "md5_local": "d128fcc7aa76af04c59d169247f697d9",
+      "md5_source": "d128fcc7aa76af04c59d169247f697d9",
+      "bytes": 53870
+    },
+    {
+      "file": "song-data/anthology/raw/star_spangled_banner_the.xml",
+      "source_filename": "STAR SPANGLED BANNER, the .xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4049",
+      "format": "MusicXML",
+      "md5_local": "ecb68007224eb307870b70a2d82aeb70",
+      "md5_source": "ecb68007224eb307870b70a2d82aeb70",
+      "bytes": 94635
+    },
+    {
+      "file": "song-data/anthology/raw/streets_of_laredo_the_cowboy_s_lament.xml",
+      "source_filename": "STREETS OF LAREDO (THE COWBOY_S LAMENT).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3866",
+      "format": "MusicXML",
+      "md5_local": "e4be269b12be141919ef3930d5cad55c",
+      "md5_source": "e4be269b12be141919ef3930d5cad55c",
+      "bytes": 66099
+    },
+    {
+      "file": "song-data/anthology/raw/sugar_blues.xml",
+      "source_filename": "SUGAR BLUES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4224",
+      "format": "MusicXML",
+      "md5_local": "d048eecd41abe71a41d4a5dd82bd6576",
+      "md5_source": "d048eecd41abe71a41d4a5dd82bd6576",
+      "bytes": 54771
+    },
+    {
+      "file": "song-data/anthology/raw/sweet_adeline.xml",
+      "source_filename": "SWEET ADELINE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4134",
+      "format": "MusicXML",
+      "md5_local": "70ea1c16052c10c6251ca9300d8f49c2",
+      "md5_source": "70ea1c16052c10c6251ca9300d8f49c2",
+      "bytes": 30747
+    },
+    {
+      "file": "song-data/anthology/raw/sweet_betsy_from_pike.xml",
+      "source_filename": "SWEET BETSY FROM PIKE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4306",
+      "format": "MusicXML",
+      "md5_local": "f7b3e57c9ca02484436181037bc38deb",
+      "md5_source": "f7b3e57c9ca02484436181037bc38deb",
+      "bytes": 38732
+    },
+    {
+      "file": "song-data/anthology/raw/sweet_genevieve.xml",
+      "source_filename": "SWEET GENEVIEVE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4217",
+      "format": "MusicXML",
+      "md5_local": "db7b407ba4d05d1519d9935b56c11567",
+      "md5_source": "db7b407ba4d05d1519d9935b56c11567",
+      "bytes": 30424
+    },
+    {
+      "file": "song-data/anthology/raw/swing_low_sweet_chariot.xml",
+      "source_filename": "SWING LOW, SWEET CHARIOT.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3672",
+      "format": "MusicXML",
+      "md5_local": "12bed80fa18213b2e003bae69710b2e0",
+      "md5_source": "12bed80fa18213b2e003bae69710b2e0",
+      "bytes": 60465
+    },
+    {
+      "file": "song-data/anthology/raw/swingin_down_the_lane.xml",
+      "source_filename": "SWINGIN_ DOWN THE LANE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4129",
+      "format": "MusicXML",
+      "md5_local": "1bc44be50a159f2315b991a915930df7",
+      "md5_source": "1bc44be50a159f2315b991a915930df7",
+      "bytes": 67475
+    },
+    {
+      "file": "song-data/anthology/raw/ta_ra_ra_boom_de_ay.xml",
+      "source_filename": "TA-RA-RA BOOM-DE-AY!.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4229",
+      "format": "MusicXML",
+      "md5_local": "f4f58060818d04248681568424175b7c",
+      "md5_source": "f4f58060818d04248681568424175b7c",
+      "bytes": 80479
+    },
+    {
+      "file": "song-data/anthology/raw/tain_t_nobody_s_bizness_if_i_do.xml",
+      "source_filename": "TAIN_T NOBODY_S BIZNESS IF I DO.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4168",
+      "format": "MusicXML",
+      "md5_local": "31118da58cdc16d673a9a96e081b5ec9",
+      "md5_source": "31118da58cdc16d673a9a96e081b5ec9",
+      "bytes": 52270
+    },
+    {
+      "file": "song-data/anthology/raw/take_me_out_to_the_ballgame.xml",
+      "source_filename": "TAKE ME OUT TO THE BALLGAME.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3895",
+      "format": "MusicXML",
+      "md5_local": "2d0c13c2568e9d18961bfacde1297b1d",
+      "md5_source": "2d0c13c2568e9d18961bfacde1297b1d",
+      "bytes": 48997
+    },
+    {
+      "file": "song-data/anthology/raw/that_old_gang_of_mine.xml",
+      "source_filename": "THAT OLD GANG OF MINE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4210",
+      "format": "MusicXML",
+      "md5_local": "af124e9f079994c9f0dbfe755902f075",
+      "md5_source": "af124e9f079994c9f0dbfe755902f075",
+      "bytes": 51448
+    },
+    {
+      "file": "song-data/anthology/raw/that_s_a_plenty.xml",
+      "source_filename": "THAT_S A PLENTY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4076",
+      "format": "MusicXML",
+      "md5_local": "76cd1deb907350c1a8dfd8140820aade",
+      "md5_source": "76cd1deb907350c1a8dfd8140820aade",
+      "bytes": 66418
+    },
+    {
+      "file": "song-data/anthology/raw/there_is_a_tavern_in_the_town.xml",
+      "source_filename": "THERE IS A TAVERN IN THE TOWN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3988",
+      "format": "MusicXML",
+      "md5_local": "07b80dcf2b5878479efe68a849c210ba",
+      "md5_source": "07b80dcf2b5878479efe68a849c210ba",
+      "bytes": 88948
+    },
+    {
+      "file": "song-data/anthology/raw/there_ll_be_some_changes_made.xml",
+      "source_filename": "THERE_LL BE SOME CHANGES MADE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4120",
+      "format": "MusicXML",
+      "md5_local": "80c514b2c1f5c67ecef1476dd746792d",
+      "md5_source": "80c514b2c1f5c67ecef1476dd746792d",
+      "bytes": 69280
+    },
+    {
+      "file": "song-data/anthology/raw/they_didn_t_believe_me.xml",
+      "source_filename": "THEY DIDN_T BELIEVE ME.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4028",
+      "format": "MusicXML",
+      "md5_local": "0d7d7c0948fc9c964ee030dcf304255d",
+      "md5_source": "0d7d7c0948fc9c964ee030dcf304255d",
+      "bytes": 75943
+    },
+    {
+      "file": "song-data/anthology/raw/this_old_man.xml",
+      "source_filename": "THIS OLD MAN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3795",
+      "format": "MusicXML",
+      "md5_local": "a5afb4f923810037fab3ecdbbdb462ff",
+      "md5_source": "a5afb4f923810037fab3ecdbbdb462ff",
+      "bytes": 25572
+    },
+    {
+      "file": "song-data/anthology/raw/three_o_clock_in_the_morning.xml",
+      "source_filename": "THREE O_CLOCK IN THE MORNING.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4254",
+      "format": "MusicXML",
+      "md5_local": "3fff05ed4b010a940e26a6d4163a5436",
+      "md5_source": "3fff05ed4b010a940e26a6d4163a5436",
+      "bytes": 46164
+    },
+    {
+      "file": "song-data/anthology/raw/tico_tico_no_fuba.xml",
+      "source_filename": "TICO TICO NO FUBA.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3755",
+      "format": "MusicXML",
+      "md5_local": "c74cdd90e143e379e7eb4ceb7e8c99ac",
+      "md5_source": "c74cdd90e143e379e7eb4ceb7e8c99ac",
+      "bytes": 133700
+    },
+    {
+      "file": "song-data/anthology/raw/tiger_rag.xml",
+      "source_filename": "TIGER RAG.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3690",
+      "format": "MusicXML",
+      "md5_local": "d8d642f5ac88146d3d28343d6b60d358",
+      "md5_source": "d8d642f5ac88146d3d28343d6b60d358",
+      "bytes": 54863
+    },
+    {
+      "file": "song-data/anthology/raw/till_we_meet_again.xml",
+      "source_filename": "TILL WE MEET AGAIN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3937",
+      "format": "MusicXML",
+      "md5_local": "61acbb9edb98ea11d37e53f5b5fea396",
+      "md5_source": "61acbb9edb98ea11d37e53f5b5fea396",
+      "bytes": 52627
+    },
+    {
+      "file": "song-data/anthology/raw/tin_roof_blues.xml",
+      "source_filename": "TIN ROOF BLUES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4143",
+      "format": "MusicXML",
+      "md5_local": "e66d5f38229f8d3299d1c8735fd2c570",
+      "md5_source": "e66d5f38229f8d3299d1c8735fd2c570",
+      "bytes": 52474
+    },
+    {
+      "file": "song-data/anthology/raw/tishomingo_blues.xml",
+      "source_filename": "TISHOMINGO BLUES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4082",
+      "format": "MusicXML",
+      "md5_local": "99784f1ae031c75f344995ec8f621db4",
+      "md5_source": "99784f1ae031c75f344995ec8f621db4",
+      "bytes": 83259
+    },
+    {
+      "file": "song-data/anthology/raw/tisket_a_tasket_a.xml",
+      "source_filename": "TISKET, A TASKET, A.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3713",
+      "format": "MusicXML",
+      "md5_local": "6335961470793b5ac73d74a1391b9be7",
+      "md5_source": "6335961470793b5ac73d74a1391b9be7",
+      "bytes": 28402
+    },
+    {
+      "file": "song-data/anthology/raw/to_a_wild_rose.xml",
+      "source_filename": "TO A WILD ROSE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4252",
+      "format": "MusicXML",
+      "md5_local": "b559e0b0555761f004edece8d8ed2c0d",
+      "md5_source": "b559e0b0555761f004edece8d8ed2c0d",
+      "bytes": 85837
+    },
+    {
+      "file": "song-data/anthology/raw/too_ra_loo_ra_loo_ral.xml",
+      "source_filename": "TOO-RA-LOO-RA-LOO-RAL.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3968",
+      "format": "MusicXML",
+      "md5_local": "9f2f1e45ba651fea3b87264d0e918984",
+      "md5_source": "9f2f1e45ba651fea3b87264d0e918984",
+      "bytes": 41486
+    },
+    {
+      "file": "song-data/anthology/raw/toot_toot_tootsie_goodbye.xml",
+      "source_filename": "TOOT, TOOT, TOOTSIE (GOODBYE).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4363",
+      "format": "MusicXML",
+      "md5_local": "70bc44d19679e20e5ebb0527e8de95ec",
+      "md5_source": "70bc44d19679e20e5ebb0527e8de95ec",
+      "bytes": 69584
+    },
+    {
+      "file": "song-data/anthology/raw/toyland.xml",
+      "source_filename": "TOYLAND.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4128",
+      "format": "MusicXML",
+      "md5_local": "47915e20b377a97f96b838d72479256d",
+      "md5_source": "47915e20b377a97f96b838d72479256d",
+      "bytes": 43117
+    },
+    {
+      "file": "song-data/anthology/raw/trees.xml",
+      "source_filename": "TREES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4035",
+      "format": "MusicXML",
+      "md5_local": "56a049a8237ea22ee9d137b5c46bbd80",
+      "md5_source": "56a049a8237ea22ee9d137b5c46bbd80",
+      "bytes": 72328
+    },
+    {
+      "file": "song-data/anthology/raw/turkey_in_the_straw.xml",
+      "source_filename": "TURKEY IN THE STRAW.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4194",
+      "format": "MusicXML",
+      "md5_local": "a2b9cd3f4ed90c4706ca5a556312884f",
+      "md5_source": "a2b9cd3f4ed90c4706ca5a556312884f",
+      "bytes": 65847
+    },
+    {
+      "file": "song-data/anthology/raw/twelfth_street_rag.xml",
+      "source_filename": "TWELFTH STREET RAG.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3806",
+      "format": "MusicXML",
+      "md5_local": "44faee3dc6239326c5306e23a2699aaa",
+      "md5_source": "44faee3dc6239326c5306e23a2699aaa",
+      "bytes": 65480
+    },
+    {
+      "file": "song-data/anthology/raw/twelve_days_of_christmas.xml",
+      "source_filename": "TWELVE DAYS OF CHRISTMAS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4295",
+      "format": "MusicXML",
+      "md5_local": "e8b71b79fbdc6ce1bb3c2edfb3d63617",
+      "md5_source": "e8b71b79fbdc6ce1bb3c2edfb3d63617",
+      "bytes": 88092
+    },
+    {
+      "file": "song-data/anthology/raw/twinkle_twinkle_little_star.xml",
+      "source_filename": "TWINKLE, TWINKLE, LITTLE STAR.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3758",
+      "format": "MusicXML",
+      "md5_local": "c5052fd0b7a430b31ee5b94f3443b8a0",
+      "md5_source": "c5052fd0b7a430b31ee5b94f3443b8a0",
+      "bytes": 36998
+    },
+    {
+      "file": "song-data/anthology/raw/vive_la_compagnie.xml",
+      "source_filename": "VIVE LA COMPAGNIE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4023",
+      "format": "MusicXML",
+      "md5_local": "57ccec7fbbd76b0b51c4a68df897ecab",
+      "md5_source": "57ccec7fbbd76b0b51c4a68df897ecab",
+      "bytes": 52692
+    },
+    {
+      "file": "song-data/anthology/raw/wabash_blues.xml",
+      "source_filename": "WABASH BLUES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3957",
+      "format": "MusicXML",
+      "md5_local": "91cb06bbb8794c3307c58d3ba0e6db64",
+      "md5_source": "91cb06bbb8794c3307c58d3ba0e6db64",
+      "bytes": 53925
+    },
+    {
+      "file": "song-data/anthology/raw/wait_till_the_sun_shines_nellie.xml",
+      "source_filename": "WAIT _TILL THE SUN SHINES, NELLIE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4228",
+      "format": "MusicXML",
+      "md5_local": "834d35f5e23b1ad9b01fa1b349c6be21",
+      "md5_source": "834d35f5e23b1ad9b01fa1b349c6be21",
+      "bytes": 46637
+    },
+    {
+      "file": "song-data/anthology/raw/waltzing_matilda.xml",
+      "source_filename": "WALTZING MATILDA.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3921",
+      "format": "MusicXML",
+      "md5_local": "3f499c1473bc4f1049651e81f4a43f43",
+      "md5_source": "3f499c1473bc4f1049651e81f4a43f43",
+      "bytes": 69105
+    },
+    {
+      "file": "song-data/anthology/raw/wang_wang_blues.xml",
+      "source_filename": "WANG WANG BLUES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4008",
+      "format": "MusicXML",
+      "md5_local": "a0335f27fa2c459603afaecf2b0af48d",
+      "md5_source": "a0335f27fa2c459603afaecf2b0af48d",
+      "bytes": 44369
+    },
+    {
+      "file": "song-data/anthology/raw/washington_and_lee_swing.xml",
+      "source_filename": "WASHINGTON AND LEE SWING.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3687",
+      "format": "MusicXML",
+      "md5_local": "6b653fcff172c4a7181869e35b12214f",
+      "md5_source": "6b653fcff172c4a7181869e35b12214f",
+      "bytes": 67317
+    },
+    {
+      "file": "song-data/anthology/raw/way_down_yonder_in_new_orleans.xml",
+      "source_filename": "WAY DOWN YONDER IN NEW ORLEANS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4244",
+      "format": "MusicXML",
+      "md5_local": "171846eabd656f7723b4195cce9df1d6",
+      "md5_source": "171846eabd656f7723b4195cce9df1d6",
+      "bytes": 72846
+    },
+    {
+      "file": "song-data/anthology/raw/wayfaring_stranger.xml",
+      "source_filename": "WAYFARING STRANGER.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4149",
+      "format": "MusicXML",
+      "md5_local": "e9c859e7deca6004bb8f5844e646c092",
+      "md5_source": "e9c859e7deca6004bb8f5844e646c092",
+      "bytes": 58185
+    },
+    {
+      "file": "song-data/anthology/raw/we_wish_you_a_merry_christmas.xml",
+      "source_filename": "WE WISH YOU A MERRY CHRISTMAS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4361",
+      "format": "MusicXML",
+      "md5_local": "b54882f715154d550c266b67c540867f",
+      "md5_source": "b54882f715154d550c266b67c540867f",
+      "bytes": 45019
+    },
+    {
+      "file": "song-data/anthology/raw/were_you_there.xml",
+      "source_filename": "WERE YOU THERE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4344",
+      "format": "MusicXML",
+      "md5_local": "7637b5f1d1b204de3f63ba4b8a60b6ce",
+      "md5_source": "7637b5f1d1b204de3f63ba4b8a60b6ce",
+      "bytes": 48128
+    },
+    {
+      "file": "song-data/anthology/raw/what_a_friend_we_have_in_jesus.xml",
+      "source_filename": "WHAT A FRIEND WE HAVE IN JESUS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3890",
+      "format": "MusicXML",
+      "md5_local": "39deea96e5479d55f338e28c94b00f6f",
+      "md5_source": "39deea96e5479d55f338e28c94b00f6f",
+      "bytes": 58723
+    },
+    {
+      "file": "song-data/anthology/raw/when_hearts_are_young.xml",
+      "source_filename": "WHEN HEARTS ARE YOUNG.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4024",
+      "format": "MusicXML",
+      "md5_local": "1e590ddd253179009ec77c68891a31da",
+      "md5_source": "1e590ddd253179009ec77c68891a31da",
+      "bytes": 42926
+    },
+    {
+      "file": "song-data/anthology/raw/when_i_lost_you.xml",
+      "source_filename": "WHEN I LOST YOU.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4026",
+      "format": "MusicXML",
+      "md5_local": "d76400bb13206cd33e2d8843e207647b",
+      "md5_source": "d76400bb13206cd33e2d8843e207647b",
+      "bytes": 47402
+    },
+    {
+      "file": "song-data/anthology/raw/when_irish_eyes_are_smiling.xml",
+      "source_filename": "WHEN IRISH EYES ARE SMILING.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3684",
+      "format": "MusicXML",
+      "md5_local": "f0bfc67ae7b619d63088a69cd698af83",
+      "md5_source": "f0bfc67ae7b619d63088a69cd698af83",
+      "bytes": 43660
+    },
+    {
+      "file": "song-data/anthology/raw/when_johnny_comes_marching_home.xml",
+      "source_filename": "WHEN JOHNNY COMES MARCHING HOME.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4174",
+      "format": "MusicXML",
+      "md5_local": "10cd15ba807dbf0ad8c184ce0e907c90",
+      "md5_source": "10cd15ba807dbf0ad8c184ce0e907c90",
+      "bytes": 44075
+    },
+    {
+      "file": "song-data/anthology/raw/when_my_baby_smiles_at_me.xml",
+      "source_filename": "WHEN MY BABY SMILES AT ME.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3928",
+      "format": "MusicXML",
+      "md5_local": "d991402fc1d9fdcd39d2db533b5e6813",
+      "md5_source": "d991402fc1d9fdcd39d2db533b5e6813",
+      "bytes": 51385
+    },
+    {
+      "file": "song-data/anthology/raw/when_the_saints_go_marching_in.xml",
+      "source_filename": "WHEN THE SAINTS GO MARCHING IN.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3839",
+      "format": "MusicXML",
+      "md5_local": "f6c42970d0c9375b34e1b46b840eb397",
+      "md5_source": "f6c42970d0c9375b34e1b46b840eb397",
+      "bytes": 31180
+    },
+    {
+      "file": "song-data/anthology/raw/when_you_and_i_were_young_maggie.xml",
+      "source_filename": "WHEN YOU AND I WERE YOUNG, MAGGIE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4189",
+      "format": "MusicXML",
+      "md5_local": "16b7a712f92adfdfc1e4cf3294bb4599",
+      "md5_source": "16b7a712f92adfdfc1e4cf3294bb4599",
+      "bytes": 83864
+    },
+    {
+      "file": "song-data/anthology/raw/when_you_wore_a_tulip.xml",
+      "source_filename": "WHEN YOU WORE A TULIP.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3762",
+      "format": "MusicXML",
+      "md5_local": "5a6df3e56af91ed25a974c968125bd4a",
+      "md5_source": "5a6df3e56af91ed25a974c968125bd4a",
+      "bytes": 60043
+    },
+    {
+      "file": "song-data/anthology/raw/where_oh_where_has_my_little_dog_gone.xml",
+      "source_filename": "WHERE OH WHERE HAS MY LITTLE DOG GONE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4338",
+      "format": "MusicXML",
+      "md5_local": "1ea12afdde43d39ffc10d86418d2d877",
+      "md5_source": "1ea12afdde43d39ffc10d86418d2d877",
+      "bytes": 28504
+    },
+    {
+      "file": "song-data/anthology/raw/whiffenpoof_song_the.xml",
+      "source_filename": "WHIFFENPOOF SONG, THE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4201",
+      "format": "MusicXML",
+      "md5_local": "83cb0ef98739f3af530e079f2cdc87e4",
+      "md5_source": "83cb0ef98739f3af530e079f2cdc87e4",
+      "bytes": 50592
+    },
+    {
+      "file": "song-data/anthology/raw/whispering.xml",
+      "source_filename": "WHISPERING.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4147",
+      "format": "MusicXML",
+      "md5_local": "ab5789ad276a2029f0cacec5ab99f04a",
+      "md5_source": "ab5789ad276a2029f0cacec5ab99f04a",
+      "bytes": 51883
+    },
+    {
+      "file": "song-data/anthology/raw/who_s_sorry_now.xml",
+      "source_filename": "WHO_S SORRY NOW.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4341",
+      "format": "MusicXML",
+      "md5_local": "6e154558a98792cc8ca77a8a5d23faff",
+      "md5_source": "6e154558a98792cc8ca77a8a5d23faff",
+      "bytes": 43938
+    },
+    {
+      "file": "song-data/anthology/raw/world_is_waiting_for_the_sunrise.xml",
+      "source_filename": "WORLD IS WAITING FOR THE SUNRISE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3887",
+      "format": "MusicXML",
+      "md5_local": "77b430a23d10032004617ef3f28596a3",
+      "md5_source": "77b430a23d10032004617ef3f28596a3",
+      "bytes": 35363
+    },
+    {
+      "file": "song-data/anthology/raw/yankee_doodle_boy.xml",
+      "source_filename": "YANKEE DOODLE BOY.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4165",
+      "format": "MusicXML",
+      "md5_local": "5f0734b08285e23ba9c195d2f71ca2a0",
+      "md5_source": "5f0734b08285e23ba9c195d2f71ca2a0",
+      "bytes": 53085
+    },
+    {
+      "file": "song-data/anthology/raw/yankee_doodle.xml",
+      "source_filename": "YANKEE DOODLE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3978",
+      "format": "MusicXML",
+      "md5_local": "24e92ee21464389620d76c3c8a5c8aa1",
+      "md5_source": "24e92ee21464389620d76c3c8a5c8aa1",
+      "bytes": 46249
+    },
+    {
+      "file": "song-data/anthology/raw/yellow_dog_blues.xml",
+      "source_filename": "YELLOW DOG BLUES.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3715",
+      "format": "MusicXML",
+      "md5_local": "81dd2c458359afda03c885270057a1a0",
+      "md5_source": "81dd2c458359afda03c885270057a1a0",
+      "bytes": 60450
+    },
+    {
+      "file": "song-data/anthology/raw/yellow_rose_of_texas_the.xml",
+      "source_filename": "YELLOW ROSE OF TEXAS, THE .xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3683",
+      "format": "MusicXML",
+      "md5_local": "4d8a807d55bc55ce93c88f6a32db8d08",
+      "md5_source": "4d8a807d55bc55ce93c88f6a32db8d08",
+      "bytes": 54063
+    },
+    {
+      "file": "song-data/anthology/raw/yes_we_have_no_bananas.xml",
+      "source_filename": "YES! WE HAVE NO BANANAS.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/3703",
+      "format": "MusicXML",
+      "md5_local": "fdd2312c6e2e495ffb9fe54d60546abf",
+      "md5_source": "fdd2312c6e2e495ffb9fe54d60546abf",
+      "bytes": 53836
+    },
+    {
+      "file": "song-data/anthology/raw/you_made_me_love_you.xml",
+      "source_filename": "YOU MADE ME LOVE YOU.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4013",
+      "format": "MusicXML",
+      "md5_local": "fcb0e20971261cbcfd671179f33d4154",
+      "md5_source": "fcb0e20971261cbcfd671179f33d4154",
+      "bytes": 92438
+    },
+    {
+      "file": "song-data/anthology/raw/you_tell_me_your_dream_i_ll_tell_you_mine.xml",
+      "source_filename": "YOU TELL ME YOUR DREAM, I_LL TELL YOU MINE.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4178",
+      "format": "MusicXML",
+      "md5_local": "c05bcbb4ff895ccadef99fd23c1bb6bd",
+      "md5_source": "c05bcbb4ff895ccadef99fd23c1bb6bd",
+      "bytes": 37170
+    },
+    {
+      "file": "song-data/anthology/raw/you_d_be_surprised.xml",
+      "source_filename": "YOU_D BE SURPRISED.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4184",
+      "format": "MusicXML",
+      "md5_local": "1ac09ecd1ef1965d5ddc4e8470d1ddae",
+      "md5_source": "1ac09ecd1ef1965d5ddc4e8470d1ddae",
+      "bytes": 107713
+    },
+    {
+      "file": "song-data/anthology/raw/you_re_a_grand_old_flag.xml",
+      "source_filename": "YOU_RE A GRAND OLD FLAG.xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4212",
+      "format": "MusicXML",
+      "md5_local": "8f827fc3340323d6e4130fff9e741871",
+      "md5_source": "8f827fc3340323d6e4130fff9e741871",
+      "bytes": 61075
+    },
+    {
+      "file": "song-data/anthology/raw/you_ve_got_to_see_mamma_ev_ry_night_or_you_can_t_see_mamma_at_all.xml",
+      "source_filename": "YOU_VE GOT TO SEE MAMMA EV_RY NIGHT (or you can_t see Mamma at all).xml",
+      "source_url": "https://dataverse.lib.virginia.edu/api/access/datafile/4354",
+      "format": "MusicXML",
+      "md5_local": "5b3d450198cb8f7985b715754adf66ae",
+      "md5_source": "5b3d450198cb8f7985b715754adf66ae",
+      "bytes": 59004
+    }
+  ]
+}

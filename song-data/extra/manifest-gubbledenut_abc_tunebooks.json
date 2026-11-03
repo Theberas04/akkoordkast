@@ -1,0 +1,233 @@
+{
+  "source": "Gubbledenut/ABC_TuneBooks (GitHub)",
+  "source_url": "https://github.com/Gubbledenut/ABC_TuneBooks",
+  "license": "CC0-1.0 (Creative Commons Zero v1.0 Universal)",
+  "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "license_text": "Creative Commons Legal Code\n\nCC0 1.0 Universal\n\n    CREATIVE COMMONS CORPORATION IS NOT A LAW FIRM AND DOES NOT PROVIDE\n    LEGAL SERVICES. DISTRIBUTION OF THIS DOCUMENT DOES NOT CREATE AN\n    ATTORNEY-CLIENT RELATIONSHIP. CREATIVE COMMONS PROVIDES THIS\n    INFORMATION ON AN \"AS-IS\" BASIS. CREATIVE COMMONS MAKES NO WARRANTIES\n    REGARDING THE USE OF THIS DOCUMENT OR THE INFORMATION OR WORKS\n    PROVIDED HEREUNDER, AND DISCLAIMS LIABILITY FOR DAMAGES RESULTING FROM\n    THE USE OF THIS DOCUMENT OR THE INFORMATION OR WORKS PROVIDED\n    HEREUNDER.\n\nStatement of Purpose\n\nThe laws of most jurisdictions throughout the world automatically confer\nexclusive Copyright and Related Rights (defined below) upon the creator\nand subsequent owner(s) (each and all, an \"owner\") of an original work of\nauthorship and/or a database (each, a \"Work\").\n\nCertain owners wish to permanently relinquish those rights to a Work for\nthe purpose of contributing to a commons of creative, cultural and\nscientific works (\"Commons\") that the public can reliably and without fear\nof later claims of infringement build upon, modify, incorporate in other\nworks, reuse and redistribute as freely as possible in any form whatsoever\nand for any purposes, including without limitation commercial purposes.\nThese owners may contribute to the Commons to promote the ideal of a free\nculture and the further production of creative, cultural and scientific\nworks, or to gain reputation or greater distribution for their Work in\npart through the use and efforts of others.\n\nFor these and/or other purposes and motivations, and without any\nexpectation of additional consideration or compensation, the person\nassociating CC0 with a Work (the \"Affirmer\"), to the extent that he or she\nis an owner of Copyright and Related Rights in the Work, voluntarily\nelects to apply CC0 to the Work and publicly distribute the Work under its\nterms, with knowledge of his or her Copyright and Related Rights in the\nWork and the meaning and intended legal effect of CC0 on those rights.\n\n1. Copyright and Related Rights. A Work made available under CC0 may be\nprotected by copyright and related or neighboring rights (\"Copyright and\nRelated Rights\"). Copyright and Related Rights include, but are not\nlimited to, the following:\n\n  i. the right to reproduce, adapt, distribute, perform, display,\n     communicate, and translate a Work;\n ii. moral rights retained by the original author(s) and/or performer(s);\niii. publicity and privacy rights pertaining to a person's image or\n     likeness depicted in a Work;\n iv. rights protecting against unfair competition in regards to a Work,\n     subject to the limitations in paragraph 4(a), below;\n  v. rights protecting the extraction, dissemination, use and reuse of data\n     in a Work;\n vi. database rights (such as those arising under Directive 96/9/EC of the\n     European Parliament and of the Council of 11 March 1996 on the legal\n     protection of databases, and under any national implementation\n     thereof, including any amended or successor version of such\n     directive); and\nvii. other similar, equivalent or corresponding rights throughout the\n     world based on applicable law or treaty, and any national\n     implementations thereof.\n\n2. Waiver. To the greatest extent permitted by, but not in contravention\nof, applicable law, Affirmer hereby overtly, fully, permanently,\nirrevocably and unconditionally waives, abandons, and surrenders all of\nAffirmer's Copyright and Related Rights and associated claims and causes\nof action, whether now known or unknown (including existing as well as\nfuture claims and causes of action), in the Work (i) in all territories\nworldwide, (ii) for the maximum duration provided by applicable law or\ntreaty (including future time extensions), (iii) in any current or future\nmedium and for any number of copies, and (iv) for any purpose whatsoever,\nincluding without limitation commercial, advertising or promotional\npurposes (the \"Waiver\"). Affirmer makes the Waiver for the benefit of each\nmember of the public at large and to the detriment of Affirmer's heirs and\nsuccessors, fully intending that such Waiver shall not be subject to\nrevocation, rescission, cancellation, termination, or any other legal or\nequitable action to disrupt the quiet enjoyment of the Work by the public\nas contemplated by Affirmer's express Statement of Purpose.\n\n3. Public License Fallback. Should any part of the Waiver for any reason\nbe judged legally invalid or ineffective under applicable law, then the\nWaiver shall be preserved to the maximum extent permitted taking into\naccount Affirmer's express Statement of Purpose. In addition, to the\nextent the Waiver is so judged Affirmer hereby grants to each affected\nperson a royalty-free, non transferable, non sublicensable, non exclusive,\nirrevocable and unconditional license to exercise Affirmer's Copyright and\nRelated Rights in the Work (i) in all territories worldwide, (ii) for the\nmaximum duration provided by applicable law or treaty (including future\ntime extensions), (iii) in any current or future medium and for any number\nof copies, and (iv) for any purpose whatsoever, including without\nlimitation commercial, advertising or promotional purposes (the\n\"License\"). The License shall be deemed effective as of the date CC0 was\napplied by Affirmer to the Work. Should any part of the License for any\nreason be judged legally invalid or ineffective under applicable law, such\npartial invalidity or ineffectiveness shall not invalidate the remainder\nof the License, and in such case Affirmer hereby affirms that he or she\nwill not (i) exercise any of his or her remaining Copyright and Related\nRights in the Work or (ii) assert any associated claims and causes of\naction with respect to the Work, in either case contrary to Affirmer's\nexpress Statement of Purpose.\n\n4. Limitations and Disclaimers.\n\n a. No trademark or patent rights held by Affirmer are waived, abandoned,\n    surrendered, licensed or otherwise affected by this document.\n b. Affirmer offers the Work as-is and makes no representations or\n    warranties of any kind concerning the Work, express, implied,\n    statutory or otherwise, including without limitation warranties of\n    title, merchantability, fitness for a particular purpose, non\n    infringement, or the absence of latent or other defects, accuracy, or\n    the present or absence of errors, whether or not discoverable, all to\n    the greatest extent permissible under applicable law.\n c. Affirmer disclaims responsibility for clearing rights of other persons\n    that may apply to the Work or any use thereof, including without\n    limitation any person's Copyright and Related Rights in the Work.\n    Further, Affirmer disclaims responsibility for obtaining any necessary\n    consents, permissions or other rights required for any use of the\n    Work.\n d. Affirmer understands and acknowledges that Creative Commons is not a\n    party to this document and has no duty or obligation with respect to\n    this CC0 or use of the Work.",
+  "license_statement_location": "LICENSE.txt in repository root",
+  "description": "ABC transcriptions of historical English country-dance and fiddle manuscript tune books (Button, Rutherford, Thompson, Wright, Longman, Skillern, Preston, John Moore, Malchair, Kitty Bridges 1745, etc.).",
+  "tunes": 1908,
+  "file_count": 44,
+  "files": [
+    {
+      "saved": "anon2.abc",
+      "original": "Anon2.abc",
+      "tunes": 163
+    },
+    {
+      "saved": "button1809.abc",
+      "original": "Button1809.abc",
+      "tunes": 12
+    },
+    {
+      "saved": "button1810.abc",
+      "original": "Button1810.abc",
+      "tunes": 12
+    },
+    {
+      "saved": "button1818.abc",
+      "original": "Button1818.abc",
+      "tunes": 12
+    },
+    {
+      "saved": "hammondvwml.abc",
+      "original": "HammondVWML.abc",
+      "tunes": 74
+    },
+    {
+      "saved": "john_moore_bk1_4493.abc",
+      "original": "John Moore Bk1 4493.abc",
+      "tunes": 58
+    },
+    {
+      "saved": "john_moore_bk2_4494.abc",
+      "original": "John Moore Bk2 4494.abc",
+      "tunes": 112
+    },
+    {
+      "saved": "john_moore_bk3_44945.abc",
+      "original": "John Moore Bk3 44945.abc",
+      "tunes": 78
+    },
+    {
+      "saved": "johnsonvol8_dance.abc",
+      "original": "JohnsonVol8 dance.abc",
+      "tunes": 100
+    },
+    {
+      "saved": "johnsonvol8_dance1.abc",
+      "original": "JohnsonVol8 dance1.abc",
+      "tunes": 25
+    },
+    {
+      "saved": "johnsonvol8_dance2.abc",
+      "original": "JohnsonVol8 dance2.abc",
+      "tunes": 75
+    },
+    {
+      "saved": "kitty_bridges_1745.abc",
+      "original": "Kitty Bridges 1745.abc",
+      "tunes": 21
+    },
+    {
+      "saved": "longmans_cotillon_9236.abc",
+      "original": "Longmans Cotillon 9236.abc",
+      "tunes": 1
+    },
+    {
+      "saved": "malchair.abc",
+      "original": "Malchair.abc",
+      "tunes": 106
+    },
+    {
+      "saved": "prestons1793.abc",
+      "original": "Prestons1793.abc",
+      "tunes": 1
+    },
+    {
+      "saved": "prestons1794.abc",
+      "original": "Prestons1794.abc",
+      "tunes": 12
+    },
+    {
+      "saved": "prestons1798.abc",
+      "original": "Prestons1798.abc",
+      "tunes": 12
+    },
+    {
+      "saved": "rutherfordselect_1772.abc",
+      "original": "RutherfordSelect 1772.abc",
+      "tunes": 1
+    },
+    {
+      "saved": "rutherfordvol1756_with_z.abc",
+      "original": "RutherfordVol1756_with z.abc",
+      "tunes": 85
+    },
+    {
+      "saved": "rutherfordvol1_2249.abc",
+      "original": "RutherfordVol1-2249.abc",
+      "tunes": 100
+    },
+    {
+      "saved": "rvw2_2_2_to_201.abc",
+      "original": "RVW2-2-2 to 201.abc",
+      "tunes": 142
+    },
+    {
+      "saved": "sbg_pc_vol_1.abc",
+      "original": "SBG_PC_VOL_1.abc",
+      "tunes": 117
+    },
+    {
+      "saved": "sbg_vol2.abc",
+      "original": "SBG Vol2.abc",
+      "tunes": 261
+    },
+    {
+      "saved": "sbg_vol3.abc",
+      "original": "SBG Vol3.abc",
+      "tunes": 1
+    },
+    {
+      "saved": "skillern1780.abc",
+      "original": "Skillern1780.abc",
+      "tunes": 12
+    },
+    {
+      "saved": "skillern1781.abc",
+      "original": "Skillern1781.abc",
+      "tunes": 12
+    },
+    {
+      "saved": "skillern1782.abc",
+      "original": "Skillern1782.abc",
+      "tunes": 12
+    },
+    {
+      "saved": "skillerns1799.abc",
+      "original": "Skillerns1799.abc",
+      "tunes": 12
+    },
+    {
+      "saved": "straights1779.abc",
+      "original": "Straights1779.abc",
+      "tunes": 12
+    },
+    {
+      "saved": "straights1783.abc",
+      "original": "Straights1783.abc",
+      "tunes": 11
+    },
+    {
+      "saved": "straights_skillern1777.abc",
+      "original": "Straights-Skillern1777.abc",
+      "tunes": 12
+    },
+    {
+      "saved": "thompson1762.abc",
+      "original": "Thompson1762.abc",
+      "tunes": 12
+    },
+    {
+      "saved": "thompson1765.abc",
+      "original": "Thompson1765.abc",
+      "tunes": 8
+    },
+    {
+      "saved": "thompson1767.abc",
+      "original": "Thompson1767.abc",
+      "tunes": 12
+    },
+    {
+      "saved": "thompson1774.abc",
+      "original": "Thompson1774.abc",
+      "tunes": 12
+    },
+    {
+      "saved": "thompson1776.abc",
+      "original": "Thompson1776.abc",
+      "tunes": 12
+    },
+    {
+      "saved": "thompson1778.abc",
+      "original": "Thompson1778.abc",
+      "tunes": 12
+    },
+    {
+      "saved": "thompson1779.abc",
+      "original": "Thompson1779.abc",
+      "tunes": 12
+    },
+    {
+      "saved": "thompson1780.abc",
+      "original": "Thompson1780.abc",
+      "tunes": 12
+    },
+    {
+      "saved": "thompson1782.abc",
+      "original": "Thompson1782.abc",
+      "tunes": 6
+    },
+    {
+      "saved": "urbani_liston_1800.abc",
+      "original": "Urbani_Liston_1800.abc",
+      "tunes": 45
+    },
+    {
+      "saved": "wg1.abc",
+      "original": "WG1.abc",
+      "tunes": 1
+    },
+    {
+      "saved": "wrightsvol1.abc",
+      "original": "WrightsVol1.abc",
+      "tunes": 99
+    },
+    {
+      "saved": "yarkers.abc",
+      "original": "Yarkers.abc",
+      "tunes": 1
+    }
+  ]
+}

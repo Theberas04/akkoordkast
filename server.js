@@ -122,6 +122,21 @@ db.exec(`
   );
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS setlists (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    profiel_id INTEGER NOT NULL,
+    naam TEXT NOT NULL DEFAULT '',
+    gemaakt TEXT NOT NULL DEFAULT ''
+  );
+
+  CREATE TABLE IF NOT EXISTS setlist_liedjes (
+    setlist_id INTEGER NOT NULL,
+    liedje_id INTEGER NOT NULL,
+    volgorde INTEGER NOT NULL DEFAULT 0
+  );
+`);
+
 // Er is altijd minstens één profiel: zonder profiel weet de app niet van wie de
 // favorieten zijn.
 if (!db.prepare('SELECT COUNT(*) AS n FROM profielen').get().n) {
@@ -570,6 +585,62 @@ function leesBody(req, limiet) {
   });
 }
 
+// ------------------------------------------------------------------ setlists ---
+// Een setlist is een rij liedjes in een vaste volgorde, per profiel: wat je op een
+// optreden achter elkaar speelt. De volgorde wordt na elke wijziging opnieuw
+// genummerd, zodat omhoog en omlaag altijd klopt.
+
+function setlistVan(profielId, id) {
+  const rij = db.prepare('SELECT * FROM setlists WHERE id = ? AND profiel_id = ?').get(Number(id), profielId);
+  if (!rij) return null;
+  const ids = db.prepare('SELECT liedje_id FROM setlist_liedjes WHERE setlist_id = ? ORDER BY volgorde ASC').all(rij.id)
+    .map(r => r.liedje_id);
+  return { id: rij.id, naam: rij.naam, gemaakt: rij.gemaakt, liedjes: ids };
+}
+
+function setlistsVan(profielId) {
+  return db.prepare('SELECT id, naam, gemaakt FROM setlists WHERE profiel_id = ? ORDER BY naam COLLATE NOCASE ASC').all(profielId)
+    .map(r => ({
+      id: r.id,
+      naam: r.naam,
+      gemaakt: r.gemaakt,
+      aantal: db.prepare('SELECT COUNT(*) AS n FROM setlist_liedjes WHERE setlist_id = ?').get(r.id).n
+    }));
+}
+
+// Wat de app van een setlist nodig heeft: de liedjes met toonsoort, capo, tempo en
+// grepen, zodat de setlist te printen is zonder elk liedje apart op te halen.
+function setlistBeeld(setlist) {
+  const liedjes = setlist.liedjes.map(id => {
+    const lied = vindLiedje(id);
+    if (!lied) return null;
+    const w = weergave(lied);
+    return {
+      id: w.id,
+      titel: w.titel,
+      artiest: w.artiest,
+      toonsoort: w.toonsoort,
+      capo: w.capo,
+      tempo: w.tempo,
+      strum: w.strum,
+      moeilijkheid: w.moeilijkheid,
+      maatsoort: w.maatsoort,
+      akkoorden: theorie.uniek(w.model.akkoorden),
+      bron: w.bron,
+      licentie: w.licentie,
+      eigen: w.eigen
+    };
+  }).filter(Boolean);
+  return { id: setlist.id, naam: setlist.naam, gemaakt: setlist.gemaakt, aantal: liedjes.length, liedjes };
+}
+
+// De volgorde van een setlist opnieuw wegschrijven.
+function bewaarVolgorde(setlistId, ids) {
+  db.prepare('DELETE FROM setlist_liedjes WHERE setlist_id = ?').run(setlistId);
+  const invoegen = db.prepare('INSERT INTO setlist_liedjes (setlist_id, liedje_id, volgorde) VALUES (?, ?, ?)');
+  ids.forEach((liedjeId, i) => invoegen.run(setlistId, liedjeId, i));
+}
+
 function leesJsonBody(req) {
   return leesBody(req, 1024 * 1024).then(b => {
     if (!b.length) return {};
@@ -928,6 +999,128 @@ const MAX_DIEPTE = 4;
 const MAX_PER_RONDE = 500;
 
 // Welke geluids- en videobestanden liggen er in deze map?
+// Eén ronde van de mapscanner: pak de eerste open bestanden en zet ze om. Dezelfde
+// code loopt ook op de achtergrond (de wachter hieronder), zodat je er niet aan hoeft
+// te denken als er nieuwe muziek in de map staat.
+function scanRonde(mapPad, limiet) {
+  const uit = scanBestanden(mapPad);
+  if (uit.fout) return { fout: uit.fout };
+  const teDoen = uit.open.slice(0, limiet);
+  const gedaan = [];
+  const mislukt = [];
+  for (const bestand of teDoen) {
+    try {
+      gedaan.push(herkenBestand(bestand));
+    } catch (e) {
+      mislukt.push({ bestand: bestand.naam, pad: bestand.pad, fout: e.message });
+      db.prepare('INSERT INTO imports (pad, grootte, liedje_id, wanneer) VALUES (?,?,0,?) ON CONFLICT(pad) DO NOTHING')
+        .run(bestand.pad, bestand.grootte, new Date().toISOString());
+    }
+  }
+  const na = scanBestanden(mapPad);
+  return {
+    map: uit.map,
+    gedaan: gedaan.length,
+    mislukt: mislukt.length,
+    klaar: na.nieuw === 0,
+    rest: na.nieuw,
+    totaal: na.aantal,
+    liedjes: gedaan,
+    fouten: mislukt,
+    wanneer: new Date().toISOString()
+  };
+}
+
+// De wachter: kijkt op de achtergrond of er nieuwe muziek in de map staat en of er
+// een nieuwe versie van de app is. Alles wordt bewaard in de instellingen, zodat de
+// kaart in de app kan laten zien wat er gebeurd is — ook na een herstart.
+const WACHTER = {
+  aan: leesInstelling('wacht_map_aan', '0') === '1',
+  minuten: Math.max(5, Math.min(24 * 60, parseInt(leesInstelling('wacht_map_minuten', '360'), 10) || 360)),
+  map: leesInstelling('scan_map', ''),
+  laatste: leesInstelling('wacht_map_laatste', ''),
+  verslag: leesInstelling('wacht_map_verslag', ''),
+  perRonde: Math.max(1, Math.min(50, parseInt(leesInstelling('wacht_map_per_ronde', '8'), 10) || 8)),
+  versieLaatste: leesInstelling('wacht_versie_laatste', ''),
+  versieNieuw: leesInstelling('wacht_versie_nieuw', ''),
+  bezig: false,
+  timer: null
+};
+
+function wachterBeeld() {
+  return {
+    aan: WACHTER.aan,
+    minuten: WACHTER.minuten,
+    map: WACHTER.map,
+    laatste: WACHTER.laatste,
+    verslag: WACHTER.verslag,
+    perRonde: WACHTER.perRonde,
+    versieLaatste: WACHTER.versieLaatste,
+    versieNieuw: WACHTER.versieNieuw,
+    updateMogelijk: updateMogelijk(),
+    updateCommando: updateCommando()
+  };
+}
+
+async function wachterRonde(metVersie) {
+  if (WACHTER.bezig) return;
+  WACHTER.bezig = true;
+  if (!WACHTER.map) {
+    WACHTER.laatste = new Date().toISOString();
+    WACHTER.verslag = 'Nog geen muziekmap ingesteld.';
+    zetInstelling('wacht_map_laatste', WACHTER.laatste);
+    zetInstelling('wacht_map_verslag', WACHTER.verslag);
+  } else {
+    try {
+      const uit = scanRonde(WACHTER.map, WACHTER.perRonde);
+      WACHTER.laatste = new Date().toISOString();
+      WACHTER.verslag = uit.fout
+        ? 'Let op: ' + uit.fout
+        : (uit.gedaan || uit.mislukt)
+          ? uit.gedaan + ' omgezet' + (uit.mislukt ? ', ' + uit.mislukt + ' mislukt' : '') + ' · nog ' + uit.rest + ' te doen'
+          : 'Niets nieuws in de map (' + uit.totaal + ' bestanden).';
+      zetInstelling('wacht_map_laatste', WACHTER.laatste);
+      zetInstelling('wacht_map_verslag', WACHTER.verslag);
+    } catch (e) {
+      WACHTER.verslag = 'Let op: ' + e.message;
+      zetInstelling('wacht_map_verslag', WACHTER.verslag);
+    }
+  }
+  if (metVersie) {
+    try {
+      const laatste = await laatsteVersieOpGitHub();
+      WACHTER.versieLaatste = new Date().toISOString();
+      const hier = korteCommit();
+      WACHTER.versieNieuw = laatste && laatste.sha && hier && laatste.sha !== hier && !hier.startsWith(laatste.sha)
+        ? laatste.sha
+        : '';
+      zetInstelling('wacht_versie_laatste', WACHTER.versieLaatste);
+      zetInstelling('wacht_versie_nieuw', WACHTER.versieNieuw);
+    } catch (e) { /* geen internet? dan proberen we het later opnieuw */ }
+  }
+  WACHTER.bezig = false;
+}
+
+// Elke minuut kijken of het tijd is. Een timer van een minuut is licht genoeg en
+// overleeft een klok die een uurtje verspringt.
+function startWachter() {
+  if (WACHTER.timer) clearInterval(WACHTER.timer);
+  WACHTER.timer = setInterval(() => {
+    const nu = Date.now();
+    const vorigeVersie = WACHTER.versieLaatste ? Date.parse(WACHTER.versieLaatste) : 0;
+    const versieToe = nu - vorigeVersie >= 6 * 3600 * 1000;
+    if (WACHTER.aan) {
+      const vorige = WACHTER.laatste ? Date.parse(WACHTER.laatste) : 0;
+      if (nu - vorige >= WACHTER.minuten * 60000) { wachterRonde(true); return; }
+    }
+    // Naar een nieuwe versie kijken doet de app ook als het map-bijhouden uit staat.
+    if (versieToe) wachterRonde(true);
+  }, 60000);
+  if (WACHTER.timer.unref) WACHTER.timer.unref();
+  // Bij het starten één keer kijken of er iets nieuws is, zodat de kaart meteen klopt.
+  setTimeout(() => { wachterRonde(true); }, 4000).unref();
+}
+
 function scanBestanden(mapPad) {
   const map = path.resolve(String(mapPad || '').trim());
   if (!String(mapPad || '').trim()) return { fout: 'Geef een map op, bijvoorbeeld /home/tom/muziek.' };
@@ -1082,6 +1275,33 @@ async function verwerk(req, res) {
   }
 
   // --- lesmateriaal: de grepen met hun noten, zodat de pagina ze ook kan laten horen ---
+  // --- akkoordenboek: van elk akkoord alle posities over de hals ---
+  const akkoordPosities = naam => ({
+    naam,
+    noten: grepen.noten(naam, 0).map(n => n.midi),
+    isBarre: grepen.isBarre(naam),
+    posities: grepen.posities(naam).map(p => ({
+      naam: p.naam,
+      beschrijving: p.beschrijving || '',
+      vanaf: p.vanaf,
+      frets: p.frets,
+      vingers: p.vingers,
+      barre: p.barre || null,
+      noten: p.noten,
+      svg: grepen.svgDiagramVanGreep(p, { toonNaam: naam })
+    }))
+  });
+  if (pad === '/api/akkoordenboek' && methode === 'GET') {
+    const een = (query.get('akkoord') || '').trim();
+    if (een) {
+      if (!grepen.heeftGreep(een)) { json(res, 404, { fout: 'Geen greep voor ' + een }); return; }
+      json(res, 200, akkoordPosities(een));
+      return;
+    }
+    json(res, 200, { akkoorden: grepen.alleGrepen().map(akkoordPosities) });
+    return;
+  }
+
   if (pad === '/api/grepen' && methode === 'GET') {
     json(res, 200, { grepen: grepen.alleGrepen().map(naam => greepVoorLeren(naam)) });
     return;
@@ -1278,6 +1498,38 @@ async function verwerk(req, res) {
     return;
   }
 
+  // --- de wachter: automatisch nieuwe muziek omzetten en naar updates kijken ---
+  if (pad === '/api/wachter' && methode === 'GET') {
+    json(res, 200, wachterBeeld());
+    return;
+  }
+  if (pad === '/api/wachter' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    if (body.aan !== undefined) {
+      WACHTER.aan = !!body.aan;
+      zetInstelling('wacht_map_aan', WACHTER.aan ? '1' : '0');
+    }
+    if (body.minuten !== undefined) {
+      WACHTER.minuten = Math.max(5, Math.min(24 * 60, parseInt(body.minuten, 10) || WACHTER.minuten));
+      zetInstelling('wacht_map_minuten', String(WACHTER.minuten));
+    }
+    if (body.map !== undefined) {
+      WACHTER.map = String(body.map || '').trim();
+      zetInstelling('scan_map', WACHTER.map);
+    }
+    if (body.perRonde !== undefined) {
+      WACHTER.perRonde = Math.max(1, Math.min(50, parseInt(body.perRonde, 10) || WACHTER.perRonde));
+      zetInstelling('wacht_map_per_ronde', String(WACHTER.perRonde));
+    }
+    json(res, 200, { ok: true, wachter: wachterBeeld() });
+    return;
+  }
+  if (pad === '/api/wachter/nu' && methode === 'POST') {
+    await wachterRonde(true);
+    json(res, 200, { ok: true, wachter: wachterBeeld() });
+    return;
+  }
+
   // --- versie en bijwerken ---
   if (pad === '/api/versie' && methode === 'GET') {
     json(res, 200, {
@@ -1366,6 +1618,88 @@ async function verwerk(req, res) {
   }
 
   // --- liedjes ---
+  // --- setlists en optreden ---
+  if (pad === '/api/setlists' && methode === 'GET') {
+    json(res, 200, { profiel: profielVan(req, query), setlists: setlistsVan(profielVan(req, query)) });
+    return;
+  }
+  if (pad === '/api/setlists' && methode === 'POST') {
+    const profielId = profielVan(req, query);
+    const body = await leesJsonBody(req);
+    const naam = String(body.naam || '').trim().slice(0, 60) || 'Nieuwe setlist';
+    const info = db.prepare('INSERT INTO setlists (profiel_id, naam, gemaakt) VALUES (?, ?, ?)')
+      .run(profielId, naam, new Date().toISOString());
+    const id = Number(info.lastInsertRowid);
+    json(res, 201, { ok: true, setlist: setlistBeeld(setlistVan(profielId, id)), setlists: setlistsVan(profielId) });
+    return;
+  }
+  const setlistMatch = pad.match(/^\/api\/setlists\/(\d+)$/);
+  if (setlistMatch && methode === 'GET') {
+    const profielId = profielVan(req, query);
+    const setlist = setlistVan(profielId, setlistMatch[1]);
+    if (!setlist) { json(res, 404, { fout: 'Setlist niet gevonden' }); return; }
+    json(res, 200, setlistBeeld(setlist));
+    return;
+  }
+  if (setlistMatch && (methode === 'PUT' || methode === 'PATCH')) {
+    const profielId = profielVan(req, query);
+    const setlist = setlistVan(profielId, setlistMatch[1]);
+    if (!setlist) { json(res, 404, { fout: 'Setlist niet gevonden' }); return; }
+    const body = await leesJsonBody(req);
+    const naam = String(body.naam || '').trim().slice(0, 60);
+    if (naam) db.prepare('UPDATE setlists SET naam = ? WHERE id = ?').run(naam, setlist.id);
+    json(res, 200, { ok: true, setlist: setlistBeeld(setlistVan(profielId, setlist.id)), setlists: setlistsVan(profielId) });
+    return;
+  }
+  if (setlistMatch && methode === 'DELETE') {
+    const profielId = profielVan(req, query);
+    const setlist = setlistVan(profielId, setlistMatch[1]);
+    if (!setlist) { json(res, 404, { fout: 'Setlist niet gevonden' }); return; }
+    db.prepare('DELETE FROM setlist_liedjes WHERE setlist_id = ?').run(setlist.id);
+    db.prepare('DELETE FROM setlists WHERE id = ?').run(setlist.id);
+    json(res, 200, { ok: true, setlists: setlistsVan(profielId) });
+    return;
+  }
+  const setlistLiedMatch = pad.match(/^\/api\/setlists\/(\d+)\/liedjes$/);
+  if (setlistLiedMatch && methode === 'POST') {
+    const profielId = profielVan(req, query);
+    const setlist = setlistVan(profielId, setlistLiedMatch[1]);
+    if (!setlist) { json(res, 404, { fout: 'Setlist niet gevonden' }); return; }
+    const body = await leesJsonBody(req);
+    const liedjeId = Number(body.liedje);
+    const actie = String(body.actie || 'bij').trim().toLowerCase();
+    if (!Number.isFinite(liedjeId) || !vindLiedje(liedjeId)) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    let ids = setlist.liedjes.slice();
+    if (actie === 'bij') {
+      if (ids.indexOf(liedjeId) === -1) ids.push(liedjeId);
+    } else if (actie === 'af') {
+      ids = ids.filter(x => x !== liedjeId);
+    } else if (actie === 'leeg') {
+      ids = [];
+    } else if (actie === 'omhoog' || actie === 'omlaag') {
+      const nu = ids.indexOf(liedjeId);
+      const naar = actie === 'omhoog' ? nu - 1 : nu + 1;
+      if (nu === -1) { json(res, 400, { fout: 'Dat liedje staat niet in deze setlist.' }); return; }
+      if (naar >= 0 && naar < ids.length) {
+        ids[nu] = ids[naar];
+        ids[naar] = liedjeId;
+      }
+    } else if (actie === 'boven') {
+      ids = [liedjeId].concat(ids.filter(x => x !== liedjeId));
+    } else {
+      json(res, 400, { fout: 'Onbekende actie: ' + actie });
+      return;
+    }
+    bewaarVolgorde(setlist.id, ids);
+    json(res, 200, {
+      ok: true,
+      actie,
+      setlist: setlistBeeld(setlistVan(profielId, setlist.id)),
+      setlists: setlistsVan(profielId)
+    });
+    return;
+  }
+
   if (pad === '/api/liedjes' && methode === 'GET') {
     const compact = query.get('compact') === '1';
     const profielId = profielVan(req, query);
@@ -1727,32 +2061,12 @@ async function verwerk(req, res) {
   }
   if (pad === '/api/scan' && methode === 'POST') {
     const body = await leesJsonBody(req);
-    const uit = scanBestanden(body.map);
-    if (uit.fout) { json(res, 400, { fout: uit.fout }); return; }
     const limiet = Math.max(1, Math.min(MAX_PER_RONDE, parseInt(body.limiet, 10) || 8));
-    const teDoen = uit.open.slice(0, limiet);
-    const gedaan = [];
-    const mislukt = [];
-    for (const bestand of teDoen) {
-      try {
-        gedaan.push(herkenBestand(bestand));
-      } catch (e) {
-        mislukt.push({ bestand: bestand.naam, pad: bestand.pad, fout: e.message });
-        db.prepare('INSERT INTO imports (pad, grootte, liedje_id, wanneer) VALUES (?,?,0,?) ON CONFLICT(pad) DO NOTHING')
-          .run(bestand.pad, bestand.grootte, new Date().toISOString());
-      }
-    }
-    const na = scanBestanden(body.map);
-    json(res, gedaan.length || mislukt.length ? 201 : 200, {
-      map: uit.map,
-      gedaan: gedaan.length,
-      mislukt: mislukt.length,
-      klaar: na.nieuw === 0,
-      rest: na.nieuw,
-      totaal: na.aantal,
-      liedjes: gedaan,
-      fouten: mislukt
-    });
+    const uit = scanRonde(body.map, limiet);
+    if (uit.fout) { json(res, 400, { fout: uit.fout }); return; }
+    // De map onthouden, zodat de wachter hem ook weet.
+    if (uit.map) zetInstelling('scan_map', uit.map);
+    json(res, uit.gedaan || uit.mislukt ? 201 : 200, uit);
     return;
   }
 
@@ -1944,11 +2258,13 @@ const server = http.createServer((req, res) => {
 if (require.main === module) {
   server.listen(PORT, () => {
     console.log(`AkkoordKast luistert op http://0.0.0.0:${PORT} (${bron.alle().length} meegeleverde liedjes)`);
+    startWachter();
   });
 }
 
 module.exports = {
   server, db, verstuur: verwerk,
+  wachterBeeld, wachterRonde, startWachter, scanRonde,
   weergave, lijstItem, zoekLiedjes, normaliseerLiedje, vindLiedje, eigenRij,
   maakPreview, previewVoorLiedje, castHelper, leesInstelling, zetInstelling,
   paden: { DATA_DIR, MEDIA_DIR, DB_PATH, CAST_HELPER, EIGEN_START, PORT }

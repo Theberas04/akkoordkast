@@ -382,6 +382,28 @@
     #printboek .boek-lied{page-break-after:always;break-after:page}
     #printboek .boek-lied:last-child{page-break-after:auto;break-after:auto}
   }
+  /* gehoor-trainer */
+  .gehoor-knop{min-width:76px;font-size:1.05rem;padding:10px 14px}
+  .gehoor-knop.goed{border-color:#22c55e;color:#22c55e;background:#22c55e1a}
+  .gehoor-knop.fout{border-color:#ef4444;color:#ef4444;background:#ef44441a}
+  .gehoor-groot{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+
+  /* setlist en optreden */
+  .setlist-rij{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--lijn);flex-wrap:wrap}
+  .setlist-rij:last-child{border-bottom:0}
+  .setlist-rij .nr{width:1.6rem;color:var(--tekst2);font-variant-numeric:tabular-nums}
+  .setlist-rij .wie{flex:1;min-width:220px;font-size:.86rem;color:var(--tekst2)}
+  .setlist-rij .wie b{color:var(--tekst);font-size:.95rem}
+  .setlist-papier{width:100%;border-collapse:collapse;margin-top:14px}
+  .setlist-papier th,.setlist-papier td{text-align:left;vertical-align:top;padding:7px 8px;border-bottom:1px solid #ccc;font-size:.95rem}
+  .setlist-papier th{color:#555;font-size:.78rem;letter-spacing:.05em;text-transform:uppercase}
+  .setlist-papier .nr{width:2rem;color:#555}
+  .setlist-papier .ruimte{width:34%;border-bottom:1px solid #ddd}
+  #optreden-balk{display:none}
+  body.optreden #optreden-balk{display:flex}
+  body.optreden .liedkop h2{font-size:1.9rem}
+  #pauze-klok{font-variant-numeric:tabular-nums;letter-spacing:.04em}
+
   /* podiummodus: alleen het liedje, groot en rustig */
   body.podium{background:var(--bg)}
   body.podium header,body.podium nav,body.podium .onderkop,body.podium .voettekst,
@@ -551,6 +573,24 @@
       </div>
       <div class="melding" id="lijst-melding" hidden></div>
     </div>
+    <div class="kaart" id="setlist-kaart">
+      <h3>Setlists en optreden</h3>
+      <div class="rij">
+        <label for="setlist-kies">Setlist</label>
+        <select id="setlist-kies"></select>
+        <button class="knop" id="setlist-openen" title="Speel de setlist achter elkaar door, groot beeld">Optreden starten</button>
+        <button class="knop zacht" id="setlist-printen" title="De setlist als vel om naast je neer te leggen">Setlist printen</button>
+        <button class="knop zacht" id="setlist-verwijder">Verwijderen</button>
+        <span class="pilletje" id="setlist-teller"></span>
+      </div>
+      <div class="rij" style="margin-top:8px">
+        <input id="setlist-naam" type="text" placeholder="Naam voor een nieuwe setlist (bv. Kroeg vrijdag)" autocomplete="off">
+        <button class="knop zacht" id="setlist-nieuw">Nieuwe setlist</button>
+        <span class="les-klein">Zet liedjes erin met <strong>+ setlist</strong> in de lijst of in het spelscherm.</span>
+      </div>
+      <div id="setlist-inhoud"></div>
+      <div class="melding" id="setlist-melding" hidden></div>
+    </div>
     <div class="liedlijst" id="liedlijst"></div>
     <div class="rij" style="margin-top:10px">
       <button class="knop zacht" id="meer-laden" hidden>Nog liedjes laden</button>
@@ -664,6 +704,29 @@
       </div>
     </div>
 
+    <div class="kaart" id="gehoor-kaart">
+      <h2>Gehoor-trainer</h2>
+      <p class="les-klein" style="margin:0 0 12px">De app speelt een akkoord en jij zegt welk het is.
+        Je hoeft niets te zien: dit gaat over horen. Hoe vaker het goed gaat, hoe meer akkoorden je uit
+        elkaar houdt.</p>
+      <div class="rij">
+        <label for="gehoor-set">Akkoorden die meedoen</label>
+        <input id="gehoor-set" type="text" list="trein-sets" value="C G Am F" autocomplete="off"
+          placeholder="C G Am F">
+        <button class="knop" id="gehoor-start">Start</button>
+        <button class="knop zacht" id="gehoor-herhaal" disabled>Nog een keer horen</button>
+        <button class="knop zacht" id="gehoor-stop" disabled>Stop</button>
+        <span class="pilletje" id="gehoor-score">nog niets geraden</span>
+      </div>
+      <div class="rij" style="margin-top:8px">
+        <button class="knop zacht" id="gehoor-hooglaag">Hoog of laag?</button>
+        <span class="les-klein" id="gehoor-uitleg">De app speelt twee akkoorden; zeg of het tweede hoger of lager klinkt.</span>
+      </div>
+      <div class="gehoor-groot" id="gehoor-knoppen"></div>
+      <div class="les-klein" id="gehoor-stand">Zet de akkoorden klaar en druk op Start.</div>
+      <div class="les-klein" id="gehoor-melding" style="margin-top:6px"></div>
+    </div>
+
     <div class="kaart">
       <h2>Stemmen</h2>
       <p class="les-klein" style="margin:0 0 12px">Klik op een snaar om de toon te horen. Stem de dikste snaar eerst, dan de rest.
@@ -684,6 +747,21 @@
         <span class="tellen" id="ritme-tellen"><span>1</span><span>2</span><span>3</span><span>4</span></span>
       </div>
       <div class="les-klein" id="ritme-uitleg" style="margin-top:10px"></div>
+    </div>
+
+    <div class="kaart" id="akb-kaart">
+      <h2>Akkoordenboek: alle posities</h2>
+      <p class="les-klein" style="margin:0 0 12px">Van elk akkoord zie je hier alle posities die je kunt pakken:
+        de open positie onderaan de hals en de barré-vormen verder naar boven. Klik op een greep om hem te horen.
+        Handig als een akkoord te hoog of te laag klinkt, of als je wilt uitleggen waarom de één een andere greep pakt.</p>
+      <div class="rij">
+        <label for="akb-kies">Akkoord</label>
+        <select id="akb-kies"></select>
+        <button class="knop zacht" id="akb-speel">Horen</button>
+        <button class="knop zacht" id="akb-kaart-knop" title="Grepenkaart van het liedje dat je open hebt, of van alle grepen">Grepenkaart printen</button>
+        <span class="les-klein" id="akb-uitleg"></span>
+      </div>
+      <div class="grepen" id="akb-posities"></div>
     </div>
 
     <div class="kaart">
@@ -782,6 +860,29 @@
         Bijwerken zelf gebeurt op je Proxmox-host, want daar horen de rechten bij te zitten; de app kan het
         wel doen als er op deze machine een update-script klaarstaat.</div>
       <div class="code-klein" id="versie-commando"></div>
+
+      <h3 style="margin-top:16px">Automatisch bijhouden</h3>
+      <p class="les-klein" style="margin:0 0 10px">De app kan zelf af en toe in je muziekmap kijken en nieuwe
+        bestanden omzetten, en zelf op GitHub kijken of er een nieuwe versie is. Dan hoef je er niet aan te denken.</p>
+      <div class="rij">
+        <button class="knop" id="wacht-aan">Automatisch bijhouden aanzetten</button>
+        <label for="wacht-map" style="margin-left:6px">Muziekmap</label>
+        <input id="wacht-map" type="text" placeholder="/home/tom/muziek" style="min-width:220px">
+        <label for="wacht-minuten">Elke</label>
+        <select id="wacht-minuten">
+          <option value="60">1 uur</option>
+          <option value="180">3 uur</option>
+          <option value="360">6 uur</option>
+          <option value="720">12 uur</option>
+          <option value="1440">1 dag</option>
+        </select>
+        <button class="knop zacht" id="wacht-nu">Nu kijken</button>
+      </div>
+      <div class="rij" style="margin-top:8px">
+        <span class="pilletje" id="wacht-stand">…</span>
+        <span class="pilletje" id="wacht-versie">…</span>
+      </div>
+      <div class="melding" id="wacht-melding" hidden></div>
     </div>
   </section>
 
@@ -854,7 +955,8 @@
 'use strict';
 var staat = {
   liedjes: [], vanaf: 0, totaal: 0, meer: false,
-  liedje: null, apparaat: '', apparaatNaam: '', apparaten: []
+  liedje: null, apparaat: '', apparaatNaam: '', apparaten: [],
+  setlists: [], setlist: { id: 0, naam: '', liedjes: [] }, optreden: { aan: false, pos: 0, pauzeStart: 0, klok: 0 }
 };
 
 function $(id) { return document.getElementById(id); }
@@ -942,12 +1044,19 @@ function tekenLiedjes() {
         '<button class="knop ster' + (l.favoriet ? ' aan' : '') + '" data-ster="' + l.id + '" ' +
           'title="' + (l.favoriet ? 'Uit mijn favorieten halen' : 'Bij mijn favorieten zetten') + '">' +
           (l.favoriet ? '★' : '☆') + '</button>' +
+        '<button class="knop zacht" data-setlist-bij="' + l.id + '" title="In de actieve setlist zetten">+ setlist</button>' +
         '<button class="knop" data-open="' + l.id + '">Spelen</button>' +
       '</div>' +
     '</div>';
   }).join('');
   Array.prototype.forEach.call(lijst.querySelectorAll('[data-open]'), function (knop) {
     knop.addEventListener('click', function () { openLiedje(knop.getAttribute('data-open')); });
+  });
+  Array.prototype.forEach.call(lijst.querySelectorAll('[data-setlist-bij]'), function (knop) {
+    knop.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      zetInSetlist(knop.getAttribute('data-setlist-bij'), 'bij');
+    });
   });
   Array.prototype.forEach.call(lijst.querySelectorAll('[data-ster]'), function (knop) {
     knop.addEventListener('click', function (ev) {
@@ -1129,6 +1238,65 @@ function debounce(fn, ms) {
 }
 
 // -------------------------------------------------------- beheer en versie ---
+// Het automatisch bijhouden: de server kijkt op de achtergrond in de muziekmap en
+// naar nieuwe versies; deze kaart laat zien hoe het ervoor staat.
+function laadWachter() {
+  api('/api/wachter').then(function (w) {
+    var knop = $('wacht-aan');
+    knop.textContent = w.aan ? 'Automatisch bijhouden uitzetten' : 'Automatisch bijhouden aanzetten';
+    knop.className = 'knop' + (w.aan ? ' zacht' : '');
+    if (!$('wacht-map').value) $('wacht-map').value = w.map || '';
+    $('wacht-minuten').value = String(w.minuten);
+    var gedaan = w.laatste ? new Date(w.laatste).toLocaleString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+    $('wacht-stand').textContent = !w.aan
+      ? 'Staat uit.'
+      : (w.laatste ? 'Laatste controle ' + gedaan + (w.verslag ? ' · ' + w.verslag : '') : 'Nog niet gekeken.');
+    var versie = $('wacht-versie');
+    if (w.versieNieuw) {
+      versie.textContent = 'nieuwe versie op GitHub: ' + w.versieNieuw.slice(0, 7);
+      versie.style.color = 'var(--amber2)';
+    } else if (w.versieLaatste) {
+      versie.textContent = 'geen nieuwe versie (gekeken ' + new Date(w.versieLaatste).toLocaleString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ')';
+      versie.style.color = '';
+    } else {
+      versie.textContent = 'nog niet naar een nieuwe versie gekeken';
+      versie.style.color = '';
+    }
+  }).catch(function () {});
+}
+
+function zetWachter(velden) {
+  api('/api/wachter', {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(velden)
+  }).then(function (d) {
+    laadWachter();
+    var aan = d.wachter.aan;
+    toonMelding('wacht-melding', aan
+      ? 'De app kijkt nu elke ' + (d.wachter.minuten >= 60 ? (d.wachter.minuten / 60) + ' uur' : d.wachter.minuten + ' minuten') + ' in de muziekmap en naar nieuwe versies.'
+      : 'Automatisch bijhouden staat uit.', 'goed');
+  }).catch(function (e) { toonMelding('wacht-melding', e.message, 'fout'); });
+}
+
+$('wacht-aan').addEventListener('click', function () {
+  var aan = $('wacht-aan').textContent.indexOf('aanzetten') !== -1;
+  var map = $('wacht-map').value.trim() || $('scan-map').value.trim();
+  if (aan && !map) { toonMelding('wacht-melding', 'Vul eerst de map in waar je muziek staat.', 'fout'); $('wacht-map').focus(); return; }
+  zetWachter({ aan: aan, map: map, minuten: Number($('wacht-minuten').value) || 360 });
+});
+$('wacht-minuten').addEventListener('change', function () {
+  if ($('wacht-aan').textContent.indexOf('uitzetten') !== -1) zetWachter({ minuten: Number(this.value) || 360 });
+});
+$('wacht-map').addEventListener('change', function () {
+  if ($('wacht-aan').textContent.indexOf('uitzetten') !== -1) zetWachter({ map: this.value.trim() });
+});
+$('wacht-nu').addEventListener('click', function () {
+  toonMelding('wacht-melding', 'Aan het kijken…', 'goed');
+  api('/api/wachter/nu', { method: 'POST' }).then(function () {
+    laadWachter();
+    toonMelding('wacht-melding', 'Gekeken: ' + ($('wacht-stand').textContent || ''), 'goed');
+  }).catch(function (e) { toonMelding('wacht-melding', e.message, 'fout'); });
+});
+
 function laadVersie() {
   api('/api/versie').then(function (data) {
     $('versie-nummer').textContent = data.versie;
@@ -1223,6 +1391,266 @@ $('boek-printen').addEventListener('click', maakBoek);
 $('boek-nu-printen').addEventListener('click', function () { window.print(); });
 $('boek-sluiten').addEventListener('click', sluitBoek);
 
+// ------------------------------------------------------------------ setlists ---
+// Een setlist is een rij liedjes in een vaste volgorde die je achter elkaar speelt.
+// In optredenmodus zie je alleen het liedje van nu, met grote letters en de knoppen
+// om verder te gaan; die keuze hoort bij dit toestel (localStorage), de setlist zelf
+// hoort bij het profiel op de server.
+var SETLIST_SLEUTEL = 'akkoordkast-setlist';
+
+function actieveSetlist() {
+  try { return Number(localStorage.getItem(SETLIST_SLEUTEL)) || 0; } catch (e) { return 0; }
+}
+function zetActieveSetlist(id) {
+  try { localStorage.setItem(SETLIST_SLEUTEL, String(id || '')); } catch (e) {}
+  staat.setlist.id = Number(id) || 0;
+}
+
+function laadSetlists(kiesId) {
+  api('/api/setlists').then(function (data) {
+    staat.setlists = data.setlists || [];
+    var kies = $('setlist-kies');
+    var gewenst = Number(kiesId) || actieveSetlist();
+    kies.innerHTML = staat.setlists.length
+      ? staat.setlists.map(function (s) {
+          return '<option value="' + s.id + '"' + (s.id === gewenst ? ' selected' : '') + '>' +
+            esc(s.naam) + ' (' + s.aantal + ')</option>';
+        }).join('')
+      : '<option value="">Nog geen setlist</option>';
+    var heeft = staat.setlists.some(function (s) { return s.id === gewenst; });
+    var nu = heeft ? gewenst : (staat.setlists.length ? staat.setlists[0].id : 0);
+    zetActieveSetlist(nu);
+    if (kies.value !== String(nu)) kies.value = String(nu);
+    if (nu) laadSetlistInhoud(nu);
+    else {
+      $('setlist-inhoud').innerHTML = '<div class="les-klein">Nog geen setlist. Geef er hierboven een naam en druk op ' +
+        '<strong>Nieuwe setlist</strong>.</div>';
+      $('setlist-teller').textContent = '';
+    }
+  }).catch(function (e) { toonMelding('setlist-melding', e.message, 'fout'); });
+}
+
+function laadSetlistInhoud(id) {
+  if (!id) return;
+  api('/api/setlists/' + id).then(tekenSetlist).catch(function (e) { toonMelding('setlist-melding', e.message, 'fout'); });
+}
+
+function tekenSetlist(s) {
+  staat.setlist = { id: s.id, naam: s.naam, liedjes: s.liedjes.map(function (l) { return l.id; }) };
+  $('setlist-teller').textContent = s.aantal + (s.aantal === 1 ? ' liedje' : ' liedjes') + ' in "' + s.naam + '"';
+  if (!s.liedjes.length) {
+    $('setlist-inhoud').innerHTML = '<div class="les-klein">Deze setlist is nog leeg. Zet liedjes erin met <strong>+ setlist</strong>.</div>';
+    return;
+  }
+  $('setlist-inhoud').innerHTML = s.liedjes.map(function (l, i) {
+    return '<div class="setlist-rij" data-setlist-rij="' + l.id + '">' +
+      '<span class="nr">' + (i + 1) + '</span>' +
+      '<span class="wie"><b>' + esc(l.titel) + '</b> · ' + esc(l.artiest || 'onbekend') +
+        (l.toonsoort ? ' · ' + esc(l.toonsoort) : '') +
+        ' · ' + (l.capo ? 'capo ' + l.capo : 'zonder capo') + ' · ' + l.tempo + ' BPM' +
+        (l.akkoorden && l.akkoorden.length ? ' · ' + esc(l.akkoorden.join(' ')) : '') + '</span>' +
+      '<button class="knop zacht" data-setlist-actie="omhoog" data-setlist-lied="' + l.id + '" title="Een plek naar boven">↑</button>' +
+      '<button class="knop zacht" data-setlist-actie="omlaag" data-setlist-lied="' + l.id + '" title="Een plek naar beneden">↓</button>' +
+      '<button class="knop" data-setlist-open="' + l.id + '">Spelen</button>' +
+      '<button class="knop zacht" data-setlist-actie="af" data-setlist-lied="' + l.id + '" title="Uit deze setlist halen">✕</button>' +
+    '</div>';
+  }).join('');
+  Array.prototype.forEach.call($('setlist-inhoud').querySelectorAll('[data-setlist-open]'), function (knop) {
+    knop.addEventListener('click', function () { openLiedje(Number(knop.getAttribute('data-setlist-open'))); });
+  });
+  Array.prototype.forEach.call($('setlist-inhoud').querySelectorAll('[data-setlist-actie]'), function (knop) {
+    knop.addEventListener('click', function () {
+      zetInSetlist(knop.getAttribute('data-setlist-lied'), knop.getAttribute('data-setlist-actie'));
+    });
+  });
+}
+
+// Een liedje in de actieve setlist zetten, eruit halen of verplaatsen.
+function zetInSetlist(liedjeId, actie) {
+  if (!staat.setlist.id) {
+    // Nog geen setlist? Dan maken we er meteen een aan, zodat het plusje altijd werkt.
+    api('/api/setlists', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ naam: 'Mijn setlist' })
+    }).then(function (data) {
+      zetActieveSetlist(data.setlist.id);
+      laadSetlists(data.setlist.id);
+      return zetInSetlist(liedjeId, actie);
+    }).catch(function (e) { toonMelding('setlist-melding', e.message, 'fout'); });
+    return;
+  }
+  api('/api/setlists/' + staat.setlist.id + '/liedjes', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ liedje: Number(liedjeId), actie: actie || 'bij' })
+  }).then(function (data) {
+    tekenSetlist(data.setlist);
+    laadSetlistsOpties(data.setlists);
+    var naam = (data.setlist.liedjes.filter(function (l) { return l.id === Number(liedjeId); })[0] || {}).titel || '';
+    var tekst = actie === 'af' ? 'Uit de setlist gehaald' : actie === 'bij' ? 'In de setlist gezet' : 'Volgorde aangepast';
+    toonMelding('setlist-melding', tekst + (naam && actie !== 'af' ? ': ' + naam : '') + ' — ' + data.setlist.aantal + ' in "' + data.setlist.naam + '".', 'goed');
+  }).catch(function (e) { toonMelding('setlist-melding', e.message, 'fout'); });
+}
+
+// Alleen de namen in de keuzelijst bijwerken, zonder de inhoud opnieuw te laden.
+function laadSetlistsOpties(setlists) {
+  if (!setlists) return;
+  staat.setlists = setlists;
+  var kies = $('setlist-kies');
+  kies.innerHTML = setlists.map(function (s) {
+    return '<option value="' + s.id + '"' + (s.id === staat.setlist.id ? ' selected' : '') + '>' +
+      esc(s.naam) + ' (' + s.aantal + ')</option>';
+  }).join('');
+  kies.value = String(staat.setlist.id);
+}
+
+function nieuweSetlist() {
+  var naam = ($('setlist-naam').value || '').trim();
+  if (!naam) { toonMelding('setlist-melding', 'Geef de setlist eerst een naam.', 'fout'); $('setlist-naam').focus(); return; }
+  api('/api/setlists', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ naam: naam })
+  }).then(function (data) {
+    $('setlist-naam').value = '';
+    zetActieveSetlist(data.setlist.id);
+    laadSetlists(data.setlist.id);
+    toonMelding('setlist-melding', 'Setlist "' + data.setlist.naam + '" gemaakt. Zet er liedjes in met + setlist.', 'goed');
+  }).catch(function (e) { toonMelding('setlist-melding', e.message, 'fout'); });
+}
+
+function verwijderSetlist() {
+  if (!staat.setlist.id) { toonMelding('setlist-melding', 'Er is geen setlist om te verwijderen.', 'fout'); return; }
+  var naam = staat.setlist.naam;
+  if (!window.confirm('Setlist "' + naam + '" verwijderen? De liedjes zelf blijven bestaan.')) return;
+  api('/api/setlists/' + staat.setlist.id, { method: 'DELETE' }).then(function () {
+    zetActieveSetlist(0);
+    laadSetlists(0);
+    toonMelding('setlist-melding', 'Setlist "' + naam + '" verwijderd.', 'goed');
+  }).catch(function (e) { toonMelding('setlist-melding', e.message, 'fout'); });
+}
+
+// ------------------------------------------------------------- optreden ---
+function startOptreden() {
+  if (!staat.setlist.id || !staat.setlist.liedjes.length) {
+    toonMelding('setlist-melding', 'Kies eerst een setlist met liedjes erin.', 'fout');
+    return;
+  }
+  if (!staat.optreden) staat.optreden = { aan: false, pos: 0, pauzeStart: 0, klok: 0 };
+  staat.optreden.aan = true;
+  staat.optreden.pos = 0;
+  document.body.classList.add('optreden');
+  zetPodium(true);
+  var knop = $('podium-knop');
+  if (knop) knop.textContent = 'Podium uit';
+  toonTab('spelen');
+  openOptredenLiedje(0);
+}
+
+function openOptredenLiedje(pos) {
+  var ids = staat.setlist.liedjes;
+  if (!ids.length) return;
+  if (pos < 0) pos = 0;
+  if (pos > ids.length - 1) pos = ids.length - 1;
+  if (!staat.optreden) staat.optreden = { aan: true, pos: 0, pauzeStart: 0, klok: 0 };
+  staat.optreden.pos = pos;
+  openLiedje(ids[pos]);
+}
+
+function volgendeLiedje() { if (staat.optreden && staat.optreden.aan) openOptredenLiedje(staat.optreden.pos + 1); }
+function vorigeLiedje() { if (staat.optreden && staat.optreden.aan) openOptredenLiedje(staat.optreden.pos - 1); }
+
+function stopOptreden() {
+  if (staat.optreden) staat.optreden.aan = false;
+  document.body.classList.remove('optreden');
+  zetPodium(false);
+}
+
+// De pauzeklok telt op vanaf het moment dat je hem aanzet: handig om te zien hoelang
+// je al stil bent tussen twee nummers.
+var KLOK_TIMER = null;
+function wisselPauzeklok() {
+  if (!staat.optreden) staat.optreden = { aan: true, pos: 0, pauzeStart: 0, klok: 0 };
+  if (staat.optreden.pauzeStart) {
+    staat.optreden.pauzeStart = 0;
+    if (KLOK_TIMER) { clearInterval(KLOK_TIMER); KLOK_TIMER = null; }
+  } else {
+    staat.optreden.pauzeStart = Date.now();
+    if (KLOK_TIMER) clearInterval(KLOK_TIMER);
+    KLOK_TIMER = setInterval(werkPauzeklok, 500);
+  }
+  werkPauzeklok();
+}
+
+function werkPauzeklok() {
+  var klok = $('pauze-klok');
+  if (!klok) return;
+  if (!staat.optreden || !staat.optreden.pauzeStart) { klok.textContent = 'Pauzeklok'; return; }
+  var seconden = Math.max(0, Math.floor((Date.now() - staat.optreden.pauzeStart) / 1000));
+  var m = Math.floor(seconden / 60), sec = seconden % 60;
+  klok.textContent = 'Pauze ' + m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+
+function werkOptredenBalk() {
+  var balk = $('optreden-balk');
+  if (!balk) return;
+  if (!staat.optreden || !staat.optreden.aan) { balk.innerHTML = ''; return; }
+  var ids = staat.setlist.liedjes;
+  balk.innerHTML =
+    '<span class="pilletje">' + (staat.optreden.pos + 1) + ' van ' + ids.length + '</span>' +
+    '<button class="knop zacht" id="optreden-vorige"' + (staat.optreden.pos === 0 ? ' disabled' : '') + '>‹ vorige</button>' +
+    '<button class="knop" id="optreden-volgende"' + (staat.optreden.pos >= ids.length - 1 ? ' disabled' : '') + '>volgende ›</button>' +
+    '<button class="knop zacht" id="pauze-knop">Pauzeklok</button>' +
+    '<span class="pilletje" id="pauze-klok">Pauzeklok</span>' +
+    '<button class="knop zacht" id="optreden-printen">Setlist printen</button>' +
+    '<button class="knop zacht" id="optreden-stop">Optreden stoppen</button>' +
+    '<span class="les-klein">PageDown of ↓ is volgende, PageUp of ↑ terug. Spatie blijft meescrollen.</span>';
+  if ($('optreden-vorige')) $('optreden-vorige').addEventListener('click', vorigeLiedje);
+  if ($('optreden-volgende')) $('optreden-volgende').addEventListener('click', volgendeLiedje);
+  if ($('pauze-knop')) $('pauze-knop').addEventListener('click', wisselPauzeklok);
+  if ($('optreden-printen')) $('optreden-printen').addEventListener('click', printSetlist);
+  if ($('optreden-stop')) $('optreden-stop').addEventListener('click', stopOptreden);
+  werkPauzeklok();
+}
+
+// De setlist als vel papier: om naast je neer te leggen of in de map te doen.
+function printSetlist() {
+  if (!staat.setlist.id) { toonMelding('setlist-melding', 'Kies eerst een setlist.', 'fout'); return; }
+  api('/api/setlists/' + staat.setlist.id).then(function (s) {
+    var vandaag = new Date().toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
+    $('boek-inhoud').innerHTML =
+      '<div class="boek-titelblad">' +
+        '<h1>Setlist — ' + esc(s.naam) + '</h1>' +
+        '<div class="boek-onder">' + s.aantal + (s.aantal === 1 ? ' liedje' : ' liedjes') + ' · ' + esc(vandaag) + '</div>' +
+      '</div>' +
+      '<table class="setlist-papier">' +
+        '<thead><tr><th>#</th><th>Liedje</th><th>Toonsoort</th><th>Capo</th><th>Tempo</th><th>Notities</th></tr></thead>' +
+        '<tbody>' + s.liedjes.map(function (l, i) {
+          return '<tr><td class="nr">' + (i + 1) + '</td>' +
+            '<td><b>' + esc(l.titel) + '</b>' + (l.artiest ? '<br><span>' + esc(l.artiest) + '</span>' : '') +
+              (l.akkoorden && l.akkoorden.length ? '<br><span>' + esc(l.akkoorden.join(' ')) + '</span>' : '') + '</td>' +
+            '<td>' + esc(l.toonsoort || '') + '</td>' +
+            '<td>' + (l.capo ? l.capo : '—') + '</td>' +
+            '<td>' + l.tempo + '</td>' +
+            '<td class="ruimte"></td></tr>';
+        }).join('') + '</tbody>' +
+      '</table>';
+    $('boek-teller').textContent = 'Setlist ' + s.naam + ' · ' + s.aantal + (s.aantal === 1 ? ' liedje' : ' liedjes');
+    document.documentElement.classList.add('boek-zichtbaar');
+    $('printboek').classList.add('zichtbaar');
+    $('printboek').scrollIntoView({ block: 'start' });
+  }).catch(function (e) { toonMelding('setlist-melding', e.message, 'fout'); });
+}
+
+$('setlist-kies').addEventListener('change', function () {
+  var id = Number(this.value) || 0;
+  zetActieveSetlist(id);
+  if (id) laadSetlistInhoud(id);
+});
+$('setlist-nieuw').addEventListener('click', nieuweSetlist);
+$('setlist-naam').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') nieuweSetlist(); });
+$('setlist-openen').addEventListener('click', startOptreden);
+$('setlist-printen').addEventListener('click', printSetlist);
+$('setlist-verwijder').addEventListener('click', verwijderSetlist);
+
 // ---------------------------------------------------- liedje openen/spelen ---
 function openLiedje(id, opties) {
   var o = opties || {};
@@ -1268,6 +1696,7 @@ function tekenLiedje(l) {
         '</div>' +
         '<div class="rij">' +
           '<button class="knop ster" id="speel-ster">☆ favoriet</button>' +
+          '<button class="knop zacht" id="speel-setlist" title="In de actieve setlist zetten">+ setlist</button>' +
           '<button class="knop zacht" id="podium-knop" title="Groot en rustig beeld om van te spelen">Podiummodus</button>' +
           '<button class="knop zacht" id="print-liedje">Printen</button>' +
           (l.eigen ? '<button class="knop zacht" id="verwijder-liedje">Verwijderen</button>'
@@ -1283,6 +1712,8 @@ function tekenLiedje(l) {
             return '<strong>' + esc(a.vorm) + '</strong>' + (a.vorm !== a.concert ? ' <em>(klinkt als ' + esc(a.concert) + ')</em>' : '') + (a.barre ? ' ⚠ barré' : '');
           }).join(' · ') + '</p>' +
       '</div>' +
+
+      '<div class="rij podium-houd" id="optreden-balk"></div>' +
 
       '<div class="rij speel-gereedschap podium-houd" id="speel-gereedschap">' +
         '<button class="knop zacht" id="scroll-knop">▶ Meescrollen</button>' +
@@ -1430,6 +1861,14 @@ function tekenLiedje(l) {
   $('print-liedje').addEventListener('click', function () { window.print(); });
   toonFavorietKnop(l);
   $('speel-ster').addEventListener('click', function () { zetFavoriet(l.id, !l.favoriet); });
+  if ($('speel-setlist')) {
+    $('speel-setlist').addEventListener('click', function () { zetInSetlist(l.id, 'bij'); });
+  }
+  werkOptredenBalk();
+  if (staat.optreden && staat.optreden.aan) {
+    // De balk opnieuw opbouwen met het juiste nummer erin.
+    setTimeout(werkOptredenBalk, 0);
+  }
   // meescrollen en podium: knoppen koppelen en de stand van dit toestel terugzetten
   zetScrollSnelheid(scrollSnelheid());
   stopScroll();
@@ -1455,7 +1894,8 @@ function tekenLiedje(l) {
   $('podium-knop').addEventListener('click', function () { zetPodium(!document.body.classList.contains('podium')); });
   var podiumAan = false;
   try { podiumAan = localStorage.getItem('akkoordkast-podium') === '1'; } catch (e) {}
-  zetPodium(podiumAan);
+  // Tijdens een optreden staat de podiummodus altijd aan: alleen het liedje van nu.
+  zetPodium(podiumAan || (staat.optreden && staat.optreden.aan));
   // Onthouden dat je dit liedje hebt opengespeeld: daar leeft 'laatst gespeeld' van.
   api('/api/gespeeld', {
     method: 'POST',
@@ -1833,9 +2273,15 @@ document.addEventListener('keydown', function (ev) {
   var vak = ev.target || {};
   if (vak.tagName === 'INPUT' || vak.tagName === 'SELECT' || vak.tagName === 'TEXTAREA') return;
   var opSpelen = $('paneel-spelen') && $('paneel-spelen').classList.contains('actief');
+  if (ev.key === 'Escape' && document.body.classList.contains('optreden')) { stopOptreden(); return; }
   if (ev.key === 'Escape' && document.body.classList.contains('podium')) { zetPodium(false); return; }
   if (!opSpelen) return;
   if (ev.key === ' ') { ev.preventDefault(); wisselScroll(); return; }
+  // In optredenmodus ga je met PageDown en de pijltjes naar het volgende liedje.
+  if (staat.optreden && staat.optreden.aan) {
+    if (ev.key === 'PageDown' || ev.key === 'ArrowDown' || ev.key === 'ArrowRight') { ev.preventDefault(); volgendeLiedje(); return; }
+    if (ev.key === 'PageUp' || ev.key === 'ArrowUp' || ev.key === 'ArrowLeft') { ev.preventDefault(); vorigeLiedje(); return; }
+  }
   if (ev.key === 'PageDown' || ev.key === 'ArrowDown' && ev.shiftKey) { ev.preventDefault(); scrollStap(1); return; }
   if (ev.key === 'PageUp' || ev.key === 'ArrowUp' && ev.shiftKey) { ev.preventDefault(); scrollStap(-1); return; }
   if (ev.key === 'p' || ev.key === 'P') { zetPodium(!document.body.classList.contains('podium')); }
@@ -2585,6 +3031,7 @@ function scanKijk() {
   if (!map) { toonMelding('scan-melding', 'Vul eerst een map in.', 'fout'); return; }
   toonMelding('scan-melding', 'Map bekijken…', '');
   api('/api/scan?map=' + encodeURIComponent(map)).then(function (r) {
+    $('wacht-map').value = r.map || map;
     toonMelding('scan-melding', r.aantal + ' geluids- of videobestanden gevonden (' + (Math.round(r.grootteTotaal / 1048576 * 10) / 10) + ' MB). ' +
       r.nieuw + ' nog niet gedaan, ' + r.alGedaan + ' eerder gedaan.', 'goed');
     $('scan-lijst').innerHTML = (r.bestanden || []).slice(0, 200).map(function (b) {
@@ -2764,6 +3211,9 @@ laadLiedjes(true);
 laadArtiesten();
 laadProfielen();
 laadLabels();
+laadMijnSetlists();
+laadWachter();
+laadAkkoordenboek();
 api('/api/instellingen').then(function (s) {
   if (s.cast_apparaat) {
     staat.apparaat = s.cast_apparaat;
@@ -2806,6 +3256,263 @@ function leerBij(veld, aantal) {
   bewaarLeerStand(stand);
   toonLeerVoortgang(stand);
 }
+
+// --------------------------------------------------------- akkoordenboek ---
+// Van elk akkoord alle posities over de hals. De gegevens komen kant-en-klaar van de
+// server (met de tekening erbij), zodat de pagina niets hoeft te rekenen.
+var AKKOORDENBOEK = { akkoorden: [], huidig: null };
+
+function laadAkkoordenboek() {
+  api('/api/akkoordenboek').then(function (data) {
+    AKKOORDENBOEK.akkoorden = data.akkoorden || [];
+    var kies = $('akb-kies');
+    kies.innerHTML = AKKOORDENBOEK.akkoorden.map(function (a) {
+      return '<option value="' + esc(a.naam) + '">' + esc(a.naam) + (a.isBarre ? ' (barré)' : '') + '</option>';
+    }).join('');
+    if (AKKOORDENBOEK.akkoorden.length) tekenPosities(AKKOORDENBOEK.akkoorden[0].naam);
+  }).catch(function () {});
+}
+
+function akkoordInfo(naam) {
+  return AKKOORDENBOEK.akkoorden.filter(function (a) { return a.naam === naam; })[0] || null;
+}
+
+function tekenPosities(naam) {
+  var a = akkoordInfo(naam);
+  if (!a) return;
+  AKKOORDENBOEK.huidig = naam;
+  $('akb-kies').value = naam;
+  $('akb-uitleg').textContent = a.posities.length + (a.posities.length === 1 ? ' positie' : ' posities') +
+    (a.isBarre ? ' · met barré' : '') + ' · ' + a.noten.length + ' snaren';
+  $('akb-posities').innerHTML = a.posities.map(function (p, i) {
+    return '<figure data-positie="' + i + '">' + p.svg +
+      '<figcaption>' + esc(p.naam) + (p.vanaf > 1 ? ' · vanaf vak ' + p.vanaf : '') + '</figcaption>' +
+      '<div class="klein">' + esc(p.beschrijving || '') + '</div></figure>';
+  }).join('');
+  Array.prototype.forEach.call($('akb-posities').querySelectorAll('[data-positie]'), function (fig) {
+    fig.addEventListener('click', function () {
+      var p = a.posities[Number(fig.getAttribute('data-positie'))];
+      if (!p) return;
+      speelGreep(p.noten);
+      fig.classList.add('vast');
+      setTimeout(function () { fig.classList.remove('vast'); }, 700);
+    });
+  });
+}
+
+// De grepenkaart: alle posities van de akkoorden in het liedje dat open staat, of van
+// alle grepen als er geen liedje open is. Om naast je neer te leggen tijdens het spelen.
+function printGrepenkaart() {
+  var namen = [];
+  if (staat.liedje && staat.liedje.model && staat.liedje.model.akkoorden) {
+    namen = staat.liedje.model.akkoorden.filter(function (n, i, arr) { return arr.indexOf(n) === i; });
+  }
+  if (!namen.length) namen = AKKOORDENBOEK.akkoorden.map(function (a) { return a.naam; });
+  var blokken = namen.map(function (naam) {
+    var a = akkoordInfo(naam);
+    if (!a) return '';
+    var figuren = a.posities.map(function (p) {
+      return '<figure class="boek-greep">' + p.svg + '<figcaption>' + esc(p.naam) + '</figcaption></figure>';
+    }).join('');
+    return '<section class="grepenkaart-blok"><h3>' + esc(naam) + '</h3>' +
+      '<div class="boek-grepen">' + figuren + '</div></section>';
+  }).join('');
+  var vandaag = new Date().toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
+  $('boek-inhoud').innerHTML =
+    '<div class="boek-titelblad">' +
+      '<h1>Grepenkaart</h1>' +
+      '<div class="boek-onder">' + (staat.liedje ? esc(staat.liedje.titel) + ' · ' : '') +
+        namen.length + ' akkoorden met alle posities · ' + esc(vandaag) + '</div>' +
+    '</div>' + blokken;
+  $('boek-teller').textContent = 'Grepenkaart · ' + namen.length + ' akkoorden';
+  document.documentElement.classList.add('boek-zichtbaar');
+  $('printboek').classList.add('zichtbaar');
+  $('printboek').scrollIntoView({ block: 'start' });
+}
+
+$('akb-kies').addEventListener('change', function () { tekenPosities(this.value); });
+$('akb-speel').addEventListener('click', function () {
+  var a = akkoordInfo($('akb-kies').value);
+  if (a) speelGreep(a.noten);
+});
+$('akb-kaart-knop').addEventListener('click', printGrepenkaart);
+
+// -------------------------------------------------------- gehoor-trainer ---
+// Twee oefeningen: welk akkoord hoor je, en klinkt het tweede akkoord hoger of lager.
+// Er wordt niets opgenomen of verstuurd; de app speelt de grepen zelf en houdt de
+// score bij. Na het stoppen gaat de tijd en het aantal antwoorden naar de oefencijfers.
+var GEHOOR = {
+  set: [], aan: false, soort: 'akkoord', goed: 0, fout: 0, reeks: 0, besteReeks: 0,
+  vraag: null, eerste: null, antwoord: null, sinds: 0, geprobeerd: false
+};
+
+function gehoorSet() {
+  var stukken = ($('gehoor-set').value || '').split(/[\s,]+/).filter(Boolean);
+  var uit = [];
+  var onbekend = [];
+  stukken.forEach(function (ruw) {
+    var naam = ruw.charAt(0).toUpperCase() + ruw.slice(1);
+    if (!greepVan(naam)) { onbekend.push(ruw); return; }
+    if (uit.indexOf(naam) === -1) uit.push(naam);
+  });
+  $('gehoor-melding').textContent = onbekend.length
+    ? 'Deze akkoorden doen niet mee (geen greep): ' + onbekend.join(', ') + '.'
+    : '';
+  return uit;
+}
+
+function gehoorStart(soort) {
+  var set = gehoorSet();
+  if (set.length < 2) {
+    $('gehoor-melding').textContent = 'Zet minstens twee akkoorden neer waar de app een greep van heeft.';
+    return;
+  }
+  GEHOOR.set = set;
+  GEHOOR.aan = true;
+  GEHOOR.soort = soort || 'akkoord';
+  GEHOOR.goed = 0; GEHOOR.fout = 0; GEHOOR.reeks = 0; GEHOOR.besteReeks = 0;
+  GEHOOR.sinds = Date.now();
+  $('gehoor-start').textContent = 'Opnieuw';
+  $('gehoor-stop').disabled = false;
+  $('gehoor-herhaal').disabled = false;
+  $('gehoor-uitleg').textContent = GEHOOR.soort === 'hooglaag'
+    ? 'De app speelt twee akkoorden; zeg of het tweede hoger of lager klinkt.'
+    : 'Kies het akkoord dat je hoorde.';
+  nieuweGehoorVraag();
+}
+
+function gehoorStop() {
+  if (!GEHOOR.aan) return;
+  GEHOOR.aan = false;
+  var seconden = Math.round((Date.now() - GEHOOR.sinds) / 1000);
+  var antwoorden = GEHOOR.goed + GEHOOR.fout;
+  if (seconden >= 5 && antwoorden) {
+    bewaarOefensessie(GEHOOR.soort === 'hooglaag' ? 'gehoor hoog/laag' : 'gehoor', seconden, antwoorden, GEHOOR.set);
+  }
+  $('gehoor-start').textContent = 'Start';
+  $('gehoor-stop').disabled = true;
+  $('gehoor-herhaal').disabled = true;
+  $('gehoor-knoppen').innerHTML = '';
+  $('gehoor-stand').textContent = 'Gestopt. ' + GEHOOR.goed + ' goed van ' + antwoorden +
+    (antwoorden ? ' (' + Math.round(100 * GEHOOR.goed / antwoorden) + '%)' : '') +
+    ' · beste reeks ' + GEHOOR.besteReeks + '.';
+  laadOefencijfers();
+}
+
+function gehoorKiesAntwoord(tekst, juist, uitleg) {
+  if (!GEHOOR.aan || GEHOOR.geprobeerd) return;
+  GEHOOR.geprobeerd = true;
+  if (juist) {
+    GEHOOR.goed++; GEHOOR.reeks++;
+    if (GEHOOR.reeks > GEHOOR.besteReeks) GEHOOR.besteReeks = GEHOOR.reeks;
+  } else {
+    GEHOOR.fout++; GEHOOR.reeks = 0;
+  }
+  werkGehoorScore();
+  $('gehoor-stand').textContent = uitleg;
+  // Laat het goede antwoord nog een keer horen als het misging.
+  if (!juist) {
+    var goed = GEHOOR.soort === 'hooglaag' ? GEHOOR.tweede : GEHOOR.vraag;
+    if (goed) setTimeout(function () { speelGreep(greepVan(goed).noten); }, 450);
+  }
+  setTimeout(function () {
+    if (!GEHOOR.aan) return;
+    GEHOOR.geprobeerd = false;
+    nieuweGehoorVraag();
+  }, juist ? 900 : 1900);
+}
+
+function werkGehoorScore() {
+  var antwoorden = GEHOOR.goed + GEHOOR.fout;
+  $('gehoor-score').textContent = antwoorden
+    ? GEHOOR.goed + ' van ' + antwoorden + ' goed · reeks ' + GEHOOR.reeks
+    : 'nog niets geraden';
+}
+
+function hussel(lijst) {
+  var uit = lijst.slice();
+  for (var i = uit.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = uit[i]; uit[i] = uit[j]; uit[j] = t;
+  }
+  return uit;
+}
+
+function nieuweGehoorVraag() {
+  if (GEHOOR.soort === 'hooglaag') { nieuweHoogLaagVraag(); return; }
+  var set = GEHOOR.set;
+  var antwoord = set[Math.floor(Math.random() * set.length)];
+  var opties = [antwoord];
+  var rest = hussel(set.filter(function (n) { return n !== antwoord; }));
+  // Afleiders: liefst akkoorden die er anders klinken, dus we pakken ze uit de hele set.
+  rest.forEach(function (n) { if (opties.length < Math.min(4, set.length)) opties.push(n); });
+  opties = hussel(opties);
+  GEHOOR.vraag = antwoord;
+  GEHOOR.geprobeerd = false;
+  $('gehoor-knoppen').innerHTML = opties.map(function (n) {
+    return '<button class="knop zacht gehoor-knop" data-gehoor="' + esc(n) + '">' + esc(n) + '</button>';
+  }).join('');
+  Array.prototype.forEach.call($('gehoor-knoppen').querySelectorAll('[data-gehoor]'), function (knop) {
+    knop.addEventListener('click', function () {
+      var naam = knop.getAttribute('data-gehoor');
+      var goed = naam === GEHOOR.vraag;
+      knop.classList.add(goed ? 'goed' : 'fout');
+      gehoorKiesAntwoord(naam, goed, goed
+        ? 'Goed! Dat was ' + naam + '.'
+        : 'Nee, het was ' + GEHOOR.vraag + ' (jij koos ' + naam + ').');
+    });
+  });
+  speelGreep(greepVan(antwoord).noten);
+  $('gehoor-stand').textContent = 'Welk akkoord klonk dat? Kies er een.';
+}
+
+// De tweede oefening: twee akkoorden na elkaar, klinkt het tweede hoger of lager?
+function nieuweHoogLaagVraag() {
+  var set = GEHOOR.set;
+  var eerste = set[Math.floor(Math.random() * set.length)];
+  var tweede = set[Math.floor(Math.random() * set.length)];
+  var pogingen = 0;
+  while (tweede === eerste && pogingen++ < 20) tweede = set[Math.floor(Math.random() * set.length)];
+  var laagEerste = Math.min.apply(null, greepVan(eerste).noten);
+  var laagTweede = Math.min.apply(null, greepVan(tweede).noten);
+  if (laagTweede === laagEerste) { nieuweHoogLaagVraag(); return; }
+  GEHOOR.eerste = eerste;
+  GEHOOR.tweede = tweede;
+  GEHOOR.hoog = laagTweede > laagEerste;
+  GEHOOR.geprobeerd = false;
+  $('gehoor-knoppen').innerHTML =
+    '<button class="knop zacht gehoor-knop" data-hooglaag="hoger">hoger</button>' +
+    '<button class="knop zacht gehoor-knop" data-hooglaag="lager">lager</button>';
+  Array.prototype.forEach.call($('gehoor-knoppen').querySelectorAll('[data-hooglaag]'), function (knop) {
+    knop.addEventListener('click', function () {
+      var keuze = knop.getAttribute('data-hooglaag');
+      var goed = (keuze === 'hoger') === !!GEHOOR.hoog;
+      knop.classList.add(goed ? 'goed' : 'fout');
+      gehoorKiesAntwoord(keuze, goed, goed
+        ? 'Goed: ' + GEHOOR.eerste + ' naar ' + GEHOOR.tweede + ' ging ' + (GEHOOR.hoog ? 'omhoog' : 'omlaag') + '.'
+        : 'Nee: ' + GEHOOR.eerste + ' naar ' + GEHOOR.tweede + ' ging ' + (GEHOOR.hoog ? 'omhoog' : 'omlaag') + '.');
+    });
+  });
+  speelGreep(greepVan(eerste).noten);
+  setTimeout(function () { if (GEHOOR.aan) speelGreep(greepVan(tweede).noten); }, 1500);
+  $('gehoor-stand').textContent = 'Klinkt het tweede akkoord hoger of lager?';
+}
+
+$('gehoor-start').addEventListener('click', function () { gehoorStart('akkoord'); });
+$('gehoor-hooglaag').addEventListener('click', function () { gehoorStart('hooglaag'); });
+$('gehoor-stop').addEventListener('click', gehoorStop);
+$('gehoor-herhaal').addEventListener('click', function () {
+  if (!GEHOOR.aan) return;
+  if (GEHOOR.soort === 'hooglaag') {
+    speelGreep(greepVan(GEHOOR.eerste).noten);
+    setTimeout(function () { speelGreep(greepVan(GEHOOR.tweede).noten); }, 1500);
+  } else if (GEHOOR.vraag) {
+    speelGreep(greepVan(GEHOOR.vraag).noten);
+  }
+});
+$('gehoor-set').addEventListener('change', function () {
+  if (GEHOOR.aan) gehoorStart(GEHOOR.soort);
+});
 
 // --------------------------------------------------------------- geluid ---
 function leerCtx() {
@@ -3497,6 +4204,8 @@ function kiesTrainerSet() {
   trainer.akkoorden = nieuw;
   var waarde = $('trein-set').value;
   if (nieuw.join(' ') !== waarde.trim()) $('trein-set').value = nieuw.join(' ');
+  // Dezelfde akkoorden meteen klaarzetten voor de gehoor-trainer.
+  if ($('gehoor-set') && !GEHOOR.aan) $('gehoor-set').value = nieuw.join(' ');
   if (veranderd && trainer.bezig) trainer.index = trainer.index % nieuw.length;
   if (veranderd) {
     tekenTrainer(nieuw[0], nieuw[1] || nieuw[0]);
@@ -3664,6 +4373,9 @@ function laadProfielen() {
 }
 
 // De labels van dit profiel in het filter zetten.
+// De setlists van dit profiel ophalen bij het opstarten.
+function laadMijnSetlists() { laadSetlists(actieveSetlist()); }
+
 function laadLabels() {
   api('/api/labels').then(function (data) {
     var sel = $('filter-label');

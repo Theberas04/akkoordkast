@@ -21,7 +21,11 @@ Die begeleiding cast je naar een Chromecast in je netwerk.
 [installeren op Proxmox](#installeren-op-je-proxmox-host) · [zelf draaien](#zelf-draaien-zonder-container) ·
 [wat zit erin](#wat-zit-erin) · [de liedjes](#de-liedjes) · [gitaar leren spelen](#gitaar-leren-spelen) ·
 [muziek erbij zoeken](#muziek-of-video-erbij-zoeken) · [een muziekmap in één keer](#een-hele-muziekmap-in-één-keer) ·
-[spelen op het podium](#spelen-op-het-podium) · [oefenen met moeilijke stukken](#oefenen-met-moeilijke-stukken) ·
+[op een NAS of in Drive](#de-muziekmap-op-een-nas-of-in-google-drive) ·
+[spelen op het podium](#spelen-op-het-podium) · [een setlist en optredenmodus](#een-setlist-en-optredenmodus) ·
+[oefenen met moeilijke stukken](#oefenen-met-moeilijke-stukken) ·
+[gehoor-trainer](#gehoor-trainer-akkoorden-herkennen) ·
+[het akkoordenboek](#akkoordenboek-alle-posities-over-de-hals) ·
 [jouw eigen lijstjes](#jouw-eigen-lijstjes) · [beheer en bijwerken](#beheer-en-bijwerken) ·
 [Spotify](#spotify) · [hoe het werkt](#hoe-het-werkt) · [tests](#tests) · [licentie](#licentie)
 
@@ -44,6 +48,11 @@ Die begeleiding cast je naar een Chromecast in je netwerk.
 | ![oefenen](docs/img/oefenen.png) | **Vertragen en een stukje herhalen** — zet het liedje op 60% zodat het rustig blijft klinken (de tonen blijven even hoog), zet met A en B een lus over juist die twee maten en speel ze tot ze zitten. |
 | ![meeluisteren](docs/img/microfoon.png) | **De app luistert mee** — met de microfoon hoort de app welk akkoord je pakt en zegt of dat het akkoord is dat in beeld staat. Alles in de browser, er wordt niets opgenomen of verstuurd. |
 | ![liedjesboek](docs/img/boek.png) | **Een liedjesboek maken** — van je hele selectie één document met titelblad, inhoudsopgave en elk liedje op een eigen pagina met de grepen en de bladmuziek; printen doe je met de printknop van de browser (Bewaar als PDF). |
+| ![setlist](docs/img/setlists.png) | **Setlists** — liedjes in een vaste volgorde voor een optreden, met pijltjes om te schuiven en een knop om er een vel van te printen. Hoort bij je profiel. |
+| ![optreden](docs/img/optreden.png) | **Optredenmodus** — alleen het liedje van nu, met een balk erboven: welk nummer, vorige en volgende, en een pauzeklok voor de stilte tussen twee nummers. |
+| ![gehoor](docs/img/gehoor-trainer.png) | **Gehoor-trainer** — de app speelt een akkoord en jij zegt welk het is, of je hoort twee akkoorden en zegt of het tweede hoger of lager klonk. |
+| ![akkoordenboek](docs/img/akkoordenboek.png) | **Akkoordenboek** — van elk akkoord alle posities over de hals, met het vaknummer en een uitleg, en een knop om er een grepenkaart van te printen. |
+| ![wachter](docs/img/wachter.png) | **Automatisch bijhouden** — de app kijkt zelf in je muziekmap en naar nieuwe versies op GitHub, en schrijft op wat er gedaan is. |
 | ![beheer](docs/img/beheer.png) | **Beheer en bijwerken** — welke versie er draait, of er iets nieuws klaarstaat op GitHub, en in één klik bijwerken als deze machine daarop is ingericht. |
 | ![start/stop](docs/img/start-stop.png) | **Start en stop bij het spelen** — naast de speler staan twee gewone knoppen (Start en Stop) met de stand ernaast; Stop zet de muziek ook echt terug naar het begin. |
 | ![tekst](docs/img/liedjestekst-bij-opname.png) | **De liedjestekst erbij** — lijkt de bestandsnaam op een liedje uit de bibliotheek, dan krijg je de tekst van dat liedje erbij te lezen, met de akkoorden uit jouw opname erboven. |
@@ -112,6 +121,12 @@ in plaats van wav. Geen npm-afhankelijkheden.
 - **Chromecast.** Apparaten zoeken via mDNS en anders direct op een IP, casten met titel en
   artiest, stoppen en volume regelen. De Chromecast haalt de audio bij deze server op, dus
   het toestel moet de container kunnen bereiken.
+- **Een akkoordenboek met alle posities.** Van elk akkoord niet één greep maar alles wat je
+  kunt pakken: de open positie en de barré-vormen verder naar boven, met de tekening erbij.
+- **Setlists en een optredenmodus.** Zet liedjes in een vaste volgorde en speel ze achter elkaar
+  door: groot beeld, alleen het liedje van nu, met de knoppen om verder te gaan en een pauzeklok.
+- **Gehoor-trainer.** De app speelt een akkoord en jij zegt welk het is; of ze speelt er twee en
+  jij zegt of het tweede hoger of lager klinkt. Je hoeft niets te zien.
 - **PWA.** Installeerbaar op je telefoon, met de app-schil in de cache maar liedjes, audio en
   cast-status altijd live.
 
@@ -253,6 +268,97 @@ dat liedje erbij (grepen en capo-advies inbegrepen). Het werk gaat in kleine ron
 voortgangsbalk, dus ook een map met honderden nummers loopt gewoon door; wat al gedaan is wordt
 overgeslagen, zodat je gerust nog eens kunt drukken.
 
+## De muziekmap op een NAS of in Google Drive
+
+Staat je muziek niet op dezelfde machine als AkkoordKast maar op een NAS in je netwerk of
+in Google Drive, dan koppel je die map aan de container en wijs je de app erop. De app scant
+gewoon een map op deze machine; of die map nu op de eigen schijf staat of van een NAS of Drive
+komt, maakt voor het scannen niet uit. Welke map de app bekijkt hoort in de omgevingsvariabele
+**`MUSIC_DIR`** te staan (standaard `/home/akkoordkast/muziek`). Na het koppelen vul je
+datzelfde pad in bij het tabblad **Toevoegen → Muziekmap scannen**.
+
+Twee hulpscripts horen erbij:
+
+| Script | Waar het draait | Wat het doet |
+| --- | --- | --- |
+| [`deploy/proxmox/nas-koppelen.sh`](deploy/proxmox/nas-koppelen.sh) | op de **Proxmox-host**, als root | koppelt een NAS-map (SMB of NFS) en hangt die in de container |
+| [`deploy/proxmox/drive-koppelen.sh`](deploy/proxmox/drive-koppelen.sh) | **in de container**, als root | koppelt Google Drive met rclone, als systemd-dienst met een controletimer |
+
+### Route 1: een NAS in hetzelfde netwerk
+
+1. Op de Proxmox-host, als root:
+   ```bash
+   bash deploy/proxmox/nas-koppelen.sh
+   ```
+   Het script vraagt om het IP-adres van de NAS, de sharenaam (of het NFS-exportpad), de
+   gebruikersnaam en het wachtwoord, het container-id en het koppelpunt. Je kunt alles ook
+   vooraf meegeven, dan wordt er niets gevraagd:
+   ```bash
+   NAS_PROTO=cifs NAS_HOST=192.168.1.100 NAS_SHARE=muziek NAS_USER=thuis NAS_PASS=geheim \
+   CTID=225 bash deploy/proxmox/nas-koppelen.sh
+   ```
+2. Het script controleert eerst of de host de NAS kan bereiken (ping en de juiste poort:
+   445 voor SMB, 2049 voor NFS). Lukt dat niet, dan stopt het met uitleg in plaats van te
+   koppelen.
+3. De koppeling komt **op de host** te staan en wordt met een bind-mount in de container
+   gehangen. Dat is de veiligste route: op een ongeprivilegieerde LXC mag alleen root een paar
+   bestandssystemen mounten en werkt `cifs` of `nfs` binnen de container vaak niet, terwijl de
+   host gewoon kan mounten en Proxmox de map netjes doorgeeft.
+4. De regel gaat in `/etc/fstab` met `_netdev` (pas koppelen als het netwerk er is) en `nofail`
+   (een uitstaande NAS mag het opstarten niet blokkeren). De oude `fstab` wordt als
+   `/etc/fstab.akkoordkast.bak` bewaard.
+5. Het script koppelt, doet een **lees- en schrijftest** op de host en in de container, en
+   herstart de container zodat de bind-mount actief wordt. Gaat er iets mis, dan ontkoppelt het
+   de map weer en zet de oude `fstab` terug.
+
+Je wachtwoord komt nooit in de proceslijst of de shell-historie: je typt het met `read -s`, en
+de koppeling leest het uit `/etc/akkoordkast/nas.credentials` met rechten 600. Nooit
+`mount -o pass=…` op de opdrachtregel — die is voor iedereen leesbaar via `/proc`.
+
+### Route 2: Google Drive
+
+1. In de container, als root:
+   ```bash
+   pct exec 225 -- bash drive-koppelen.sh
+   ```
+2. Het script installeert rclone en fuse. Daarna is er **eenmalige aanmelding** nodig, en die
+   kan niet zonder browser. Twee manieren, het script legt ze allebei uit:
+   - op een computer met een browser `rclone config` doen (remote van het type `drive`, naam
+     `gdrive`) en daarna het bestand `/root/.config/rclone/rclone.conf` naar de container
+     kopiëren met `pct push 225 rclone.conf /root/.config/rclone/rclone.conf --perms 600`;
+   - of `rclone config` **in de container** draaien; die print een link die je in een browser op
+     een ander apparaat opent, waarna je de code terugplakt. Geen browser in de container nodig.
+
+   Zonder gedaan configuratiebestand stopt het script met uitleg en verandert het verder niets.
+3. Het script zet een **systemd-dienst** (`akkoordkast-drive-mount.service`) op die de map
+   koppelt met `rclone mount --vfs-cache-mode writes`. Die laatste optie is nodig: zonder
+   schrijfcache weigert rclone het schrijven en kan de app er niets in zetten.
+4. Een **systemd-timer** (`akkoordkast-drive-check.timer`) controleert elke vijf minuten of de
+   map er nog is en herstart de dienst zo nodig. Drive laat de koppeling nog wel eens vallen; de
+   timer en `Restart=on-failure` op de dienst vangen dat op, ook na een herstart van de container.
+5. Het script zet `MUSIC_DIR` op de koppelmap via een drop-in op de dienst van de app en herstart
+   die.
+
+### Als het gekoppeld is
+
+1. Open AkkoordKast in je browser.
+2. Ga naar het tabblad **Toevoegen** en zoek **Muziekmap scannen** op.
+3. Vul bij **Map op deze machine** het koppelpunt in (standaard `/home/akkoordkast/muziek`).
+4. Klik op **Kijk wat erin zit** en daarna op **Alles omzetten**.
+
+### De eerlijke beperkingen
+
+- **Een NAS die uit staat.** De map is er dan niet. Met `nofail` in `fstab` blijft de container
+  gewoon opstarten, maar het scannen in de app meldt dat de map niet bestaat. Zet de NAS aan en
+  probeer opnieuw; de app zelf hoeft niet te worden herstart.
+- **Drive is traag bij grote mappen.** Google Drive komt over het internet. Een map met
+  honderden nummers inlezen duurt langer, bestanden worden pas opgehaald als ze nodig zijn, en
+  de knop `Alles omzetten` doet er dus meer tijd over. Doe zulke mappen in kleine rondes (dat
+  doet de app standaard al) en houd de verbinding in de gaten.
+- **De app stuurt zelf niets naar buiten.** Het scannen en omzetten gebeurt op de machine zelf
+  met `ffmpeg`. Wat wél over het internet gaat, is het ophalen van de bestanden uit Drive door
+  rclone; de app praat nooit rechtstreeks met Google.
+
 ## Spotify
 
 Plak in het liedpaneel een Spotify-link (`open.spotify.com/track/…`, `spotify:track:…` of een losse id). De speler
@@ -274,6 +380,25 @@ En wil je een **liedjesboek** meenemen naar de repetitie, dan maakt de app van j
 liedjes) één document: een titelblad, een inhoudsopgave en elk liedje op een eigen pagina met de grepen en de
 bladmuziek erbij. Op het scherm zie je eerst een voorbeeld, waarna de printknop van de browser er een PDF van maakt.
 
+## Een setlist en optredenmodus
+
+Op het tabblad Liedjes staat een kaart **Setlists en optreden**. Je maakt een setlist (bijvoorbeeld
+*Kroeg vrijdag*), zet er liedjes in met **+ setlist** — in de lijst naast het sterretje, of in het
+spelscherm — en verschuift ze met de pijltjes tot de volgorde klopt. Setlists horen bij je profiel, dus
+ieder gezelschap heeft zijn eigen lijst.
+
+Druk je op **Optreden starten**, dan gaat de podiummodus er meteen bij aan en zie je alleen het liedje
+van nu, met een balk erboven: *welk nummer je bent*, **‹ vorige** en **volgende ›**, een **pauzeklok**
+die optelt hoelang je al stil bent, en **Optreden stoppen**. Met PageDown, ↓ of → ga je verder, met
+PageUp, ↑ of ← terug; de spatie blijft gewoon meescrollen.
+
+![Setlist en optreden](docs/img/optreden.png)
+
+Met **Setlist printen** maak je er een vel van: alle liedjes onder elkaar met toonsoort, capo, tempo,
+de akkoorden en een lege kolom voor je eigen notities.
+
+![Setlist op papier](docs/img/setlist-print.png)
+
 ## Oefenen met moeilijke stukken
 
 - **Vertragen**: het liedje op 80%, 70%, 60% of 50% van het tempo. De begeleiding wordt op dat lagere tempo
@@ -284,6 +409,34 @@ bladmuziek erbij. Op het scherm zie je eerst een voorbeeld, waarna de printknop 
   het akkoord is dat in beeld staat. Dat gebeurt allemaal in je browser met de frequentiebank van Web Audio; er
   wordt niets opgenomen en niets verstuurd. Het is een hulpmiddel, geen scheidsrechter — een versterker of een
   rammelende tafel kan de meting in de war sturen.
+
+## Gehoor-trainer: akkoorden herkennen
+
+In het tabblad Leren staat de **gehoor-trainer**. Je typt de akkoorden die meedoen (of je pakt een
+set uit de lijst, of je drukt bij een les op de knop — dan gaan die akkoorden meteen mee), drukt op
+**Start** en de app speelt een akkoord. Jij kiest welk het was uit vier knoppen; met **Nog een keer
+horen** hoor je hem opnieuw. Klonk het mis, dan laat de app het goede antwoord nog één keer horen.
+
+Met **Hoog of laag?** krijg je de tweede oefening: de app speelt twee akkoorden en jij zegt of het
+tweede hoger of lager klonk. De score met je reeks staat erboven; stop je, dan gaat de tijd en het
+aantal antwoorden naar je oefencijfers, zodat je ook je gehoor ziet groeien.
+
+![Gehoor-trainer](docs/img/gehoor-trainer.png)
+
+## Akkoordenboek: alle posities over de hals
+
+Het akkoordenboek (ook in het tabblad Leren) laat per akkoord **alle posities** zien: de open positie
+onderaan, en de barré-vormen uit het E- en A-model verder naar boven — met het vaknummer waarop ze
+beginnen en een korte uitleg ("wijsvinger plat over de bovenste snaren"). Klik op een greep en je
+hoort hem. Handig als een akkoord te hoog of te laag klinkt, of als je juist hoger op de hals wilt
+blijven in plaats van te schuiven.
+
+![Akkoordenboek](docs/img/akkoordenboek.png)
+
+Met **Grepenkaart printen** zet je van alle akkoorden in het liedje dat je open hebt alle posities op
+één vel — een poster voor je oefenhoek.
+
+![Grepenkaart](docs/img/grepenkaart.png)
 
 ## Jouw eigen lijstjes
 
@@ -305,6 +458,14 @@ vraagt de app aan GitHub of er iets nieuws is; is dat zo, dan staat de titel van
 gebeurt op je Proxmox-host (daar horen de rechten bij te zitten) — de app laat het precieze commando zien, en kan
 het zelf doen als er op die machine een uitvoerbaar update-script klaarstaat (`UPDATE_SCRIPT=/pad/script`).
 
+Daaronder zit **automatisch bijhouden**. Zet je dat aan, dan kijkt de app zelf elke 1, 3, 6, 12 of 24
+uur in je muziekmap of er nieuwe bestanden staan, zet die om (maximaal acht per ronde, zodat een
+grote map niet in één keer de deur platloopt) en schrijft op wat er gebeurd is — "3 omgezet · nog 12
+te doen", of "Niets nieuws in de map (412 bestanden)". Staat je muziek op een NAS of in Drive en is
+de NAS even weg, dan zegt de kaart dat gewoon. Los daarvan kijkt de app elke zes uur op GitHub of er
+een nieuwe versie is, ook als het map-bijhouden uit staat; staat er iets nieuws, dan zie je dat aan
+het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
+
 ## Hoe het werkt
 
 | Onderdeel | Keuze |
@@ -319,7 +480,8 @@ het zelf doen als er op die machine een uitvoerbaar update-script klaarstaat (`U
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 102 tests: muziektheorie, API, pagina, datasets, persoonlijke laag, deploy-scripts
+node --test test/*.test.js          # 114 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+                                    # setlists, akkoordenboek, de wachter en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL
 ```

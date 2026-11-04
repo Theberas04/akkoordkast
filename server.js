@@ -34,7 +34,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.12.2';
+const VERSIE = '1.12.3';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -1479,7 +1479,8 @@ function maakLiedjeVanDownload(bestand, titel, url) {
   const videoId = youtube.videoId(url || '');
   const tekst = '{title: ' + naam + '}\n' +
     '\nDit liedje is opgehaald uit een link. De bladmuziek staat er nog niet in, maar de muziek\n' +
-    'wel: druk in het speelscherm op Meespelen met de muziek en de akkoorden lopen mee.';
+    'wel: druk in het speelscherm op Meespelen met de muziek om hem te horen. Akkoorden heeft dit\n' +
+    'liedje niet, dus er loopt niets mee \u2014 speel op gehoor mee, of zet er zelf akkoorden bij.';
   const gegevens = normaliseerLiedje({
     titel: naam, artiest: 'Gedownload', taal: 'nl', genre: 'Gedownload',
     youtube: videoId || '', chordpro: tekst
@@ -3310,6 +3311,27 @@ async function verwerk(req, res) {
     try {
       plan = meespeelVoorLiedje(lied, query);
     } catch (e) {
+      // Geen melodie en geen akkoorden, maar wél muziek (bijvoorbeeld een liedje dat uit een link is
+      // opgehaald)? Dan spelen we die muziek gewoon. Met akkoorden meespelen kan niet, luisteren wel.
+      const eigen = eigenAudioUrl(lied);
+      if (eigen) {
+        json(res, 200, {
+          liedje: {
+            id: lied.id,
+            titel: lied.titel,
+            artiest: lied.artiest,
+            heeftMelodie: false,
+            eigenAudio: false
+          },
+          tijdlijn: null,
+          alleenMuziek: true,
+          audio: eigen,
+          bron: 'muziek',
+          melding: 'Voor dit liedje zijn geen akkoorden overgeleverd, dus er loopt niets mee. ' +
+            'Je hoort nu de muziek zelf \u2014 speel gerust op gehoor mee.'
+        });
+        return;
+      }
       json(res, 400, { fout: e.message });
       return;
     }

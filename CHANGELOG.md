@@ -3,6 +3,22 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.12.3] — 4 november 2026
+
+### Gerepareerd
+
+- **Meespelen weigerde bij een liedje dat uit een link was opgehaald.** Zo'n liedje heeft wel muziek,
+  maar geen akkoorden of melodie. *Meespelen met de muziek* gaf dan een rode melding: "Van dit liedje
+  is alleen de tekst overgeleverd: er is geen melodie of akkoordschema om mee te spelen" — terwijl de
+  app erboven beloofde dat de muziek er wel was. Nu speelt de app in dat geval **de muziek zelf**, met
+  de eerlijke uitleg erbij: er loopt niets mee, speel mee op gehoor. Heeft een liedje akkoorden, dan
+  verandert er niets.
+- **De belofte boven de knop klopte niet meer.** Bij een liedje zonder akkoorden stond er nog dat de
+  maat, de slagen en de akkoordnoten mee zouden lopen. Dat staat er nu alleen nog als het liedje
+  akkoorden heeft.
+- De tekst die bij een nieuw opgehaald liedje in de bladmuziek staat, zegt nu wat je echt kunt
+  verwachten: de muziek is er, de akkoorden niet.
+
 ## [1.12.2] — 4 november 2026
 
 ### Gerepareerd

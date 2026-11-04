@@ -2613,7 +2613,11 @@ function tekenLiedje(l) {
           ? 'Druk op <strong>Meespelen</strong> en je hoort <strong>je eigen opname</strong>; de akkoorden, de maat en de hals lopen daarmee mee.' +
             ' De akkoorden zijn automatisch herkend (' + l.akkoordenPerMaat.length + ' maten), dus controleer ze gerust.'
           : 'Druk op <strong>Meespelen</strong> en speel mee: de noten, de tabulatuur, de hals en de grepen lopen mee met de audio.' +
-            (l.heeftMelodie ? ' Dit liedje heeft een volledige melodie, dus je ziet elke noot langskomen.' : ' Dit liedje heeft alleen akkoorden: je ziet de maat, de slagen en de noten van elk akkoord.') +
+            (l.heeftMelodie
+              ? ' Dit liedje heeft een volledige melodie, dus je ziet elke noot langskomen.'
+              : (l.akkoorden.length
+                ? ' Dit liedje heeft alleen akkoorden: je ziet de maat, de slagen en de noten van elk akkoord.'
+                : ' Dit liedje heeft geen akkoorden: je hoort de muziek en speelt mee op gehoor.')) +
             ' Het tempo kun je trager zetten om mee te oefenen.') + '</p>' +
       '<div class="mees-kop">' +
         '<div class="mees-nu"><span class="mees-label">Nu</span>' +
@@ -4129,6 +4133,31 @@ function meespelLaad(l, spelen) {
     return r.json().then(function (d) { if (!r.ok) throw new Error(d.fout || 'maken mislukt'); return d; });
   }).then(function (data) {
     var tl = data.tijdlijn;
+    // Geen akkoorden maar wel muziek: dan is er geen beeld om mee te laten lopen, en spelen we alleen
+    // de muziek. Zonder deze afhandeling bleef de pagina op een leeg beeld staan.
+    if (data.alleenMuziek) {
+      if (!staat.meespelen || staat.meespelen.lied.id !== l.id) meespelStop();
+      staat.meespelen = { lied: l, tijdlijn: null, audio: data.audio, alleenMuziek: true };
+      MEES.loop = false;
+      var a0 = $('mees-audio');
+      MEES.audioEl = a0;
+      if (a0.getAttribute('src') !== data.audio) a0.src = data.audio;
+      toonMelding('mees-melding', data.melding || 'Voor dit liedje zijn geen akkoorden; je hoort de muziek zelf.', '');
+      if (!spelen) return;
+      if (SPOTIFY.controller && SPOTIFY.speelt) { try { SPOTIFY.controller.pause(); } catch (e) {} }
+      a0.currentTime = 0;
+      a0.onended = function () {
+        meespelStop();
+        toonMelding('mees-melding', 'Klaar. Druk op Meespelen om het nog eens te horen.', 'goed');
+      };
+      a0.play().then(function () {
+        toonMelding('mees-melding', 'De muziek speelt. Speel mee op gehoor.', 'goed');
+      }).catch(function () {
+        toonMelding('mees-melding', 'De browser houdt het geluid tegen tot je zelf klikt: druk nog eens op Meespelen.', 'fout');
+      });
+      $('mees-stop').hidden = false;
+      return;
+    }
     if (!staat.meespelen || staat.meespelen.lied.id !== l.id) meespelStop();
     staat.meespelen = { lied: l, tijdlijn: tl, audio: data.audio };
     tekenMeespeelBeeld(l, tl);
@@ -4180,7 +4209,7 @@ function meespelHerlaad(l) {
 function meespelTik() {
   var s = staat.meespelen;
   var a = $('mees-audio');
-  if (!s || !a || !MEES.audioEl || a !== MEES.audioEl) { MEES.loop = false; return; }
+  if (!s || !s.tijdlijn || !a || !MEES.audioEl || a !== MEES.audioEl) { MEES.loop = false; return; }
   var tl = s.tijdlijn;
   var t = meespeelTijd();
   // de A/B-lus: voorbij B springen we terug naar A, zodat je dat ene stukje blijft

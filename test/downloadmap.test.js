@@ -93,9 +93,9 @@ test('de downloader wijkt zelf uit als de map pas later onbruikbaar wordt', asyn
 });
 
 // Precies waar een gebruiker tegenaan liep: een liedje dat uit een link is opgehaald heeft wel
-// muziek maar geen akkoorden. Dan hoort Meespelen de muziek te spelen in plaats van te weigeren met
-// 'Van dit liedje is alleen de tekst overgeleverd'.
-test('meespelen zonder akkoorden maar met muziek speelt gewoon de muziek', async () => {
+// muziek maar geen akkoorden. Zo'n liedje hoort een voorgesteld schema te krijgen, zodat Meespelen
+// werkt in plaats van te weigeren met 'Van dit liedje is alleen de tekst overgeleverd'.
+test('een liedje zonder akkoorden krijgt een voorstel en speelt mee', async () => {
   const os = require('os');
   const wortel = fs.mkdtempSync(path.join(os.tmpdir(), 'ak-mees-'));
   const nep = path.join(wortel, 'nep-ytdlp.sh');
@@ -129,17 +129,36 @@ test('meespelen zonder akkoorden maar met muziek speelt gewoon de muziek', async
     }
     assert.ok(liedje, 'het opgehaalde nummer hoort een liedje met muziek te zijn');
 
+    // Dit nummer heeft een opname maar geen eigen analyse: Meespelen speelt de muziek zelf.
     const mees = await hulp.haal(omgeving.basis + `/api/meespelen?liedje=${liedje.id}&capo=0`);
-    assert.equal(mees.status, 200, 'meespelen hoort te lukken met muziek: ' + JSON.stringify(mees.data));
-    assert.equal(mees.data.alleenMuziek, true, 'de app hoort te melden dat er alleen muziek is');
-    assert.equal(mees.data.tijdlijn, null, 'er is geen akkoordschema om mee te laten lopen');
-    assert.match(String(mees.data.audio), /muziek\/bestand\?liedje=/, 'de muziek van het liedje wordt gespeeld');
-    assert.match(String(mees.data.melding || ''), /akkoorden/i, 'de app legt uit waarom er niets meeloopt');
+    assert.equal(mees.status, 200, 'meespelen hoort te lukken: ' + JSON.stringify(mees.data));
+    assert.equal(mees.data.alleenMuziek, true, 'de opgehaalde muziek wordt gespeeld: ' + JSON.stringify(mees.data).slice(0, 240));
+    assert.match(String(mees.data.audio || ''), /muziek\/bestand\?liedje=/,
+      'de muziek van het liedje wordt gespeeld, kreeg: ' + JSON.stringify(mees.data.audio));
+    assert.match(String(mees.data.melding || ''), /akkoorden/i, 'de app legt uit waar de akkoorden staan');
 
-    // Een gewoon liedje met akkoorden doet het nog steeds zoals het hoorde.
+    // De liedkaart vertelt dat de akkoorden een voorstel zijn, en geeft ze mee aan de app.
+    const kaart = await baas.haal(`/api/liedjes/${liedje.id}`);
+    const l = kaart.data.liedje || kaart.data;
+    assert.equal(l.akkoordenBron, 'voorstel', 'de app hoort te melden dat dit een voorstel is');
+    assert.ok(l.akkoorden.length >= 2, 'er horen akkoorden met grepen te zijn: ' + JSON.stringify(l.akkoorden));
+    assert.ok(l.akkoorden.every(a => a.heeftDiagram), 'elk voorgesteld akkoord hoort te tekenen zijn');
+
+    // Een zelf ingevulde reeks gaat vóór het schema van het liedje (bij een liedje zonder opname).
+    const eigen = await hulp.haal(omgeving.basis + '/api/meespelen?liedje=1&capo=0&reeks=C%20Am%20F%20G');
+    assert.equal(eigen.status, 200, JSON.stringify(eigen.data));
+    const eigenMaten = ((eigen.data.tijdlijn || {}).maten || []).map(m => m.akkoord);
+    assert.ok(eigenMaten.length >= 3, 'de eigen reeks hoort gebruikt te worden: ' + JSON.stringify(eigenMaten));
+    assert.equal(eigenMaten[0], 'C');
+    assert.equal(eigenMaten[1], 'Am');
+
+    // Een gewoon liedje met akkoorden doet het nog steeds zoals het hoorde, en heet geen voorstel.
     const gewoon = await hulp.haal(omgeving.basis + '/api/meespelen?liedje=1&capo=0');
     assert.equal(gewoon.status, 200, JSON.stringify(gewoon.data));
     assert.ok(gewoon.data.tijdlijn && gewoon.data.tijdlijn.maten, 'een liedje met akkoorden hoort een tijdlijn te hebben');
+    const kaart1 = await baas.haal('/api/liedjes/1');
+    const l1 = kaart1.data.liedje || kaart1.data;
+    assert.equal(l1.akkoordenBron, 'bron', 'een liedje met eigen akkoorden is geen voorstel');
   } finally {
     delete process.env.YTDLP;
     delete process.env.DOWNLOAD_DIR;

@@ -2663,6 +2663,11 @@ function tekenLiedje(l) {
       '<div class="spotify-speler" id="spotify-speler"></div>' +
 
       '<h3>Begeleiding</h3>' +
+      (l.akkoordenBron === 'voorstel'
+        ? '<div class="melding">Van dit liedje zijn geen akkoorden overgeleverd. De akkoorden hieronder zijn ' +
+          'een <strong>voorstel</strong> in de toonaard van het liedje \u2014 pas ze gerust aan in het veld ' +
+          'Akkoordenreeks.</div>'
+        : '') +
       (l.akkoorden.length ? '' :
         '<div class="melding">Van dit liedje is alleen de tekst overgeleverd — er is geen melodie of ' +
         'akkoordschema in de bron, dus er valt ook geen begeleiding te maken. Wil je er zelf akkoorden bij ' +
@@ -4121,6 +4126,11 @@ function meespeelParams(l) {
   p.set('tempo', Math.round(l.tempo * (Number($('mees-tempo').value) / 100)));
   p.set('aftellen', $('mees-aftellen').checked ? '1' : '0');
   p.set('klik', $('mees-klik').checked ? '1' : '0');
+  // Heeft de gebruiker zelf een akkoordenreeks ingevuld, dan speelt die mee (in plaats van het
+  // schema van het liedje of het voorstel van de app).
+  var reeksVeld = $('speler-reeks');
+  var eigenReeks = reeksVeld ? String(reeksVeld.value || '').trim() : '';
+  if (eigenReeks && eigenReeks !== (l.akkoordenReeks || []).join(' ')) p.set('reeks', eigenReeks);
   return p;
 }
 

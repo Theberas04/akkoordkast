@@ -10,6 +10,7 @@ const { DatabaseSync } = require('node:sqlite');
 
 const chordpro = require('./lib/chordpro');
 const capo = require('./lib/capo');
+const voorstel = require('./lib/voorstel');
 const grepen = require('./lib/grepen');
 const gitaar = require('./lib/gitaar');
 const tijdlijn = require('./lib/tijdlijn');
@@ -34,7 +35,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.12.3';
+const VERSIE = '1.13.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -526,7 +527,15 @@ function normaliseerLiedje(invoer) {
 function eigenRij(id) {
   const rij = db.prepare('SELECT * FROM liedjes WHERE id = ?').get(Number(id));
   if (!rij) return null;
-  const model = chordpro.parse(rij.chordpro);
+  let model = chordpro.parse(rij.chordpro);
+  // Geen akkoorden in de bron? Dan een voorstel in de toonaard van het liedje, zodat een opgehaald
+  // nummer tóch grepen, begeleiding en meespelen krijgt (met de melding dat het een voorstel is).
+  let akkoordenBron = 'bron';
+  if (!model.akkoorden.length) {
+    const v = voorstel.voorstelReeks(rij.toonsoort || '');
+    model = { meta: model.meta, regels: [], akkoorden: v.akkoorden.slice() };
+    akkoordenBron = 'voorstel';
+  }
   const toonsoort = rij.toonsoort || model.meta.toonsoort || model.akkoorden[0] || 'C';
   return {
     id: EIGEN_START + rij.id,
@@ -553,6 +562,7 @@ function eigenRij(id) {
     audio_titel: rij.audio_titel,
     eigen: true,
     model,
+    akkoordenBron,
     advies: capo.advies(model.akkoorden, toonsoort)
   };
 }
@@ -593,7 +603,8 @@ function weergave(lied, opties) {
   const o = Object.assign({ transpose: 0, capoStand: null, beheer: false, beheerProfiel: false }, opties || {});
   const stappen = Math.max(-11, Math.min(11, parseInt(o.transpose, 10) || 0));
   const mol = theorie.toonsoortVoorkeur(lied.toonsoort || 'C', stappen);
-  const model = stappen ? chordpro.transponeerModel(lied.model, stappen, mol) : lied.model;
+  const bron = modelMetVoorstel(lied);
+  const model = stappen ? chordpro.transponeerModel(bron.model, stappen, mol) : bron.model;
   const toonsoort = theorie.transponeerToonsoort(lied.toonsoort || 'C', stappen);
   const advies = capo.advies(model.akkoorden, toonsoort);
   const gekozenCapo = o.capoStand === null || o.capoStand === '' || o.capoStand === undefined
@@ -614,7 +625,7 @@ function weergave(lied, opties) {
     };
   });
 
-  const reeks = chordpro.akkoordenReeks(model, 8);
+  const reeks = reeksUitModel(model, 8);
   return {
     id: lied.id,
     titel: lied.titel,
@@ -634,6 +645,9 @@ function weergave(lied, opties) {
     capo: gekozenCapo,
     advies,
     akkoorden,
+    // 'bron' = de akkoorden komen uit het liedje zelf, 'voorstel' = de app stelt ze voor omdat het
+    // liedje er geen had; de app laat dat verschil zien.
+    akkoordenBron: bron.voorstel ? 'voorstel' : 'bron',
     akkoordenReeks: reeks,
     model,
     heeftMelodie: !!(lied.noten && lied.noten.length),
@@ -780,6 +794,7 @@ function lijstItem(lied) {
     moeilijkheid: lied.moeilijkheid,
     toonsoort: lied.toonsoort,
     akkoorden: theorie.uniek(lied.model.akkoorden),
+    akkoordenBron: lied.akkoordenBron || 'bron',
     capo: advies.capo,
     capoTekst: advies.capo === 0 ? 'Zonder capo' : `Capo ${advies.capo} · ${advies.vormToonsoort}`,
     zonderCapo: advies.capo === 0,
@@ -1088,11 +1103,55 @@ function waarheidsgetrouw(query, naam, standaard, min, max) {
   return Math.max(min, Math.min(max, parseInt(waarde, 10) || standaard));
 }
 
+// Welk akkoordmodel hoort bij dit liedje? Heeft de bron akkoorden, dan die. Heeft het liedje er
+// geen (een opgehaald nummer, of een liedje waarvan de bron alleen tekst heeft), dan een voorstel in
+// de toonaard van het liedje — zodat er altijd grepen, begeleiding en meespelen mogelijk zijn. De app
+// zegt er zelf bij dat het een voorstel is.
+function modelMetVoorstel(lied) {
+  const eigen = lied.model && lied.model.akkoorden && lied.model.akkoorden.length;
+  // Heeft de bron van het liedje het al bepaald (een liedje uit de database weet of zijn schema een
+  // voorstel is), dan nemen we dat over.
+  if (eigen) return { model: lied.model, voorstel: lied.akkoordenBron === 'voorstel' };
+  const v = voorstel.voorstelReeks(lied.toonsoort || 'C');
+  return {
+    model: { meta: (lied.model && lied.model.meta) || {}, regels: [], akkoorden: v.akkoorden.slice() },
+    voorstel: true,
+    toonsoortVoorstel: v.toonsoort
+  };
+}
+
+// De akkoordenreeks om mee te spelen: uit de regels van het liedje als die er zijn, anders de
+// akkoorden van het model zelf. Een voorstel (of een zelf ingevulde reeks) heeft geen regels, want de
+// akkoorden staan dan los van de tekst.
+function reeksUitModel(model, aantal) {
+  const uitRegels = (model && model.regels && model.regels.length)
+    ? chordpro.akkoordenReeks(model, aantal)
+    : [];
+  if (uitRegels.length) return uitRegels;
+  return ((model && model.akkoorden) || []).slice(0, aantal);
+}
+
+// Een akkoordenreeks die de gebruiker zelf heeft ingevuld (uit het invulveld in de app). Alleen
+// nette akkoordnamen komen erdoor; onzin wordt genegeerd.
+function reeksUitQuery(query) {
+  const ruw = String((query && query.get && query.get('reeks')) || '').trim();
+  if (!ruw) return [];
+  const naam = /^[A-G][#b]?(maj7|m7|m|7)?$/;
+  return ruw.split(/[\s,;|]+/).map(x => x.trim()).filter(x => naam.test(x)).slice(0, 32);
+}
+
 // Het plan van een liedje in de meespeelstand.
 function meespeelPlan(lied, query) {
+  const gekozenReeks = reeksUitQuery(query);
   const stappen = parseInt(query.get('transpose'), 10) || 0;
   const mol = theorie.toonsoortVoorkeur(lied.toonsoort || 'C', stappen);
-  const model = stappen ? chordpro.transponeerModel(lied.model, stappen, mol) : lied.model;
+  const bron = modelMetVoorstel(lied);
+  let model = bron.model;
+  // Een zelf ingevulde reeks gaat vóór het voorstel.
+  if (gekozenReeks.length) {
+    model = { meta: model.meta || {}, regels: [], akkoorden: gekozenReeks.slice() };
+  }
+  if (stappen) model = chordpro.transponeerModel(model, stappen, mol);
   const advies = capo.advies(model.akkoorden, theorie.transponeerToonsoort(lied.toonsoort || 'C', stappen));
   const capoRuw = query.get('capo');
   const gebruikCapo = capoRuw === null || capoRuw === '' || capoRuw === 'auto'
@@ -1105,9 +1164,13 @@ function meespeelPlan(lied, query) {
 
   // Akkoorden per maat: bij een liedje met melodie liggen de akkoorden vast per maat,
   // anders speelt elk akkoord van de reeks één maat en herhaalt het aantal rondes.
-  const perMaat = (lied.akkoordenPerMaat && lied.akkoordenPerMaat.length)
-    ? lied.akkoordenPerMaat.map(a => theorie.transponeer(a, stappen, mol))
-    : chordpro.akkoordenReeks(model, 8);
+  // Wat de gebruiker zelf invult wint van alles; anders het schema van het liedje; anders het
+  // voorstel (of de reeks van het model).
+  const perMaat = gekozenReeks.length
+    ? gekozenReeks.map(a => theorie.transponeer(a, stappen, mol))
+    : ((lied.akkoordenPerMaat && lied.akkoordenPerMaat.length)
+      ? lied.akkoordenPerMaat.map(a => theorie.transponeer(a, stappen, mol))
+      : reeksUitModel(model, 8));
   // een liedje met melodie en een eigen opname spelen één keer: het beeld moet
   // bij de muziek blijven horen
   const rondes = (heeftMelodie || meespeelEigenAudio(lied)) ? 1 : waarheidsgetrouw(query, 'rondes', 3, 1, 8);
@@ -3307,6 +3370,31 @@ async function verwerk(req, res) {
   if (pad === '/api/meespelen' && methode === 'GET') {
     const lied = vindLiedje(query.get('liedje'));
     if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    // Een opgehaald nummer heeft muziek maar geen eigen opname-analyse. Dan spelen we de muziek zelf
+    // (de akkoorden staan als voorstel in de liedkaart); een meelopend beeld zou op deze opname niet
+    // kloppen, want die is niet op maat geanalyseerd.
+    const eigenMuziek = muziekVanLiedje(lied.id);
+    const metOpnameAnalyse = !!(lied.audio_bestand && lied.akkoordenPerMaat && lied.akkoordenPerMaat.length);
+    if (eigenMuziek && eigenMuziek.bestaat && !metOpnameAnalyse) {
+      json(res, 200, {
+        liedje: {
+          id: lied.id,
+          titel: lied.titel,
+          artiest: lied.artiest,
+          heeftMelodie: false,
+          eigenAudio: false
+        },
+        tijdlijn: null,
+        alleenMuziek: true,
+        audio: `/api/muziek/bestand?liedje=${lied.id}`,
+        bron: 'muziek',
+        melding: 'Dit is de muziek die je hebt opgehaald. De akkoorden staan in de kaart erboven ' +
+          '(een voorstel, want dit nummer had ze niet). Er loopt geen beeld mee: deze opname is niet ' +
+          'op maat geanalyseerd. Wil je de begeleiding horen, gebruik dan de speler onder Begeleiding.'
+      });
+      return;
+    }
+
     let plan;
     try {
       plan = meespeelVoorLiedje(lied, query);

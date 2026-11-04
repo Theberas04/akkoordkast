@@ -10,6 +10,7 @@
 const fs = require('fs');
 const path = require('path');
 const chordpro = require('./lib/chordpro');
+const voorstel = require('./lib/voorstel');
 const capo = require('./lib/capo');
 const theorie = require('./lib/theorie');
 const grepen = require('./lib/grepen');
@@ -58,7 +59,7 @@ function netteMaatakkoorden(lijst, model, maatsoort) {
   let vorige = null;
   const bron = Array.isArray(lijst) && lijst.length
     ? lijst
-    : chordpro.akkoordenReeks(model, 8);
+    : ((model.regels && model.regels.length) ? chordpro.akkoordenReeks(model, 8) : (model.akkoorden || []).slice());
   for (let i = 0; i < bron.length; i++) {
     const naam = bron[i] && grepen.heeftGreep(bron[i]) ? bron[i] : vorige;
     uit.push(naam || null);
@@ -76,8 +77,21 @@ function maakLiedje(lied, id) {
   let model = null;
   let advies = null;
   let maatakkoorden = null;
+  let voorstelGebruikt = false;
+  let voorstelToonsoort = '';
   const hetModel = () => {
-    if (!model) model = chordpro.parse(lied.chordpro || '');
+    if (!model) {
+      model = chordpro.parse(lied.chordpro || '');
+      // Heeft de bron geen akkoorden, dan stellen we een schema voor in de toonaard van het liedje
+      // (lib/voorstel.js). Zo kan elk liedje tóch getekend, gelezen en meegespeeld worden; de app
+      // zegt er zelf bij dat het een voorstel is en niet uit de bron komt.
+      if (!model.akkoorden.length) {
+        const v = voorstel.voorstelReeks(lied.toonsoort || '');
+        model = { meta: model.meta, regels: [], akkoorden: v.akkoorden.slice() };
+        voorstelGebruikt = true;
+        voorstelToonsoort = v.toonsoort;
+      }
+    }
     return model;
   };
   const liedje = {
@@ -99,15 +113,16 @@ function maakLiedje(lied, id) {
     // in de tests. We vullen pas aan als iemand de maatakkoorden echt opvraagt.
     maatsoort: Math.max(2, Math.min(12, parseInt(lied.maatsoort, 10) || 4))
   };
-  // Toonsoort en slagpatroon: uit het databestand als het er staat, anders afgeleid
-  // uit het akkoordschema. Een liedtekst zonder muziek (geen akkoorden, geen noten)
-  // houdt ze leeg: er valt niets te spelen en dus ook niets te verzinnen.
+  // Toonsoort en slagpatroon: uit het databestand als het er staat, anders afgeleid uit het
+  // akkoordschema. Een liedje zonder eigen akkoorden krijgt een voorgesteld schema (zie boven), in
+  // de toonaard van het liedje als die bekend is.
   Object.defineProperty(liedje, 'toonsoort', {
     enumerable: true,
     get: () => {
       if (lied.toonsoort) return lied.toonsoort;
       const m = hetModel();
       if (!m.akkoorden.length) return '';
+      if (voorstelGebruikt) return voorstelToonsoort || 'C';
       return m.meta.toonsoort || m.akkoorden[0] || 'C';
     }
   });
@@ -121,6 +136,11 @@ function maakLiedje(lied, id) {
   Object.defineProperty(liedje, 'model', {
     enumerable: true,
     get: hetModel
+  });
+  // Komt het akkoordschema uit het liedje zelf of is het een voorstel van de app?
+  Object.defineProperty(liedje, 'akkoordenBron', {
+    enumerable: true,
+    get: () => (voorstelGebruikt ? 'voorstel' : 'bron')
   });
   Object.defineProperty(liedje, 'advies', {
     enumerable: true,

@@ -3,6 +3,28 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.13.0] — 4 november 2026
+
+### Nieuw
+
+- **Elk liedje heeft nu akkoorden.** Van de 8.701 liedjes hadden er 8.683 al een eigen akkoordschema
+  uit de bron. De rest — achttien liedjes waarvan alleen de tekst is overgeleverd, en elk nummer dat
+  je zelf via een link ophaalt — had er geen, en daar kon de app niets mee: geen grepen, geen
+  begeleiding, geen meespelen. Voor die liedjes stelt de app nu een **schema voor** in de toonaard van
+  het liedje: de bekende ronde (I-V-vi-IV en verwanten), vier akkoorden die je kunt tekenen en spelen.
+  De app zegt er zelf bij dat het een voorstel is — het liedje had geen eigen akkoorden, dus wat je
+  hoort komt niet uit de bron. Wat je zelf in het veld *Akkoordenreeks* zet, gaat vóór het voorstel.
+- **Alle voorstellen zijn na te tekenen.** Een proef controleert voor elke toonaard in de tabel dat
+  elk akkoord een greep heeft, of een capo-vorm die de app zelf uitrekent (zoals bij F#m). Staat een
+  liedje in een toonaard die niet in de tabel past (Es, As), dan komt er een verwant schema en wijst
+  het capo-advies de weg.
+
+### Gerepareerd
+
+- Een liedje zonder eigen akkoorden kon de app geen akkoordenreeks meegeven (het model had geen
+  regels), waardoor begeleiding en meespelen leeg bleven. De reeks komt nu ook uit de akkoorden van
+  het model zelf.
+
 ## [1.12.3] — 4 november 2026
 
 ### Gerepareerd

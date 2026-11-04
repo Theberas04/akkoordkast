@@ -84,6 +84,20 @@ gewone machine, zonder Proxmox):
 CONTROLEER_PAKKET=1 TARGET_DIR=/tmp/pakket bash deploy/proxmox/install.sh
 ```
 
+### Als de NAS geen schrijfrechten geeft
+
+Veel NFS-exports staan alleen-lezen, of de map is van een andere gebruiker dan de host. Het
+koppelscript probeert daarom een schrijftest, en als die mislukt koppelt het de map
+**alleen-lezen** in plaats van terug te rollen. Dat is voor deze app genoeg: hij *leest* de
+muziek en zet de omgezette audio in `/var/lib/akkoordkast`, niet op de NAS. Alleen een back-up
+ín de muziekmap zelf kan dan niet — kies daarvoor in de app een andere map.
+
+Wil je het oude gedrag (terugrollen als schrijven niet lukt), geef dan `READONLY=nee` mee;
+met `READONLY=ja` wordt de schrijftest overgeslagen en koppelt hij altijd alleen-lezen.
+
+Wil je wél kunnen schrijven, zet dan in TrueNAS bij de NFS-export *Read Only* uit (of geef de
+map schrijfrechten voor het adres van de host) en draai het script opnieuw.
+
 ## Bijwerken
 
 ```bash

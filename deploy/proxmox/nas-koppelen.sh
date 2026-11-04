@@ -30,6 +30,12 @@
 #   5. koppelt, test met een lees- en een schrijftest, en herstart de container
 #      zodat de bind-mount actief wordt.
 #
+# Schrijven op de NAS is niet nodig: de app leest de muziek en zet de omgezette audio in
+# de container (/var/lib/akkoordkast). Geeft de NAS geen schrijfrechten, dan koppelt dit
+# script alleen-lezen in plaats van terug te rollen — alleen een back-up in de muziekmap
+# zelf kan dan niet. Met READONLY=nee krijg je het oude gedrag (terugrollen), met
+# READONLY=ja wordt de schrijftest overgeslagen.
+#
 # Wachtwoorden komen nooit in de proceslijst of in de shell-historie terecht:
 # je typt ze met read -rs (dat komt niet in de historie), en de koppeling leest
 # ze uit een credentials-bestand met rechten 600 (/etc/akkoordkast/nas.credentials).
@@ -45,6 +51,12 @@ NAS_USER="${NAS_USER:-}"
 NAS_PASS="${NAS_PASS:-}"
 CTID="${CTID:-${1:-}}"
 KOPPELPUNT="${KOPPELPUNT:-/home/akkoordkast/muziek}"
+# Mag de host in de muziekmap schrijven? Leeg = automatisch: als schrijven lukt, mag het;
+# lukt het niet, dan koppelen we alleen-lezen in plaats van terug te rollen. READONLY=ja
+# slaat de schrijftest over, READONLY=nee laat het script terugrollen zoals vroeger.
+READONLY="${READONLY:-}"
+FSTAB="${FSTAB:-/etc/fstab}"
+FSTAB_BAK="${FSTAB_BAK:-/etc/fstab.akkoordkast.bak}"
 HOST_MNT="${HOST_MNT:-/mnt/akkoordkast-nas}"
 CREDS="${CREDS:-/etc/akkoordkast/nas.credentials}"
 APP_DIR="${APP_DIR:-/opt/akkoordkast}"
@@ -276,7 +288,6 @@ mkdir -p "$HOST_MNT"
 #          het opstarten). nofail: een uitstaande NAS mag het opstarten niet
 #          blokkeren.
 
-FSTAB_BAK="/etc/fstab.akkoordkast.bak"
 FSTAB_REGEL=""
 if [ "$NAS_PROTO" = "cifs" ]; then
   FSTAB_REGEL="//$NAS_HOST/$NAS_SHARE $HOST_MNT cifs credentials=$CREDS,uid=$HOST_UID,gid=$HOST_GID,file_mode=0664,dir_mode=0775,noperm,_netdev,nofail,vers=3.0 0 0"
@@ -285,12 +296,12 @@ else
 fi
 
 FSTAB_TOEGEVOEGD=0
-if grep -qF "$HOST_MNT" /etc/fstab; then
+if grep -qF "$HOST_MNT" "$FSTAB"; then
   zeg "== fstab: er staat al een regel voor $HOST_MNT, die laat ik staan"
 else
   zeg "== fstab: regel toevoegen voor $HOST_MNT"
-  cp -a /etc/fstab "$FSTAB_BAK"
-  printf '%s\n' "$FSTAB_REGEL" >> /etc/fstab
+  cp -a "$FSTAB" "$FSTAB_BAK"
+  printf '%s\n' "$FSTAB_REGEL" >> "$FSTAB"
   FSTAB_TOEGEVOEGD=1
   zeg "   oude fstab bewaard als $FSTAB_BAK"
 fi
@@ -305,7 +316,7 @@ terugrol() {
   fi
   if [ "$FSTAB_TOEGEVOEGD" = "1" ]; then
     fout "   ik haal de regel uit /etc/fstab (oude versie staat in $FSTAB_BAK)"
-    if [ -f "$FSTAB_BAK" ]; then cp -a "$FSTAB_BAK" /etc/fstab; fi
+    if [ -f "$FSTAB_BAK" ]; then cp -a "$FSTAB_BAK" "$FSTAB"; fi
   fi
 }
 
@@ -331,14 +342,54 @@ else
 fi
 
 zeg "== Lees- en schrijftest op de host"
-if ! touch "$HOST_MNT/.akkoordkast-proef" 2>/dev/null; then
-  fout "De map is gekoppeld, maar de host mag er niet in schrijven."
-  fout "Dat gaat meestal over rechten op de share: geef de NAS-gebruiker schrijfrechten."
-  terugrol
-  exit 1
+SCHRIJFBAAR=1
+if [ "$READONLY" = "ja" ]; then
+  SCHRIJFBAAR=0
+  zeg "   overgeslagen (READONLY=ja): ik koppel de map alleen-lezen"
+elif ! touch "$HOST_MNT/.akkoordkast-proef" 2>/dev/null; then
+  SCHRIJFBAAR=0
+  zeg "   de host mag NIET in $HOST_MNT schrijven: de NAS geeft geen schrijfrechten."
+  if [ "$READONLY" = "nee" ]; then
+    fout "READONLY=nee: je vroeg om terug te rollen als schrijven niet lukt."
+    terugrol
+    exit 1
+  fi
+  zeg "   Voor deze app is dat geen bezwaar: hij LEEST de muziek en zet de omgezette audio in"
+  zeg "   /var/lib/akkoordkast, niet op de NAS. Alleen een back-up in de muziekmap zelf kan"
+  zeg "   niet — kies daarvoor een andere map in de app. Wil je toch kunnen schrijven, zet dan"
+  zeg "   in TrueNAS bij de NFS-export 'Read Only' uit (of geef de map schrijfrechten voor deze"
+  zeg "   host) en draai dit script opnieuw."
+  zeg "   Ik koppel de map daarom alleen-lezen."
+else
+  rm -f "$HOST_MNT/.akkoordkast-proef"
+  zeg "   de host kan lezen en schrijven in $HOST_MNT"
 fi
-rm -f "$HOST_MNT/.akkoordkast-proef"
-zeg "   de host kan lezen en schrijven in $HOST_MNT"
+
+if [ "$SCHRIJFBAAR" = "0" ]; then
+  # Zowel de fstab-regel als de koppeling alleen-lezen maken, zodat er ook echt niet
+  # geschreven wordt (anders blijft de map schrijfbaar tot de volgende herstart).
+  if [ "$NAS_PROTO" = "cifs" ]; then
+    NIEUW_REGEL="$(printf '%s' "$FSTAB_REGEL" | sed 's/nofail/nofail,ro/')"
+  else
+    NIEUW_REGEL="$NAS_HOST:$NAS_EXPORT $HOST_MNT nfs _netdev,nofail,ro,vers=3,soft,timeo=100 0 0"
+  fi
+  if grep -qF "$HOST_MNT" "$FSTAB"; then
+    cp -a "$FSTAB" "$FSTAB.alleenlezen"
+    awk -v mnt="$HOST_MNT" -v nieuw="$NIEUW_REGEL" \
+      '$0 ~ mnt {print nieuw; next} {print}' "$FSTAB" > "$FSTAB.nieuw"
+    mv "$FSTAB.nieuw" "$FSTAB"
+    zeg "   fstab-regel aangepast naar alleen-lezen (oude versie in $FSTAB.alleenlezen)"
+  fi
+  if mountpoint -q "$HOST_MNT"; then
+    umount "$HOST_MNT" 2>/dev/null || umount -l "$HOST_MNT" 2>/dev/null || true
+  fi
+  if ! mount "$HOST_MNT" 2>/dev/null; then
+    fout "Opnieuw koppelen (alleen-lezen) mislukte."
+    terugrol
+    exit 1
+  fi
+  zeg "   opnieuw gekoppeld, nu alleen-lezen"
+fi
 
 # --- Bind-mount naar de container -------------------------------------------
 # Proxmox koppelt een host-map in een container met een mp-regel in de
@@ -393,7 +444,7 @@ if [ "$OK" != "1" ]; then
 fi
 
 zeg "== Lees- en schrijftest in de container"
-if ! pct exec "$CTID" -- bash -c "touch $KOPPELPUNT/.akkoordkast-proef && rm -f $KOPPELPUNT/.akkoordkast-proef" 2>/dev/null; then
+if [ "$SCHRIJFBAAR" = "1" ] && ! pct exec "$CTID" -- bash -c "touch $KOPPELPUNT/.akkoordkast-proef && rm -f $KOPPELPUNT/.akkoordkast-proef" 2>/dev/null; then
   fout "De app draait, maar de container mag niet schrijven in $KOPPELPUNT."
   fout "Wat je kunt doen:"
   fout "  - controleer de rechten op de NAS-share voor de gebruiker die je opgaf;"
@@ -401,7 +452,15 @@ if ! pct exec "$CTID" -- bash -c "touch $KOPPELPUNT/.akkoordkast-proef && rm -f 
   fout "    en draai: systemctl daemon-reload && mount -o remount $HOST_MNT"
   exit 1
 fi
-zeg "   de container kan lezen en schrijven in $KOPPELPUNT"
+if [ "$SCHRIJFBAAR" = "1" ]; then
+  zeg "   de container kan lezen en schrijven in $KOPPELPUNT"
+else
+  zeg "   de container leest $KOPPELPUNT (alleen-lezen gekoppeld)"
+  if ! pct exec "$CTID" -- bash -c "ls \"$KOPPELPUNT\" >/dev/null 2>&1"; then
+    fout "De container kan de map niet lezen. Draai het script opnieuw en stuur de uitvoer mee."
+    exit 1
+  fi
+fi
 
 # --- De app op de map wijzen (MUSIC_DIR) ------------------------------------
 # Zonder dit weet de app niet waar de muziek staat en moet je het pad zelf
@@ -430,6 +489,7 @@ cat <<KLAAR
 ==============================================================
    op de host : $HOST_MNT  ($NAS_PROTO van $NAS_HOST)
    in de app  : $KOPPELPUNT
+   stand      : $(if [ "$SCHRIJFBAAR" = "1" ]; then echo "lezen en schrijven"; else echo "alleen-lezen (de app speelt en zet om; kies voor een back-up een andere map)"; fi)
 
  De app weet het pad al: MUSIC_DIR staat op $KOPPELPUNT.
    1. Open AkkoordKast in je browser.

@@ -287,6 +287,90 @@ test('de scripts accepteren het container-id ook via bash -c (nummer in $0)', ()
   fs.unlinkSync(tijdelijk);
 });
 
+test('een NAS zonder schrijfrechten levert een alleen-lezen koppeling op', () => {
+  // Uit een echte installatie: de NAS gaf de host geen schrijfrechten en het koppelscript
+  // rolde daarop terug, waardoor de app bleef zeggen dat de map er niet was. Schrijven is
+  // voor deze app niet nodig (hij leest de muziek en zet de omgekeerde audio in
+  // /var/lib/akkoordkast), dus nu wordt de map alleen-lezen gekoppeld — met READONLY=nee
+  // als je het oude gedrag wilt.
+  const tekst = lees('nas-koppelen.sh');
+  assert.match(tekst, /READONLY="\$\{READONLY:-\}"/, 'geen READONLY-schakelaar');
+  assert.match(tekst, /nofail,ro,vers=3/, 'de alleen-lezen fstab-regel ontbreekt');
+  assert.match(tekst, /SCHRIJFBAAR=0/, 'de schrijfbaarheid wordt niet bijgehouden');
+  assert.match(tekst, /\[ "\$SCHRIJFBAAR" = "1" \] && ! pct exec/, 'de schrijftest in de container is niet gekoppeld aan SCHRIJFBAAR');
+  assert.match(tekst, /FSTAB="\$\{FSTAB:-\/etc\/fstab\}"/, 'het fstab-pad is niet instelbaar, dus niet te testen');
+
+  // En het gedrag echt uitvoeren: hetzelfde stukje script, met een map waarin niet
+  // geschreven mag worden.
+  const regels = tekst.split('\n');
+  const start = regels.findIndex(r => r.includes('Lees- en schrijftest op de host'));
+  const einde = regels.findIndex((r, i) => i > start && r.includes('opnieuw gekoppeld'));
+  const slot = regels.findIndex((r, i) => i > einde && r === 'fi');
+  assert.ok(start > 0 && slot > einde, 'kon het schrijfbaarheidsblok niet vinden');
+  const blok = regels.slice(start, slot + 1).join('\n');
+
+  const werk = fs.mkdtempSync(path.join(os.tmpdir(), 'akkoordkast-ro-'));
+  const bin = path.join(werk, 'bin');
+  fs.mkdirSync(bin);
+  for (const naam of ['mount', 'umount', 'mountpoint']) {
+    fs.writeFileSync(path.join(bin, naam), '#!/bin/sh\nexit 0\n');
+    fs.chmodSync(path.join(bin, naam), 0o755);
+  }
+  const proefmap = path.join(werk, 'koppelpunt');
+  const fstab = path.join(werk, 'fstab');
+
+  const harnas = (readonly) => {
+    fs.rmSync(proefmap, { recursive: true, force: true });
+    fs.mkdirSync(proefmap);
+    fs.chmodSync(proefmap, 0o555);            // hier mag een gewone gebruiker niet schrijven
+    fs.writeFileSync(fstab, '192.168.1.100:/mnt/Nas/Nas-Opslag/Muziek ' + proefmap + ' nfs _netdev,nofail,vers=3,soft,timeo=100 0 0\n');
+    const kop = [
+      '#!/usr/bin/env bash',
+      'zeg() { printf \'%s\\n\' "$*"; }',
+      'fout() { printf \'%s\\n\' "$*" >&2; }',
+      'terugrol() { echo "TERUGROL"; }',
+      'HOST_MNT=' + proefmap,
+      'NAS_PROTO=nfs',
+      'NAS_HOST=192.168.1.100',
+      'NAS_EXPORT=/mnt/Nas/Nas-Opslag/Muziek',
+      'FSTAB=' + fstab,
+      'FSTAB_BAK=' + fstab + '.bak',
+      'FSTAB_REGEL="192.168.1.100:/mnt/Nas/Nas-Opslag/Muziek ' + proefmap + ' nfs _netdev,nofail,vers=3,soft,timeo=100 0 0"',
+      'READONLY="' + (readonly || '') + '"',
+    ].join('\n');
+    const pad = path.join(werk, 'harnas-' + (readonly || 'leeg') + '.sh');
+    fs.writeFileSync(pad, kop + '\n' + blok + '\necho "SCHRIJFBAAR=$SCHRIJFBAAR"\n');
+    const env = Object.assign({}, process.env, { PATH: bin + ':' + process.env.PATH });
+    let uit;
+    try {
+      uit = { code: 0, tekst: execFileSync('bash', [pad], { encoding: 'utf8', env, stdio: ['ignore', 'pipe', 'pipe'] }) };
+    } catch (fout2) {
+      uit = { code: fout2.status, tekst: String(fout2.stdout || '') + String(fout2.stderr || '') };
+    }
+    return { uit, fstabInhoud: fs.readFileSync(fstab, 'utf8') };
+  };
+
+  // Als root schrijven de rechten niet tegen; dan slaan we het gedragsdeel over.
+  fs.mkdirSync(path.join(werk, 'rechtenproef'));
+  try {
+    fs.chmodSync(path.join(werk, 'rechtenproef'), 0o555);
+    fs.writeFileSync(path.join(werk, 'rechtenproef', 'x'), 'x');
+    fs.rmSync(path.join(werk, 'rechtenproef'), { recursive: true, force: true });
+    return;   // we draaien als root: alleen de tekstuele controle hierboven
+  } catch (e) { /* gewone gebruiker: doorpakken */ }
+
+  const automatisch = harnas('');
+  assert.match(automatisch.uit.tekst, /alleen-lezen/, 'een onschrijfbare map levert geen alleen-lezen koppeling op');
+  assert.match(automatisch.uit.tekst, /SCHRIJFBAAR=0/, 'de map blijft als schrijfbaar gemarkeerd');
+  assert.doesNotMatch(automatisch.uit.tekst, /TERUGROL/, 'het script rolt nog terug op een onschrijfbare map');
+  assert.match(automatisch.fstabInhoud, /nofail,ro,/, 'de fstab-regel is niet alleen-lezen gemaakt');
+
+  const streng = harnas('nee');
+  assert.match(streng.uit.tekst, /TERUGROL/, 'READONLY=nee rolt niet terug');
+  assert.equal(streng.uit.code, 1, 'READONLY=nee hoort met een fout te eindigen');
+  fs.rmSync(werk, { recursive: true, force: true });
+});
+
 test('de updater wacht lang genoeg en kan terugrollen', () => {
   const tekst = lees('update-from-github.sh');
   assert.match(tekst, /seq 1 60/, 'de wachttijd is te kort voor een langzame start');

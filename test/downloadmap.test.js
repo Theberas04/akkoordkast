@@ -166,3 +166,59 @@ test('een liedje zonder akkoorden krijgt een voorstel en speelt mee', async () =
     fs.rmSync(wortel, { recursive: true, force: true });
   }
 });
+
+// Een opgehaald nummer met dezelfde titel als een liedje in de eigen bibliotheek hoort die
+// bladmuziek te krijgen (woorden én akkoorden), in plaats van een voorstel.
+test('een opgehaald nummer vindt de bladmuziek in de eigen bibliotheek', async () => {
+  const os = require('os');
+  const wortel = fs.mkdtempSync(path.join(os.tmpdir(), 'ak-blad-'));
+  const nep = path.join(wortel, 'nep-ytdlp.sh');
+  fs.writeFileSync(nep, [
+    '#!/bin/sh',
+    'vorige=""; doel=""',
+    'for a in "$@"; do if [ "$vorige" = "-o" ]; then doel="$a"; fi; vorige="$a"; done',
+    'geen=$(printf "%s" "$doel" | sed "s/%(title)s/Sinterklaas kapoentje/; s/%(ext)s/mp3/; s/%(playlist_index)02d/01/")',
+    'mkdir -p "$(dirname "$geen")"',
+    ': > "$geen"',
+    'echo "[ExtractAudio] Destination: $geen"',
+    'exit 0',
+    ''
+  ].join('\n'), { mode: 0o755 });
+  process.env.YTDLP = nep;
+  process.env.DOWNLOAD_DIR = path.join(wortel, 'Gedownload');
+
+  const omgeving = await hulp.start();
+  try {
+    const baas = await hulp.alsBeheerder(omgeving.basis, 'proefwachtwoord-bladmuziek');
+    const gestart = await baas.post('/api/download', { nieuw: true, url: 'https://www.youtube.com/watch?v=proef', titel: 'Sinterklaas kapoentje' });
+    assert.equal(gestart.status, 200, JSON.stringify(gestart.data));
+
+    let liedje = null;
+    for (let i = 0; i < 120 && !liedje; i++) {
+      await new Promise(r => setTimeout(r, 200));
+      const lijst = await baas.haal('/api/liedjes?zoek=' + encodeURIComponent('Sinterklaas kapoentje'));
+      const items = (lijst.data && (lijst.data.liedjes || lijst.data.items)) || [];
+      liedje = items.find(x => x.eigen) || null;
+    }
+    assert.ok(liedje, 'het opgehaalde nummer hoort een eigen liedje te zijn');
+
+    // De bladmuziek uit de bibliotheek: woorden én akkoorden.
+    let kaart = null;
+    for (let i = 0; i < 60; i++) {
+      kaart = await baas.haal(`/api/liedjes/${liedje.id}`);
+      const l = kaart.data.liedje || kaart.data;
+      if (l.akkoorden && l.akkoorden.length >= 2) break;
+      await new Promise(r => setTimeout(r, 200));
+    }
+    const l = kaart.data.liedje || kaart.data;
+    assert.ok(l.akkoorden.length >= 2, 'er horen akkoorden te zijn: ' + JSON.stringify(l.akkoorden));
+    assert.ok(l.akkoorden.every(a => a.heeftDiagram), 'de akkoorden horen te tekenen zijn');
+    assert.match(String(l.bron || ''), /bibliotheek/i, 'de app hoort te melden dat de bladmuziek uit de eigen bibliotheek komt: ' + l.bron);
+    assert.notEqual(l.akkoordenBron, 'voorstel', 'dit liedje hoort echte akkoorden te hebben');
+  } finally {
+    delete process.env.YTDLP;
+    delete process.env.DOWNLOAD_DIR;
+    await omgeving.stop();
+    fs.rmSync(wortel, { recursive: true, force: true });
+  }
+});

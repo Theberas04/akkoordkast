@@ -3,6 +3,20 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.14.0] — 4 november 2026
+
+### Nieuw
+
+- **De app zoekt de bladmuziek er zelf bij.** Haal je een nummer via een link op, dan kijkt de app
+  meteen of dat liedje al in de eigen bibliotheek staat (op precies dezelfde titel). Zo ja, dan neemt
+  hij die bladmuziek over — de woorden én de akkoorden — en heet de bron voortaan "… (uit je
+  bibliotheek)". Zo krijgt een opgehaald volkswijsje meteen een echt akkoordschema.
+- **Akkoorden uit de muziek zelf halen.** Bij een liedje met muziek staat in de kaart de knop
+  *Bladmuziek uit de muziek halen*: de app leest de opname uit (tempo, maatsoort, toonaard en een
+  akkoord per maat) en zet dat als schema neer. De kaart zegt er dan bij dat de akkoorden automatisch
+  uit de muziek zijn gehaald, zodat je ze even kunt controleren. Dit rekent, dus het gebeurt als je er
+  zelf om vraagt — niet bij elke download.
+
 ## [1.13.0] — 4 november 2026
 
 ### Nieuw

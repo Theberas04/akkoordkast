@@ -35,7 +35,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.13.0';
+const VERSIE = '1.14.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -528,9 +528,16 @@ function eigenRij(id) {
   const rij = db.prepare('SELECT * FROM liedjes WHERE id = ?').get(Number(id));
   if (!rij) return null;
   let model = chordpro.parse(rij.chordpro);
-  // Geen akkoorden in de bron? Dan een voorstel in de toonaard van het liedje, zodat een opgehaald
-  // nummer tóch grepen, begeleiding en meespelen krijgt (met de melding dat het een voorstel is).
+  // Geen akkoorden in de bron, maar wél een akkoordschema uit de muziek gehaald (de analyse van een
+  // opname)? Dan zijn dat de akkoorden van dit liedje.
   let akkoordenBron = 'bron';
+  const perMaat = leesAkkoordenPerMaat(rij.akkoorden_per_maat);
+  if (!model.akkoorden.length && perMaat.length) {
+    model = { meta: model.meta, regels: model.regels, akkoorden: theorie.uniek(perMaat.filter(Boolean)) };
+    akkoordenBron = 'opname';
+  }
+  // Nog steeds geen akkoorden? Dan een voorstel in de toonaard van het liedje, zodat een opgehaald
+  // nummer tóch grepen, begeleiding en meespelen krijgt (met de melding dat het een voorstel is).
   if (!model.akkoorden.length) {
     const v = voorstel.voorstelReeks(rij.toonsoort || '');
     model = { meta: model.meta, regels: model.regels, akkoorden: v.akkoorden.slice() };
@@ -647,7 +654,7 @@ function weergave(lied, opties) {
     akkoorden,
     // 'bron' = de akkoorden komen uit het liedje zelf, 'voorstel' = de app stelt ze voor omdat het
     // liedje er geen had; de app laat dat verschil zien.
-    akkoordenBron: bron.voorstel ? 'voorstel' : 'bron',
+    akkoordenBron: (lied.akkoordenBron === 'opname') ? 'opname' : (bron.voorstel ? 'voorstel' : 'bron'),
     akkoordenReeks: reeks,
     model,
     heeftMelodie: !!(lied.noten && lied.noten.length),
@@ -1561,7 +1568,54 @@ function maakLiedjeVanDownload(bestand, titel, url) {
   const nieuwId = EIGEN_START + Number(info.lastInsertRowid);
   zetLiedjeMuziek(nieuwId, bestand, path.basename(bestand));
   if (videoId) zetLiedjeVideo(nieuwId, videoId);
+  // Meteen kijken of dit liedje al in de eigen bibliotheek staat (dan komt er echte bladmuziek bij).
+  zoekBladmuziekInBibliotheek(nieuwId);
   return nieuwId;
+}
+
+// Bladmuziek zoeken bij een opgehaald nummer: staat het liedje al in de eigen bibliotheek (zelfde
+// titel)? Dan nemen we die bladmuziek over — de woorden én de akkoorden. Zo krijgt een opgehaald
+// volkswijsje meteen een echte akkoordenschema in plaats van een voorstel. Dit is een gewone
+// zoekopdracht in de eigen gegevens, dus het kan meteen na het ophalen.
+function schoonTitel(waarde) {
+  return String(waarde || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+// Een liedje uit de eigen bibliotheek op precies dezelfde titel. De tabel wordt één keer opgebouwd
+// (achtduizend titels) en daarna hergebruikt.
+let titelTabel = null;
+function liedjeOpTitel(titel) {
+  const sleutel = schoonTitel(titel);
+  if (!sleutel) return null;
+  if (!titelTabel) {
+    titelTabel = new Map();
+    for (const l of bron.alle()) {
+      const k = schoonTitel(l && l.titel);
+      if (k && !titelTabel.has(k)) titelTabel.set(k, l);
+    }
+  }
+  const gevonden = titelTabel.get(sleutel);
+  if (!gevonden) return null;
+  return /\[[A-G][#b]?/.test(gevonden.chordpro || '') ? gevonden : null;
+}
+
+function zoekBladmuziekInBibliotheek(liedjeId) {
+  try {
+    const rijId = Number(liedjeId) - EIGEN_START;
+    const rij = db.prepare('SELECT id, titel, chordpro FROM liedjes WHERE id = ?').get(rijId);
+    if (!rij || !rij.titel) return false;
+    // Alleen een liedje met precies dezelfde titel én echte akkoorden in de tekst telt.
+    const gelijk = liedjeOpTitel(rij.titel);
+    if (!gelijk) return false;
+    db.prepare('UPDATE liedjes SET chordpro = ?, toonsoort = ?, tempo = ?, bron = ? WHERE id = ?')
+      .run(gelijk.chordpro, gelijk.toonsoort || '', gelijk.tempo || 0,
+        (gelijk.bron || 'Eigen invoer') + ' (uit je bibliotheek)', rijId);
+    console.log('bladmuziek uit de eigen bibliotheek bij liedje ' + liedjeId + ': ' + gelijk.titel);
+    return true;
+  } catch (e) {
+    console.log('bladmuziek zoeken in de bibliotheek mislukte bij liedje ' + liedjeId + ':', e.message);
+    return false;
+  }
 }
 
 // Waken over een download die nieuwe muziek wordt: zodra het bestand er is, komt er een liedje bij.
@@ -1582,6 +1636,7 @@ function bewaakNieuweMuziek(titel, url) {
       if (!mappen.includes(ophaalMap())) zetMappen(mappen.concat([ophaalMap()]));
       ophaalNieuweLiedje = maakLiedjeVanDownload(stand.bestand, titel, url);
       console.log('opgehaald als nieuw liedje ' + ophaalNieuweLiedje + ': ' + path.basename(stand.bestand));
+      zoekBladmuziekInBibliotheek(ophaalNieuweLiedje);
     } catch (fout) {
       ophaalNieuweFout = 'Van het opgehaalde bestand kon ik geen liedje maken: ' + fout.message;
       console.log('van het opgehaalde bestand een liedje maken mislukte:', fout.message);
@@ -3065,6 +3120,45 @@ async function verwerk(req, res) {
       return;
     }
     json(res, 201, { ok: true, aantal: ids.length, ids, fout: eersteFout || undefined });
+    return;
+  }
+
+  // De akkoorden uit de muziek zelf halen (tempo, toonaard, akkoord per maat). Dit rekent even, dus
+  // het gebeurt als de gebruiker er zelf om vraagt — niet automatisch bij elke download.
+  let bm = pad.match(/^\/api\/liedjes\/(\d+)\/bladmuziek$/);
+  if (bm && methode === 'POST') {
+    if (!isBeheerder(req)) { json(res, 403, { fout: 'Dit hoort bij het beheerdersprofiel (Admin). Kies dat profiel en probeer het opnieuw.' }); return; }
+    const lied = vindLiedje(bm[1]);
+    if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    const muziek = muziekVanLiedje(lied.id);
+    if (!muziek || !muziek.bestaat) { json(res, 400, { fout: 'Bij dit liedje staat geen muziekbestand om uit te lezen.' }); return; }
+    let uitslag;
+    try {
+      uitslag = analyseerUpload(muziek.pad, {});
+    } catch (e) {
+      json(res, 500, { fout: 'De muziek kon niet worden gelezen: ' + e.message });
+      return;
+    }
+    const schoon = (uitslag.akkoordenPerMaat || []).filter(Boolean);
+    if (!schoon.length) {
+      json(res, 200, { ok: false, fout: 'In deze muziek kon ik geen akkoorden herkennen. Het voorstel blijft staan.' });
+      return;
+    }
+    db.prepare('UPDATE liedjes SET akkoorden_per_maat = ?, toonsoort = ?, tempo = ?, maatsoort = ? WHERE id = ?')
+      .run(JSON.stringify(uitslag.akkoordenPerMaat), uitslag.toonsoort || lied.toonsoort || '',
+        Math.max(40, Math.min(200, parseInt(uitslag.tempo, 10) || lied.tempo || 84)),
+        Math.max(2, Math.min(12, parseInt(uitslag.maatsoort, 10) || lied.maatsoort || 4)),
+        Number(lied.id) - EIGEN_START);
+    FILTERS.versie = (FILTERS.versie || 0) + 1;
+    console.log('akkoorden uit de muziek gehaald bij liedje ' + lied.id + ': ' + schoon.join(' '));
+    json(res, 200, {
+      ok: true,
+      akkoorden: schoon,
+      toonsoort: uitslag.toonsoort || '',
+      tempo: uitslag.tempo || 0,
+      maatsoort: uitslag.maatsoort || 4,
+      bericht: 'De akkoorden zijn uit de muziek gehaald (' + schoon.length + ' maten). Controleer ze gerust en pas ze aan waar nodig.'
+    });
     return;
   }
 

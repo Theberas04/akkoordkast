@@ -2663,6 +2663,14 @@ function tekenLiedje(l) {
       '<div class="spotify-speler" id="spotify-speler"></div>' +
 
       '<h3>Begeleiding</h3>' +
+      (l.heeftMuziek
+        ? '<div class="rij" style="margin:8px 0"><button class="knop zacht" id="bladmuziek-haal">Bladmuziek uit de muziek halen</button>' +
+          '<span class="meta" id="bladmuziek-stand">De app leest de opname uit en haalt er het tempo, de toonaard en de akkoorden uit.</span></div>'
+        : '') +
+      (l.akkoordenBron === 'opname'
+        ? '<div class="melding">De akkoorden van dit liedje zijn <strong>automatisch uit de muziek gehaald</strong> \u2014 ' +
+          'controleer ze gerust en pas ze aan waar nodig.</div>'
+        : '') +
       (l.akkoordenBron === 'voorstel'
         ? '<div class="melding">Van dit liedje zijn geen akkoorden overgeleverd. De akkoorden hieronder zijn ' +
           'een <strong>voorstel</strong> in de toonaard van het liedje \u2014 pas ze gerust aan in het veld ' +
@@ -2830,6 +2838,22 @@ function tekenLiedje(l) {
     $('woorden-open').addEventListener('click', function () {
       var id = ((l.tekstVan || '').match(/\((\d+)\)$/) || [])[1];
       if (id) openLiedje(Number(id));
+    });
+  }
+  if ($('bladmuziek-haal')) {
+    $('bladmuziek-haal').addEventListener('click', function () {
+      var knop = $('bladmuziek-haal');
+      knop.disabled = true;
+      toonMelding('speler-melding', 'De muziek wordt uitgelezen\u2026 dit kan een halve minuut duren.', '');
+      api('/api/liedjes/' + l.id + '/bladmuziek', { method: 'POST' }).then(function (d) {
+        knop.disabled = false;
+        if (!d.ok) { toonMelding('speler-melding', d.fout || 'Er kwamen geen akkoorden uit.', 'fout'); return; }
+        toonMelding('speler-melding', d.bericht || 'De akkoorden zijn uit de muziek gehaald.', 'goed');
+        openLiedje(l.id);
+      }).catch(function (e) {
+        knop.disabled = false;
+        toonMelding('speler-melding', e.message, 'fout');
+      });
     });
   }
   koppelSpeler('speler-audio', 'speler-start', 'speler-stop', 'speler-stand');

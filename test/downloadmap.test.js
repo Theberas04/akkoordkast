@@ -56,3 +56,38 @@ test('de pagina zegt het zelf: waar nieuwe muziek terechtkomt, en wat je moet do
   assert.match(bron, /var DOWNLOAD_TERUGVAL = null;/);
   assert.match(bron, /Nieuwe muziek komt in .* terecht/);
 });
+
+// De koppeling kan ook tijdens het draaien wegvallen: bij het starten was de map er nog, bij het
+// ophalen niet meer. Dan hoort de downloader zelf uit te wijken naar de eigen map van de app.
+test('de downloader wijkt zelf uit als de map pas later onbruikbaar wordt', async () => {
+  const os = require('os');
+  const { maakDownloader } = require('../lib/downloader');
+  const wortel = fs.mkdtempSync(path.join(os.tmpdir(), 'ak-nood-'));
+  const noodmap = path.join(wortel, 'gedownload');
+  const nep = path.join(wortel, 'nep-ytdlp.sh');
+  fs.writeFileSync(nep, [
+    '#!/bin/sh',
+    'vorige=""; doel=""',
+    'for a in "$@"; do if [ "$vorige" = "-o" ]; then doel="$a"; fi; vorige="$a"; done',
+    'geen=$(printf "%s" "$doel" | sed "s/%(title)s/Proefnummer/; s/%(ext)s/mp3/; s/%(playlist_index)02d/01/")',
+    'mkdir -p "$(dirname "$geen")"',
+    ': > "$geen"',
+    'echo "[ExtractAudio] Destination: $geen"',
+    'exit 0',
+    ''
+  ].join('\n'), { mode: 0o755 });
+
+  const dl = maakDownloader({ map: '/dev/null/Gedownload', noodmap, ytdlp: nep });
+  const r = dl.start('https://www.youtube.com/watch?v=proef');
+  assert.equal(r.ok, true, 'de download hoort te starten: ' + r.fout);
+
+  for (let i = 0; i < 60 && dl.standVan().status === 'bezig'; i++) {
+    await new Promise(r2 => setTimeout(r2, 100));
+  }
+  const stand = dl.standVan();
+  assert.equal(stand.status, 'klaar', 'de download hoort klaar te zijn, niet: ' + stand.status + ' / ' + stand.fout);
+  assert.equal(stand.terugval, true, 'de downloader hoort te melden dat hij uitweek');
+  assert.equal(stand.map, noodmap, 'het bestand hoort in de eigen map van de app te staan');
+  assert.ok(fs.readdirSync(noodmap).some(n => n.endsWith('.mp3')), 'er hoort een mp3 in de eigen map te staan');
+  fs.rmSync(wortel, { recursive: true, force: true });
+});

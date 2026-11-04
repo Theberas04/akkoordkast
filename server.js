@@ -34,7 +34,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.12.1';
+const VERSIE = '1.12.2';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -652,13 +652,7 @@ function weergave(lied, opties) {
     beheerProfiel: !!o.beheerProfiel,
     // Waar een opgehaald mp3-bestand terechtkomt (de app laat dat pad zien bij het plakken
     // van een link).
-    download: {
-      map: DOWNLOAD_DIR,
-      ytdlp: OPHAAL.ytdlp,
-      gevraagd: DOWNLOAD_DIR_GEVRAAGD,
-      terugval: !!DOWNLOAD_TERUGVAL,
-      fout: DOWNLOAD_TERUGVAL ? DOWNLOAD_TERUGVAL.fout : ''
-    },
+    download: Object.assign({ ytdlp: OPHAAL.ytdlp }, downloadStand()),
     muziek: muziekBeeld(lied),
     video: videoBeeld(lied),
     audio: {
@@ -731,7 +725,7 @@ function verwijderEigenLiedje(liedjeId) {
   const muziek = db.prepare('SELECT pad FROM liedje_muziek WHERE liedje_id = ?').get(id);
   if (muziek && muziek.pad) {
     try {
-      const mappen = leesMappen().concat([DOWNLOAD_DIR]).filter(Boolean);
+      const mappen = leesMappen().concat(downloadMappen()).filter(Boolean);
       if (muziekbestand.veilig(muziek.pad, mappen)) fs.unlinkSync(muziek.pad);
     } catch (e) {}
   }
@@ -1401,7 +1395,39 @@ const DOWNLOAD_DIR = (function () {
   return DOWNLOAD_DIR_GEVRAAGD;
 })();
 
-const OPHAAL = downloader.maakDownloader({ map: DOWNLOAD_DIR, ytdlp: process.env.YTDLP || 'yt-dlp' });
+const NOOD_DIR = path.join(DATA_DIR, 'gedownload');
+const OPHAAL = downloader.maakDownloader({
+  map: DOWNLOAD_DIR, noodmap: NOOD_DIR, ytdlp: process.env.YTDLP || 'yt-dlp'
+});
+
+// Waar het ophalen op dit moment terechtkomt. De downloader kiest bij elke keer opnieuw: lukt de
+// gewone map niet meer (bijvoorbeeld omdat de NAS-koppeling tijdens het draaien wegvalt), dan gaat
+// het door in de eigen map van de app.
+function ophaalMap() {
+  try {
+    return OPHAAL && OPHAAL.gebruikteMap ? OPHAAL.gebruikteMap() : DOWNLOAD_DIR;
+  } catch (e) {
+    return DOWNLOAD_DIR;
+  }
+}
+
+// Alle mappen waar een opgehaald bestand mag staan (de gewone en de eigen map van de app), zodat een
+// bestand dat in de eigen map terechtkwam niet als 'onveilig pad' wordt geweigerd.
+function downloadMappen() {
+  const lijst = [DOWNLOAD_DIR, ophaalMap()];
+  return lijst.filter((m, i) => m && lijst.indexOf(m) === i);
+}
+
+// Het beeld dat de app laat zien: waar komt nieuwe muziek terecht, en is dat de gevraagde map?
+function downloadStand() {
+  const nu = ophaalMap();
+  return {
+    map: nu,
+    gevraagd: DOWNLOAD_DIR_GEVRAAGD,
+    terugval: nu !== DOWNLOAD_DIR_GEVRAAGD,
+    fout: DOWNLOAD_TERUGVAL ? DOWNLOAD_TERUGVAL.fout : ''
+  };
+}
 
 // Zorg dat het beheerdersprofiel bestaat zodra de app start, zodat het in de profielenlijst staat.
 if (typeof beheerProfiel === 'function') beheerProfiel();
@@ -1430,11 +1456,11 @@ function bewaakOphaal(liedjeId) {
     if (stand.status !== 'klaar' || !stand.bestand) return;
     try {
       const mappen = leesMappen();
-      if (!muziekbestand.veilig(stand.bestand, [DOWNLOAD_DIR])) {
+      if (!muziekbestand.veilig(stand.bestand, downloadMappen())) {
         console.log('opgehaald bestand valt buiten de downloadmap; ik koppel het niet:', stand.bestand);
         return;
       }
-      if (!mappen.includes(DOWNLOAD_DIR)) zetMappen(mappen.concat([DOWNLOAD_DIR]));
+      if (!mappen.includes(ophaalMap())) zetMappen(mappen.concat([ophaalMap()]));
       zetLiedjeMuziek(liedjeId, stand.bestand, path.basename(stand.bestand));
       console.log('opgehaald en gekoppeld aan liedje ' + liedjeId + ': ' + path.basename(stand.bestand));
     } catch (fout) {
@@ -1480,12 +1506,12 @@ function bewaakNieuweMuziek(titel, url) {
     ophaalWacht = null;
     if (stand.status !== 'klaar' || !stand.bestand) return;
     try {
-      if (!muziekbestand.veilig(stand.bestand, [DOWNLOAD_DIR])) {
+      if (!muziekbestand.veilig(stand.bestand, downloadMappen())) {
         console.log('opgehaald bestand valt buiten de downloadmap; ik maak er geen liedje van:', stand.bestand);
         return;
       }
       const mappen = leesMappen();
-      if (!mappen.includes(DOWNLOAD_DIR)) zetMappen(mappen.concat([DOWNLOAD_DIR]));
+      if (!mappen.includes(ophaalMap())) zetMappen(mappen.concat([ophaalMap()]));
       ophaalNieuweLiedje = maakLiedjeVanDownload(stand.bestand, titel, url);
       console.log('opgehaald als nieuw liedje ' + ophaalNieuweLiedje + ': ' + path.basename(stand.bestand));
     } catch (fout) {
@@ -1514,13 +1540,13 @@ function bewaakReeks() {
       if (ophaalReeksGedaan.has(stuk.bestand)) continue;
       ophaalReeksGedaan.add(stuk.bestand);
       try {
-        if (!muziekbestand.veilig(stuk.bestand, [DOWNLOAD_DIR])) {
+        if (!muziekbestand.veilig(stuk.bestand, downloadMappen())) {
           console.log('bestand valt buiten de downloadmap; ik maak er geen liedje van:', stuk.bestand);
           ophaalReeksFouten++;
           continue;
         }
         const mappen = leesMappen();
-        if (!mappen.includes(DOWNLOAD_DIR)) zetMappen(mappen.concat([DOWNLOAD_DIR]));
+        if (!mappen.includes(ophaalMap())) zetMappen(mappen.concat([ophaalMap()]));
         const link = stuk.video ? ('https://www.youtube.com/watch?v=' + stuk.video) : '';
         const id = maakLiedjeVanDownload(stuk.bestand, titelVanBestand(stuk.bestand), link);
         ophaalReeksLiedjes.push({ id, titel: vindLiedje(id).titel });
@@ -1559,11 +1585,12 @@ function ophaalBeeld(liedjeId, opties) {
       stand.bestanden.length > ophaalReeksGedaan.size) {
     status = 'bezig';
   }
+  const dlNu = downloadStand();
   return {
-    map: DOWNLOAD_DIR,
-    gevraagd: DOWNLOAD_DIR_GEVRAAGD,
-    terugval: !!DOWNLOAD_TERUGVAL,
-    terugvalFout: DOWNLOAD_TERUGVAL ? DOWNLOAD_TERUGVAL.fout : '',
+    map: dlNu.map,
+    gevraagd: dlNu.gevraagd,
+    terugval: dlNu.terugval,
+    terugvalFout: dlNu.fout,
     ytdlp: OPHAAL.ytdlp,
     status,
     procent: vanDitLiedje ? stand.procent : 0,
@@ -1814,12 +1841,7 @@ function mappenBeeld() {
     mappen,
     standaard: STANDAARD_MUZIEKMAP,
     voorstel: standaardPad && !mappen.some(m => m.pad === standaardPad) ? standaardPad : '',
-    download: {
-      map: DOWNLOAD_DIR,
-      gevraagd: DOWNLOAD_DIR_GEVRAAGD,
-      terugval: !!DOWNLOAD_TERUGVAL,
-      fout: DOWNLOAD_TERUGVAL ? DOWNLOAD_TERUGVAL.fout : ''
-    }
+    download: downloadStand()
   };
 }
 

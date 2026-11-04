@@ -3668,6 +3668,12 @@ function volgReeks() {
     if (ronden > 2400) { clearInterval(tik); return; }   // ~een uur; daarna stopt het vanzelf
     api('/api/download?los=1').then(function (d) {
       var van = d.totaal ? (d.item + ' van ' + d.totaal) : (d.gedaan + ' opgehaald');
+      // Wijkt het ophalen uit naar de eigen map van de app (omdat de NAS-map niet beschrijfbaar is),
+      // dan zeggen we dat meteen — anders zoek je je muziek straks kwijt.
+      if (d.terugval && d.map) {
+        toonMelding('reeks-melding', 'Let op: in ' + (d.gevraagd || 'de muziekmap') +
+          ' kan ik niet schrijven, dus de muziek komt in ' + d.map + ' terecht.', '');
+      }
       if (d.status === 'bezig') {
         if (houder) {
           var regel = (d.log && d.log.length) ? d.log[d.log.length - 1] : '';

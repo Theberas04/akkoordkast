@@ -3,6 +3,20 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.12.2] — 4 november 2026
+
+### Gerepareerd
+
+- **Een koppeling kan ook tijdens het draaien wegvallen.** De app keek bij het opstarten of de
+  downloadmap beschrijfbaar was, maar niet meer daarna. Viel de NAS-koppeling later weg — en dat is
+  precies wat er bij een slapende NAS gebeurt — dan gaf het ophalen alsnog
+  `ENOENT: no such file or directory, mkdir '/mnt/Nas/Nas-Opslag/Muziek/Gedownload'`. De downloader
+  kiest nu **bij elke download opnieuw**: lukt de gewone map niet, dan gaat hij door in de eigen map
+  van de app, meldt hij het in het logboek van het ophalen en in de app zelf, en het opgehaalde
+  bestand wordt gewoon een liedje (de eigen map hoort er nu ook bij de toegestane mappen). Ook de
+  mappenlijst, het liedje en de voortgang melden waar de muziek terechtkomt, en er staat bij of dat
+  de gevraagde map is.
+
 ## [1.12.1] — 4 november 2026
 
 ### Gerepareerd

@@ -193,8 +193,10 @@ Het toevoeggereedschap zit in een **eigen profiel** (`Admin`), niet in je gewone
 `/mnt/Nas/Nas-Opslag/Muziek/Gedownload`). Kan daar niet in geschreven worden — de koppeling is weg, de
 map is alleen-lezen of de schijf zit vol — dan **valt de app terug op zijn eigen map**
 (`gedownload` naast de gegevens) en zegt hij dat in de app: bij *Muziekmappen* en bij het ophalen.
-Zo blijft ophalen werken en weet je waar de muziek staat. Koppel je NAS opnieuw met
-`bash deploy/proxmox/nas-koppelen.sh` (op de Proxmox-host) om de muziekmap weer te gebruiken.
+Zo blijft ophalen werken en weet je waar de muziek staat. Dat geldt ook als de koppeling **tijdens
+het draaien** wegvalt: bij elke download wordt opnieuw gekeken of de map beschrijfbaar is. Koppel je
+NAS opnieuw met `bash deploy/proxmox/nas-koppelen.sh` (op de Proxmox-host) om de muziekmap weer te
+gebruiken.
 | Back-up, wachter, bijwerken, Spotify-sleutels | beheerder |
 
 Het tabblad **Toevoegen** bestaat alleen in het profiel `Admin` (in de profielkiezer staat het als

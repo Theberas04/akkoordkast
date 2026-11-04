@@ -3,6 +3,26 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.8.0] — 4 november 2026
+
+### Nieuw
+
+- **Een hele artiest of afspeellijst ophalen.** In het tabblad Toevoegen staat de kaart **Een hele
+  artiest of afspeellijst**: plak de link van een afspeellijst of van een kanaal, zet het hoogste
+  aantal nummers en de app haalt ze één voor één op. Elk nummer wordt een **eigen liedje** in de
+  bibliotheek, met de muziek eraan, en verschijnt onderweg al in de lijst. De ondergrens van één
+  nummer per keer blijft: er loopt één download tegelijk.
+- **De liedjes die je zelf toevoegt staan nu in de filters.** Het genre (bijvoorbeeld *Gedownload*)
+  en je eigen artiesten komen in de keuzelijsten van het tabblad Liedjes te staan, met het merkje
+  *eigen*; ook als er nog maar één liedje van is, want anders kun je je eigen muziek niet
+  terugvinden. En de keuzelijsten verversen zichzelf, dus je hoeft de pagina niet te verversen om een
+  nieuw genre te zien.
+
+### Gerepareerd
+
+- De video-id van een opgehaald nummer werd uit de verkeerde regel gehaald (het woord *Destination*
+  is ook elf letters); die herkenning is nu streng genoeg.
+
 ## [1.7.0] — 4 november 2026
 
 ### Nieuw

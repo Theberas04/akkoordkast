@@ -87,6 +87,15 @@ test('een link als nieuwe muziek wordt een eigen liedje met de muziek eraan', as
     assert.equal(detail.data.eigen, true);
     assert.equal(detail.data.youtube, 'dQw4w9WgXcQ');
 
+    // De eigen liedjes horen ook in de filters te staan: het genre en de artiest erbij.
+    const filters = await haal(omgeving.basis, '/api/liedjes?aantal=1');
+    assert.ok(filters.data.statistieken.eigenAantal >= 1, 'het aantal eigen liedjes hoort mee te komen');
+    assert.ok(filters.data.statistieken.genres.Gedownload >= 1, 'het genre Gedownload hoort in de filters');
+    const artiesten = await haal(omgeving.basis, '/api/artiesten');
+    const eigenArtiest = (artiesten.data.artiesten || []).filter(a => a.eigen);
+    assert.ok(eigenArtiest.length >= 1, 'je eigen artiest hoort in de artiestenlijst te staan');
+    assert.ok(eigenArtiest.some(a => a.naam === 'Gedownload' && a.aantal >= 1));
+
     // En de muziek is echt te beluisteren via de speler.
     const stroom = await haal(omgeving.basis, '/api/muziek/bestand?liedje=' + klaar.nieuwLiedje);
     assert.equal(stroom.status, 200);

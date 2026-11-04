@@ -1032,6 +1032,24 @@
       <div class="melding" id="mp3-melding" hidden></div>
       <div id="mp3-stand"></div>
     </div>
+    <div class="kaart" id="reeks-kaart">
+      <h2>Een hele artiest of afspeellijst</h2>
+      <p class="melding">Plak de link van een afspeellijst of van het kanaal van een artiest
+        (bijvoorbeeld <code>https://www.youtube.com/@Artiest/videos</code>). De app haalt de nummers
+        één voor één op en zet <strong>elk nummer als eigen liedje</strong> in de bibliotheek, met de
+        muziek eraan. Met het hoogste aantal bepaal je hoeveel nummers er opgehaald worden. Het duurt
+        even — er loopt één download tegelijk — en wat je ophaalt is jouw verantwoordelijkheid.</p>
+      <label for="reeks-url">De link van de afspeellijst of het kanaal</label>
+      <input id="reeks-url" type="url" placeholder="https://www.youtube.com/@Artiest/videos">
+      <div class="veld2" style="margin-top:8px">
+        <div><label for="reeks-max">Hoogste aantal nummers</label>
+          <input id="reeks-max" type="number" min="1" max="200" value="25" onfocus="this.select()"></div>
+        <div><button class="knop" id="reeks-start">De nummers ophalen</button></div>
+      </div>
+      <div class="melding" id="reeks-melding" hidden></div>
+      <div id="reeks-stand"></div>
+      <div id="reeks-lijst" class="mappen-lijst"></div>
+    </div>
     <div class="kaart">
       <h2>Muziek of video uploaden</h2>
       <p class="melding">Kies een <strong>mp3</strong>, <strong>mp4</strong>, m4a, wav of webm. De software haalt het geluid
@@ -1467,6 +1485,8 @@ function laadLiedjes(ververs) {
     $('lijst-teller').textContent = staat.liedjes.length + ' van ' + data.totaal + ' liedjes';
     $('kop-aantal').textContent = data.statistieken.aantal + ' meegeleverde liedjes';
     vulFilters(data);
+    // De artiestenlijst hoort mee te veranderen als je iets toevoegt (nieuw liedje, download).
+    if (ververs) laadArtiesten();
     toonMelding('lijst-melding', '', '');
   }).catch(function (e) { toonMelding('lijst-melding', e.message, 'fout'); });
 }
@@ -1481,36 +1501,40 @@ function taalNaam(code) { return TAALNAMEN[code] || code; }
 // nog via het zoekvak.
 function laadArtiesten() {
   api('/api/artiesten').then(function (data) {
-    var sel = $('filter-artiest');
-    if (!sel || sel.options.length > 1) return;
-    (data.artiesten || []).filter(function (a) { return a.aantal >= 2; }).forEach(function (a) {
-      var o = document.createElement('option');
-      o.value = a.naam;
-      o.textContent = a.naam.length > 42 ? a.naam.slice(0, 41) + '…' : a.naam;
-      o.textContent += ' (' + a.aantal + ')';
-      sel.appendChild(o);
-    });
+    // Iedereen met minstens twee liedjes, plus je eigen artiesten — ook als daar nog maar één liedje
+    // van in de app staat, want anders kun je je eigen muziek niet terugvinden in het filter.
+    var lijst = (data.artiesten || []).filter(function (a) { return a.aantal >= 2 || a.eigen; });
+    vulKeuzelijst($('filter-artiest'), lijst.map(function (a) {
+      var naam = a.naam.length > 42 ? a.naam.slice(0, 41) + '…' : a.naam;
+      return [a.naam, naam + ' (' + a.aantal + ')' + (a.eigen ? ' · eigen' : '')];
+    }));
   }).catch(function () {});
+}
+
+// Een keuzelijst opnieuw vullen en de keuze laten staan. Zo komen de genres en talen van liedjes die
+// je zelf toevoegt (bijvoorbeeld "Gedownload") er meteen bij te staan, zonder de pagina te verversen.
+function vulKeuzelijst(sel, paren) {
+  if (!sel) return;
+  var gekozen = sel.value;
+  var huidig = Array.prototype.map.call(sel.options, function (o) { return o.value + '|' + o.textContent; }).join(';');
+  var nieuw = ['|alle'].concat(paren.map(function (p) { return p[0] + '|' + p[1]; })).join(';');
+  if (huidig === nieuw) return;
+  sel.innerHTML = '<option value="">alle</option>' + paren.map(function (p) {
+    return '<option value="' + esc(p[0]) + '">' + esc(p[1]) + '</option>';
+  }).join('');
+  sel.value = gekozen;
+  if (sel.value !== gekozen) sel.value = '';   // het gekozen genre bestaat niet meer
 }
 
 function vulFilters(data) {
   var talen = Object.keys(data.statistieken.talen).sort();
   var genres = Object.keys(data.statistieken.genres).sort();
-  var taalSel = $('filter-taal');
-  if (taalSel.options.length <= 1) {
-    talen.forEach(function (t) {
-      var o = document.createElement('option');
-      o.value = t; o.textContent = taalNaam(t) + ' (' + data.statistieken.talen[t] + ')';
-      taalSel.appendChild(o);
-    });
-  }
-  var genreSel = $('filter-genre');
-  if (genreSel.options.length <= 1) {
-    genres.forEach(function (g) {
-      var o = document.createElement('option');
-      o.value = g; o.textContent = g; genreSel.appendChild(o);
-    });
-  }
+  vulKeuzelijst($('filter-taal'), talen.map(function (t) {
+    return [t, taalNaam(t) + ' (' + data.statistieken.talen[t] + ')'];
+  }));
+  vulKeuzelijst($('filter-genre'), genres.map(function (g) {
+    return [g, g + (data.statistieken.genres[g] ? ' (' + data.statistieken.genres[g] + ')' : '')];
+  }));
 }
 $('zoek').addEventListener('input', debounce(function () { laadLiedjes(true); }, 250));
 ['filter-taal', 'filter-genre', 'filter-artiest', 'filter-bijzonder', 'filter-label', 'filter-capo', 'filter-moeilijkheid'].forEach(function (id) {
@@ -3245,6 +3269,91 @@ function volgNieuweMuziek() {
   }, 1200);
 }
 
+// Een hele reeks ophalen: een afspeellijst of het kanaal van een artiest. Elk nummer wordt een eigen
+// liedje; de server maakt die aan zodra een bestand klaar is, hier tonen we hoe ver het is.
+function tekenReeksLijst(nieuw) {
+  var lijst = $('reeks-lijst');
+  if (!lijst || !nieuw || !nieuw.length) return;
+  lijst.innerHTML = nieuw.map(function (l) {
+    return '<div class="rij"><span class="chip">' + esc(l.titel) + '</span></div>';
+  }).join('');
+}
+
+function startReeks() {
+  var veld = $('reeks-url');
+  var link = String(veld ? veld.value : '').trim();
+  if (!link) {
+    toonMelding('reeks-melding', 'Plak eerst de link van de afspeellijst of het kanaal.', 'fout');
+    if (veld) veld.focus();
+    return;
+  }
+  var maxVeld = $('reeks-max');
+  var max = parseInt(maxVeld ? maxVeld.value : '25', 10) || 25;
+  var knop = $('reeks-start');
+  if (knop) knop.disabled = true;
+  if ($('reeks-lijst')) $('reeks-lijst').innerHTML = '';
+  if ($('reeks-stand')) $('reeks-stand').innerHTML = '';
+  toonMelding('reeks-melding', 'Bezig: de nummers worden één voor één opgehaald…', 'goed');
+  api('/api/download', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ reeks: true, url: link, max: max })
+  }).then(function () { volgReeks(); })
+    .catch(function (e) {
+      if (knop) knop.disabled = false;
+      toonMelding('reeks-melding', e.message, 'fout');
+    });
+}
+
+function volgReeks() {
+  var houder = $('reeks-stand');
+  var ronden = 0;
+  var tik = setInterval(function () {
+    ronden++;
+    if (ronden > 2400) { clearInterval(tik); return; }   // ~een uur; daarna stopt het vanzelf
+    api('/api/download?los=1').then(function (d) {
+      var van = d.totaal ? (d.item + ' van ' + d.totaal) : (d.gedaan + ' opgehaald');
+      if (d.status === 'bezig') {
+        if (houder) {
+          var regel = (d.log && d.log.length) ? d.log[d.log.length - 1] : '';
+          houder.innerHTML = '<div class="meta">Bezig met de reeks: ' + van +
+            ' · al ' + d.gedaan + ' liedje(s) toegevoegd' +
+            (regel ? ' <span class="haal-log">' + esc(regel) + '</span>' : '') + '</div>';
+        }
+        tekenReeksLijst(d.nieuweLiedjes);
+        return;
+      }
+      clearInterval(tik);
+      var knop = $('reeks-start');
+      if (knop) knop.disabled = false;
+      tekenReeksLijst(d.nieuweLiedjes);
+      if (d.status === 'klaar') {
+        var aantal = d.gedaan;
+        if (houder) {
+          houder.innerHTML = '<div class="meta">Klaar: <strong>' + aantal + ' liedje' +
+            (aantal === 1 ? '' : 's') + '</strong> toegevoegd aan de bibliotheek' +
+            (d.mislukt ? ' (' + d.mislukt + ' mislukt)' : '') + '.</div>' +
+            '<div class="rij"><button class="knop zacht" id="reeks-bekijk">Bekijk in Liedjes</button></div>';
+          $('reeks-bekijk').addEventListener('click', function () { toonTab('liedjes'); });
+        }
+        toonMelding('reeks-melding', '', '');
+        laadLiedjes(true);
+        var leeg = $('reeks-url');
+        if (leeg) leeg.value = '';
+        return;
+      }
+      if (houder) houder.innerHTML = '';
+      if (d.status === 'fout') toonMelding('reeks-melding', d.fout, 'fout');
+    }).catch(function () { clearInterval(tik); });
+  }, 1500);
+}
+
+function koppelReeks() {
+  if ($('reeks-start')) $('reeks-start').addEventListener('click', startReeks);
+  if ($('reeks-url')) {
+    $('reeks-url').addEventListener('keydown', function (e) { if (e.key === 'Enter') startReeks(); });
+  }
+}
+
 function koppelMp3Tool() {
   var wijze = $('mp3-wijze');
   if (wijze) {
@@ -4260,6 +4369,7 @@ laadArtiesten();
 laadProfielen();
 laadLabels();
 koppelMp3Tool();   // het gereedschap "Downloaden als mp3" in het tabblad Toevoegen
+koppelReeks();     // en "Een hele artiest of afspeellijst"
 beheerVraag();   // wie is de beheerder? (bepaalt wat je in Toevoegen ziet)
 laadMijnSetlists();
 laadWachter();

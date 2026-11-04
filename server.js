@@ -34,7 +34,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.7';
+const VERSIE = '1.8';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -1240,6 +1240,10 @@ let ophaalWacht = null;
 // zodra het bestand binnen is. Hier staat dan welk liedje dat geworden is (en of dat mislukte).
 let ophaalNieuweLiedje = 0;
 let ophaalNieuweFout = '';
+// En voor een hele reeks (afspeellijst of kanaal): welk liedje is er van welk bestand gemaakt?
+let ophaalReeksGedaan = new Set();
+let ophaalReeksLiedjes = [];
+let ophaalReeksFouten = 0;
 
 // Zodra het ophalen klaar is, hangt de app het bestand meteen aan het liedje, zodat je het
 // kunt meespelen. Ligt het bestand buiten de mappen die de app kent, dan wordt de
@@ -1320,6 +1324,48 @@ function bewaakNieuweMuziek(titel, url) {
   }, 700);
 }
 
+// De titel van een opgehaald bestand netjes maken: "03 - Mijn liedje.mp3" wordt "Mijn liedje".
+function titelVanBestand(bestand) {
+  return path.basename(bestand, path.extname(bestand))
+    .replace(/^\s*\d+\s*[-.]\s*/, '')
+    .replace(/_+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Waken over een reeks: elk bestand dat klaar is wordt meteen een eigen liedje, zodat je ze één voor
+// één ziet verschijnen in plaats van pas aan het eind.
+function bewaakReeks() {
+  if (ophaalWacht) clearInterval(ophaalWacht);
+  ophaalWacht = setInterval(() => {
+    const stand = OPHAAL.standVan();
+    for (const stuk of stand.bestanden) {
+      if (ophaalReeksGedaan.has(stuk.bestand)) continue;
+      ophaalReeksGedaan.add(stuk.bestand);
+      try {
+        if (!muziekbestand.veilig(stuk.bestand, [DOWNLOAD_DIR])) {
+          console.log('bestand valt buiten de downloadmap; ik maak er geen liedje van:', stuk.bestand);
+          ophaalReeksFouten++;
+          continue;
+        }
+        const mappen = leesMappen();
+        if (!mappen.includes(DOWNLOAD_DIR)) zetMappen(mappen.concat([DOWNLOAD_DIR]));
+        const link = stuk.video ? ('https://www.youtube.com/watch?v=' + stuk.video) : '';
+        const id = maakLiedjeVanDownload(stuk.bestand, titelVanBestand(stuk.bestand), link);
+        ophaalReeksLiedjes.push({ id, titel: vindLiedje(id).titel });
+        console.log('nieuw liedje uit de reeks: ' + id + ' (' + titelVanBestand(stuk.bestand) + ')');
+      } catch (fout) {
+        ophaalReeksFouten++;
+        console.log('van een bestand uit de reeks een liedje maken mislukte:', fout.message);
+      }
+    }
+    if (stand.status !== 'bezig') {
+      clearInterval(ophaalWacht);
+      ophaalWacht = null;
+    }
+  }, 700);
+}
+
 // Wat de app van het ophalen laat zien: de stand, plus of het bestand al aan dit liedje hangt.
 function ophaalBeeld(liedjeId, opties) {
   const stand = OPHAAL.standVan();
@@ -1332,9 +1378,15 @@ function ophaalBeeld(liedjeId, opties) {
   // zeggen we dat het misging.
   let status = vanDitLiedje ? stand.status : 'leeg';
   let fout = vanDitLiedje ? stand.fout : '';
-  if (o.los && vanDitLiedje && stand.status === 'klaar' && !ophaalNieuweLiedje) {
+  // (Niet bij een reeks: die heeft zijn eigen regel hieronder, anders blijft hij eeuwig 'bezig'.)
+  if (o.los && !stand.reeks && vanDitLiedje && stand.status === 'klaar' && !ophaalNieuweLiedje) {
     if (ophaalNieuweFout) { status = 'fout'; fout = ophaalNieuweFout; }
     else { status = 'bezig'; }
+  }
+  // Bij een reeks zijn we pas klaar als elk opgehaald bestand een liedje geworden is.
+  if (o.reeks && vanDitLiedje && stand.status !== 'bezig' &&
+      stand.bestanden.length > ophaalReeksGedaan.size) {
+    status = 'bezig';
   }
   return {
     map: DOWNLOAD_DIR,
@@ -1347,7 +1399,13 @@ function ophaalBeeld(liedjeId, opties) {
     url: vanDitLiedje ? stand.url : '',
     bezig: stand.status === 'bezig',
     gekoppeld: !!(m && m.bestaat),
-    nieuwLiedje: vanDitLiedje ? ophaalNieuweLiedje : 0
+    nieuwLiedje: vanDitLiedje ? ophaalNieuweLiedje : 0,
+    reeks: vanDitLiedje ? !!stand.reeks : false,
+    item: vanDitLiedje ? stand.item : 0,
+    totaal: vanDitLiedje ? stand.totaal : 0,
+    gedaan: vanDitLiedje ? ophaalReeksGedaan.size : 0,
+    nieuweLiedjes: vanDitLiedje && o.reeks ? ophaalReeksLiedjes.slice(-40) : [],
+    mislukt: vanDitLiedje && o.reeks ? ophaalReeksFouten : 0
   };
 }
 
@@ -1397,6 +1455,54 @@ function zetLiedjeMuziek(liedjeId, pad, titel) {
 
 function wisLiedjeMuziek(liedjeId) {
   db.prepare('DELETE FROM liedje_muziek WHERE liedje_id = ?').run(Number(liedjeId) || 0);
+}
+
+// De liedjes die je zelf toevoegt (eigen liedjes en wat je uit een link haalt) horen ook in de
+// filters te staan: taal, genre en artiest. De statistieken van de meegeleverde liedjes komen uit de
+// bron; hier tellen we de eigen liedjes erbij op. Het aantal meegeleverde liedjes blijft daarbij
+// zoals het is, zodat "8.701 meegeleverde liedjes" blijft kloppen.
+function eigenTellingen() {
+  const talen = {};
+  const genres = {};
+  const artiesten = new Map();
+  let aantal = 0;
+  try {
+    for (const rij of db.prepare('SELECT taal, genre, artiest FROM liedjes').all()) {
+      aantal++;
+      const taal = String(rij.taal || 'nl') || 'nl';
+      const genre = String(rij.genre || 'Eigen') || 'Eigen';
+      talen[taal] = (talen[taal] || 0) + 1;
+      genres[genre] = (genres[genre] || 0) + 1;
+      const artiest = String(rij.artiest || '').trim();
+      if (artiest) artiesten.set(artiest, (artiesten.get(artiest) || 0) + 1);
+    }
+  } catch (e) { /* nog geen eigen liedjes */ }
+  return { aantal, talen, genres, artiesten };
+}
+
+function statistiekenMetEigen() {
+  const basis = bron.statistieken();
+  const eigen = eigenTellingen();
+  const talen = Object.assign({}, basis.talen);
+  const genres = Object.assign({}, basis.genres);
+  for (const sleutel of Object.keys(eigen.talen)) talen[sleutel] = (talen[sleutel] || 0) + eigen.talen[sleutel];
+  for (const sleutel of Object.keys(eigen.genres)) genres[sleutel] = (genres[sleutel] || 0) + eigen.genres[sleutel];
+  return Object.assign({}, basis, { talen, genres, eigenAantal: eigen.aantal });
+}
+
+// De artiestenlijst voor het filter, met je eigen artiesten erbij. Die krijgen het merkje eigen,
+// zodat het filter ze ook laat staan als er nog maar één liedje van is — anders kun je je eigen
+// muziek niet terugvinden in het filter.
+function artiestenMetEigen() {
+  const eigen = eigenTellingen().artiesten;
+  const uit = new Map();
+  for (const a of bron.artiesten()) uit.set(a.naam, { naam: a.naam, aantal: a.aantal, eigen: false });
+  for (const [naam, aantal] of eigen.entries()) {
+    const bestaand = uit.get(naam);
+    if (bestaand) uit.set(naam, { naam, aantal: bestaand.aantal + aantal, eigen: true });
+    else uit.set(naam, { naam, aantal, eigen: true });
+  }
+  return [...uit.values()].sort((a, b) => b.aantal - a.aantal || a.naam.localeCompare(b.naam, 'nl'));
 }
 
 // Voor de lijst: welke liedjes hebben al muziek? Eén vraag in plaats van één per liedje.
@@ -2363,7 +2469,7 @@ async function verwerk(req, res) {
 
   // --- artiesten (voor het filter) ---
   if (pad === '/api/artiesten' && methode === 'GET') {
-    json(res, 200, { artiesten: bron.artiesten() });
+    json(res, 200, { artiesten: artiestenMetEigen() });
     return;
   }
 
@@ -2479,7 +2585,7 @@ async function verwerk(req, res) {
       vanaf,
       aantal: pagina.length,
       meer: vanaf + pagina.length < totaal,
-      statistieken: bron.statistieken(),
+      statistieken: statistiekenMetEigen(),
       profiel: profielId,
       liedjes: pagina.map(l => Object.assign(lijstItem(metPersoonlijk(l, persoon)),
         { heeftMuziek: metMuziek.has(l.id), heeftVideo: metVideo.has(l.id) }))
@@ -2676,7 +2782,8 @@ async function verwerk(req, res) {
   if (pad === '/api/download' && methode === 'GET') {
     // Los: een download die nieuwe muziek wordt; er is nog geen liedje om aan te hangen.
     if (query.get('los')) {
-      json(res, 200, Object.assign({ liedje: null }, ophaalBeeld(0, { los: true })));
+      json(res, 200, Object.assign({ liedje: null },
+        ophaalBeeld(0, OPHAAL.standVan().reeks ? { los: true, reeks: true } : { los: true })));
       return;
     }
     const lied = vindLiedje(query.get('liedje'));
@@ -2688,10 +2795,28 @@ async function verwerk(req, res) {
     const body = await leesJsonBody(req);
     // Een link ophalen als nieuwe muziek: geen bestaand liedje nodig. Het liedje komt er pas als
     // het bestand binnen is; dan zeggen we welk liedje het geworden is.
+    // Een hele artiest of afspeellijst: elk nummer wordt een eigen liedje.
+    if (body.reeks) {
+      const max = Math.max(1, Math.min(200, parseInt(body.max, 10) || 25));
+      ophaalReeksGedaan = new Set();
+      ophaalReeksLiedjes = [];
+      ophaalReeksFouten = 0;
+      ophaalNieuweLiedje = 0;
+      ophaalNieuweFout = '';
+      const begonnen = OPHAAL.start(body.url, { reeks: true, max });
+      if (!begonnen.ok) { json(res, 400, { fout: begonnen.fout }); return; }
+      ophaalLiedje = 0;
+      bewaakReeks();
+      json(res, 200, Object.assign({ ok: true }, ophaalBeeld(0, { los: true, reeks: true })));
+      return;
+    }
     if (body.nieuw) {
       const titel = String(body.titel || '').slice(0, 160);
       ophaalNieuweLiedje = 0;
       ophaalNieuweFout = '';
+      ophaalReeksGedaan = new Set();
+      ophaalReeksLiedjes = [];
+      ophaalReeksFouten = 0;
       const gestart = OPHAAL.start(body.url);
       if (!gestart.ok) { json(res, 400, { fout: gestart.fout }); return; }
       ophaalLiedje = 0;

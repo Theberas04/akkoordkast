@@ -232,3 +232,18 @@ test('op een telefoon blijft de profielkiezer staan', () => {
   assert.match(blok, /\.profiel-rij\{display:flex/, 'de profielrij hoort op een telefoon zichtbaar te zijn');
   assert.match(blok, /\.lied\{grid-template-columns:1fr/, 'de liedjeskaartjes horen op een telefoon onder elkaar te staan');
 });
+
+test('de kaart voor een hele artiest of afspeellijst staat in het gereedschap', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  for (const id of ['reeks-kaart', 'reeks-url', 'reeks-max', 'reeks-start', 'reeks-melding',
+    'reeks-stand', 'reeks-lijst']) {
+    assert.ok(html.includes('id="' + id + '"'), 'id ontbreekt: ' + id);
+  }
+  assert.match(html, /Een hele artiest of afspeellijst/);
+  assert.match(html, /function startReeks\(\)/);
+  assert.match(html, /function volgReeks\(\)/);
+  assert.match(html, /koppelReeks\(\);/, 'de kaart hoort gekoppeld te worden bij het opstarten');
+  // En de filters horen de eigen liedjes mee te nemen.
+  assert.match(html, /a\.aantal >= 2 \|\| a\.eigen/, 'eigen artiesten horen in het filter te blijven staan');
+  assert.match(html, /function vulKeuzelijst\(sel, paren\)/, 'de keuzelijsten horen opnieuw gevuld te worden');
+});

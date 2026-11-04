@@ -185,6 +185,8 @@ Het toevoeggereedschap zit in een **eigen profiel** (`Admin`), niet in je gewone
 | Downloaden als mp3 (link plakken; als nieuwe muziek of bij een bestaand liedje) | beheerder, in het profiel Admin |
 | Een hele artiest of afspeellijst ophalen (elk nummer wordt een eigen liedje) | beheerder, in het profiel Admin |
 | Muziekmappen toevoegen of weghalen, eigen liedjes bewerken, opnamen uploaden | beheerder |
+| Liedjes uit de app halen (eigen liedjes echt, meegeleverde verbergen) | beheerder |
+| Filters beheren: talen en genres toevoegen, weghalen en liedjes eraan koppelen | beheerder |
 | Back-up, wachter, bijwerken, Spotify-sleutels | beheerder |
 
 Het tabblad **Toevoegen** bestaat alleen in het profiel `Admin` (in de profielkiezer staat het als
@@ -201,6 +203,29 @@ binnen een kwartier weigert de app het even.
 
 Het wachtwoord zelf wordt nooit bewaard: er staat alleen een scrypt-afdruk met een eigen zout in de
 database (`beheer_hash` in de tabel `instellingen`). De sessies staan in de tabel `sessies`.
+
+### Liedjes weghalen
+
+In het tabblad Toevoegen staat **Liedjes weghalen**. Zoek een liedje en haal het uit de app:
+
+- Een **eigen liedje** — zelf toegevoegd of uit een link gehaald — verdwijnt helemaal: de rij uit de
+  database, de muziek die eraan hing, de opname, de koppelingen met filters en labels, de favoriet en
+  de speelgeschiedenis. Er blijft niets van achter.
+- Een **meegeleverd liedje** zit in de bestanden van de app: dat kun je **verbergen**. Het staat dan
+  niet meer in de lijsten, het zoeken en de filters, maar je kunt het met één knop terugzetten
+  (onder *Verborgen liedjes*). Zo blijft de meegeleverde verzameling heel.
+
+### Filters beheren
+
+In **Filters beheren** staan alle talen en genres die de app als filter laat zien, met hoeveel
+liedjes eronder vallen. Je kunt er zelf een toevoegen (een genre dat je zelf gebruikt, of een taal —
+die staat er dan meteen bij, ook als er nog geen liedje bij hoort) en weer weghalen. Wat je weghaalt
+laat de liedjes staan: die vallen terug op de taal of het genre dat ze zelf hadden.
+
+Daaronder koppel je liedjes aan een filter: zoek liedjes, vink ze aan en druk op **Koppelen** (of
+**Losmaken**). Wat je koppelt gaat vóór de taal of het genre die het liedje zelf al had, dus je kunt
+een liedje in een eigen vak zetten zonder de verzameling zelf aan te raken. Alles wat je hier doet
+komt meteen in de gewone filters terecht, voor alle profielen.
 
 **Wachtwoord vergeten?** Wis de afdruk en de sessies in de container; daarna kun je in de app weer
 een nieuw wachtwoord instellen:

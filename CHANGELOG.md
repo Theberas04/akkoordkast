@@ -3,6 +3,36 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.12.0] — 4 november 2026
+
+### Nieuw
+
+- **De beheerder kan liedjes uit de app halen.** In het tabblad Toevoegen staat *Liedjes weghalen*:
+  zoek een liedje en haal het weg. Een eigen liedje (zelf toegevoegd of uit een link gehaald)
+  verdwijnt helemaal — de rij, de muziek die eraan hing, de opname, de koppelingen met filters en
+  labels, de favoriet en de speelgeschiedenis. Een meegeleverd liedje zit in de bestanden van de app:
+  dat wordt *verborgen* in plaats van weggegooid, zodat het uit de lijsten, het zoeken en de filters
+  is en met één knop terug te zetten is (onder *Verborgen liedjes*).
+- **De beheerder beheert de filters.** In *Filters beheren* staan alle talen en genres met hoeveel
+  liedjes eronder vallen. Je kunt er zelf een toevoegen — een eigen genre, of een taal — en die staat
+  dan meteen als filter in de app, ook als er nog geen liedje bij hoort. Liedjes koppel je er in één
+  keer aan: zoek, vink aan, koppelen. Wat je koppelt gaat vóór de taal of het genre dat het liedje
+  zelf had; losmaken zet het weer terug. Een filter weghalen laat de liedjes staan.
+- **De cursus is overzichtelijker.** De acht delen zijn nu groepen die je open- en dichtklapt (met per
+  deel een teller en een balk, en het deel waar je bent standaard open), er is een zoekvak dat
+  accentongevoelig zoekt ("barre" vindt de les over barré-akkoorden), knoppen om alles te openen of te
+  sluiten, en bovenaan een kaart *Verder waar je gebleven was* met één knop naar de volgende les (met
+  de mogelijkheid hem even over te slaan). Wat je open- en dichtklapt blijft bewaard.
+
+### Gerepareerd
+
+- **Na het inloggen als beheerder bleef het beheerblok op het inlogformulier staan.** De app vroeg de
+  stand op voordat de browser het sessiekoekje van de server had verwerkt; de stand wordt nu meteen
+  goed gezet en daarna nog eens opgevraagd. (Het pad via het profielslot werkte al goed, omdat dat de
+  stand zelf bijhoudt.)
+- De beheerkaarten koppelden hun knoppen pas als het tabblad Leren een keer was geopend; dat gebeurt nu
+  bij het opstarten.
+
 ## [1.11.1] — 4 november 2026
 
 ### Gerepareerd

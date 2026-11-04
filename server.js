@@ -34,7 +34,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.11.1';
+const VERSIE = '1.12';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -159,6 +159,31 @@ db.exec(`
     setlist_id INTEGER NOT NULL,
     liedje_id INTEGER NOT NULL,
     volgorde INTEGER NOT NULL DEFAULT 0
+  );
+
+  -- Filters die de beheerder zelf toevoegt (een taal of een genre), ook als er nog geen
+  -- liedje bij hoort. De waarden van de meegeleverde liedjes komen uit de gegevensbestanden.
+  CREATE TABLE IF NOT EXISTS filters (
+    soort TEXT NOT NULL,
+    waarde TEXT NOT NULL,
+    gemaakt TEXT NOT NULL DEFAULT '',
+    PRIMARY KEY (soort, waarde)
+  );
+
+  -- Welke filters bij welk liedje horen. Dit geldt voor alle liedjes: de meegeleverde én de
+  -- eigen liedjes. Een koppeling gaat voor de waarde die in het liedje zelf staat.
+  CREATE TABLE IF NOT EXISTS liedje_filters (
+    liedje_id INTEGER NOT NULL,
+    soort TEXT NOT NULL,
+    waarde TEXT NOT NULL,
+    PRIMARY KEY (liedje_id, soort, waarde)
+  );
+
+  -- Een meegeleverd liedje kan de beheerder niet weggooien (het zit in de bestanden van de app),
+  -- maar wel verbergen. Zo kan hij het uit de lijsten en de filters houden en later terugzetten.
+  CREATE TABLE IF NOT EXISTS verborgen_liedjes (
+    liedje_id INTEGER PRIMARY KEY,
+    sinds TEXT NOT NULL DEFAULT ''
   );
 `);
 
@@ -639,14 +664,119 @@ function weergave(lied, opties) {
   };
 }
 
+// De filters die de beheerder zelf heeft toegevoegd, en de koppelingen per liedje. We houden ze
+// bij in het geheugen: ze veranderen alleen als de beheerder iets doet, en elke lijstvraag heeft
+// ze nodig.
+var FILTERS = { waarden: { taal: [], genre: [] }, perLiedje: {}, verborgen: {}, versie: 0 };
+
+// De filters en de koppelingen uit de database halen. De app doet dit bij het starten en na elke
+// wijziging van de beheerder.
+function laadFilters() {
+  const waarden = { taal: [], genre: [] };
+  for (const rij of db.prepare('SELECT soort, waarde, gemaakt FROM filters ORDER BY waarde').all()) {
+    if (!waarden[rij.soort]) waarden[rij.soort] = [];
+    waarden[rij.soort].push({ waarde: rij.waarde, gemaakt: rij.gemaakt });
+  }
+  const perLiedje = {};
+  for (const rij of db.prepare('SELECT liedje_id, soort, waarde FROM liedje_filters').all()) {
+    const id = Number(rij.liedje_id);
+    if (!perLiedje[id]) perLiedje[id] = { taal: [], genre: [] };
+    if (!perLiedje[id][rij.soort]) perLiedje[id][rij.soort] = [];
+    if (perLiedje[id][rij.soort].indexOf(rij.waarde) < 0) perLiedje[id][rij.soort].push(rij.waarde);
+  }
+  const verborgen = {};
+  for (const rij of db.prepare('SELECT liedje_id FROM verborgen_liedjes').all()) verborgen[Number(rij.liedje_id)] = true;
+  FILTERS = { waarden: waarden, perLiedje: perLiedje, verborgen: verborgen, versie: FILTERS.versie + 1 };
+  return FILTERS;
+}
+
+// Bij het starten meteen inlezen, zodat de lijsten en de filters meteen kloppen.
+laadFilters();
+
+function isVerborgen(id) {
+  return !!FILTERS.verborgen[Number(id)];
+}
+
+// Welke taal of welk genre hoort bij dit liedje? Wat de beheerder heeft gekoppeld gaat voor op wat
+// er in het liedje zelf staat; zo kan hij een liedje bij een eigen genre indelen.
+function filterVan(lied, soort) {
+  const gekoppeld = (FILTERS.perLiedje[lied.id] || {})[soort];
+  if (gekoppeld && gekoppeld.length) return gekoppeld[0];
+  return soort === 'taal' ? lied.taal : lied.genre;
+}
+
+function filtersVan(lied) {
+  const uit = {};
+  for (const soort of ['taal', 'genre']) {
+    const gekoppeld = (FILTERS.perLiedje[lied.id] || {})[soort];
+    uit[soort] = (gekoppeld && gekoppeld.length) ? gekoppeld.slice() : [(soort === 'taal' ? lied.taal : lied.genre)].filter(Boolean);
+  }
+  return uit;
+}
+
+// Een eigen liedje helemaal weghalen: de rij uit de database, de muziek die eraan hing, de opname,
+// de koppelingen met filters en labels, de favoriet en de speelgeschiedenis. Wat de beheerder
+// weghaalt hoort nergens meer te blijven staan.
+function verwijderEigenLiedje(liedjeId) {
+  const id = Number(liedjeId);
+  const rijId = id - EIGEN_START;
+  const rij = db.prepare('SELECT audio_bestand FROM liedjes WHERE id = ?').get(rijId);
+  if (!rij) return false;
+  const muziek = db.prepare('SELECT pad FROM liedje_muziek WHERE liedje_id = ?').get(id);
+  if (muziek && muziek.pad) {
+    try {
+      const mappen = leesMappen().concat([DOWNLOAD_DIR]).filter(Boolean);
+      if (muziekbestand.veilig(muziek.pad, mappen)) fs.unlinkSync(muziek.pad);
+    } catch (e) {}
+  }
+  if (rij.audio_bestand) {
+    try { fs.unlinkSync(path.join(MEDIA_DIR, 'audio', rij.audio_bestand)); } catch (e) {}
+  }
+  for (const tabel of ['liedje_muziek', 'liedje_youtube', 'liedje_filters', 'liedje_labels', 'favorieten', 'gespeeld']) {
+    db.prepare(`DELETE FROM ${tabel} WHERE liedje_id = ?`).run(id);
+  }
+  db.prepare('DELETE FROM setlist_liedjes WHERE liedje_id = ?').run(id);
+  db.prepare('DELETE FROM liedjes WHERE id = ?').run(rijId);
+  return true;
+}
+
+// De naam van een filter die de beheerder intypt: kort, zonder rare tekens.
+function schoneFilterNaam(soort, waarde) {
+  if (soort !== 'taal' && soort !== 'genre') throw new Error('Je kunt alleen een taal of een genre toevoegen.');
+  const schoon = String(waarde || '').replace(/\s+/g, ' ').trim().slice(0, 40);
+  if (!schoon) throw new Error('Vul een naam in voor dit filter.');
+  if (/[<>\u0000-\u001f]/.test(schoon)) throw new Error('Gebruik geen vreemde tekens in de naam van een filter.');
+  return schoon;
+}
+
+// Alle talen en genres die er zijn: die van de liedjes én die de beheerder zelf heeft toegevoegd,
+// met hoeveel liedjes eronder vallen.
+function filterOverzicht() {
+  const st = statistiekenMetEigen();
+  const uit = { taal: [], genre: [] };
+  for (const soort of ['taal', 'genre']) {
+    const telling = soort === 'taal' ? st.talen : st.genres;
+    const eigen = {};
+    for (const w of (FILTERS.waarden[soort] || [])) eigen[w.waarde] = true;
+    for (const waarde of Object.keys(telling)) {
+      uit[soort].push({ waarde, aantal: telling[waarde], eigen: !!eigen[waarde] });
+    }
+    uit[soort].sort((a, b) => String(a.waarde).localeCompare(String(b.waarde), 'nl'));
+  }
+  return uit;
+}
+
 function lijstItem(lied) {
   const advies = lied.advies;
   return {
     id: lied.id,
     titel: lied.titel,
     artiest: lied.artiest,
-    taal: lied.taal,
-    genre: lied.genre,
+    taal: filterVan(lied, 'taal'),
+    genre: filterVan(lied, 'genre'),
+    eigenTaal: lied.taal,
+    eigenGenre: lied.genre,
+    verborgen: isVerborgen(lied.id),
     moeilijkheid: lied.moeilijkheid,
     toonsoort: lied.toonsoort,
     akkoorden: theorie.uniek(lied.model.akkoorden),
@@ -680,7 +810,8 @@ function metPersoonlijk(lied, persoon) {
   });
 }
 
-function zoekLiedjes(query, profielId) {
+function zoekLiedjes(query, profielId, opties) {
+  const o = opties || {};
   const q = (query.get('zoek') || '').trim().toLowerCase();
   const taal = (query.get('taal') || '').trim().toLowerCase();
   const genre = (query.get('genre') || '').trim().toLowerCase();
@@ -700,8 +831,11 @@ function zoekLiedjes(query, profielId) {
       return hooiberg.includes(q);
     });
   }
-  if (taal) uit = uit.filter(l => l.taal === taal);
-  if (genre) uit = uit.filter(l => l.genre.toLowerCase() === genre);
+  // Verborgen liedjes horen niet in de lijsten; alleen de beheerder kan ze opvragen.
+  if (!o.verborgen) uit = uit.filter(l => !isVerborgen(l.id));
+  else if (!o.ookZichtbaar) uit = uit.filter(l => isVerborgen(l.id));
+  if (taal) uit = uit.filter(l => String(filterVan(l, 'taal') || '').toLowerCase() === taal);
+  if (genre) uit = uit.filter(l => String(filterVan(l, 'genre') || '').toLowerCase() === genre);
   // op artiest zoeken we met een gedeeltelijke overeenkomst: in de grote bundels
   // staat de verzameling als "artiest" ("Kerr's Merry Melodies (Glasgow, 1870-1880)")
   if (artiest) uit = uit.filter(l => (l.artiest || '').toLowerCase().includes(artiest));
@@ -1482,12 +1616,37 @@ function eigenTellingen() {
 
 function statistiekenMetEigen() {
   const basis = bron.statistieken();
-  const eigen = eigenTellingen();
-  const talen = Object.assign({}, basis.talen);
-  const genres = Object.assign({}, basis.genres);
-  for (const sleutel of Object.keys(eigen.talen)) talen[sleutel] = (talen[sleutel] || 0) + eigen.talen[sleutel];
-  for (const sleutel of Object.keys(eigen.genres)) genres[sleutel] = (genres[sleutel] || 0) + eigen.genres[sleutel];
-  return Object.assign({}, basis, { talen, genres, eigenAantal: eigen.aantal });
+  // We tellen opnieuw, met de waarden zoals ze nu gelden: een liedje dat de beheerder bij een eigen
+  // genre heeft ingedeeld hoort daar te tellen, en een verborgen liedje telt nergens meer mee.
+  const talen = {};
+  const genres = {};
+  let aantal = 0;
+  const tel = (lied) => {
+    aantal++;
+    const t = filterVan(lied, 'taal') || 'onbekend';
+    const g = filterVan(lied, 'genre') || 'onbekend';
+    talen[t] = (talen[t] || 0) + 1;
+    genres[g] = (genres[g] || 0) + 1;
+  };
+  for (const lied of bron.alle()) if (!isVerborgen(lied.id)) tel(lied);
+  const eigen = eigenLiedjes();
+  let eigenAantal = 0;
+  for (const lied of eigen) {
+    if (isVerborgen(lied.id)) continue;
+    eigenAantal++;
+    tel(lied);
+  }
+  // De waarden die de beheerder zelf heeft toegevoegd staan er altijd bij, ook met nul liedjes.
+  for (const soort of ['taal', 'genre']) {
+    for (const w of (FILTERS.waarden[soort] || [])) {
+      const vak = soort === 'taal' ? talen : genres;
+      if (vak[w.waarde] === undefined) vak[w.waarde] = 0;
+    }
+  }
+  return Object.assign({}, basis, {
+    talen, genres, aantal, eigenAantal,
+    verborgenAantal: Object.keys(FILTERS.verborgen).length
+  });
 }
 
 // De artiestenlijst voor het filter, met je eigen artiesten erbij. Die krijgen het merkje eigen,
@@ -2048,6 +2207,130 @@ async function verwerk(req, res) {
   }
 
   // --- profielen ---
+  // --------------------------- de beheerder: liedjes weghalen, filters beheren ---
+  // Deze routes controleren zelf of je beheerder bent; zo werken ze ook als de sessie verlopen is.
+  const eisBeheerder = (antwoord) => {
+    if (isBeheerder(req)) return true;
+    json(res, 403, { fout: 'Log eerst in als beheerder.' });
+    return false;
+  };
+
+  // Welke liedjes zijn er, om weg te halen? Met 'verborgen=1' juist de verborgen liedjes.
+  if (pad === '/api/beheer/liedjes' && methode === 'GET') {
+    if (!eisBeheerder()) return;
+    const verborgen = query.get('verborgen') === '1';
+    const profielId = profielVan(req, query);
+    const uit = zoekLiedjes(query, profielId, verborgen ? { verborgen: true } : {});
+    const vanaf = Math.max(0, parseInt(query.get('vanaf'), 10) || 0);
+    const aantal = Math.max(1, Math.min(100, parseInt(query.get('aantal'), 10) || 25));
+    const pagina = uit.slice(vanaf, vanaf + aantal);
+    json(res, 200, {
+      totaal: uit.length, vanaf, aantal: pagina.length, meer: vanaf + pagina.length < uit.length,
+      verborgenAantal: Object.keys(FILTERS.verborgen).length,
+      liedjes: pagina.map(l => ({
+        id: l.id, titel: l.titel, artiest: l.artiest, bron: l.bron,
+        eigen: !!l.eigen, verborgen: isVerborgen(l.id),
+        taal: filterVan(l, 'taal'), genre: filterVan(l, 'genre'),
+        eigenTaal: l.taal, eigenGenre: l.genre
+      }))
+    });
+    return;
+  }
+
+  // Een liedje weghalen: een eigen liedje echt, een meegeleverd liedje verbergen.
+  if (pad === '/api/beheer/liedje/weg' && methode === 'POST') {
+    if (!eisBeheerder()) return;
+    const body = await leesJsonBody(req);
+    const id = Number(body.id);
+    if (!Number.isFinite(id)) { json(res, 400, { fout: 'Geen liedje opgegeven.' }); return; }
+    if (id >= EIGEN_START) {
+      const rij = db.prepare('SELECT titel FROM liedjes WHERE id = ?').get(id - EIGEN_START);
+      if (!rij) { json(res, 404, { fout: 'Liedje niet gevonden.' }); return; }
+      verwijderEigenLiedje(id);
+      json(res, 200, { ok: true, weggehaald: 'verwijderd', titel: rij.titel });
+      return;
+    }
+    const lied = vindLiedje(id);
+    if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden.' }); return; }
+    db.prepare('INSERT OR REPLACE INTO verborgen_liedjes (liedje_id, sinds) VALUES (?, ?)')
+      .run(id, new Date().toISOString());
+    laadFilters();
+    json(res, 200, { ok: true, weggehaald: 'verborgen', titel: lied.titel });
+    return;
+  }
+
+  // Een verborgen liedje terugzetten.
+  if (pad === '/api/beheer/liedje/terug' && methode === 'POST') {
+    if (!eisBeheerder()) return;
+    const body = await leesJsonBody(req);
+    const id = Number(body.id);
+    if (!Number.isFinite(id)) { json(res, 400, { fout: 'Geen liedje opgegeven.' }); return; }
+    db.prepare('DELETE FROM verborgen_liedjes WHERE liedje_id = ?').run(id);
+    laadFilters();
+    json(res, 200, { ok: true });
+    return;
+  }
+
+  // Talen en genres opvragen, toevoegen en weghalen.
+  if (pad === '/api/beheer/filters' && methode === 'GET') {
+    if (!eisBeheerder()) return;
+    json(res, 200, { filters: filterOverzicht() });
+    return;
+  }
+
+  if (pad === '/api/beheer/filters' && methode === 'POST') {
+    if (!eisBeheerder()) return;
+    const body = await leesJsonBody(req);
+    let naam;
+    try { naam = schoneFilterNaam(String(body.soort || ''), body.waarde); }
+    catch (e) { json(res, 400, { fout: e.message }); return; }
+    db.prepare('INSERT OR IGNORE INTO filters (soort, waarde, gemaakt) VALUES (?, ?, ?)')
+      .run(body.soort, naam, new Date().toISOString());
+    laadFilters();
+    json(res, 201, { ok: true, soort: body.soort, waarde: naam, filters: filterOverzicht() });
+    return;
+  }
+
+  if (pad === '/api/beheer/filters/weg' && methode === 'POST') {
+    if (!eisBeheerder()) return;
+    const body = await leesJsonBody(req);
+    const soort = String(body.soort || '');
+    const waarde = String(body.waarde || '');
+    if (soort !== 'taal' && soort !== 'genre') { json(res, 400, { fout: 'Onbekend filter.' }); return; }
+    db.prepare('DELETE FROM filters WHERE soort = ? AND waarde = ?').run(soort, waarde);
+    // De koppelingen naar deze waarde gaan mee weg; de liedjes zelf blijven staan.
+    const info = db.prepare('DELETE FROM liedje_filters WHERE soort = ? AND waarde = ?').run(soort, waarde);
+    laadFilters();
+    json(res, 200, { ok: true, losgemaakt: Number(info.changes) || 0, filters: filterOverzicht() });
+    return;
+  }
+
+  // Liedjes aan een filter koppelen of juist losmaken. Dit mag in één keer voor een hele reeks.
+  if ((pad === '/api/beheer/filters/koppel' || pad === '/api/beheer/filters/los') && methode === 'POST') {
+    if (!eisBeheerder()) return;
+    const los = pad.endsWith('/los');
+    const body = await leesJsonBody(req);
+    const soort = String(body.soort || '');
+    const waarde = String(body.waarde || '').trim();
+    const ids = Array.isArray(body.ids) ? body.ids.map(Number).filter(Number.isFinite) : [];
+    if (soort !== 'taal' && soort !== 'genre') { json(res, 400, { fout: 'Onbekend filter.' }); return; }
+    if (!waarde) { json(res, 400, { fout: 'Kies eerst een taal of een genre.' }); return; }
+    if (!ids.length) { json(res, 400, { fout: 'Er zijn geen liedjes opgegeven.' }); return; }
+    let gedaan = 0;
+    for (const id of ids) {
+      if (!vindLiedje(id)) continue;
+      if (los) {
+        db.prepare('DELETE FROM liedje_filters WHERE liedje_id = ? AND soort = ? AND waarde = ?').run(id, soort, waarde);
+      } else {
+        db.prepare('INSERT OR IGNORE INTO liedje_filters (liedje_id, soort, waarde) VALUES (?, ?, ?)').run(id, soort, waarde);
+      }
+      gedaan++;
+    }
+    laadFilters();
+    json(res, 200, { ok: true, aantal: gedaan, soort, waarde, los, filters: filterOverzicht() });
+    return;
+  }
+
   if (pad === '/api/profielen' && methode === 'GET') {
     json(res, 200, { profielen: profielLijst(), actief: profielVan(req, query) });
     return;
@@ -2573,7 +2856,8 @@ async function verwerk(req, res) {
     const compact = query.get('compact') === '1';
     const profielId = profielVan(req, query);
     const persoon = persoonlijk(profielId);
-    let uit = zoekLiedjes(query, profielId);
+    const wilVerborgen = query.get('verborgen') === '1';
+    let uit = zoekLiedjes(query, profielId, isBeheerder(req) && wilVerborgen ? { verborgen: true } : {});
     const totaal = uit.length;
     const vanaf = Math.max(0, parseInt(query.get('vanaf'), 10) || 0);
     const aantal = Math.max(1, Math.min(200, parseInt(query.get('aantal'), 10) || (compact ? 48 : 200)));
@@ -2691,14 +2975,11 @@ async function verwerk(req, res) {
 
   if (m && methode === 'DELETE') {
     const n = Number(m[1]);
-    if (n < EIGEN_START) { json(res, 404, { fout: 'Meegeleverde liedjes kun je niet verwijderen.' }); return; }
-    const rijId = n - EIGEN_START;
-    const rij = db.prepare('SELECT audio_bestand FROM liedjes WHERE id = ?').get(rijId);
-    if (!rij) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
-    if (rij.audio_bestand) {
-      try { fs.unlinkSync(path.join(MEDIA_DIR, 'audio', rij.audio_bestand)); } catch (e) {}
+    if (n < EIGEN_START) {
+      json(res, 404, { fout: 'Meegeleverde liedjes kun je niet verwijderen; de beheerder kan ze wel verbergen.' });
+      return;
     }
-    db.prepare('DELETE FROM liedjes WHERE id = ?').run(rijId);
+    if (!verwijderEigenLiedje(n)) { json(res, 404, { fout: 'Liedje niet gevonden.' }); return; }
     json(res, 200, { ok: true });
     return;
   }

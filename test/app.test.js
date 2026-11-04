@@ -521,7 +521,19 @@ test('de leermodus rekent de lesknoppen om naar de trainer', () => {
   }
   assert.match(html, /function startTrainer\(\)/);
   assert.match(html, /function lesKaart\(les, i, af\)/);
-  assert.match(html, /class="les-deel"/);
+  // De cursus overzichtelijk: per deel een groep die je open- en dichtklapt, met teller en balk,
+  // een zoekvak en een kaart "verder waar je gebleven was".
+  assert.match(html, /class="cursus-deel"/);
+  assert.match(html, /function cursusDelen\(stand, zoek\)/);
+  assert.match(html, /function cursusDeel\(deel, stand\)/);
+  assert.match(html, /function tekenCursusVerder\(stand, groepen\)/);
+  assert.match(html, /function openLes\(i\)/);
+  assert.match(html, /function cursusVolgendeLes\(stand\)/);
+  assert.match(html, /data-cursus-deel="/);
+  assert.match(html, /\$\('cursus-zoek'\)\.addEventListener\('input', debounce\(tekenLessen, 200\)\)/);
+  assert.match(html, /\$\('cursus-open'\)\.addEventListener\('click'/);
+  assert.match(html, /\$\('cursus-dicht'\)\.addEventListener\('click'/);
+  assert.match(html, /localStorage\.setItem\('akkoordkast-cursus'/);
   assert.match(html, /function stopTrainer\(/);
   assert.match(html, /localStorage\.setItem\(LEER_SLEUTEL/);
   assert.match(html, /document\.addEventListener\('visibilitychange'/);
@@ -729,4 +741,35 @@ test('jezelf opnemen en terugluisteren: opnemen, terugluisteren, bewaren of wegg
   assert.ok(!/api\(/.test(opnBlok), 'een opname hoort niet naar de server te gaan');
   // Vijf minuten is het maximum; daarna stopt de opname vanzelf.
   assert.match(html, /var OPN_MAX = 300/);
+});
+
+
+// ------------------------------------- liedjes weghalen en filters (de beheerder) ---
+
+test('de beheerder kan liedjes weghalen en filters beheren in de app', () => {
+  const html = leesPagina();
+  eisIds(html, ['liedjes-weg-kaart', 'weg-zoek', 'weg-wat', 'weg-zoek-knop', 'weg-lijst', 'weg-stand', 'weg-melding',
+    'filters-kaart', 'flt-soort', 'flt-nieuw', 'flt-toevoegen', 'flt-lijst', 'flt-koppel-soort', 'flt-koppel-zoek',
+    'flt-koppel-knop', 'flt-koppel-doen', 'flt-losmaken', 'flt-koppel-lijst', 'flt-stand', 'flt-melding'],
+    'de beheerkanten');
+  // De kaarten horen alleen zichtbaar te zijn als de beheerder is ingelogd.
+  assert.match(html, /#paneel-toevoegen:not\(\.beheer\) > \.kaart:not\(#beheer-poort\)\{display:none\}/);
+  for (const functie of ['laadWegLijst', 'tekenWegLijst', 'haalLiedjeWeg', 'zetLiedjeTerug', 'laadFilterBeheer',
+    'tekenFilters', 'filterToevoegen', 'filterWeg', 'zoekKoppelLiedjes', 'tekenKoppelLijst', 'koppelUitvoeren',
+    'koppelBeheerKaarten']) {
+    assert.match(html, new RegExp('function ' + functie + '\\('), functie + ' ontbreekt');
+  }
+  // De routes die erbij horen.
+  for (const pad of ['/api/beheer/liedjes', '/api/beheer/liedje/weg', '/api/beheer/liedje/terug',
+    '/api/beheer/filters', '/api/beheer/filters/weg']) {
+    assert.ok(html.includes(pad), 'de pagina hoort ' + pad + ' te gebruiken');
+  }
+  // Een meegeleverd liedje wordt verborgen in plaats van weggegooid: de knop zegt het ook.
+  assert.match(html, /l\.eigen \? 'Weggooien' : 'Verbergen'/);
+  assert.match(html, /window\.confirm\(vraag\)/);
+  // Koppelen gaat in één keer voor alles wat je hebt aangevinkt.
+  assert.match(html, /'\/api\/beheer\/filters\/' \+ \(los \? 'los' : 'koppel'\)/);
+  assert.match(html, /ids: ids \}/);
+  assert.match(html, /koppelUitvoeren\(false\)/);
+  assert.match(html, /koppelUitvoeren\(true\)/);
 });

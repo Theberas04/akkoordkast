@@ -553,9 +553,49 @@
   .opn-meter{height:14px;border-radius:8px;background:#0c1425;border:1px solid var(--lijn);overflow:hidden;margin-top:10px}
   .opn-niveau{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--groen),var(--amber),#d97b6c);transition:width .06s linear}
   audio#opn-audio{width:100%;margin-top:10px}
+  /* Liedjes weghalen en filters beheren (alleen voor de beheerder) */
+  .weg-lijst, .flt-koppel-lijst{margin-top:10px;display:grid;gap:6px;max-height:320px;overflow:auto}
+  .weg-rij{display:flex;align-items:center;gap:8px;background:#0d1526;border:1px solid var(--lijn);
+    border-radius:10px;padding:7px 9px}
+  .weg-rij .wie{flex:1;min-width:0}
+  .weg-rij .wie b{display:block;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .weg-rij .klein{font-size:.72rem;color:var(--tekst2)}
+  .weg-rij .knop{padding:4px 9px;font-size:.75rem;min-height:0;flex:0 0 auto}
+  .flt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:8px}
+  .flt-chip{display:flex;align-items:center;gap:6px;background:#0d1526;border:1px solid var(--lijn);
+    border-radius:10px;padding:6px 8px;font-size:.8rem}
+  .flt-chip.eigen{border-color:#2b3f66}
+  .flt-chip .aantal{color:var(--tekst2);font-size:.72rem;margin-left:auto}
+  .flt-chip .weg{background:none;border:0;color:var(--tekst2);cursor:pointer;font-size:.95rem;padding:0 2px}
+  .flt-chip .weg:hover{color:#d97b6c}
+  .flt-sectie{margin-top:12px}
+  .flt-sectie h3{margin:0 0 4px;font-size:.85rem}
   .ritme-rij{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
   .ritme-rij .patroon{font-family:var(--mono,monospace);font-size:1.05rem;letter-spacing:.12em}
   .leren-links{display:flex;flex-wrap:wrap;gap:8px}
+  /* De cursus overzichtelijk: per deel een groep die je open- en dichtklapt, met teller en balk. */
+  .cursus-kop{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
+  .cursus-kop input[type=search]{flex:1 1 200px;min-width:160px}
+  .cursus-verder{background:linear-gradient(180deg,#12203a,#0d1526);border:1px solid #2b3f66;border-radius:var(--r);
+    padding:12px;margin-bottom:14px}
+  .cursus-verder .waar{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--tekst2)}
+  .cursus-verder .wat{font-size:1.02rem;font-weight:700;margin:2px 0 2px}
+  .cursus-verder .rij{margin-top:10px}
+  .cursus-deel{border:1px solid var(--lijn);border-radius:var(--r);margin-bottom:8px;overflow:hidden;background:#0d1526}
+  .cursus-deel > summary{display:flex;align-items:center;gap:10px;padding:11px 12px;cursor:pointer;list-style:none}
+  .cursus-deel > summary::-webkit-details-marker{display:none}
+  .cursus-deel > summary:hover{background:#101b30}
+  .cursus-deel .pijl{transition:transform .15s ease;color:var(--tekst2)}
+  .cursus-deel[open] .pijl{transform:rotate(90deg)}
+  .cursus-deel .deel-naam{font-weight:700}
+  .cursus-deel .deel-telling{margin-left:auto;color:var(--tekst2);font-size:.78rem;white-space:nowrap}
+  .cursus-deel .deel-balk{height:6px;border-radius:999px;background:#0c1425;border:1px solid var(--lijn);overflow:hidden;margin-top:6px}
+  .cursus-deel .deel-balk span{display:block;height:100%;background:linear-gradient(90deg,var(--amber2),var(--groen))}
+  .cursus-deel .deel-inhoud{padding:4px 10px 10px}
+  .cursus-deel.leeg{opacity:.55}
+  @media (max-width:760px){
+    .cursus-deel .deel-telling{white-space:normal;text-align:right}
+  }
   @media (max-width:760px){
     header{padding:10px 12px 8px}
     /* De profielkiezer moet ook op een telefoon te gebruiken zijn: alleen de ondertitel weg. */
@@ -955,8 +995,18 @@
       <div class="les-klein" id="plan-melding" style="margin-top:8px"></div>
     </div>
 
-    <div class="kaart">
+    <div class="kaart" id="cursus-kaart">
       <h2>De cursus</h2>
+      <p class="les-klein" style="margin:0 0 12px">Honderdtien lessen in acht delen. Zoek een les, klap een deel open,
+        of ga verder waar je gebleven was.</p>
+      <div class="cursus-kop">
+        <input id="cursus-zoek" type="search" placeholder="Zoek in de lessen (titel of onderwerp)"
+               autocomplete="off">
+        <button class="knop zacht" id="cursus-open">Alles openen</button>
+        <button class="knop zacht" id="cursus-dicht">Alles sluiten</button>
+        <span class="les-klein" id="cursus-telling"></span>
+      </div>
+      <div id="cursus-verder"></div>
       <div id="leren-lessen"></div>
     </div>
 
@@ -1239,6 +1289,60 @@
         muziekmap laten omzetten, eigen liedjes bewerken, de back-up en de bijwerking: dat hoort
         bij de beheerder. Zoeken, spelen en leren kan iedereen.</div>
     </div>
+    <div class="kaart" id="liedjes-weg-kaart">
+      <h2>Liedjes weghalen</h2>
+      <p class="melding">Zoek een liedje en haal het uit de app. Een <strong>eigen</strong> liedje — dat je zelf
+        hebt toegevoegd of uit een link hebt gehaald — verdwijnt helemaal, met de muziek en de opname erbij.
+        Een <strong>meegeleverd</strong> liedje zit in de bestanden van de app: dat kun je verbergen. Het staat dan
+        niet meer in de lijsten, de filters en het zoeken, en je kunt het hier ook weer terugzetten.</p>
+      <div class="rij">
+        <input id="weg-zoek" type="search" placeholder="Zoek op titel of artiest" style="flex:1;min-width:180px"
+               autocomplete="off">
+        <label for="weg-wat">Wat</label>
+        <select id="weg-wat">
+          <option value="zichtbaar" selected>Liedjes in de app</option>
+          <option value="verborgen">Verborgen liedjes</option>
+        </select>
+        <button class="knop zacht" id="weg-zoek-knop">Zoeken</button>
+      </div>
+      <div id="weg-lijst" class="weg-lijst"></div>
+      <div class="les-klein" id="weg-stand"></div>
+      <div class="melding" id="weg-melding" hidden></div>
+    </div>
+
+    <div class="kaart" id="filters-kaart">
+      <h2>Filters beheren</h2>
+      <p class="melding">Dit zijn de talen en genres die de app als filter laat zien. Je kunt er zelf een
+        toevoegen — een genre dat je zelf gebruikt, of een taal — en liedjes eraan koppelen. Wat je koppelt gaat
+        voor de taal of het genre dat het liedje zelf al had, zodat je een liedje in een eigen vak kunt zetten.</p>
+      <div class="rij">
+        <label for="flt-soort">Soort</label>
+        <select id="flt-soort">
+          <option value="taal">Taal</option>
+          <option value="genre" selected>Genre</option>
+        </select>
+        <label for="flt-nieuw">Nieuwe waarde</label>
+        <input id="flt-nieuw" type="text" placeholder="bijvoorbeeld Kerst of Frysk" autocomplete="off">
+        <button class="knop" id="flt-toevoegen">Toevoegen</button>
+      </div>
+      <div id="flt-lijst"></div>
+      <div class="flt-sectie">
+        <h3>Liedjes aan een filter koppelen</h3>
+        <div class="rij">
+          <label for="flt-koppel-soort">Filter</label>
+          <select id="flt-koppel-soort"></select>
+          <input id="flt-koppel-zoek" type="search" placeholder="Zoek liedjes om te koppelen"
+                 style="flex:1;min-width:160px" autocomplete="off">
+          <button class="knop zacht" id="flt-koppel-knop">Zoeken</button>
+          <button class="knop" id="flt-koppel-doen" disabled>Koppelen</button>
+          <button class="knop zacht" id="flt-losmaken" disabled>Losmaken</button>
+        </div>
+        <div id="flt-koppel-lijst" class="flt-koppel-lijst"></div>
+      </div>
+      <div class="les-klein" id="flt-stand"></div>
+      <div class="melding" id="flt-melding" hidden></div>
+    </div>
+
     <div class="kaart" id="mp3-kaart">
       <h2>Downloaden als mp3</h2>
       <p class="melding">Plak een link (YouTube of iets dergelijks) en de software haalt het geluid
@@ -2027,6 +2131,7 @@ laadVersie();
 laadMappen();
 laadBackup();
 laadWeken();
+koppelBeheerKaarten();
 tabUitAdres();
 
 // ------------------------------------------------------------ liedjesboek ---
@@ -5388,33 +5493,181 @@ function springNaar(id) {
 function tekenLessen() {
   var stand = leerStand();
   var vak = $('leren-lessen');
-  // De lessen staan in vier delen. Per deel een kopje met hoeveel je er al van
-  // afgerond hebt, zodat je ziet waar je staat zonder de hele lijst te lezen.
-  var delen = [];
+  var zoek = ($('cursus-zoek') && $('cursus-zoek').value || '').trim().toLowerCase();
+  // De delen: de lessen staan op de volgorde van de delen achter elkaar, dus we groeperen ze in
+  // één keer. Bij een zoekterm laten we alleen de lessen zien die erbij passen.
+  var groepen = cursusDelen(stand, zoek);
+  vak.innerHTML = groepen.map(function (deel) { return cursusDeel(deel, stand); }).join('') ||
+    '<div class="les-klein">Geen les gevonden met deze zoekterm. Probeer een ander woord, bijvoorbeeld "barré" of "tokkelen".</div>';
+  koppelCursus(groepen, zoek);
+  toonLeerVoortgang(stand);
+  tekenCursusVerder(stand, groepen);
+}
+
+// De lessen per deel, met hoeveel je er al van afgerond hebt. Bij een zoekterm alleen de
+// lessen die erbij horen; een deel waar niets in overblijft laten we weg.
+// Zoeken in de cursus mag niet struikelen over een accent: wie "barre" typt hoort de les over
+// "barré" te vinden. We halen de accenten er aan beide kanten af.
+function zonderAccenten(tekst) {
+  return String(tekst || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function cursusDelen(stand, zoek) {
+  zoek = zonderAccenten(zoek);
+  var uit = [];
   LESSEN.forEach(function (les, i) {
     var naam = les.deel || 'Lessen';
-    if (!delen.length || delen[delen.length - 1].naam !== naam) delen.push({ naam: naam, van: i, tot: i });
-    else delen[delen.length - 1].tot = i;
+    var past = !zoek || zonderAccenten([les.titel, les.kort, les.doel, les.deel].join(' ')).indexOf(zoek) >= 0;
+    if (!uit.length || uit[uit.length - 1].naam !== naam) {
+      uit.push({ naam: naam, lessen: [], af: 0, gevonden: 0 });
+    }
+    var deel = uit[uit.length - 1];
+    if (stand.lessen[i]) deel.af++;
+    if (past) { deel.lessen.push({ les: les, i: i, af: !!stand.lessen[i] }); deel.gevonden++; }
   });
-  vak.innerHTML = delen.map(function (deel) {
-    var inDeel = LESSEN.slice(deel.van, deel.tot + 1);
-    var af = 0;
-    for (var k = 0; k < inDeel.length; k++) if (stand.lessen[deel.van + k]) af++;
-    var kop = '<div class="les-deel"><span>' + esc(deel.naam) + '</span>' +
-      '<span class="les-deel-telling">' + af + ' van ' + inDeel.length + '</span></div>';
-    return kop + inDeel.map(function (les, k) {
-      return lesKaart(les, deel.van + k, !!stand.lessen[deel.van + k]);
-    }).join('');
-  }).join('');
+  if (zoek) uit = uit.filter(function (d) { return d.lessen.length; });
+  uit.forEach(function (d) { d.totaal = LESSEN.filter(function (l) { return (l.deel || 'Lessen') === d.naam; }).length; });
+  return uit;
+}
 
+// Eén deel als groep die je open- en dichtklapt. Het deel waar je gebleven bent staat open, en
+// als je zelf iets open- of dichtklapt onthoudt de app dat.
+function cursusDeel(deel, stand) {
+  var open = zoekOpen(deel.naam, stand);
+  var breedte = deel.totaal ? Math.round(deel.af / deel.totaal * 100) : 0;
+  var lessen = deel.lessen.map(function (l) { return lesKaart(l.les, l.i, l.af); }).join('');
+  return '<details class="cursus-deel"' + (open ? ' open' : '') + ' data-cursus-deel="' + esc(deel.naam) + '">' +
+    '<summary><span class="pijl">\u25b6</span>' +
+    '<span><span class="deel-naam">' + esc(deel.naam) + '</span>' +
+    '<span class="deel-balk"><span style="width:' + breedte + '%"></span></span></span>' +
+    '<span class="deel-telling">' + deel.af + ' van ' + deel.totaal + '</span></summary>' +
+    '<div class="deel-inhoud">' + lessen + '</div></details>';
+}
+
+// Welke delen staan open? Bij het zoeken alles (dan vind je meteen wat je zoekt), anders onthouden
+// we wat je zelf hebt open- en dichtgeklapt, met het deel waar je gebleven bent standaard open.
+function zoekOpen(naam, stand) {
+  var zoek = ($('cursus-zoek') && $('cursus-zoek').value || '').trim();
+  if (zoek) return true;
+  var onthouden = cursusOpenstand();
+  if (onthouden[naam] !== undefined) return onthouden[naam];
+  var verderDeel = cursusVerderDeel(stand);
+  return !!verderDeel && verderDeel.naam === naam;
+}
+
+var CURSUS_OPEN = null;
+function cursusOpenstand() {
+  if (CURSUS_OPEN) return CURSUS_OPEN;
+  try { CURSUS_OPEN = JSON.parse(localStorage.getItem('akkoordkast-cursus') || '{}'); } catch (e) { CURSUS_OPEN = {}; }
+  return CURSUS_OPEN;
+}
+function bewaarCursusOpen() {
+  try { localStorage.setItem('akkoordkast-cursus', JSON.stringify(cursusOpenstand())); } catch (e) {}
+}
+
+// De eerste les die je nog niet hebt afgerond: daar ga je verder.
+function cursusVolgendeLes(stand) {
+  var over = overgeslagen();
+  for (var i = 0; i < LESSEN.length; i++) if (!stand.lessen[i] && !over[i]) return i;
+  // Alles is af of overgeslagen: dan toch de eerste open les, zodat je altijd verder kunt.
+  for (var k = 0; k < LESSEN.length; k++) if (!stand.lessen[k]) return k;
+  return -1;
+}
+
+// Het deel waar de eerste open les in zit.
+function cursusVerderDeel(stand) {
+  var i = cursusVolgendeLes(stand);
+  if (i < 0) return null;
+  var naam = LESSEN[i].deel || 'Lessen';
+  return { naam: naam, les: LESSEN[i], nummer: i };
+}
+
+// Bovenaan de cursus: waar je staat en één knop om verder te gaan.
+function tekenCursusVerder(stand, groepen) {
+  var vak = $('cursus-verder');
+  if (!vak) return;
+  var af = LESSEN.filter(function (l, i) { return stand.lessen[i]; }).length;
+  var volgende = cursusVerderDeel(stand);
+  var telling = $('cursus-telling');
+  if (telling) {
+    var zoekNu = ($('cursus-zoek') && $('cursus-zoek').value || '').trim();
+    var gevonden = groepen.reduce(function (n, d) { return n + d.lessen.length; }, 0);
+    telling.textContent = zoekNu
+      ? gevonden + (gevonden === 1 ? ' les gevonden' : ' lessen gevonden') + ' in ' + groepen.length +
+        (groepen.length === 1 ? ' deel' : ' delen')
+      : af + ' van ' + LESSEN.length + ' lessen afgerond';
+  }
+  if (!volgende) {
+    vak.innerHTML = '<div class="cursus-verder"><div class="waar">Klaar</div>' +
+      '<div class="wat">Alle ' + LESSEN.length + ' lessen zijn afgerond.</div>' +
+      '<div class="les-klein">Blijf spelen: kies een liedje uit de bibliotheek of oefen met de akkoordentrainer.</div></div>';
+    return;
+  }
+  var deelAf = 0;
+  var deelTotaal = 0;
+  LESSEN.forEach(function (l, i) {
+    if ((l.deel || 'Lessen') !== volgende.naam) return;
+    deelTotaal++;
+    if (stand.lessen[i]) deelAf++;
+  });
+  vak.innerHTML = '<div class="cursus-verder">' +
+    '<div class="waar">Verder waar je gebleven was \u00b7 ' + esc(volgende.naam) + ' (' + deelAf + ' van ' + deelTotaal + ')</div>' +
+    '<div class="wat">Les ' + (volgende.nummer + 1) + ': ' + esc(volgende.les.titel) + '</div>' +
+    '<div class="les-klein">' + esc(volgende.les.kort) + '</div>' +
+    '<div class="rij">' +
+      '<button class="knop" id="cursus-verder-knop">Verder met deze les</button>' +
+      '<button class="knop zacht" id="cursus-verder-volgende">Overslaan</button>' +
+    '</div></div>';
+  var knop = $('cursus-verder-knop');
+  if (knop) knop.addEventListener('click', function () { openLes(volgende.nummer); });
+  var overslaan = $('cursus-verder-volgende');
+  if (overslaan) overslaan.addEventListener('click', function () {
+    // Deze les even laten liggen: onthoud dat je hem oversloeg door hem niet af te vinken, maar
+    // wel de volgende te nemen. We zetten hem achteraan de lijst van te doen lessen.
+    var i = volgende.nummer;
+    lesOverslaan(i);
+    tekenLessen();
+  });
+}
+
+// Overslaan: de les blijft openstaan, maar de "verder"-kaart wijst hem niet meer aan tot je bij
+// het eind bent. We onthouden het per toestel.
+function lesOverslaan(i) {
+  var over = {};
+  try { over = JSON.parse(localStorage.getItem('akkoordkast-overgeslagen') || '{}'); } catch (e) { over = {}; }
+  over[i] = true;
+  try { localStorage.setItem('akkoordkast-overgeslagen', JSON.stringify(over)); } catch (e) {}
+}
+
+function overgeslagen() {
+  try { return JSON.parse(localStorage.getItem('akkoordkast-overgeslagen') || '{}'); } catch (e) { return {}; }
+}
+
+// Een les openen: het deel openzetten, naar de les springen en hem uitklappen.
+function openLes(i) {
+  var stand = leerStand();
+  var naam = LESSEN[i].deel || 'Lessen';
+  cursusOpenstand()[naam] = true;
+  bewaarCursusOpen();
+  if ($('cursus-zoek') && $('cursus-zoek').value) { $('cursus-zoek').value = ''; }
+  tekenLessen();
+  var kaart = document.querySelector('[data-les="' + i + '"]');
+  if (!kaart) return;
+  kaart.open = true;
+  var top = kaart.getBoundingClientRect().top + window.scrollY - 90;
+  window.scrollTo(0, top < 0 ? 0 : top);
+}
+
+// De knoppen en vakjes van de cursus koppelen.
+function koppelCursus(groepen, zoek) {
+  var vak = $('leren-lessen');
   vak.querySelectorAll('[data-les-klaar]').forEach(function (vakje) {
     vakje.addEventListener('change', function () {
-      var stand = leerStand();
+      var nieuw = leerStand();
       var i = vakje.getAttribute('data-les-klaar');
-      if (vakje.checked) stand.lessen[i] = true; else delete stand.lessen[i];
-      bewaarLeerStand(stand);
+      if (vakje.checked) nieuw.lessen[i] = true; else delete nieuw.lessen[i];
+      bewaarLeerStand(nieuw);
       tekenLessen();
-      toonLeerVoortgang(stand);
     });
   });
   vak.querySelectorAll('[data-les-knop]').forEach(function (knop) {
@@ -5460,7 +5713,13 @@ function tekenLessen() {
       }
     });
   });
-  toonLeerVoortgang(stand);
+  // Wat je zelf open- of dichtklapt onthouden we, zodat het de volgende keer zo staat.
+  vak.querySelectorAll('[data-cursus-deel]').forEach(function (blok) {
+    blok.addEventListener('toggle', function () {
+      cursusOpenstand()[blok.getAttribute('data-cursus-deel')] = blok.open;
+      bewaarCursusOpen();
+    });
+  });
 }
 
 // Eén les als uitklapbaar blok: doel, uitleg, oefening en het afvinkvakje.
@@ -6874,6 +7133,8 @@ function tekenBeheer() {
         }, 'Wachtwoord bewaard. Je sessie blijft staan.');
       });
     });
+    laadWegLijst();
+    laadFilterBeheer();
     return;
   }
   if (!BEHEER.ingesteld) {
@@ -6910,12 +7171,258 @@ function tekenBeheer() {
   }
 }
 
+// ---------------------------------------- liedjes weghalen en filters beheren ---
+// Alleen voor de beheerder; de kaarten zijn verborgen zolang hij niet is ingelogd.
+var WEGBEHEER = { lijst: [], bezig: false };
+var FILTERBEHEER = { filters: { taal: [], genre: [] } };
+
+function laadWegLijst() {
+  var vak = $('weg-lijst');
+  if (!vak) return;
+  var modus = $('weg-wat').value === 'verborgen' ? 'verborgen=1&' : '';
+  var zoek = ($('weg-zoek').value || '').trim();
+  vak.innerHTML = '<div class="les-klein">Bezig met zoeken…</div>';
+  api('/api/beheer/liedjes?' + modus + 'aantal=40&zoek=' + encodeURIComponent(zoek)).then(function (data) {
+    WEGBEHEER.lijst = data.liedjes || [];
+    tekenWegLijst(data);
+  }).catch(function (e) {
+    vak.innerHTML = '';
+    toonMelding('weg-melding', e.message, 'fout');
+  });
+}
+
+function tekenWegLijst(data) {
+  var vak = $('weg-lijst');
+  if (!vak) return;
+  if (!WEGBEHEER.lijst.length) {
+    vak.innerHTML = '<div class="les-klein">Niets gevonden.</div>';
+  } else {
+    vak.innerHTML = WEGBEHEER.lijst.map(function (l) {
+      var soort = l.eigen ? 'eigen liedje' : 'meegeleverd';
+      if (l.verborgen) soort += ' · verborgen';
+      var extra = [l.artiest, soort, l.taal ? 'taal ' + l.taal : '', l.genre ? 'genre ' + l.genre : '']
+        .filter(Boolean).map(esc).join(' · ');
+      return '<div class="weg-rij"><span class="wie"><b>' + esc(l.titel) + '</b><span class="klein">' + extra + '</span></span>' +
+        (l.verborgen
+          ? '<button class="knop zacht" data-weer="' + l.id + '">Terugzetten</button>'
+          : '<button class="knop zacht" data-weg="' + l.id + '">' + (l.eigen ? 'Weggooien' : 'Verbergen') + '</button>') +
+        '</div>';
+    }).join('');
+  }
+  if (data) {
+    $('weg-stand').textContent = data.totaal + (data.totaal === 1 ? ' liedje' : ' liedjes') +
+      (data.meer ? ' (eerste ' + WEGBEHEER.lijst.length + ' getoond, zoek gerichter)' : '') +
+      (data.verborgenAantal ? ' · ' + data.verborgenAantal + ' verborgen in totaal' : '');
+  }
+  Array.prototype.forEach.call(vak.querySelectorAll('[data-weg]'), function (knop) {
+    knop.addEventListener('click', function () { haalLiedjeWeg(knop.getAttribute('data-weg')); });
+  });
+  Array.prototype.forEach.call(vak.querySelectorAll('[data-weer]'), function (knop) {
+    knop.addEventListener('click', function () { zetLiedjeTerug(knop.getAttribute('data-weer')); });
+  });
+}
+
+function liedjeUitLijst(id) {
+  return WEGBEHEER.lijst.filter(function (l) { return String(l.id) === String(id); })[0] || null;
+}
+
+function haalLiedjeWeg(id) {
+  var l = liedjeUitLijst(id);
+  var titel = l ? l.titel : 'dit liedje';
+  var vraag = l && l.eigen
+    ? 'Weet je het zeker? "' + titel + '" verdwijnt helemaal, met de muziek en de opname erbij.'
+    : 'Weet je het zeker? "' + titel + '" wordt verborgen: het staat niet meer in de lijsten en de filters, maar je kunt het hier terugzetten.';
+  if (!window.confirm(vraag)) return;
+  api('/api/beheer/liedje/weg', {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: Number(id) })
+  }).then(function (data) {
+    toonMelding('weg-melding', data.weggehaald === 'verwijderd'
+      ? '"' + data.titel + '" is weggehaald.'
+      : '"' + data.titel + '" is verborgen; je vindt hem onder "Verborgen liedjes".', 'goed');
+    laadWegLijst();
+    laadFilterBeheer();
+  }).catch(function (e) { toonMelding('weg-melding', e.message, 'fout'); });
+}
+
+function zetLiedjeTerug(id) {
+  api('/api/beheer/liedje/terug', {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: Number(id) })
+  }).then(function () {
+    toonMelding('weg-melding', 'Het liedje staat weer in de app.', 'goed');
+    laadWegLijst();
+    laadFilterBeheer();
+  }).catch(function (e) { toonMelding('weg-melding', e.message, 'fout'); });
+}
+
+// ------------------------------------------------------------ filters beheren ---
+function laadFilterBeheer() {
+  if (!$('flt-lijst')) return;
+  api('/api/beheer/filters').then(function (data) {
+    FILTERBEHEER.filters = data.filters || { taal: [], genre: [] };
+    tekenFilters();
+  }).catch(function () {});
+}
+
+function tekenFilters() {
+  var vak = $('flt-lijst');
+  if (!vak) return;
+  vak.innerHTML = ['taal', 'genre'].map(function (soort) {
+    var lijst = FILTERBEHEER.filters[soort] || [];
+    var titel = soort === 'taal' ? 'Talen' : "Genres";
+    var chips = lijst.length
+      ? lijst.map(function (f) {
+          return '<span class="flt-chip' + (f.eigen ? ' eigen' : '') + '">' + esc(f.waarde) +
+            '<span class="aantal">' + f.aantal + '</span>' +
+            '<button class="weg" title="weghalen" data-flt-weg="' + esc(soort + '|' + f.waarde) + '">\u00d7</button></span>';
+        }).join('')
+      : '<span class="les-klein">Nog niets.</span>';
+    return '<div class="flt-sectie"><h3>' + titel + ' (' + lijst.length + ')</h3><div class="flt-grid">' + chips + '</div></div>';
+  }).join('');
+  Array.prototype.forEach.call(vak.querySelectorAll('[data-flt-weg]'), function (knop) {
+    knop.addEventListener('click', function () {
+      var delen = knop.getAttribute('data-flt-weg').split('|');
+      filterWeg(delen[0], delen.slice(1).join('|'));
+    });
+  });
+  // De keuzelijst voor het koppelen: alle talen en genres, met de eigen waarden erbij.
+  var kies = $('flt-koppel-soort');
+  if (kies) {
+    var oud = kies.value;
+    var opties = [];
+    ['genre', 'taal'].forEach(function (soort) {
+      (FILTERBEHEER.filters[soort] || []).forEach(function (f) {
+        opties.push('<option value="' + esc(soort + '|' + f.waarde) + '">' +
+          (soort === 'taal' ? 'taal' : 'genre') + ': ' + esc(f.waarde) + ' (' + f.aantal + ')</option>');
+      });
+    });
+    kies.innerHTML = opties.join('') || '<option value="">Nog geen filters</option>';
+    if (oud) kies.value = oud;
+  }
+  $('flt-stand').textContent = 'Talen en genres met een blauw randje heb je zelf toegevoegd.';
+}
+
+function filterToevoegen() {
+  var soort = $('flt-soort').value;
+  var waarde = ($('flt-nieuw').value || '').trim();
+  if (!waarde) { toonMelding('flt-melding', 'Vul eerst een naam in.', 'fout'); return; }
+  api('/api/beheer/filters', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ soort: soort, waarde: waarde })
+  }).then(function (data) {
+    $('flt-nieuw').value = '';
+    FILTERBEHEER.filters = data.filters;
+    tekenFilters();
+    toonMelding('flt-melding', '"' + data.waarde + '" staat erbij als ' + (soort === 'taal' ? 'taal' : 'genre') +
+      '. Koppel er liedjes aan om er iets in te krijgen.', 'goed');
+    laadLiedjes(true);
+  }).catch(function (e) { toonMelding('flt-melding', e.message, 'fout'); });
+}
+
+function filterWeg(soort, waarde) {
+  if (!window.confirm('"' + waarde + '" weghalen uit de filters? De liedjes blijven staan; ze vallen terug op hun eigen ' +
+    (soort === 'taal' ? 'taal' : 'genre') + '.')) return;
+  api('/api/beheer/filters/weg', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ soort: soort, waarde: waarde })
+  }).then(function (data) {
+    FILTERBEHEER.filters = data.filters;
+    tekenFilters();
+    toonMelding('flt-melding', '"' + waarde + '" is weg' +
+      (data.losgemaakt ? ' en de koppeling met ' + data.losgemaakt + ' liedje(s) is losgemaakt.' : '.'), 'goed');
+    laadLiedjes(true);
+  }).catch(function (e) { toonMelding('flt-melding', e.message, 'fout'); });
+}
+
+var KOPPEL = { lijst: [], gekozen: {} };
+
+function zoekKoppelLiedjes() {
+  var vak = $('flt-koppel-lijst');
+  if (!vak) return;
+  var zoek = ($('flt-koppel-zoek').value || '').trim();
+  if (!zoek) { toonMelding('flt-melding', 'Typ eerst (een deel van) een titel of artiest.', 'fout'); return; }
+  vak.innerHTML = '<div class="les-klein">Bezig met zoeken…</div>';
+  api('/api/liedjes?compact=1&aantal=40&zoek=' + encodeURIComponent(zoek)).then(function (data) {
+    KOPPEL.lijst = data.liedjes || [];
+    KOPPEL.gekozen = {};
+    tekenKoppelLijst();
+  });
+}
+
+function tekenKoppelLijst() {
+  var vak = $('flt-koppel-lijst');
+  if (!vak) return;
+  if (!KOPPEL.lijst.length) { vak.innerHTML = '<div class="les-klein">Niets gevonden.</div>'; return; }
+  vak.innerHTML = KOPPEL.lijst.map(function (l) {
+    return '<label class="weg-rij"><input type="checkbox" data-koppel="' + l.id + '">' +
+      '<span class="wie"><b>' + esc(l.titel) + '</b><span class="klein">' +
+      [l.artiest, l.taal ? 'taal ' + l.taal : '', l.genre ? 'genre ' + l.genre : ''].filter(Boolean).map(esc).join(' · ') +
+      '</span></span></label>';
+  }).join('');
+  Array.prototype.forEach.call(vak.querySelectorAll('[data-koppel]'), function (vakje) {
+    vakje.addEventListener('change', function () {
+      if (vakje.checked) KOPPEL.gekozen[vakje.getAttribute('data-koppel')] = true;
+      else delete KOPPEL.gekozen[vakje.getAttribute('data-koppel')];
+      var aantal = Object.keys(KOPPEL.gekozen).length;
+      $('flt-koppel-doen').disabled = !aantal;
+      $('flt-losmaken').disabled = !aantal;
+      $('flt-stand').textContent = aantal ? aantal + ' liedje(s) aangevinkt.' : 'Vink de liedjes aan die je wilt koppelen.';
+    });
+  });
+  $('flt-stand').textContent = 'Vink de liedjes aan die je wilt koppelen.';
+}
+
+function koppelUitvoeren(los) {
+  var keuze = ($('flt-koppel-soort').value || '').split('|');
+  var soort = keuze[0];
+  var waarde = keuze.slice(1).join('|');
+  var ids = Object.keys(KOPPEL.gekozen).map(Number);
+  if (!soort || !waarde) { toonMelding('flt-melding', 'Kies eerst een filter.', 'fout'); return; }
+  if (!ids.length) { toonMelding('flt-melding', 'Vink eerst liedjes aan.', 'fout'); return; }
+  api('/api/beheer/filters/' + (los ? 'los' : 'koppel'), {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ soort: soort, waarde: waarde, ids: ids })
+  }).then(function (data) {
+    FILTERBEHEER.filters = data.filters;
+    tekenFilters();
+    KOPPEL.gekozen = {};
+    $('flt-koppel-doen').disabled = true;
+    $('flt-losmaken').disabled = true;
+    toonMelding('flt-melding', data.aantal + ' liedje(s) ' + (los ? 'losgemaakt van' : 'gekoppeld aan') +
+      ' "' + waarde + '".', 'goed');
+    laadLiedjes(true);
+  }).catch(function (e) { toonMelding('flt-melding', e.message, 'fout'); });
+}
+
+// De twee kaarten koppelen; dit gebeurt één keer, bij het opstarten.
+function koppelBeheerKaarten() {
+  if (!$('weg-zoek')) return;
+  $('weg-zoek-knop').addEventListener('click', laadWegLijst);
+  $('weg-zoek').addEventListener('input', debounce(laadWegLijst, 350));
+  $('weg-wat').addEventListener('change', laadWegLijst);
+  $('flt-toevoegen').addEventListener('click', filterToevoegen);
+  $('flt-nieuw').addEventListener('keydown', function (e) { if (e.key === 'Enter') filterToevoegen(); });
+  $('flt-koppel-knop').addEventListener('click', zoekKoppelLiedjes);
+  $('flt-koppel-zoek').addEventListener('input', debounce(zoekKoppelLiedjes, 350));
+  $('flt-koppel-doen').addEventListener('click', function () { koppelUitvoeren(false); });
+  $('flt-losmaken').addEventListener('click', function () { koppelUitvoeren(true); });
+}
+
 function beheerStuur(pad, lichaam, geluk) {
   api(pad, {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(lichaam || {})
-  }).then(function () {
+  }).then(function (data) {
     toonMelding('beheer-melding', geluk, 'goed');
-    return beheerVraag();
+    // Bij inloggen (of het zetten van het wachtwoord) is het sessiekoekje van de server nog niet
+    // altijd verwerkt op het moment dat we de stand komen opvragen. Dan blijft de beheerkant op het
+    // inlogformulier staan terwijl je al ingelogd bent. Daarom zetten we het hier meteen goed en
+    // vragen we het daarna nog een keer op.
+    if (/inloggen/.test(pad) || /wachtwoord/.test(pad)) {
+      BEHEER.ingelogd = true;
+      BEHEER.ingesteld = true;
+      tekenBeheer();
+    }
+    setTimeout(beheerVraag, 250);
+    return data;
   }).catch(function (e) {
     toonMelding('beheer-melding', e.message, 'fout');
   });
@@ -6968,6 +7475,23 @@ function laadLeren() {
   if (lerenGeladen) { toonLeerVoortgang(); return; }
   lerenGeladen = true;
   tekenLessen();
+  $('cursus-zoek').addEventListener('input', debounce(tekenLessen, 200));
+  $('cursus-open').addEventListener('click', function () {
+    var vak = $('leren-lessen');
+    vak.querySelectorAll('[data-cursus-deel]').forEach(function (blok) {
+      blok.open = true;
+      cursusOpenstand()[blok.getAttribute('data-cursus-deel')] = true;
+    });
+    bewaarCursusOpen();
+  });
+  $('cursus-dicht').addEventListener('click', function () {
+    var vak = $('leren-lessen');
+    vak.querySelectorAll('[data-cursus-deel]').forEach(function (blok) {
+      blok.open = false;
+      cursusOpenstand()[blok.getAttribute('data-cursus-deel')] = false;
+    });
+    bewaarCursusOpen();
+  });
   tekenPatronen();
   tekenSnaren();
   tekenStemmer();

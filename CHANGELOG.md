@@ -3,6 +3,24 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.12.1] — 4 november 2026
+
+### Gerepareerd
+
+- **Muziek ophalen stopte met een systeemfout zodra de NAS-map weg was.** Wie een link of een hele
+  artiest wilde ophalen kreeg `ENOENT: no such file or directory, mkdir
+  '/mnt/Nas/Nas-Opslag/Muziek/Gedownload'` en er gebeurde niets. De app kijkt nu bij het opstarten of
+  er in de downloadmap geschreven kan worden. Lukt dat niet — de koppeling is weg, de schijf is vol of
+  de map is alleen-lezen — dan haalt de app de muziek op in zijn eigen map (`gedownload` naast de
+  gegevens van de app), meldt hij dat in de app zelf (bij *Muziekmappen* en bij het ophalen), met de
+  opdracht om de NAS opnieuw te koppelen (`deploy/proxmox/nas-koppelen.sh`). Er ging voorheen niets
+  stuk aan je verzameling, maar je kon niet ophalen; nu wel.
+- **De lijst waarin je liedjes aanvinkt stond op een breed scherm in elkaar gedrukt.** Het
+  aanvinkvakje werd door de gewone formulieropmaak op ware grootte uitgerekt (bijna duizend pixels
+  breed), waardoor de liedjestitels naar de rechterrand werden geduwd en er een schuifbalk verscheen.
+  Het vlakje is nu een gewoon vinkje van 16 bij 16. De keuzelijst en het zoekveld in *Filters beheren*
+  zijn op een breed scherm ook niet meer onnodig breed.
+
 ## [1.12.0] — 4 november 2026
 
 ### Nieuw

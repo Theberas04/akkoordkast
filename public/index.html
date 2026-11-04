@@ -557,7 +557,13 @@
   .weg-lijst, .flt-koppel-lijst{margin-top:10px;display:grid;gap:6px;max-height:320px;overflow:auto}
   .weg-rij{display:flex;align-items:center;gap:8px;background:#0d1526;border:1px solid var(--lijn);
     border-radius:10px;padding:7px 9px}
-  .weg-rij .wie{flex:1;min-width:0}
+  /* Het aanvinkvakje hoort klein te blijven: de gewone formulieropmaak van de app maakt van een
+     invoerveld een breed veld, en dan vult het vinkje de hele rij en verdwijnt de liedjestitel. */
+  .weg-rij input[type=checkbox]{flex:0 0 auto;width:16px;height:16px;min-width:0;min-height:0;margin:0;accent-color:var(--amber)}
+  /* De keuzelijst en het zoekveld hoeven op een breed scherm niet de hele kaart te vullen. */
+  .flt-sectie .rij select{flex:0 1 auto;max-width:340px}
+  .flt-sectie .rij input[type=search]{flex:1 1 200px;min-width:150px;max-width:380px}
+  .weg-rij .wie{flex:1 1 auto;min-width:0}
   .weg-rij .wie b{display:block;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .weg-rij .klein{font-size:.72rem;color:var(--tekst2)}
   .weg-rij .knop{padding:4px 9px;font-size:.75rem;min-height:0;flex:0 0 auto}
@@ -1424,6 +1430,7 @@
         <input id="map-nieuw" type="text" placeholder="/mnt/Nas/Nas-Opslag/Muziek" style="flex:1;min-width:240px">
         <button class="knop zacht" id="map-toevoegen">Deze map toevoegen</button>
       </div>
+      <div class="melding" id="mappen-download" hidden></div>
       <div id="mappen-lijst" class="mappen-lijst"></div>
       <label for="scan-map">Map op deze machine</label>
       <div class="rij">
@@ -3642,6 +3649,7 @@ function startReeks() {
   if ($('reeks-lijst')) $('reeks-lijst').innerHTML = '';
   if ($('reeks-stand')) $('reeks-stand').innerHTML = '';
   toonMelding('reeks-melding', 'Bezig: de nummers worden één voor één opgehaald…', 'goed');
+  laadMappen();
   api('/api/download', {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ reeks: true, url: link, max: max })
@@ -4481,6 +4489,26 @@ function laadMappen() {
   return api('/api/mappen').then(function (d) {
     var vak = $('mappen-lijst');
     if (!vak) return;
+    // Waar opgehaalde muziek terechtkomt. Is de NAS-map weg of alleen-lezen, dan haalt de app de
+    // muziek op in zijn eigen map en zegt hij dat hier — anders zoek je je muziek kwijt.
+    var waar = $('mappen-download');
+    if (waar) {
+      var dl = d.download || {};
+      if (dl.terugval) {
+        waar.hidden = false;
+        waar.className = 'melding fout';
+        waar.textContent = 'De map ' + (dl.gevraagd || '') + ' is niet bereikbaar, dus nieuwe muziek ' +
+          'komt in ' + (dl.map || '') + ' terecht. Koppel de NAS opnieuw (op de Proxmox-host: ' +
+          'bash deploy/proxmox/nas-koppelen.sh) om die map weer te gebruiken.' +
+          (dl.fout ? ' Melding van het systeem: ' + dl.fout + '.' : '');
+      } else if (dl.map) {
+        waar.hidden = false;
+        waar.className = 'melding';
+        waar.textContent = 'Nieuwe muziek die je ophaalt komt in ' + dl.map + ' terecht.';
+      } else {
+        waar.hidden = true;
+      }
+    }
     var mappen = d.mappen || [];
     if (!mappen.length) {
       vak.innerHTML = '<div class="les-klein">Er staat nog geen muziekmap in de app. ' +

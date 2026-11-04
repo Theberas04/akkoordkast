@@ -34,7 +34,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.12';
+const VERSIE = '1.12.1';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -652,7 +652,13 @@ function weergave(lied, opties) {
     beheerProfiel: !!o.beheerProfiel,
     // Waar een opgehaald mp3-bestand terechtkomt (de app laat dat pad zien bij het plakken
     // van een link).
-    download: { map: DOWNLOAD_DIR, ytdlp: OPHAAL.ytdlp },
+    download: {
+      map: DOWNLOAD_DIR,
+      ytdlp: OPHAAL.ytdlp,
+      gevraagd: DOWNLOAD_DIR_GEVRAAGD,
+      terugval: !!DOWNLOAD_TERUGVAL,
+      fout: DOWNLOAD_TERUGVAL ? DOWNLOAD_TERUGVAL.fout : ''
+    },
     muziek: muziekBeeld(lied),
     video: videoBeeld(lied),
     audio: {
@@ -1361,8 +1367,39 @@ const STANDAARD_MUZIEKMAP = String(process.env.MUSIC_DIR || '').trim();
 // Waar een opgehaald mp3-bestand komt te staan. Bij voorkeur in de muziekmap zelf, in een
 // eigen ondermap, zodat de app het meteen kan vinden en afspelen. Is er geen muziekmap
 // bekend, dan komt het in de map met de gegevens van de app.
-const DOWNLOAD_DIR = path.resolve(String(process.env.DOWNLOAD_DIR || '').trim() ||
+const DOWNLOAD_DIR_GEVRAAGD = path.resolve(String(process.env.DOWNLOAD_DIR || '').trim() ||
   (STANDAARD_MUZIEKMAP ? path.join(STANDAARD_MUZIEKMAP, 'Gedownload') : path.join(DATA_DIR, 'gedownload')));
+
+// Kan er in deze map geschreven worden? Een NAS-koppeling wil nog weleens verdwijnen (storing,
+// herstart, rechten) en dan is de bovenliggende map er niet meer; zonder deze proef klapte de app
+// er met een rauwe foutmelding uit zodra iemand muziek wilde ophalen.
+function mapSchrijfFout(pad) {
+  try {
+    fs.mkdirSync(pad, { recursive: true });
+    fs.accessSync(pad, fs.constants.W_OK);
+    const proef = fs.mkdtempSync(path.join(pad, '.schrijfproef-'));
+    fs.rmSync(proef, { recursive: true, force: true });
+    return '';
+  } catch (e) {
+    return e && e.message ? e.message : String(e);
+  }
+}
+
+// Is de gevraagde map onbruikbaar, dan halen we de muziek op in de eigen map van de app. Zo blijft
+// de app werken, en de app zegt er zelf bij waar de muziek dan terechtkomt.
+var DOWNLOAD_TERUGVAL = null;
+const DOWNLOAD_DIR = (function () {
+  const fout = mapSchrijfFout(DOWNLOAD_DIR_GEVRAAGD);
+  if (!fout) return DOWNLOAD_DIR_GEVRAAGD;
+  const nood = path.join(DATA_DIR, 'gedownload');
+  if (nood !== DOWNLOAD_DIR_GEVRAAGD && !mapSchrijfFout(nood)) {
+    console.warn('LET OP: de map ' + DOWNLOAD_DIR_GEVRAAGD + ' is niet bereikbaar (' + fout +
+      '). Nieuwe muziek komt in ' + nood + ' terecht. Koppel de NAS opnieuw met deploy/proxmox/nas-koppelen.sh.');
+    DOWNLOAD_TERUGVAL = { gevraagd: DOWNLOAD_DIR_GEVRAAGD, map: nood, fout };
+    return nood;
+  }
+  return DOWNLOAD_DIR_GEVRAAGD;
+})();
 
 const OPHAAL = downloader.maakDownloader({ map: DOWNLOAD_DIR, ytdlp: process.env.YTDLP || 'yt-dlp' });
 
@@ -1524,6 +1561,9 @@ function ophaalBeeld(liedjeId, opties) {
   }
   return {
     map: DOWNLOAD_DIR,
+    gevraagd: DOWNLOAD_DIR_GEVRAAGD,
+    terugval: !!DOWNLOAD_TERUGVAL,
+    terugvalFout: DOWNLOAD_TERUGVAL ? DOWNLOAD_TERUGVAL.fout : '',
     ytdlp: OPHAAL.ytdlp,
     status,
     procent: vanDitLiedje ? stand.procent : 0,
@@ -1773,7 +1813,13 @@ function mappenBeeld() {
   return {
     mappen,
     standaard: STANDAARD_MUZIEKMAP,
-    voorstel: standaardPad && !mappen.some(m => m.pad === standaardPad) ? standaardPad : ''
+    voorstel: standaardPad && !mappen.some(m => m.pad === standaardPad) ? standaardPad : '',
+    download: {
+      map: DOWNLOAD_DIR,
+      gevraagd: DOWNLOAD_DIR_GEVRAAGD,
+      terugval: !!DOWNLOAD_TERUGVAL,
+      fout: DOWNLOAD_TERUGVAL ? DOWNLOAD_TERUGVAL.fout : ''
+    }
   };
 }
 

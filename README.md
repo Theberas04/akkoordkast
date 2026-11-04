@@ -187,6 +187,14 @@ Het toevoeggereedschap zit in een **eigen profiel** (`Admin`), niet in je gewone
 | Muziekmappen toevoegen of weghalen, eigen liedjes bewerken, opnamen uploaden | beheerder |
 | Liedjes uit de app halen (eigen liedjes echt, meegeleverde verbergen) | beheerder |
 | Filters beheren: talen en genres toevoegen, weghalen en liedjes eraan koppelen | beheerder |
+
+**Waar opgehaalde muziek terechtkomt.** De app haalt muziek op in `DOWNLOAD_DIR` (standaard
+`MUSIC_DIR/Gedownload`, dus in je muziekmap — bij een NAS-koppeling bijvoorbeeld
+`/mnt/Nas/Nas-Opslag/Muziek/Gedownload`). Kan daar niet in geschreven worden — de koppeling is weg, de
+map is alleen-lezen of de schijf zit vol — dan **valt de app terug op zijn eigen map**
+(`gedownload` naast de gegevens) en zegt hij dat in de app: bij *Muziekmappen* en bij het ophalen.
+Zo blijft ophalen werken en weet je waar de muziek staat. Koppel je NAS opnieuw met
+`bash deploy/proxmox/nas-koppelen.sh` (op de Proxmox-host) om de muziekmap weer te gebruiken.
 | Back-up, wachter, bijwerken, Spotify-sleutels | beheerder |
 
 Het tabblad **Toevoegen** bestaat alleen in het profiel `Admin` (in de profielkiezer staat het als

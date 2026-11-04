@@ -4809,8 +4809,8 @@ function koppelOpruimKaart() {
     toonMelding('opruim-melding', 'Kijken…', '');
     api('/api/opruimen').then(function (scan) {
       teken(scan);
-      toonMelding('opruim-melding', 'Dit is te vinden in ' + scan.verzameling.eigen + ' eigen liedje(s) naast ' +
-        scan.verzameling.meegeleverd + ' meegeleverde liedjes.', '');
+      toonMelding('opruim-melding', 'Dit is te vinden in ' + (scan.verzameling.aantal || 0) + ' eigen liedje(s) naast ' +
+        (scan.verzameling.meegeleverd || 0) + ' meegeleverde liedjes.', '');
     }).catch(function (e) { toonMelding('opruim-melding', e.message, 'fout'); });
   }
 

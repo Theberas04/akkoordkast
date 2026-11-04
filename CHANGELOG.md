@@ -3,6 +3,24 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.17.1] — 4 november 2026
+
+### Gerepareerd
+
+- **Bij het opruimen stond er "Object [object Object]" in de regel onder de knoppen** in plaats van het
+  aantal eigen liedjes. De kaart leest nu het juiste getal ("Dit is te vinden in 6 eigen liedje(s)
+  naast 8701 meegeleverde liedjes").
+
+### Nieuw in het repo
+
+- **Rondleiding door de app** als filmpje: `docs/img/akkoordkast-2026.mp4` (1 min 19, 1280x720,
+  Nederlandse voice-over, demo-gegevens), met een poster die ernaar linkt in de README. De schermen
+  komen uit `filmpjes/akkoordkast-2026.json`; opnieuw maken met `scripts/maak-filmpje.py`.
+- De beheerderstukken (gegevens aanpassen, opruimen, je eigen bladmuziek) staan met schermafbeeldingen
+  in de README, plus het scherm dat laat zien dat een gewoon profiel die niet heeft.
+- De landingspagina zei nog "26 gitaarlessen in vier delen" en "181 tests"; dat is nu 110 lessen in acht
+  delen en 250 tests.
+
 ## [1.17.0] — 4 november 2026
 
 ### Nieuw

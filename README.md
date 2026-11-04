@@ -68,18 +68,22 @@ Die begeleiding cast je naar een Chromecast in je netwerk.
 | ![start/stop](docs/img/start-stop.png) | **Start en stop bij het spelen** — naast de speler staan twee gewone knoppen (Start en Stop) met de stand ernaast; Stop zet de muziek ook echt terug naar het begin. |
 | ![tekst](docs/img/liedjestekst-bij-opname.png) | **De liedjestekst erbij** — lijkt de bestandsnaam op een liedje uit de bibliotheek, dan krijg je de tekst van dat liedje erbij te lezen, met de akkoorden uit jouw opname erboven. |
 
-## Rondleiding van 56 seconden
+## Rondleiding door de app
 
-[![Rondleiding](docs/img/spelen-desktop.png)](docs/img/rondleiding.mp4)
+[![Rondleiding door AkkoordKast: klik om de video te openen](docs/img/akkoordkast-2026-poster.jpg)](docs/img/akkoordkast-2026.mp4)
 
-Een diashow van de echte schermen met Nederlandse voice-over:
-[`docs/img/rondleiding.mp4`](docs/img/rondleiding.mp4) (56 s, 1280x720, met geluid, demo-gegevens).
+🎬 **[Rondleiding door AkkoordKast (1 min 19, MP4, 1280×720, Nederlandse voice-over)](docs/img/akkoordkast-2026.mp4)**
+— de bibliotheek, een liedje met akkoorden en capo-advies boven de woorden, meespelen met de echte
+muziek, de cursus van 110 lessen, de stemmer met de microfoon, en wat de beheerder kan: gegevens
+aanpassen, opruimen en je eigen bladmuziek erbij zetten. De eerste seconde laat zien wat een gewoon
+profiel níet heeft: alles wat iets toevoegt of verandert hoort bij de beheerder.
 
-En een tweede filmpje over wat er daarna bijgekomen is — de eigen lijstjes, de podiummodus, het
-meescrollen, het oefenen met een lus, het meeluisteren met de microfoon, de oefencijfers, het
-liedjesboek en het bijwerken:
-[`docs/img/nieuwe-functies.mp4`](docs/img/nieuwe-functies.mp4) (1 min 51, 1280x720, met geluid).
-Zo'n filmpje maak je opnieuw met `python3 scripts/maak-filmpje.py --scenes filmpjes/nieuwe-functies.json`.
+Het filmpje is een diashow van echte schermen (demo-gegevens) volgens `filmpjes/akkoordkast-2026.json`;
+opnieuw maken met `python3 scripts/maak-filmpje.py --scenes filmpjes/akkoordkast-2026.json --stem <map>
+--uit docs/img/akkoordkast-2026.mp4`, waarbij `<map>` ook `titel.png` en `slot.png` bevat.
+
+Eerder: [rondleiding.mp4](docs/img/rondleiding.mp4) (56 s) en
+[nieuwe-functies.mp4](docs/img/nieuwe-functies.mp4) (1 min 51).
 
 ## Installeren op je Proxmox-host
 
@@ -836,6 +840,13 @@ Opruimen kijkt eerst wat er te vinden is en ruimt dan pas op:
 
 ![Na het opruimen](docs/img/opruimen-gedaan.png)
 
+| | |
+|---|---|
+| ![Gegevens aanpassen](docs/img/film/06-beheer-gegevens.png) | **Gegevens aanpassen** — zoek een liedje en pas titel, zanger, taal, genre, toonaard, tempo en maatsoort aan. |
+| ![Opruimen](docs/img/film/07-beheer-opruimen.png) | **Opruimen** — eerst kijken wat er te vinden is (dubbele liedjes, lege liedjes, losse bestanden, oude back-ups), dan pas opruimen. |
+| ![Je eigen bladmuziek](docs/img/film/08-beheer-bladmuziek.png) | **Je eigen bladmuziek** — heb je zelf het blad van een nummer, dan hangt het als foto of PDF aan het liedje. |
+| ![Zonder beheerder](docs/img/film/09-geen-beheerder.png) | **Zonder beheerdersprofiel** — dan is dit er allemaal niet. De app is voor iedereen, toevoegen is voor de beheerder. |
+
 ## Jouw eigen lijstjes
 
 De app werkt met **profielen**: elk profiel heeft zijn eigen favorieten, zijn eigen labels en zijn eigen cijfers.
@@ -905,7 +916,7 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 181 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+node --test test/*.test.js          # 250 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
                                     # setlists, akkoordenboek, de wachter en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL

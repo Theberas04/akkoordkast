@@ -355,7 +355,13 @@ Daarnaast staat in hetzelfde tabblad:
   van Em · Am · C tot alle 26 grepen door elkaar), kies het tempo en het aantal maten per akkoord. De
   app laat het volgende akkoord alvast zien en telt de maten voor je; na het stoppen zie je hoeveel
   akkoordwissels je gedaan hebt.
-- **Stemmen**: klik op een snaar en hoor de toon. Zes knoppen, dik naar dun.
+- **Stemmen**: klik op een snaar en hoor de toon. Zes knoppen, dik naar dun. Daarnaast de **stemmer
+  met de microfoon**: druk op Start, sla één snaar aan, en de app zegt welke snaar het is, hoeveel cent
+  je ernaast zit en welke kant je op moet, met een naald die in het groen komt als je goed zit. Het
+  rekenwerk (de toonhoogte uit het geluid halen met een genormaliseerde autocorrelatie, zonder
+  octaaffouten) staat in `lib/stemmen.js`, los van de pagina, zodat de tests precies dezelfde
+  rekenkunde raken. Werkt op een beveiligd adres (`https`); de microfoon wordt alleen gebruikt terwijl
+  je op Start hebt gedrukt en er wordt niets opgenomen of bewaard.
 - **Slagpatronen**: vier patronen plus tokkelen, met een metronoom die meetelt.
 - **Alle grepen** op één plek: klik op een greep en je hoort hem.
 

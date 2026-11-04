@@ -416,9 +416,23 @@ test('de leermodus staat in de pagina: leslijst, trainer, stemmen, ritme en grep
   assert.match(html, /var TABS = \['liedjes', 'spelen', 'leren', 'toevoegen', 'casten'\]/);
   for (const id of ['paneel-leren', 'leren-lessen', 'leren-balk', 'leren-voortgang', 'trein-set', 'trein-tempo',
     'trein-maten', 'trein-start', 'trein-stop', 'trein-akkoord', 'trein-volgend', 'trein-greep', 'trein-tellen',
-    'trein-stats', 'stem-rij', 'ritme-rij', 'ritme-start', 'ritme-stop', 'ritme-tellen', 'ritme-uitleg', 'leren-grepen']) {
+    'trein-stats', 'stem-rij', 'ritme-rij', 'ritme-start', 'ritme-stop', 'ritme-tellen', 'ritme-uitleg', 'leren-grepen',
+    'stem-start', 'stem-stop', 'stem-stand', 'stem-meter', 'stem-pen', 'stem-uitslag', 'stem-melding']) {
     assert.ok(html.includes('id="' + id + '"'), 'id ontbreekt in de leermodus: ' + id);
   }
+  // De stemmer met de microfoon: het rekenwerk zit in lib/stemmen.js, de pagina gebruikt het.
+  assert.match(html, /<script src="\/lib\/stemmen\.js"><\/script>/);
+  assert.match(html, /tekenStemmer\(\);/);
+  assert.match(html, /window\.stemmenRekenen\.uitslagVan\(/);
+  assert.match(html, /navigator\.mediaDevices\.getUserMedia/);
+  assert.match(html, /isSecureContext/);
+  const stemReken = fs.readFileSync(path.join(__dirname, '..', 'lib', 'stemmen.js'), 'utf8');
+  assert.match(stemReken, /root\.stemmenRekenen = reken/);
+  // Alles binnen een eigen afsluiting: een aangifte op het hoogste niveau botst met de pagina zelf
+  // (die heeft al een SNAREN) en laat het hele bestand dan stil stuklopen.
+  assert.ok(stemReken.indexOf('(function (root) {') > 0, 'de stemmer hoort in een eigen afsluiting te staan');
+  assert.ok(stemReken.indexOf('(function (root) {') < stemReken.indexOf('const SNAREN'),
+    'de afsluiting moet om alles heen staan, ook om SNAREN');
   // De cursus: de eerste lessen staan in de pagina, de vervolgdelen in /lib/lessen-uitgebreid.js.
   assert.match(html, /var LESSEN = \[/);
   const lessen = html.match(/titel: '[^']+',\s*\n\s*kort:/g) || [];

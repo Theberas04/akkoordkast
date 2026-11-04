@@ -3,6 +3,31 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.10.0] — 4 november 2026
+
+### Nieuw
+
+- **Een stemmer met de microfoon.** In het tabblad Leren staat bij *Stemmen* nu een echte stemmer
+  naast de toon-op-het-gehoor: druk op **Start de stemmer**, sla één snaar aan en laat hem
+  doorklinken. De app laat zien welke snaar het is, hoeveel cent je ernaast zit en welke kant je op
+  moet — *"De A-snaar staat 9 cent te laag (109 Hz) — draai de stemsleutel wat strakker"* — met een
+  naald die in het groen komt als je goed zit (binnen vijf cent). De snaar die de app hoort licht op,
+  zodat je merkt als je de verkeerde snaar raakt; de dikste snaar eerst is het makkelijkst.
+- Het rekenwerk staat in `lib/stemmen.js`, los van de pagina, zodat de tests dezelfde rekenkunde
+  raken: uit een stukje geluid de toonhoogte halen met een genormaliseerde autocorrelatie, met de
+  eerste sterke piek in plaats van de hoogste (anders hoort een stemmer een boventoon en zit je een
+  octaaf ernaast) en met een parabolische piek ertussen (anders scheelt het al snel een paar cent).
+- Zeven nieuwe tests bewijzen dat: een rustige toon wordt op twee cent nauwkeurig herkend op alle zes
+  snaren, een toon die 9, 12, 25 of 30 cent te laag staat wordt ook zo gemeld, een snaar met een
+  sterke boventoon wordt niet een octaaf te hoog gehoord, een aangeslagen snaar (met ruis erin) wordt
+  herkend, en stilte of geruis levert geen valse toonhoogte op.
+
+### Veranderd
+
+- De microfoon wordt alleen gebruikt zolang de stemmer aanstaat; er wordt niets opgenomen of bewaard.
+  Op een adres zonder `https` zegt de app meteen dat de microfoon daar niet mag, in plaats van stil te
+  blijven.
+
 ## [1.9.0] — 4 november 2026
 
 ### Nieuw

@@ -496,6 +496,16 @@
   .stem-rij .knop{flex-direction:column;gap:2px;line-height:1.2}
   .stem-rij .dik{font-weight:800;font-size:1.05rem}
   .stem-rij .dun{font-size:.7rem;opacity:.85}
+  .stem-meter{position:relative;height:32px;border-radius:10px;margin:14px 0 6px;border:1px solid var(--lijn);
+    background:linear-gradient(90deg,#7a3b3b 0%,#7a6a3b 32%,#2f6b4a 44%,#2f6b4a 56%,#7a6a3b 68%,#7a3b3b 100%)}
+  .stem-meter .stem-midden{position:absolute;left:50%;top:0;bottom:0;width:2px;background:rgba(255,255,255,.5);transform:translateX(-1px)}
+  .stem-pen{position:absolute;top:-4px;bottom:-4px;width:5px;border-radius:3px;background:var(--tekst);left:50%;
+    transform:translateX(-2.5px);transition:left .1s linear;box-shadow:0 0 6px rgba(0,0,0,.5)}
+  .stem-pen.goed{background:var(--groen)}
+  .stem-schaal{display:flex;justify-content:space-between;font-size:.7rem;color:var(--tekst2)}
+  .stem-uitslag{font-weight:800;font-size:1.05rem;margin-top:10px;line-height:1.35}
+  .stem-uitslag.gestemd{color:var(--groen)}
+  .stem-rij .knop.nu{border-color:var(--amber);box-shadow:0 0 0 2px rgba(245,165,36,.3)}
   .ritme-rij{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
   .ritme-rij .patroon{font-family:var(--mono,monospace);font-size:1.05rem;letter-spacing:.12em}
   .leren-links{display:flex;flex-wrap:wrap;gap:8px}
@@ -951,6 +961,21 @@
       <div class="stem-rij" id="stem-rij"></div>
       <p class="les-klein" style="margin:12px 0 0">Hoor je een zweving (een wiebelend geluid) als je de snaar ernaast aanslaat? Dan zit je nog niet gelijk.
         Zweeft het niet meer, dan klinken ze hetzelfde.</p>
+
+      <h3>Stemmer met de microfoon</h3>
+      <p class="les-klein" style="margin:0 0 10px">Zet je gitaar bij de microfoon en druk op <strong>Start de stemmer</strong>.
+        Sla dan <strong>één snaar</strong> aan en laat hem doorklinken: de app laat zien welke snaar het is en of je te
+        hoog of te laag zit, tot op een paar cent. Stem de dikste snaar eerst, dan de rest. Doe het in een stille kamer en
+        gebruik een beveiligd adres (<code>https</code>) — anders mag de browser niet bij de microfoon.</p>
+      <div class="rij">
+        <button class="knop" id="stem-start">Start de stemmer</button>
+        <button class="knop zacht" id="stem-stop" disabled>Stop</button>
+        <span class="pilletje" id="stem-stand">Nog niet gestart</span>
+      </div>
+      <div class="stem-meter" id="stem-meter"><span class="stem-midden"></span><span class="stem-pen" id="stem-pen"></span></div>
+      <div class="stem-schaal"><span>50 cent te laag</span><span>gestemd</span><span>50 cent te hoog</span></div>
+      <div class="stem-uitslag" id="stem-uitslag">Druk op Start en sla één snaar aan.</div>
+      <div class="les-klein" id="stem-melding" style="margin-top:8px"></div>
     </div>
 
     <div class="kaart">
@@ -1282,6 +1307,7 @@
 </div>
 
 <script src="/lib/metronoom.js"></script>
+<script src="/lib/stemmen.js"></script>
 <script src="/lib/lessen-uitgebreid.js"></script>
 <script>
 'use strict';
@@ -5522,6 +5548,156 @@ function tekenSnaren() {
   });
 }
 
+// -------------------------------------------------------------- stemmer ---
+// De stemmer met de microfoon: sla één snaar aan en de app zegt welke snaar het is en of je te
+// hoog of te laag zit. Het rekenwerk — de toonhoogte uit het geluid halen — staat in
+// /lib/stemmen.js, zodat de tests precies dezelfde rekenkunde raken als de app gebruikt.
+var STEMMER = { aan: false, stream: null, ctx: null, analyser: null, timer: null, laatste: 0, pen: 50 };
+
+function zetStemStand(tekst) {
+  var vak = $('stem-stand');
+  if (vak) vak.textContent = tekst;
+}
+
+function tekenStemmer() {
+  var start = $('stem-start'), stop = $('stem-stop');
+  if (!start || !stop) return;
+  start.addEventListener('click', startStemmer);
+  stop.addEventListener('click', stopStemmer);
+}
+
+// Het rekenwerk van de stemmer staat in /lib/stemmen.js en hoort al bij het laden van de pagina
+// binnen te zijn. Is dat niet zo — bijvoorbeeld omdat de browser een oude, lege versie bewaard
+// heeft — dan halen we het hier alsnog op, met een verse sleutel erachter, en gaan we door.
+function laadStemRekenwerk() {
+  return new Promise(function (res, af) {
+    if (window.stemmenRekenen) return res();
+    var script = document.createElement('script');
+    script.src = '/lib/stemmen.js?v=' + Date.now();
+    script.onload = function () {
+      window.stemmenRekenen ? res() : af(new Error('leeg bestand'));
+    };
+    script.onerror = function () { af(new Error('niet geladen')); };
+    document.head.appendChild(script);
+  });
+}
+
+function startStemmer() {
+  if (STEMMER.aan) return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    toonMelding('stem-melding', 'Deze browser kan niet bij de microfoon.', 'fout');
+    return;
+  }
+  if (!window.isSecureContext) {
+    toonMelding('stem-melding', 'De microfoon werkt alleen op een beveiligd adres (https).', 'fout');
+    return;
+  }
+  $('stem-start').disabled = true;
+  toonMelding('stem-melding', 'Vraag om de microfoon…', '');
+  laadStemRekenwerk()
+    .catch(function () {
+      toonMelding('stem-melding', 'Het rekenwerk van de stemmer kon niet geladen worden; ververs de pagina.', 'fout');
+      $('stem-start').disabled = false;
+      throw new Error('rekenwerk');
+    })
+    .then(function () {
+      return navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    })
+    .then(function (stream) {
+      STEMMER.stream = stream;
+      STEMMER.ctx = leerCtx() || new (window.AudioContext || window.webkitAudioContext)();
+      var bron = STEMMER.ctx.createMediaStreamSource(stream);
+      var analyser = STEMMER.ctx.createAnalyser();
+      analyser.fftSize = 4096;
+      bron.connect(analyser);
+      STEMMER.analyser = analyser;
+      STEMMER.aan = true;
+      STEMMER.pen = 50;
+      $('stem-stop').disabled = false;
+      zetStemStand('Aan het luisteren');
+      toonMelding('stem-melding', 'Sla één snaar aan en laat hem doorklinken.', '');
+      STEMMER.timer = setInterval(stemMeting, 100);
+    })
+    .catch(function (e) {
+      $('stem-start').disabled = false;
+      zetStemStand('Nog niet gestart');
+      if (e && e.message === 'rekenwerk') return;
+      toonMelding('stem-melding', 'Geen toegang tot de microfoon: ' + e.message, 'fout');
+    });
+}
+
+function stopStemmer() {
+  STEMMER.aan = false;
+  if (STEMMER.timer) { clearInterval(STEMMER.timer); STEMMER.timer = null; }
+  if (STEMMER.stream) {
+    STEMMER.stream.getTracks().forEach(function (t) { t.stop(); });
+    STEMMER.stream = null;
+  }
+  STEMMER.analyser = null;
+  var start = $('stem-start'), stop = $('stem-stop');
+  if (start) start.disabled = false;
+  if (stop) stop.disabled = true;
+  zetStemStand('Gestopt');
+  toonMelding('stem-melding', '', '');
+  toonStemUitslag(null, true);
+}
+
+// Eén meting: het stukje geluid van nu doorrekenen en laten zien wat er uit komt.
+function stemMeting() {
+  if (!STEMMER.aan || !STEMMER.analyser) return;
+  var monsters = new Float32Array(STEMMER.analyser.fftSize);
+  STEMMER.analyser.getFloatTimeDomainData(monsters);
+  var uitslag = window.stemmenRekenen.uitslagVan(monsters, STEMMER.ctx.sampleRate);
+  // Een snaar die uitklinkt wordt steeds zachter; onder de drempel zeggen we even niets
+  // in plaats van te blijven wiebelen met een oude meting.
+  if (uitslag && uitslag.duidelijkheid >= 0.6) {
+    STEMMER.laatste = Date.now();
+    toonStemUitslag(uitslag);
+    return;
+  }
+  if (Date.now() - (STEMMER.laatste || 0) > 1200) toonStemUitslag(null);
+}
+
+function toonStemUitslag(uitslag, stil) {
+  var pen = $('stem-pen'), vak = $('stem-uitslag');
+  if (!pen || !vak) return;
+  if (!uitslag) {
+    pen.className = 'stem-pen';
+    pen.style.left = '50%';
+    STEMMER.pen = 50;
+    vak.className = 'stem-uitslag';
+    vak.textContent = stil ? 'Druk op Start en sla één snaar aan.' : 'Ik hoor nog niets — sla één snaar aan en laat hem doorklinken.';
+    kleurSnaren(null);
+    return;
+  }
+  var centen = Math.max(-50, Math.min(50, uitslag.centen));
+  // De naald een beetje dempen, anders schiet hij heen en weer.
+  STEMMER.pen = STEMMER.pen * 0.45 + (50 + centen) * 0.55;
+  pen.style.left = STEMMER.pen.toFixed(1) + '%';
+  pen.className = 'stem-pen' + (uitslag.gestemd ? ' goed' : '');
+  var snaar = uitslag.snaar.naam;
+  var hz = Math.round(uitslag.frequentie);
+  if (uitslag.gestemd) {
+    vak.className = 'stem-uitslag gestemd';
+    vak.textContent = 'De ' + snaar + '-snaar is gestemd (' + hz + ' Hz). Ga naar de volgende snaar.';
+  } else {
+    vak.className = 'stem-uitslag';
+    vak.textContent = 'De ' + snaar + '-snaar staat ' + Math.abs(Math.round(uitslag.centen)) + ' cent ' +
+      (uitslag.centen > 0 ? 'te hoog' : 'te laag') + ' (' + hz + ' Hz) — ' +
+      (uitslag.centen > 0 ? 'draai de stemsleutel wat losser' : 'draai de stemsleutel wat strakker') + '.';
+  }
+  kleurSnaren(uitslag);
+}
+
+// De snaar die de app hoort oplichten, zodat je ziet of je wel de goeie snaar raakt.
+function kleurSnaren(uitslag) {
+  var vak = $('stem-rij');
+  if (!vak) return;
+  vak.querySelectorAll('[data-snaar]').forEach(function (knop) {
+    knop.classList.toggle('nu', !!uitslag && Number(knop.getAttribute('data-snaar')) === uitslag.snaar.midi);
+  });
+}
+
 // ---------------------------------------------------------------- laden ---
 var lerenGeladen = false;
 // De oefencijfers van dit profiel: de laatste twee weken als staafjes, hoeveel dagen
@@ -5845,6 +6021,7 @@ function laadLeren() {
   tekenLessen();
   tekenPatronen();
   tekenSnaren();
+  tekenStemmer();
   laadLeerGrepen();
   $('leren-naar-trainer').addEventListener('click', function () {
     $('trein-set').scrollIntoView({ block: 'center' });

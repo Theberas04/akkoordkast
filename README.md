@@ -52,7 +52,7 @@ Die begeleiding cast je naar een Chromecast in je netwerk.
 | ![meespelen](docs/img/meespelen-opname.png) | **Meespelen met je eigen opname** — je opname is de muziek; de akkoorden, de maat, de hals en de grepen lopen ermee mee. |
 | ![spotify](docs/img/spotify-blok.png) | **Spotify** — plak een link en de speler staat erbij; de noten lopen mee met wat je hoort. Met een eigen Client ID kun je ook zoeken. |
 | ![muziekmap](docs/img/muziekmap-klaar.png) | **Een hele muziekmap in één keer** — geef een map op deze machine op en elk nummer erin wordt een eigen liedje met akkoordschema, tempo en toonsoort. |
-| ![leren](docs/img/leren-cursus.png) | **Gitaar leren spelen** — zesentwintig lessen in vier delen, van "hoe houd ik hem vast" tot een oefenplan dat je volhoudt, met per les een oefening in de app en je voortgang bewaard op je toestel. |
+| ![leren](docs/img/leren-cursus.png) | **Gitaar leren spelen** — honderdtien lessen in acht delen, van "hoe houd ik hem vast" tot een oefenplan dat je volhoudt, met per les een oefening in de app en je voortgang bewaard op je toestel. |
 | ![akkoordentrainer](docs/img/leren-trainer.png) | **Akkoordentrainer** — metronoom, een set akkoorden naar keuze en het volgende akkoord alvast in beeld, want daar gaat het bij leren wisselen om. |
 | ![podium](docs/img/podium.png) | **Podiummodus en meescrollen** — alleen het liedje op het scherm, groot en rustig, terwijl de pagina zelf meeschuift op jouw tempo; met spatie start en stop je het schuiven en met de pijltjes ga je een halve pagina verder. |
 | ![mijn lijstjes](docs/img/mijn-lijstjes.png) | **Profielen, favorieten en labels** — elk gezinslid heeft eigen favorieten, eigen labels (bruiloft, kroeg, kerk) en een eigen speelgeschiedenis; filter met één klik op je eigen lijstje. |
@@ -363,7 +363,31 @@ Daarnaast staat in hetzelfde tabblad:
   rekenkunde raken. Werkt op een beveiligd adres (`https`); de microfoon wordt alleen gebruikt terwijl
   je op Start hebt gedrukt en er wordt niets opgenomen of bewaard.
 - **Slagpatronen**: vier patronen plus tokkelen, met een metronoom die meetelt.
-- **Alle grepen** op één plek: klik op een greep en je hoort hem.
+- **Ritme-trainer met de microfoon**: sla of klap mee en de app luistert of je op de maat zit. De tik
+  geeft de maat (zichtbaar meetellen, of hoorbaar met oortjes in), want de microfoon zou een tik uit
+  de luidspreker als jouw slag tellen. Per slag zie je hoeveel milliseconden je ernaast zat, of je
+  neigt naar te vroeg of te laat, en welk deel op de maat was. De app let op de **aanslag**: per
+  beeldje vergelijkt hij het spectrum (de analyser van de WebAudio-kaart) met dat van het beeldje
+  ervoor, en een sprong daarin is een slag. Dat is de enige maat die een snel slagpatroon aankan: met
+  een drempel op de geluidssterkte miste de app drie van de acht slagen zodra de vorige snaar nog
+  doorklonk, en telde hij gewone ruis en netbrom juist als slagen (veertien tot tweeëntwintig valse
+  slagen per drie seconden). Het rekenwerk staat in `lib/ritme.js`, los van de pagina, met eigen
+  tests. Zit je er steeds met hetzelfde aantal milliseconden naast, dan is dat de vertraging van je
+  toestel: met **Zet mijn gemiddelde op nul** gaat die er af.
+- **Toonladders op de hals**: majeur, mineur, pentatonisch majeur, pentatonisch mineur en blues, in
+  elke grondtoon, over één tot drie octaven. Je ziet de noten op de hals tot en met vak 12 (de
+  grondtoon oranje, de rest met de nootnaam erin), je kunt de ladder laten horen en hem noot voor
+  noot meespelen met een tik. Het rekenwerk staat in `lib/toonladders.js`.
+- **Mijn oefenplan**: kies een liedje, het aantal weken, de minuten per dag en de dagen per week, en
+  de app vult het plan: eerst de grepen van dat liedje, dan de overgangen en de delen van het liedje,
+  en in de laatste week het hele liedje op tempo en twee keer achter elkaar. Elke taak heeft een
+  aantal minuten en een afvinkvakje; het plan blijft bewaard. Het rekenwerk staat in
+  `lib/oefenplan.js`.
+- **Neem jezelf op**: neem op met de microfoon (maximaal vijf minuten), luister het terug, bewaar het
+  als bestand op je toestel of gooi het weg. De opname blijft in je eigen toestel; er gaat niets naar
+  de server.
+- **Alle grepen** op één plek: klik op een greep en je hoort hem, en vink af wat je al kunt — met een
+  voortgangsbalk en een knop die de grepen die je nog niet kent meteen in de akkoordentrainer zet.
 
 Alles wat klinkt maakt de pagina zelf met Web Audio — geen geluidsbestanden, geen internet, en het werkt
 dus ook in de app op je telefoon en offline.
@@ -371,6 +395,12 @@ dus ook in de app op je telefoon en offline.
 ![een les uit het deel Ritme](docs/img/leren-les.png)
 
 ![stemmen en slagpatronen](docs/img/leren-stemmen.png)
+
+![toonladders op de hals](docs/img/toonladder.png)
+
+![de ritme-trainer met de microfoon](docs/img/ritme-trainer.png)
+
+![het oefenplan](docs/img/oefenplan.png)
 
 ## Muziek of video erbij zoeken
 

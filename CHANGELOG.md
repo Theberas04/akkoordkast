@@ -3,6 +3,26 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.11.1] — 4 november 2026
+
+### Gerepareerd
+
+- **De ritme-trainer herkent slagen nu aan de aanslag in het spectrum, niet aan de geluidssterkte.**
+  Twee dingen waren mis met de sterkte-aanpak, en de tweede was pas te zien met echte audio in een
+  browser: bij een snel slagpatroon klinkt de vorige snaar nog door, waardoor de sterkte bijna niet
+  verandert en de app drie van de acht slagen miste; en omgevingsgeluid werd juist wél geteld — een
+  drempel op de luidste klap uit het hele stuk gaf veertien valse slagen per drie seconden bij gewone
+  ruis en tweeëntwintig bij netbrom. De app vergelijkt nu per beeldje het spectrum met dat van het
+  beeldje ervoor: een aanslag zet breedbandige energie bij, omgevingsgeluid niet. In een proef met
+  twaalf aanslagen over een doorklinkende klank, met een ruisbed eronder, vindt hij ze alle twaalf
+  (eerst tweeëntwintig).
+- **Dezelfde aanslag werd over meerdere beeldjes opnieuw gevonden** en dus dubbel geteld; tussen de
+  beeldjes geldt nu ook de minimumafstand.
+- **IJken.** Elk toestel meet een vast aantal milliseconden te laat (microfoon plus het analysevenster
+  van drieënnegentig milliseconden). Daar is nu een knop voor: *Zet mijn gemiddelde op nul* haalt dat
+  vaste verschil eraf, zodat je alleen nog ziet wat je zelf doet. In een proef ging het gemiddelde
+  daarmee van tweeënzeventig milliseconden te laat naar vier milliseconden.
+
 ## [1.11.0] — 4 november 2026
 
 ### Nieuw

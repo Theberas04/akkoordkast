@@ -646,9 +646,14 @@ test('de ritme-trainer met de microfoon: rekenwerk in lib/ritme.js, de pagina lu
     'de ritme-trainer');
   assert.match(html, /<script src="\/lib\/ritme\.js"><\/script>/);
   assert.match(html, /window\.ritmeRekenen \|\| null/);
-  assert.match(html, /reken\.slagenVan\(RT\.buffer, ctx\.sampleRate\)/);
+  assert.match(html, /analyser\.getByteFrequencyData\(RT\.beeld\)/);
+  assert.match(html, /reken\.fluxTussen\(RT\.beeld, RT\.vorigBeeld\)/);
+  assert.match(html, /reken\.slagenUitFlux\(RT\.punten\)/);
+  // Slagen in het spectrum, niet in de sterkte: anders mist de trainer de slagen die door de
+  // vorige snaar heen vallen.
+  assert.ok(!/reken\.slagenVan\(/.test(html), 'de pagina hoort de spectrumbaan te gebruiken, niet de tijdbaan');
   // uitslagVan werkt met slagen die hun eigen tijdstip bij zich hebben ({ tijd: ... }).
-  assert.match(html, /var metTijd = RT\.slagen\.map\(function \(t\) \{ return \{ tijd: t \}; \}\);/);
+  assert.match(html, /var metTijd = RT\.slagen\.map\(function \(t\) \{ return \{ tijd: t \+ RT\.ijk \/ 1000 \}; \}\);/);
   assert.match(html, /reken\.uitslagVan\(metTijd, \{ bpm: RT\.bpm, maat: RT\.maat, vanaf: RT\.gridStart, goed: reken\.GOED_MS \}\)/);
   assert.match(html, /function rtTikLoop/);
   assert.match(html, /\$\('rt-start'\)\.addEventListener\('click', startRt\)/);
@@ -656,6 +661,12 @@ test('de ritme-trainer met de microfoon: rekenwerk in lib/ritme.js, de pagina lu
   // jouw slag tellen. Wie hem wil horen, doet oortjes in.
   assert.match(html, /<option value="uit" selected>Stil/);
   assert.match(html, /oortjes in/);
+  // De ijking: de vaste vertraging van het toestel kun je er met één knop afzetten.
+  eisIds(html, ['rt-ijk', 'rt-ijk-wis', 'rt-ijk-stand'], 'de ijking van de ritme-trainer');
+  assert.match(html, /function rtZetIJking/);
+  assert.match(html, /function rtWisIJking/);
+  assert.match(html, /var metTijd = RT\.slagen\.map\(function \(t\) \{ return \{ tijd: t \+ RT\.ijk \/ 1000 \}; \}\)/);
+  assert.match(html, /\$\('rt-ijk'\)\.addEventListener\('click', rtZetIJking\)/);
   const lib = leesLib('ritme.js');
   eisAfsluiting(lib, 'ritmeRekenen');
   assert.match(lib, /GOED_MS = 90/);

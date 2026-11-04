@@ -1110,6 +1110,13 @@
         De tik staat standaard <strong>stil</strong>: de microfoon zou de tik uit de luidspreker horen en dat als jouw slag tellen.
         Wil je de tik wél horen, doe dan oortjes in. Doe het verder in een stille kamer, en gebruik een beveiligd adres
         (<code>https</code>) — anders mag de browser niet bij de microfoon. Er wordt niets opgenomen of bewaard.</p>
+      <p class="les-klein" style="margin:0 0 12px">De app let op de <strong>aanslag</strong>: elk beeldje vergelijkt hij het
+        spectrum met dat van het beeldje ervoor, en een sprong daarin is een slag. Dat is precies wat je met een plectrum of
+        nagel doet — er komen hoge tonen bij — en daardoor telt hij ook goed als de vorige snaar nog doorklinkt.</p>
+      <p class="les-klein" style="margin:0 0 12px">Zit je er steeds met hetzelfde aantal milliseconden naast — bijvoorbeeld steeds
+        vijftig te laat — dan is dat de vertraging van je toestel en niet jouw gevoel voor de maat. Speel een slag of tien en druk
+        dan op <strong>Zet mijn gemiddelde op nul</strong>: die vaste vertraging gaat er dan af, zodat je alleen nog ziet wat je
+        zelf doet. Er wordt niets bewaard.</p>
       <p class="les-klein" style="margin:0 0 12px">Let op twee dingen bij het lezen van de cijfers. Elk toestel laat geluid
         een paar milliseconden later binnenkomen dan het klinkt, dus <em>een klein beetje te laat</em> is normaal — kijk daarom
         vooral naar de <strong>schommeling</strong>: blijft die klein, dan speel je gelijkmatig. En de app hoort alleen wat er in
@@ -1134,6 +1141,11 @@
         <button class="knop zacht" id="rt-stop" disabled>Stop</button>
         <span class="pilletje" id="rt-stand">Nog niet gestart</span>
         <span class="les-klein" id="rt-niveau">microfoon uit</span>
+      </div>
+      <div class="rij" style="margin-top:8px">
+        <button class="knop zacht" id="rt-ijk" disabled>Zet mijn gemiddelde op nul</button>
+        <button class="knop zacht" id="rt-ijk-wis" disabled>IJking wissen</button>
+        <span class="les-klein" id="rt-ijk-stand">Geen ijking: de app vergelijkt je slagen met de tik zoals hij ze hoort.</span>
       </div>
       <div class="rt-vak">
         <div class="rt-tellen" id="rt-tellen"></div>
@@ -5990,9 +6002,13 @@ function kleurSnaren(uitslag) {
 // gaat alleen aan als je op Start drukt en er wordt niets bewaard.
 var RT = {
   aan: false, stream: null, ctx: null, analyser: null, timer: null, tikTimer: null,
-  bpm: 80, maat: 4, tikAan: true, buffer: null, bufferSeconden: 1.2,
-  gridStart: 0, volgendeTik: 0, tikTeller: 0, laatsteSlag: 0, slagen: [], teller: 0, laatsteTeken: 0
+  bpm: 80, maat: 4, tikAan: true, beeld: null, vorigBeeld: null, punten: [],
+  gridStart: 0, volgendeTik: 0, tikTeller: 0, laatsteSlag: 0, slagen: [], teller: 0, laatsteTeken: 0,
+  ijk: 0
 };
+// De ijking: het vaste aantal milliseconden dat je toestel te laat meet (microfoon, analysevenster).
+// Die trekken we van elke slag af, zodat de uitslag over jou gaat en niet over je apparaat.
+var RT_PUNTEN_MAX = 600;   // tien seconden aan beeldjes is ruim genoeg voor het omgevingsniveau
 
 function rtRekenwerk() {
   return window.ritmeRekenen || null;
@@ -6098,7 +6114,9 @@ function startRt() {
       RT.stream = stream;
       RT.ctx = knoppen.ctx;
       RT.analyser = knoppen.analyser;
-      RT.buffer = new Float32Array(Math.round(knoppen.ctx.sampleRate * RT.bufferSeconden));
+      RT.beeld = new Uint8Array(knoppen.analyser.frequencyBinCount);
+      RT.vorigBeeld = null;
+      RT.punten = [];
       RT.slagen = [];
       RT.laatsteSlag = 0;
       RT.tikTeller = 0;
@@ -6137,37 +6155,76 @@ function rtLoop() {
   var reken = rtRekenwerk();
   var ctx = RT.ctx;
   var analyser = RT.analyser;
-  var blok = new Float32Array(analyser.fftSize);
-  analyser.getFloatTimeDomainData(blok);
-  // Het nieuwste stukje achter in de schuivende buffer zetten.
-  RT.buffer.copyWithin(0, blok.length);
-  RT.buffer.set(blok, RT.buffer.length - blok.length);
+  // Het spectrum van dit beeldje (de analyser van de WebAudio-kaart) en het verschil met het
+  // beeldje ervoor: daar herkennen we de aanslag aan, ook als de vorige snaar nog doorklinkt.
+  analyser.getByteFrequencyData(RT.beeld);
   var secondePerTel = 60 / RT.bpm;
   rtTekenTellen(Math.floor((ctx.currentTime - RT.gridStart) / secondePerTel));
-  if (RT.teller % 2 === 0) {
-    var sterkte = reken ? (reken.energieVan(blok)[0] || 0) : 0;
-    rtNiveau(sterkte);
-    if (reken) {
-      var startTijd = ctx.currentTime - RT.buffer.length / ctx.sampleRate;
-      var gevonden = reken.slagenVan(RT.buffer, ctx.sampleRate);
-      gevonden.forEach(function (slag) {
-        var tijd = startTijd + slag.tijd;
-        // Alleen nieuwe slagen: dichter dan de minimumafstand bij de vorige hoort erbij.
-        if (tijd > RT.laatsteSlag + reken.MIN_AFSTAND) {
-          RT.slagen.push(tijd);
-          RT.laatsteSlag = tijd;
-        }
-      });
-      // uitslagVan werkt met slagen die hun eigen tijdstip bij zich hebben ({ tijd: ... }).
-      var metTijd = RT.slagen.map(function (t) { return { tijd: t }; });
-      var uitslag = reken.uitslagVan(metTijd, { bpm: RT.bpm, maat: RT.maat, vanaf: RT.gridStart, goed: reken.GOED_MS });
-      rtToon(uitslag);
-      rtTekenSlagen(uitslag);
-      RT.uitslag = uitslag;
-    }
+  if (reken) {
+    RT.punten.push({ tijd: ctx.currentTime, flux: reken.fluxTussen(RT.beeld, RT.vorigBeeld) });
+    if (RT.punten.length > RT_PUNTEN_MAX) RT.punten.shift();
+    var gevonden = reken.slagenUitFlux(RT.punten);
+    gevonden.forEach(function (slag) {
+      // Dezelfde aanslag is in de beeldjes daarna nog te zien, met telkens een iets later tijdstip.
+      // Daarom ook tussen de beeldjes om de minimumafstand vragen: anders telt één slag als twee.
+      if (slag.tijd > RT.laatsteSlag + reken.MIN_AFSTAND) {
+        RT.slagen.push(slag.tijd);
+        RT.laatsteSlag = slag.tijd;
+      }
+    });
+    // uitslagVan werkt met slagen die hun eigen tijdstip bij zich hebben ({ tijd: ... }).
+    // De ijking gaat er hier af: een slag die de app vijftig milliseconden te laat hoort, telt bij
+    // een ijking van vijftig als precies op de maat.
+    var metTijd = RT.slagen.map(function (t) { return { tijd: t + RT.ijk / 1000 }; });
+    var uitslag = reken.uitslagVan(metTijd, { bpm: RT.bpm, maat: RT.maat, vanaf: RT.gridStart, goed: reken.GOED_MS });
+    rtToon(uitslag);
+    rtTekenSlagen(uitslag);
+    RT.uitslag = uitslag;
+    var ijkKnop = $('rt-ijk');
+    if (ijkKnop) ijkKnop.disabled = !uitslag.aantal;
   }
+  // Voor de niveaubalk kijken we naar de sterkte in de tijd: dat zegt of er geluid is.
+  if (RT.teller % 2 === 0) {
+    var blok = new Float32Array(analyser.fftSize);
+    analyser.getFloatTimeDomainData(blok);
+    rtNiveau(reken ? (reken.energieVan(blok)[0] || 0) : 0);
+  }
+  RT.vorigBeeld = Uint8Array.from(RT.beeld);
   RT.teller++;
   RT.timer = requestAnimationFrame(rtLoop);
+}
+
+// De ijking zetten: het gemiddelde van deze sessie eraf. Zo blijft over wat jij zelf doet.
+function rtZetIJking() {
+  var uitslag = RT.uitslag;
+  if (!uitslag || !uitslag.aantal) {
+    toonMelding('rt-melding', 'Sla eerst een aantal slagen mee; dan weet ik wat de vertraging van je toestel is.', 'fout');
+    return;
+  }
+  RT.ijk = RT.ijk - uitslag.gemiddelde;
+  RT.slagen = [];
+  RT.laatsteSlag = 0;
+  rtIJkStand();
+  toonMelding('rt-melding', 'Geijkt: ' + (RT.ijk > 0 ? '+' : '') + RT.ijk +
+    ' milliseconden gaan er van elke slag af. Sla weer mee om het te zien.', '');
+}
+
+function rtWisIJking() {
+  RT.ijk = 0;
+  rtIJkStand();
+  toonMelding('rt-melding', 'De ijking is weg: de app vergelijkt je slagen weer met de tik zoals hij ze hoort.', '');
+}
+
+function rtIJkStand() {
+  var el = $('rt-ijk-stand');
+  if (!el) return;
+  el.textContent = RT.ijk
+    ? 'Geijkt: ' + (RT.ijk > 0 ? '+' : '') + RT.ijk + ' milliseconden van elke slag af.'
+    : 'Geen ijking: de app vergelijkt je slagen met de tik zoals hij ze hoort.';
+  var wis = $('rt-ijk-wis');
+  if (wis) wis.disabled = !RT.ijk;
+  var zet = $('rt-ijk');
+  if (zet) zet.disabled = !RT.ijk && !(RT.uitslag && RT.uitslag.aantal);
 }
 
 function stopRt() {
@@ -6954,6 +7011,9 @@ function laadLeren() {
   $('rt-tellen').innerHTML = '<span data-tel="1">1</span><span data-tel="2">2</span><span data-tel="3">3</span><span data-tel="4">4</span>';
   $('rt-start').addEventListener('click', startRt);
   $('rt-stop').addEventListener('click', stopRt);
+  $('rt-ijk').addEventListener('click', rtZetIJking);
+  $('rt-ijk-wis').addEventListener('click', rtWisIJking);
+  rtIJkStand();
   // Toonladders op de hals
   if (laadLadderKeuzes()) {
     tekenLadder();

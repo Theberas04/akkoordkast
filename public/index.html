@@ -1282,6 +1282,7 @@
 </div>
 
 <script src="/lib/metronoom.js"></script>
+<script src="/lib/lessen-uitgebreid.js"></script>
 <script>
 'use strict';
 var staat = {
@@ -4889,7 +4890,7 @@ var LESSEN = [
 
   // --------------------------------------------------------------- ritme ---
   {
-    deel: 'Ritme',
+    deel: 'Ritme en slag',
     titel: 'Slagritme met de rechterhand',
     kort: 'Niet tokkelen maar slaan, op de maat',
     doel: 'Je kunt gelijkmatig aanslaan en het patroon D DU UDU spelen.',
@@ -4902,7 +4903,7 @@ var LESSEN = [
     knop: { tekst: 'Naar de slagpatronen', naar: 'ritme', set: null }
   },
   {
-    deel: 'Ritme',
+    deel: 'Ritme en slag',
     titel: 'Maatsoort en meetellen',
     kort: 'Vier tellen, drie tellen of zes achtsten',
     doel: 'Je hoort of een liedje in 4/4, 3/4 of 6/8 staat en telt het goed mee.',
@@ -4915,7 +4916,7 @@ var LESSEN = [
     knop: { tekst: 'Naar de slagpatronen', naar: 'ritme', set: null }
   },
   {
-    deel: 'Ritme',
+    deel: 'Tokkelen',
     titel: 'Tokkelen met je vingers',
     kort: 'Rustig liedjes begeleiden zonder plectrum',
     doel: 'Je kunt een liedje tokkelen met duim en vingers.',
@@ -4925,10 +4926,10 @@ var LESSEN = [
       'Tokkelen klinkt intiemer dan slaan en is makkelijker om zachtjes te doen. Zet de metronoom op 60 en laat elke toon even lang klinken.'
     ],
     oefening: 'Start de tik op 60 bpm en tokkel patroon p i m a over een C-akkoord, vier maten lang.',
-    knop: { tekst: 'Naar het tokkeelpatroon', naar: 'ritme', set: null }
+    knop: { tekst: 'Naar het tokkelpatroon', naar: 'ritme', set: null }
   },
   {
-    deel: 'Ritme',
+    deel: 'Ritme en slag',
     titel: 'Tempo vasthouden zonder metronoom',
     kort: 'Gelijkmatig spelen als de tik uitgaat',
     doel: 'Je houdt je eigen tempo vast zonder dat je hoeft mee te tikken.',
@@ -4941,7 +4942,7 @@ var LESSEN = [
     knop: { tekst: 'Oefen C · G · Am · F op 64 bpm', naar: 'trainer', set: 'C G Am F', tempo: 64, maten: 2 }
   },
   {
-    deel: 'Ritme',
+    deel: 'Ritme en slag',
     titel: 'Dynamiek: hard en zacht',
     kort: 'Met zachter en harder spelen vertel je het liedje',
     doel: 'Je kunt in één liedje van zacht naar hard en terug.',
@@ -4956,7 +4957,7 @@ var LESSEN = [
 
   // ----------------------------------------------------------- verdiepen ---
   {
-    deel: 'Verdiepen',
+    deel: 'Ritme en slag',
     titel: 'Maatsoort en meespelen met een liedje',
     kort: 'Van oefening naar een echt liedje',
     doel: 'Je kunt een liedje uit de app helemaal meespelen.',
@@ -5060,7 +5061,7 @@ var LESSEN = [
     knop: { tekst: 'Naar de liedjes', naar: 'liedjes', set: null }
   },
   {
-    deel: 'Verdiepen',
+    deel: 'Onderhoud en volhouden',
     titel: 'Onderhoud van je gitaar',
     kort: 'Nieuwe snaren, stemming en een rechte hals',
     doel: 'Je weet wanneer je snaren aan vervanging toe zijn en waar je op moet letten.',
@@ -5073,7 +5074,7 @@ var LESSEN = [
     knop: { tekst: 'Naar het stemmen', naar: 'stemmen', set: null }
   },
   {
-    deel: 'Verdiepen',
+    deel: 'Onderhoud en volhouden',
     titel: 'Een oefenplan dat je volhoudt',
     kort: 'Tien minuten per dag, zo ingedeeld',
     doel: 'Je hebt een vast oefenplan en weet wat je moet doen als je vastloopt.',
@@ -5086,6 +5087,18 @@ var LESSEN = [
     knop: { tekst: 'Trainer op 40 bpm', naar: 'trainer', set: 'C G Am F', tempo: 40, maten: 2 }
   }
 ];
+// De lessen van de latere delen staan in /lib/lessen-uitgebreid.js. Ze komen er hier bij, en alles
+// wordt op de volgorde van de delen van de cursus gezet, zodat elk deel één groep in de lijst is.
+var DELEN_VOLGORDE = ['Beginnen', 'Akkoorden', 'Ritme en slag', 'Tokkelen', 'Toonladders en theorie',
+  'Verdiepen', 'Samenspelen en optreden', 'Onderhoud en volhouden'];
+if (window.LESSEN_UITGEBREID && window.LESSEN_UITGEBREID.length) {
+  LESSEN = LESSEN.concat(window.LESSEN_UITGEBREID);
+  LESSEN.sort(function (a, b) {
+    return DELEN_VOLGORDE.indexOf(a.deel) - DELEN_VOLGORDE.indexOf(b.deel);
+  });
+}
+
+// Waar een lesknop naartoe kan springen
 
 function toonLeerVoortgang(stand) {
   stand = stand || leerStand();
@@ -5100,6 +5113,33 @@ function toonLeerVoortgang(stand) {
         stand.oefeningen + ' oefeningen · ' + stand.wissels + ' akkoordwissels getraind';
     }
   }
+}
+
+// Waar een lesknop naartoe kan springen: welk tabblad en welk vak. Zo hoeft een les alleen
+// 'naar' te zeggen en hoeft de les niets te weten van hoe de app in elkaar zit. De vakken van
+// het speelscherm (capo, hals, metronoom) bestaan pas als er een liedje open is; is dat niet zo,
+// dan stuurt de knop je naar de liedjeslijst met de hint dat je eerst een liedje opent.
+var LES_SPRONG = {
+  grepen: { tab: 'leren', id: 'leren-grepen' },
+  gehoor: { tab: 'leren', id: 'gehoor-kaart' },
+  week: { tab: 'leren', id: 'oefen-weken' },
+  setlist: { tab: 'liedjes', id: 'setlist-kaart' },
+  overgangen: { tab: 'liedjes', id: 'setlist-overgangen' },
+  capo: { tab: 'spelen', id: 'capo-rij' },
+  meespelen: { tab: 'spelen', id: 'mees-hals' },
+  spelen: { tab: 'spelen', id: 'metronoom-rij' }
+};
+var SPELEN_SPRONG = { metronoom: 'metronoom-rij', begeleiding: 'metronoom-rij', hals: 'mees-hals' };
+
+// Een lesknop brengt je naar het onderdeel toe. Niet meteen het vak in het midden zetten: zo'n
+// onderdeel (de grepen, de gehoor-trainer) is vaak hoger dan het scherm, en dan zou je middenin
+// vallen met de kop erboven. Daarom het vak net onder de bovenkant van het scherm zetten.
+function springNaar(id) {
+  var el = $(id);
+  if (!el) return false;
+  var top = el.getBoundingClientRect().top + window.scrollY - 80;
+  window.scrollTo(0, top < 0 ? 0 : top);
+  return true;
 }
 
 function tekenLessen() {
@@ -5158,6 +5198,22 @@ function tekenLessen() {
         $('filter-moeilijkheid').value = '2';
         laadLiedjes(true);
         $('zoek').focus();
+      } else if (LES_SPRONG[les.knop.naar]) {
+        var doel = LES_SPRONG[les.knop.naar];
+        var naarId = doel.id;
+        if (les.knop.naar === 'spelen' && les.knop.set) naarId = SPELEN_SPRONG[les.knop.set] || naarId;
+        if (doel.tab === 'spelen' && !$(naarId)) {
+          // Dit onderdeel zit in het speelscherm, en dat is er pas als er een liedje open is.
+          toonTab('liedjes');
+          toonMelding('lijst-melding', 'Open eerst een liedje; dan vind je dit onderdeel in het speelscherm.', '');
+          $('zoek').focus();
+        } else {
+          toonTab(doel.tab);
+          springNaar(naarId);
+          // Het tabblad Leren tekent zijn lijst opnieuw; daarna staat het vak op een andere plek.
+          // Daarom nog één keer springen als de pagina klaar is met tekenen.
+          setTimeout(function () { springNaar(naarId); }, 200);
+        }
       }
     });
   });

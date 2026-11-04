@@ -3,6 +3,31 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.9.0] — 4 november 2026
+
+### Nieuw
+
+- **De cursus gaat van 26 naar 110 lessen, in acht delen.** Waar de cursus ophield bij de eerste
+  akkoorden, gaat hij nu door tot samenspelen en optreden: *Beginnen* (10), *Akkoorden* (16),
+  *Ritme en slag* (18), *Tokkelen* (17), *Toonladders en theorie* (15), *Verdiepen* (14),
+  *Samenspelen en optreden* (10) en *Onderhoud en volhouden* (10). Elke les heeft een doel, de uitleg
+  in drie of vier alinea's, één concrete oefening met tijd en tempo, en waar het past een knop naar
+  het onderdeel van de app dat erbij hoort: grepen en akkoordenboek, de akkoordentrainer, de
+  gehoor-trainer, de weekplanning, de overgangen van een setlist, het capo-advies, meespelen of de
+  metronoom.
+- De Leren-tab groepeert de lessen per deel met een teller per deel ("7 van 16 gedaan") en per les
+  een afvinkje dat per profiel bewaard blijft, zodat je ziet waar je gebleven bent.
+- De vervolgdelen staan in een eigen bestand (`lib/lessen-uitgebreid.js`); de eerste lessen blijven
+  in de pagina staan. De app voegt ze samen en zet alles op de volgorde van de delen.
+
+### Veranderd
+
+- Vier bestaande lessen staan nu in het deel waar ze horen: *Tokkelen met je vingers* bij Tokkelen,
+  *Maatsoort en meespelen met een liedje* bij Ritme en slag, en *Onderhoud van je gitaar* en *Een
+  oefenplan dat je volhoudt* bij Onderhoud en volhouden.
+- De handleiding noemt het adres van de app (`je eigen adres van de app`) in plaats van een
+  voorbeeld met een IP-nummer, en zegt dat de camera en de microfoon daar werken.
+
 ## [1.8.0] — 4 november 2026
 
 ### Nieuw

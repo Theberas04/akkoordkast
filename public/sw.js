@@ -1,8 +1,8 @@
 'use strict';
 // Service worker: alleen de app-schil cachen. /api/ en /media/ blijven altijd live,
 // zodat liedjes, audio en cast-status nooit uit een oude cache komen.
-const CACHE = 'akkoordkast-v37';
-const SCHIL = ['/', '/index.html', '/favicon.svg', '/manifest.webmanifest', '/icon-192.png'];
+const CACHE = 'akkoordkast-v38';
+const SCHIL = ['/', '/index.html', '/favicon.svg', '/manifest.webmanifest', '/icon-192.png', '/lib/lessen-uitgebreid.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SCHIL)).then(() => self.skipWaiting()));

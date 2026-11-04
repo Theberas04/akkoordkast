@@ -419,13 +419,39 @@ test('de leermodus staat in de pagina: leslijst, trainer, stemmen, ritme en grep
     'trein-stats', 'stem-rij', 'ritme-rij', 'ritme-start', 'ritme-stop', 'ritme-tellen', 'ritme-uitleg', 'leren-grepen']) {
     assert.ok(html.includes('id="' + id + '"'), 'id ontbreekt in de leermodus: ' + id);
   }
-  // vierentwintig lessen of meer, in vier delen, met alle onderdelen per les
+  // De cursus: de eerste lessen staan in de pagina, de vervolgdelen in /lib/lessen-uitgebreid.js.
   assert.match(html, /var LESSEN = \[/);
   const lessen = html.match(/titel: '[^']+',\s*\n\s*kort:/g) || [];
-  assert.ok(lessen.length >= 24, 'verwacht minstens vierentwintig lessen, gevonden: ' + lessen.length);
-  const delen = [...html.matchAll(/deel: '([^']+)'/g)].map(m => m[1]);
-  assert.deepEqual([...new Set(delen)], ['Beginnen', 'Akkoorden', 'Ritme', 'Verdiepen']);
-  assert.equal(delen.length, lessen.length, 'elke les hoort bij een deel');
+  assert.ok(lessen.length >= 24, 'verwacht minstens vierentwintig lessen in de pagina, gevonden: ' + lessen.length);
+  const vervolgBron = fs.readFileSync(path.join(__dirname, '..', 'lib', 'lessen-uitgebreid.js'), 'utf8');
+  const vervolg = JSON.parse(vervolgBron.slice(vervolgBron.indexOf('['), vervolgBron.lastIndexOf(']') + 1));
+  assert.ok(vervolg.length >= 84, 'verwacht minstens vierentwintig lessen in de vervolgdelen, gevonden: ' + vervolg.length);
+  const delen = [...html.matchAll(/deel: '([^']+)'/g)].map(m => m[1]).concat(vervolg.map(l => l.deel));
+  assert.deepEqual([...new Set(delen)].sort(), ['Akkoorden', 'Beginnen', 'Onderhoud en volhouden', 'Ritme en slag',
+    'Samenspelen en optreden', 'Tokkelen', 'Toonladders en theorie', 'Verdiepen']);
+  const blok = html.slice(html.indexOf('var LESSEN = ['), html.indexOf('// De lessen van de latere delen'));
+  assert.equal([...blok.matchAll(/deel: '/g)].length, lessen.length, 'elke les in de pagina hoort bij een deel');
+  // Elke les in de vervolgdelen heeft de onderdelen, en elke knop wijst naar iets dat de app kent.
+  const naar = ['trainer', 'stemmen', 'ritme', 'liedjes', 'grepen', 'gehoor', 'week', 'setlist',
+    'overgangen', 'capo', 'meespelen', 'spelen'];
+  let knoppen = 0;
+  for (const les of vervolg) {
+    for (const veld of ['deel', 'titel', 'kort', 'doel', 'tekst', 'oefening']) {
+      assert.ok(les[veld], les.titel + ': ' + veld + ' ontbreekt');
+    }
+    assert.ok(Array.isArray(les.tekst) && les.tekst.length >= 3, les.titel + ': te weinig uitleg');
+    if (les.knop) {
+      knoppen++;
+      assert.ok(naar.includes(les.knop.naar), les.titel + ': onbekende knop ' + les.knop.naar);
+      assert.ok(les.knop.tekst, les.titel + ': knop zonder tekst');
+    }
+  }
+  assert.ok(knoppen >= 60, 'verwacht veel lesknoppen, gevonden: ' + knoppen);
+  // De app zet de twee lijsten op de volgorde van de delen, en elk deel wordt één groep met teller.
+  assert.match(html, /var DELEN_VOLGORDE = \[/);
+  assert.match(html, /window\.LESSEN_UITGEBREID && window\.LESSEN_UITGEBREID\.length/);
+  assert.match(html, /<script src="\/lib\/lessen-uitgebreid\.js"><\/script>/);
+  assert.match(html, /var LES_SPRONG = \{/);
   for (const woord of ['doel:', 'tekst: [', 'oefening:', 'knop: {']) {
     assert.ok(html.includes(woord), 'lesonderdeel ontbreekt: ' + woord);
   }

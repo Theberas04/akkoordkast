@@ -297,24 +297,57 @@ aan. De app zelf levert alleen de akkoordenreeks, de grepen en de capo-adviezen.
 
 ## Gitaar leren spelen
 
-In het tabblad **Leren** zit een cursus van **zesentwintig lessen in vier delen**. Elke les heeft een
-doel, uitleg in gewone taal en één oefening die je meteen in de app doet. Je voortgang (lessen,
-oefeningen en getrainde akkoordwissels) blijft in je eigen browser bewaard.
+In het tabblad **Leren** zit een cursus van **110 lessen in acht delen**. Elke les heeft een doel,
+uitleg in gewone taal, één oefening die je meteen in de app doet en waar het past een knop naar het
+onderdeel dat erbij hoort (grepen, akkoordenboek, akkoordentrainer, gehoor-trainer, weekplanning,
+overgangen, capo, metronoom of meespelen). Je voortgang (lessen, oefeningen en getrainde
+akkoordwissels) blijft in je eigen browser bewaard. De Leren-tab groepeert de lessen per deel, met
+per deel hoeveel je er al afgerond hebt.
 
-**Beginnen (5 lessen)** — de gitaar vasthouden en de zes snaren; stemmen; je eerste drie akkoorden
-(Em · Am · C); de houding van je linkerhand; opwarmen en vingeroefeningen.
+**Beginnen (10 lessen)** — de gitaar vasthouden en de zes snaren; stemmen; je eerste drie akkoorden
+(Em · Am · C); de houding van je linkerhand; opwarmen en vingeroefeningen; de plectrum en je
+rechterhand; wat je nodig hebt (en niet); in één minuut speelklaar; je eerste liedje van begin tot
+eind; oefenen met de app.
 
-**Akkoorden (6 lessen)** — C · G · D7 en leren wisselen; groot tegen klein horen; mineurakkoorden
+**Akkoorden (16 lessen)** — C · G · D7 en leren wisselen; groot tegen klein horen; mineurakkoorden
 (Am · Em · Dm · Bm); zevende akkoorden en waarom G7 naar C wil; barré-akkoorden F en Bm; en met één
-barrévorm akkoorden op elke fret pakken.
+barrévorm akkoorden op elke fret pakken. Daarna: de hele akkoordenfamilie binnen de 26 grepen,
+soepel wisselen met de overgangen-trainer, Bm en Bb in een liedje dat je kent, dempen en schoon
+grijpen, het akkoordenboek, maj7 en m7, dezelfde akkoorden in een andere greep, open snaren, akkoorden
+horen aankomen en spiergeheugen.
 
-**Ritme (5 lessen)** — slagritme met de rechterhand (D DU UDU); maatsoort en meetellen (4/4, 3/4, 6/8);
-tokkelen met je vingers; tempo vasthouden zonder metronoom; dynamiek, hard en zacht.
+**Ritme en slag (18 lessen)** — slagritme met de rechterhand (D DU UDU); maatsoort en meetellen
+(4/4, 3/4, 6/8); tokkelen met je vingers; tempo vasthouden zonder metronoom; dynamiek, hard en zacht;
+twee tellen tegen vier tellen; het standaardpatroon in stukjes; het wiegende gevoel van 6/8; shuffle
+en triolen; een bas op de tel; accenten; palm-dempen; zestienden en dubbele slagen; de wals; syncope;
+het patroon van een liedje herkennen; meespelen met de metronoom; en een liedje in twee tempi.
 
-**Verdiepen (10 lessen)** — een liedje helemaal meespelen; capo en toonsoort; transponeren naar jouw
+**Tokkelen (17 lessen)** — p‑i‑m‑a; de drieklanktokkel; het travispatroon; patronen per maatsoort;
+basloopjes tussen je akkoorden; tokkelen en zingen tegelijk; tokkelliedjes uit de app; je duim als
+metronoom; slag en tokkel afwisselen; hybride met een plectrum; arpeggio's; tokkelen in 3/4; toon
+maken met nagels en aanslag; tokkelen met demping; je eigen patroon maken; en tokkelen op de maat van
+een liedje uit de app.
+
+**Toonladders en theorie (15 lessen)** — noten op de hals; intervallen horen; de kwintencirkel;
+majeur en mineur; I‑IV‑V; de majeurtoonladder op één snaar; de mineurtoonladder; pentatonisch;
+akkoorden opbouwen uit een ladder; akkoordfuncties; transponeren; de capo als hulpmiddel; zelf een
+akkoordschema maken; je gehoor trainen; en je eerste solo met de pentatonische ladder.
+
+**Verdiepen (14 lessen)** — een liedje helemaal meespelen; capo en toonsoort; transponeren naar jouw
 stem; toonladders en waar akkoorden vandaan komen; zelf akkoorden kiezen bij een tekst; een liedje op
-gehoor uitzoeken; meespelen met een opname; jezelf terugluisteren; onderhoud van je gitaar; en een
-oefenplan van tien minuten per dag.
+gehoor uitzoeken; meespelen met een opname; jezelf terugluisteren; een liedje uitpluizen in stukjes;
+bladmuziek en tab lezen; de microfoon als leraar; vingervlugheid; ontspannen handen; warmspelen en
+oefenen met een timer.
+
+**Samenspelen en optreden (10 lessen)** — meespelen met een opname; een liedje instuderen in stappen;
+wie doet wat als je samen speelt; optreden met setlist, podiummodus en aftellen; opnemen en
+terugluisteren; fouten herstellen tijdens het spelen; omgaan met zenuwen; een optreden van een half
+uur samenstellen; meezingen en spelen tegelijk; en een medespeler bijhouden.
+
+**Onderhoud en volhouden (10 lessen)** — snaren vervangen; schoonmaken en vochtigheid; stemsleutels
+en intonatie; elke dag tien minuten; je voortgang bijhouden; een oefenplan van twaalf weken; een
+liedjesboek samenstellen; verder leren zonder leraar; onderhoud van je gitaar; en een oefenplan dat
+je volhoudt.
 
 Daarnaast staat in hetzelfde tabblad:
 

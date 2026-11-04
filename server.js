@@ -34,7 +34,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.4';
+const VERSIE = '1.5';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -338,10 +338,17 @@ function profielLijst() {
 // ontbrekend valt terug op het eerste profiel. Zo blijft een oude bladwijzer werken.
 function profielVan(req, query) {
   const gevraagd = Number((req && req.headers && req.headers['x-profiel']) || (query && query.get('profiel')) || 0);
+  const baas = beheerProfiel();
+  // Het beheerdersprofiel zit achter het wachtwoord. Zonder beheerderssessie doen we alsof er om
+  // een gewoon profiel is gevraagd, zodat niemand in andermans beheerdersprofiel kan rondkijken
+  // (favorieten, geschiedenis) door simpelweg om die profiel-id te vragen.
+  const afgesloten = (id) => !!baas && Number(id) === Number(baas.id) && !isBeheerder(req);
   if (gevraagd) {
     const rij = db.prepare('SELECT id FROM profielen WHERE id = ?').get(gevraagd);
-    if (rij) return rij.id;
+    if (rij && !afgesloten(rij.id)) return rij.id;
   }
+  const gewoon = db.prepare('SELECT id FROM profielen WHERE is_beheer = 0 ORDER BY id LIMIT 1').get();
+  if (gewoon) return Number(gewoon.id);
   const eerste = db.prepare('SELECT MIN(id) AS id FROM profielen').get();
   return Number(eerste && eerste.id) || 1;
 }

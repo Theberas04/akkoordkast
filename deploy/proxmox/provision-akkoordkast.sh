@@ -86,6 +86,7 @@ PAGINA=(
   "public/handleiding/img/muziekmap-klaar.png"
   "public/handleiding/img/oefenen-per-week.png"
   "public/handleiding/img/profiel-admin.png"
+  "public/handleiding/img/profiel-slot.png"
   "public/handleiding/img/profiel-gewoon.png"
   "public/handleiding/img/setlist-overgangen.png"
   "public/handleiding/img/spelen-desktop.png"

@@ -186,10 +186,15 @@ Het toevoeggereedschap zit in een **eigen profiel** (`Admin`), niet in je gewone
 | Back-up, wachter, bijwerken, Spotify-sleutels | beheerder |
 
 Het tabblad **Toevoegen** bestaat alleen in het profiel `Admin` (in de profielkiezer staat het als
-*Admin · beheerder*); in andere profielen is het er niet, zodat daar alleen staat waar je mee speelt
-en leert. Het beheerdersprofiel kan niet worden verwijderd. Ernaast geldt het wachtwoord: zonder
-inloggen kun je in Admin rondkijken maar niets toevoegen. De eerste keer stel je daar een wachtwoord
-in (minstens acht tekens); je bent daarna meteen ingelogd. Je blijft negentig dagen ingelogd per apparaat. Na tien foute pogingen
+*Admin · beheerder*, met een slotje zolang je niet bent ingelogd); in andere profielen is het er
+niet, zodat daar alleen staat waar je mee speelt en leert. Het beheerdersprofiel kan niet worden
+verwijderd.
+
+**Het profiel zelf zit achter het wachtwoord.** Kies je Admin, dan vraagt de app eerst om het
+wachtwoord en pas daarna gaat dat profiel open; bij een verse installatie kies je het daar meteen
+(minstens acht tekens). Ook de serverkant is dicht: zonder beheerderssessie valt een verzoek om het
+beheerdersprofiel terug op een gewoon profiel, dus ook met een zelfgemaakt verzoek kom je er niet
+in. Uitloggen zet het profiel weer op slot en brengt de app terug naar een gewoon profiel. Je blijft negentig dagen ingelogd per apparaat. Na tien foute pogingen
 binnen een kwartier weigert de app het even.
 
 Het wachtwoord zelf wordt nooit bewaard: er staat alleen een scrypt-afdruk met een eigen zout in de
@@ -762,7 +767,7 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 174 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+node --test test/*.test.js          # 176 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
                                     # setlists, akkoordenboek, de wachter en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL

@@ -3,6 +3,25 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.5.0] — 4 november 2026
+
+### Nieuw
+
+- **Het beheerdersprofiel zit achter het wachtwoord.** Kies je in de profielkiezer *Admin *
+  beheerder*, dan vraagt de app eerst om het beheerderswachtwoord (met een kaartje over het scherm);
+  pas daarna wordt dat profiel het actieve profiel en verschijnt het gereedschap. Annuleren of een
+  fout wachtwoord laat je gewoon in je eigen profiel, en het beheerdersprofiel blijft dan dicht. Op
+  een verse installatie kies je het wachtwoord in datzelfde kaartje.
+- In de profielkiezer staat het beheerdersprofiel met een slotje zolang je niet bent ingelogd.
+- Uitloggen zet het profiel weer op slot en brengt de app terug naar een gewoon profiel.
+
+### Veranderd
+
+- Ook de serverkant is dicht: zonder beheerderssessie valt een verzoek om het beheerdersprofiel
+  terug op een gewoon profiel. Wie de profiel-id raadt, komt er dus ook niet in — hij ziet zijn eigen
+  favorieten en geschiedenis, geen die van de beheerder.
+- De app-cache naar v38.
+
 ## [1.4.0] — 4 november 2026
 
 ### Nieuw

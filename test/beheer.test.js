@@ -3,6 +3,8 @@
 // (zoeken, spelen, leren, je eigen favorieten) blijven voor iedereen werken.
 const test = require('node:test');
 const assert = require('node:assert');
+const fs = require('node:fs');
+const path = require('node:path');
 const { start, haal, post, alsBeheerder } = require('./hulp');
 const beheer = require('../lib/beheer');
 
@@ -155,4 +157,43 @@ test('het gereedschap hoort bij het beheerdersprofiel en niet bij je gewone prof
   } finally {
     await omgeving.stop();
   }
+});
+
+test('het beheerdersprofiel komt niet in beeld zonder het wachtwoord', async () => {
+  const omgeving = await start();
+  try {
+    const profielen = await haal(omgeving.basis, '/api/profielen');
+    const baas = profielen.data.profielen.find(p => p.beheer);
+    const gewoon = profielen.data.profielen.find(p => !p.beheer);
+
+    // Zonder inloggen: ook al vraag je met zoveel woorden om Admin, je krijgt een gewoon profiel.
+    const zonder = await haal(omgeving.basis, '/api/persoonlijk', { headers: { 'x-profiel': String(baas.id) } });
+    assert.equal(zonder.data.profiel, gewoon.id, 'zonder wachtwoord val je terug op een gewoon profiel');
+    const lijstZonder = await haal(omgeving.basis, '/api/profielen', { headers: { 'x-profiel': String(baas.id) } });
+    assert.equal(lijstZonder.data.actief, gewoon.id);
+
+    // En met het wachtwoord mag het wel.
+    const ingelogd = await alsBeheerder(omgeving.basis);
+    const met = await ingelogd.haal('/api/persoonlijk');
+    assert.equal(met.data.profiel, baas.id, 'ingelogd kom je wél in het beheerdersprofiel');
+  } finally {
+    await omgeving.stop();
+  }
+});
+
+test('het beheerdersprofiel zit achter een wachtwoordkaartje in de pagina', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  for (const id of ['profiel-slot', 'slot-kop', 'slot-wachtwoord', 'slot-herhaal', 'slot-inloggen', 'slot-annuleren']) {
+    assert.ok(html.includes('id="' + id + '"'), 'id ontbreekt: ' + id);
+  }
+  assert.match(html, /function slotOpen\(doel\)/);
+  assert.match(html, /function slotInloggen\(\)/);
+  assert.match(html, /function sluitBeheerProfiel\(\)/);
+  assert.match(html, /p\.beheer && !BEHEER\.ingelogd/, 'het slotje hoort in de profielkiezer');
+  assert.match(html, /if \(profiel && profiel\.beheer && !BEHEER\.ingelogd\)/, 'het slot hoort vóór het wisselen');
+  // Het kaartje moet vóór het script staan dat de knoppen koppelt; anders bestaat het nog niet als
+  // de pagina het script uitvoert en valt de hele app om.
+  const kaart = html.indexOf('id="profiel-slot"');
+  const script = html.indexOf('<script>\n');
+  assert.ok(kaart > 0 && script > 0 && kaart < script, 'het kaartje hoort vóór het grote script te staan');
 });

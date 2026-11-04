@@ -655,7 +655,14 @@
   .week-staaf span{background:linear-gradient(90deg,var(--amber),var(--groen))}
   .week-naam{font-size:.79rem;color:var(--tekst2)}
 
-  /* Iets helemaal weglaten (het tabblad Toevoegen in een gewoon profiel). */
+  /* Het beheerdersprofiel zit achter het wachtwoord: dit kaartje vraagt erom. */
+.slot{display:none;position:fixed;inset:0;background:rgba(9,11,17,.74);z-index:60;align-items:center;justify-content:center;padding:18px}
+.slot.aan{display:flex}
+.slot-kaart{max-width:420px;width:100%;border:1px solid var(--rand);border-radius:16px;padding:20px 20px 16px;background:var(--kaart);box-shadow:0 24px 60px rgba(0,0,0,.45)}
+.slot-kaart h3{margin:0 0 6px;font-size:1.05rem}
+.slot-kaart .knop{margin-top:10px;margin-right:8px}
+
+/* Iets helemaal weglaten (het tabblad Toevoegen in een gewoon profiel). */
 .weg{display:none !important}
 
 /* Zonder beheerderslogin zie je in het tabblad Toevoegen alleen de inlogkaart. */
@@ -1190,6 +1197,26 @@
   <div id="boek-inhoud"></div>
 </section>
 
+<div id="profiel-slot" class="slot" role="dialog" aria-modal="true" aria-labelledby="slot-kop">
+  <div class="slot-kaart">
+    <h3 id="slot-kop">Het beheerdersprofiel is afgeschermd</h3>
+    <p class="meta">Vul het beheerderswachtwoord in om dit profiel te openen. Zonder dat wachtwoord
+      blijft het profiel dicht en zie je alleen je gewone profielen.</p>
+    <label for="slot-wachtwoord" id="slot-wachtwoord-label">Wachtwoord</label>
+    <input id="slot-wachtwoord" type="password" autocomplete="current-password"
+           placeholder="Het wachtwoord van de beheerder">
+    <div id="slot-herhaal-vak" hidden>
+      <label for="slot-herhaal">Nog een keer</label>
+      <input id="slot-herhaal" type="password" autocomplete="new-password" placeholder="Hetzelfde wachtwoord">
+    </div>
+    <div id="slot-melding" class="melding fout" hidden></div>
+    <div>
+      <button id="slot-inloggen" class="knop">Profiel openen</button>
+      <button id="slot-annuleren" class="knop stil">Annuleren</button>
+    </div>
+  </div>
+</div>
+
 <script src="/lib/metronoom.js"></script>
 <script>
 'use strict';
@@ -1450,13 +1477,39 @@ $('filter-wis').addEventListener('click', function () {
   laadLiedjes(true);
 });
 // Van profiel wisselen: alles wat bij een profiel hoort verversen.
-$('profiel-kies').addEventListener('change', function () {
-  zetActiefProfiel($('profiel-kies').value);
+function wisselProfiel(id) {
+  zetActiefProfiel(id);
+  tekenProfielOpties();
   beheerProfielWissel();
   laadLabels();
   laadLiedjes(true);
   laadOefencijfers();
   if (staat.liedje) openLiedje(staat.liedje.id);
+}
+
+$('profiel-kies').addEventListener('change', function () {
+  var gekozen = Number(this.value);
+  var profiel = staat.profielen.filter(function (p) { return p.id === gekozen; })[0];
+  // Het beheerdersprofiel gaat pas open met het wachtwoord.
+  if (profiel && profiel.beheer && !BEHEER.ingelogd) {
+    slotOpen(gekozen);
+    return;
+  }
+  wisselProfiel(gekozen);
+});
+$('slot-inloggen').addEventListener('click', slotInloggen);
+$('slot-annuleren').addEventListener('click', function () {
+  // Terug naar het profiel waar je stond: het beheerdersprofiel blijft dicht.
+  var terug = actiefProfiel();
+  tekenProfielOpties();
+  if (terug) $('profiel-kies').value = String(terug);
+  slotDicht();
+});
+$('slot-wachtwoord').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') slotInloggen();
+});
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && $('profiel-slot').classList.contains('aan')) $('slot-annuleren').click();
 });
 $('profiel-nieuw').addEventListener('click', function () {
   var naam = window.prompt('Naam van het nieuwe profiel (bijvoorbeeld de naam van wie meespeelt):');
@@ -5177,9 +5230,95 @@ function beheerProfielWissel() {
   return isBaas;
 }
 
+// Het beheerdersprofiel zit achter het wachtwoord: wie het in de profielkiezer kiest, krijgt
+// eerst dit kaartje. Pas met het goede wachtwoord wordt dat profiel het actieve profiel.
+var SLOT = { doel: 0, bezig: false };
+
+function slotMelding(tekst) {
+  var m = $('slot-melding');
+  if (!m) return;
+  m.textContent = tekst || '';
+  m.hidden = !tekst;
+}
+
+function slotOpen(doel) {
+  SLOT.doel = Number(doel);
+  slotMelding('');
+  $('profiel-slot').classList.add('aan');
+  $('slot-wachtwoord').value = '';
+  $('slot-herhaal').value = '';
+  // Is er nog geen wachtwoord, dan kies je het hier meteen (de eerste keer).
+  var eersteKeer = !BEHEER.ingesteld;
+  $('slot-herhaal-vak').hidden = !eersteKeer;
+  $('slot-kop').textContent = eersteKeer
+    ? 'Kies het beheerderswachtwoord'
+    : 'Het beheerdersprofiel is afgeschermd';
+  $('slot-wachtwoord-label').textContent = eersteKeer
+    ? 'Nieuw wachtwoord (minstens acht tekens)' : 'Wachtwoord';
+  $('slot-inloggen').textContent = eersteKeer ? 'Wachtwoord instellen en openen' : 'Profiel openen';
+  setTimeout(function () { var v = $('slot-wachtwoord'); if (v) v.focus(); }, 60);
+  // De kiezer blijft staan waar hij stond: het profiel is nog niet van jou.
+  tekenProfielOpties();
+}
+
+function slotDicht() {
+  SLOT.doel = 0;
+  var vak = $('profiel-slot');
+  if (vak) vak.classList.remove('aan');
+  slotMelding('');
+  tekenProfielOpties();
+}
+
+function slotInloggen() {
+  if (SLOT.bezig || !SLOT.doel) return;
+  var wachtwoord = $('slot-wachtwoord').value;
+  if (!wachtwoord) { slotMelding('Vul het wachtwoord in.'); return; }
+  var eersteKeer = !BEHEER.ingesteld;
+  if (eersteKeer && $('slot-herhaal').value !== wachtwoord) {
+    slotMelding('De twee wachtwoorden zijn niet gelijk.');
+    return;
+  }
+  SLOT.bezig = true;
+  $('slot-inloggen').textContent = 'Bezig...';
+  api(eersteKeer ? '/api/beheer/wachtwoord' : '/api/beheer/inloggen', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ wachtwoord: wachtwoord })
+  }).then(function () {
+    SLOT.bezig = false;
+    $('slot-inloggen').textContent = 'Profiel openen';
+    BEHEER.ingelogd = true;
+    BEHEER.ingesteld = true;
+    var doel = SLOT.doel;
+    slotDicht();
+    wisselProfiel(doel);          // nu mag het: het profiel gaat open
+    tekenBeheer();
+    toonMelding('beheer-melding', 'Je bent ingelogd als beheerder.', 'goed');
+  }).catch(function (fout) {
+    SLOT.bezig = false;
+    $('slot-inloggen').textContent = 'Profiel openen';
+    slotMelding(fout.message || 'Dat wachtwoord klopt niet.');
+    $('slot-wachtwoord').select();
+  });
+}
+
+// Uitgelogd: het beheerdersprofiel gaat weer op slot, dus terug naar een gewoon profiel.
+function sluitBeheerProfiel() {
+  BEHEER.ingelogd = false;
+  var baasProfiel = staat.profielen.filter(function (p) { return p.beheer; })[0];
+  if (baasProfiel && Number(actiefProfiel()) === Number(baasProfiel.id)) {
+    var gewoon = staat.profielen.filter(function (p) { return !p.beheer; })[0];
+    if (gewoon) { wisselProfiel(gewoon.id); return; }
+  }
+  tekenProfielOpties();
+  beheerProfielWissel();
+}
+
 function beheerVraag() {
   return api('/api/beheer').then(function (d) {
     BEHEER = d || BEHEER;
+    tekenProfielOpties();
+    beheerProfielWissel();
     tekenBeheer();
     return BEHEER;
   }).catch(function () { return BEHEER; });
@@ -5198,7 +5337,8 @@ function tekenBeheer() {
       '<div id="beheer-extra"></div>';
     $('beheer-uit').addEventListener('click', function () {
       api('/api/beheer/uitloggen', { method: 'POST' }).then(function () {
-        toonMelding('beheer-melding', 'Je bent uitgelogd. Muziek toevoegen kan nu niet meer.', 'goed');
+        toonMelding('beheer-melding', 'Je bent uitgelogd; het beheerdersprofiel zit weer op slot.', 'goed');
+        sluitBeheerProfiel();
         return beheerVraag();
       });
     });
@@ -5271,12 +5411,22 @@ function laadProfielen() {
     var actief = actiefProfiel();
     if (!staat.profielen.some(function (p) { return p.id === actief; })) actief = data.actief || staat.profielen[0].id;
     zetActiefProfiel(actief);
-    sel.innerHTML = staat.profielen.map(function (p) {
-      return '<option value="' + p.id + '"' + (p.id === actief ? ' selected' : '') + '>' + esc(p.naam) +
-        (p.beheer ? ' · beheerder' : '') + '</option>';
-    }).join('');
+    tekenProfielOpties();
     beheerProfielWissel();
   }).catch(function () {});
+}
+
+// De keuzelijst met profielen vullen. Het beheerdersprofiel staat er met een slotje bij zolang je
+// niet bent ingelogd — dan vraag je meteen om het wachtwoord als je het kiest.
+function tekenProfielOpties() {
+  var sel = $('profiel-kies');
+  if (!sel) return;
+  var actief = actiefProfiel();
+  sel.innerHTML = staat.profielen.map(function (p) {
+    var naam = p.naam + (p.beheer ? ' · beheerder' : '');
+    if (p.beheer && !BEHEER.ingelogd) naam += ' \ud83d\udd12';
+    return '<option value="' + p.id + '"' + (p.id === actief ? ' selected' : '') + '>' + esc(naam) + '</option>';
+  }).join('');
 }
 
 // De labels van dit profiel in het filter zetten.

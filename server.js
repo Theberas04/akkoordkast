@@ -35,7 +35,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.17.2';
+const VERSIE = '1.18.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -1664,6 +1664,85 @@ function ophaalMappenLijst() {
   voegToe(NOOD_DIR);
   voegToe(MEDIA_DIR);
   return uit.filter(isMap);
+}
+
+// --- Bladmuziek uit de muziek halen voor alle liedjes tegelijk ------------------------------
+// Een opgehaald nummer heeft de muziek er vaak wel bij, maar nog geen akkoorden. Eén liedje kan de
+// beheerder met de hand uit de muziek laten halen; deze ronde doet hetzelfde voor alle liedjes die
+// muziek hebben en nog geen akkoorden, met een teller zodat je ziet hoever het is.
+const OPNAME_RONDE = {
+  loopt: false, totaal: 0, gedaan: 0, gelukt: 0, mislukt: 0,
+  nu: '', gestart: '', klaar: false, laatsteFout: ''
+};
+
+function heeftAkkoordenInTekst(chordpro) {
+  return /\[[A-G][#b]?[^\]]*\]/.test(String(chordpro || ''));
+}
+
+// Welke eigen liedjes hebben muziek maar nog geen akkoorden? Liedjes waar de akkoorden al in de
+// tekst staan (zelf ingevoerd) blijven ongemoeid: die zijn al klaar.
+function opnameKandidaten() {
+  const rijen = db.prepare('SELECT id, titel, artiest, chordpro, akkoorden_per_maat FROM liedjes ORDER BY id').all();
+  const uit = [];
+  for (const rij of rijen) {
+    if (heeftAkkoordenInTekst(rij.chordpro)) continue;
+    const perMaat = String(rij.akkoorden_per_maat || '').trim();
+    if (perMaat && perMaat !== '[]' && perMaat !== 'null') continue;
+    const muziek = muziekVanLiedje(rij.id);
+    if (!muziek || !muziek.bestaat) continue;
+    uit.push({
+      id: EIGEN_START + Number(rij.id), titel: String(rij.titel || ''),
+      artiest: String(rij.artiest || ''), pad: muziek.pad
+    });
+  }
+  return uit;
+}
+
+// De akkoorden uit de analyse vastleggen. Geeft de herkende akkoorden terug (leeg = niets herkend).
+function zetOpnameAkkoorden(lied, uitslag) {
+  const schoon = (uitslag.akkoordenPerMaat || []).filter(Boolean);
+  if (!schoon.length) return [];
+  db.prepare('UPDATE liedjes SET akkoorden_per_maat = ?, toonsoort = ?, tempo = ?, maatsoort = ? WHERE id = ?')
+    .run(JSON.stringify(uitslag.akkoordenPerMaat), uitslag.toonsoort || lied.toonsoort || '',
+      Math.max(40, Math.min(200, parseInt(uitslag.tempo, 10) || lied.tempo || 84)),
+      Math.max(2, Math.min(12, parseInt(uitslag.maatsoort, 10) || lied.maatsoort || 4)),
+      Number(lied.id) - EIGEN_START);
+  FILTERS.versie = (FILTERS.versie || 0) + 1;
+  return schoon;
+}
+
+// De ronde: één liedje per keer, met een kleine pauze ertussen, zodat de app bruikbaar blijft.
+function startOpnameRonde() {
+  if (OPNAME_RONDE.loopt) return OPNAME_RONDE;
+  const kandidaten = opnameKandidaten();
+  Object.assign(OPNAME_RONDE, {
+    loopt: kandidaten.length > 0, totaal: kandidaten.length, gedaan: 0, gelukt: 0, mislukt: 0,
+    nu: '', gestart: new Date().toISOString(), klaar: kandidaten.length === 0, laatsteFout: ''
+  });
+  if (!kandidaten.length) return OPNAME_RONDE;
+  let i = 0;
+  const volgende = () => {
+    if (i >= kandidaten.length) {
+      OPNAME_RONDE.loopt = false; OPNAME_RONDE.nu = ''; OPNAME_RONDE.klaar = true;
+      console.log('bladmuziek uit de muziek: ' + OPNAME_RONDE.gelukt + ' van ' + OPNAME_RONDE.totaal + ' gelukt' +
+        (OPNAME_RONDE.laatsteFout ? ' (laatste fout: ' + OPNAME_RONDE.laatsteFout + ')' : ''));
+      return;
+    }
+    const kand = kandidaten[i++];
+    OPNAME_RONDE.nu = kand.titel;
+    let gelukt = false;
+    try {
+      const lied = vindLiedje(kand.id) || { id: kand.id };
+      gelukt = zetOpnameAkkoorden(lied, analyseerUpload(kand.pad, {})).length > 0;
+    } catch (e) {
+      OPNAME_RONDE.laatsteFout = kand.titel + ': ' + e.message;
+    }
+    OPNAME_RONDE.gedaan += 1;
+    if (gelukt) OPNAME_RONDE.gelukt += 1; else OPNAME_RONDE.mislukt += 1;
+    setTimeout(volgende, 40);
+  };
+  setTimeout(volgende, 20);
+  return OPNAME_RONDE;
 }
 
 function eigenRijen() {
@@ -3461,6 +3540,29 @@ async function verwerk(req, res) {
 
   // De akkoorden uit de muziek zelf halen (tempo, toonaard, akkoord per maat). Dit rekent even, dus
   // het gebeurt als de gebruiker er zelf om vraagt — niet automatisch bij elke download.
+  // --- bladmuziek uit de muziek halen voor alle liedjes tegelijk (beheerder) ---
+  if (pad === '/api/opname-scan' && methode === 'GET') {
+    if (!isBeheerder(req)) { json(res, 403, { fout: 'Dit hoort bij het beheerdersprofiel (Admin). Kies dat profiel en log daar in.' }); return; }
+    const kandidaten = opnameKandidaten();
+    json(res, 200, {
+      aantal: kandidaten.length,
+      voorbeelden: kandidaten.slice(0, 8).map(k => ({ id: k.id, titel: k.titel, artiest: k.artiest })),
+      ronde: OPNAME_RONDE
+    });
+    return;
+  }
+  if (pad === '/api/opname-alles' && methode === 'POST') {
+    if (!isBeheerder(req)) { json(res, 403, { fout: 'Dit hoort bij het beheerdersprofiel (Admin). Kies dat profiel en log daar in.' }); return; }
+    const ronde = startOpnameRonde();
+    json(res, 200, { ok: true, gestart: ronde.loopt, totaal: ronde.totaal, ronde });
+    return;
+  }
+  if (pad === '/api/opname-stand' && methode === 'GET') {
+    if (!isBeheerder(req)) { json(res, 403, { fout: 'Dit hoort bij het beheerdersprofiel (Admin). Kies dat profiel en log daar in.' }); return; }
+    json(res, 200, OPNAME_RONDE);
+    return;
+  }
+
   let bm = pad.match(/^\/api\/liedjes\/(\d+)\/bladmuziek$/);
   if (bm && methode === 'POST') {
     if (!isBeheerder(req)) { json(res, 403, { fout: 'Dit hoort bij het beheerdersprofiel (Admin). Kies dat profiel en probeer het opnieuw.' }); return; }

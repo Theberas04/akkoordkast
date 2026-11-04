@@ -834,6 +834,19 @@ De beheerder kan liedjes ophalen, de gegevens aanpassen en opruimen:
 
 ![Zonder beheerder is dit er niet](docs/img/gegevens-geen-beheerder.png)
 
+### Bladmuziek uit de muziek halen voor alle liedjes
+
+Een opgehaald nummer heeft de muziek er vaak wel bij, maar nog geen akkoorden — en dan tekent de app een
+voorstel-schema. Bij één liedje kon je de akkoorden al uit de opname laten halen; in het tabblad Toevoegen
+staat nu een kaart die dat voor **alle** liedjes tegelijk doet: eerst kijken hoeveel liedjes muziek hebben
+zonder akkoorden, dan met één knop de hele ronde, met een teller ernaast. Eén liedje per keer, met een korte
+pauze ertussen, zodat de app bruikbaar blijft.
+
+De akkoorden komen uit de opname zelf (tempo, toonaard en één akkoord per maat), krijgen bron `opname` en de
+kaart zegt erbij dat ze automatisch zijn: controleer ze en pas ze aan waar nodig. Liedjes waar de akkoorden
+al in de tekst staan blijven ongemoeid, en de app haalt niets van websites — wat er in de opname zit, is wat
+je zelf hebt.
+
 Opruimen kijkt eerst wat er te vinden is en ruimt dan pas op:
 
 ![Opruimen in de beheerder](docs/img/opruimen-kijken.png)

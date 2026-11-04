@@ -3,6 +3,21 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.18.0] — 4 november 2026
+
+### Nieuw
+
+- **Bladmuziek uit de muziek halen voor alle liedjes tegelijk.** Een opgehaald nummer heeft de muziek er
+  vaak wel bij (bij de 144 Kensington-nummers in de app: 128) maar nog geen akkoorden; die kregen tot nu
+  een voorstel-schema. Per liedje kon de beheerder ze al uit de opname laten halen, één voor één. In het
+  tabblad Toevoegen staat nu een kaart *Bladmuziek uit de muziek halen voor alle liedjes*: eerst kijken
+  hoeveel liedjes muziek hebben zonder akkoorden, dan met één knop de hele ronde, met een teller (gedaan /
+  totaal, en welk liedje nu). De akkoorden komen uit de opname zelf, krijgen bron `opname` en de kaart zegt
+  erbij dat ze automatisch zijn en gecontroleerd moeten worden.
+- Liedjes waar de akkoorden **al in de tekst** staan (zelf ingevoerd) blijven ongemoeid: die zijn al klaar.
+- De ronde draait één liedje per keer met een korte pauze, zodat de app bruikbaar blijft, en is alleen voor
+  de beheerder (de drie adressen weigeren zonder beheerderssessie).
+
 ## [1.17.2] — 4 november 2026
 
 ### Nieuw

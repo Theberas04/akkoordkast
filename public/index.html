@@ -1316,6 +1316,20 @@
       <div class="melding" id="weg-melding" hidden></div>
     </div>
 
+    <div class="kaart" id="opname-kaart">
+      <h3>Bladmuziek uit de muziek halen voor alle liedjes</h3>
+      <p class="meta">Een opgehaald nummer heeft de muziek er vaak wel bij, maar nog geen akkoorden. De app kan
+        het tempo, de toonaard en de akkoorden per maat uit de opname halen. Bij één liedje kan dat al; met deze
+        knop doet hij alle liedjes die muziek hebben en nog geen akkoorden.</p>
+      <div class="rij" style="margin:8px 0">
+        <button class="knop zacht" id="opname-kijk">Kijk welke liedjes muziek hebben zonder akkoorden</button>
+        <button class="knop" id="opname-begin" hidden>Begin</button>
+      </div>
+      <div id="opname-melding"></div>
+      <p class="meta">De akkoorden komen uit de opname zelf en zijn een benadering: controleer ze en pas ze aan
+        waar nodig. De app haalt geen akkoorden van websites.</p>
+    </div>
+
     <div class="kaart" id="opruimen-kaart">
       <h2>Opruimen</h2>
       <p class="melding">Kijk eerst wat er op te ruimen valt; er gebeurt niets voordat je op een knop
@@ -2202,6 +2216,7 @@ laadBackup();
 laadWeken();
 koppelBeheerKaarten();
 koppelGegevensKaart();
+koppelOpnameKaart();
 koppelOpruimKaart();
 tabUitAdres();
 
@@ -4768,6 +4783,62 @@ function koppelGegevensKaart() {
       laadLiedjes();
       if (staat.liedje && staat.liedje.id === gekozen.id) openLiedje(d.id);
     }).catch(function (e) { toonMelding('geg-melding', e.message, 'fout'); });
+  });
+}
+
+// --- bladmuziek uit de muziek halen voor alle liedjes tegelijk (beheerder) ---
+function koppelOpnameKaart() {
+  if (!$('opname-kijk')) return;
+
+  function toonStand(r) {
+    if (!r) return;
+    if (r.loopt) {
+      toonMelding('opname-melding', 'Bezig: ' + r.gedaan + ' van ' + r.totaal + ' \u2014 nu: ' + (r.nu || '\u2026'), '');
+    } else if (r.totaal) {
+      toonMelding('opname-melding', 'Klaar: bij ' + r.gelukt + ' van ' + r.totaal + ' liedje(s) zijn de akkoorden uit de ' +
+        'muziek gehaald' + (r.mislukt ? '; bij ' + r.mislukt + ' lukte dat niet (daar blijft het voorstel staan)' : '') +
+        '. Controleer ze gerust.', '');
+    }
+  }
+
+  function kijk() {
+    fetch('/api/opname-scan', { headers: { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d) { toonMelding('opname-melding', 'De app kon niet kijken welke liedjes het nog niet hebben.', 'fout'); return; }
+        if (!d.aantal) {
+          $('opname-begin').hidden = true;
+          toonMelding('opname-melding', 'Er is niets te doen: elk liedje met muziek heeft al akkoorden.', '');
+          return;
+        }
+        $('opname-begin').hidden = false;
+        $('opname-begin').textContent = 'Haal de akkoorden uit ' + d.aantal + ' liedje(s)';
+        toonMelding('opname-melding', d.aantal + ' liedje(s) hebben muziek maar nog geen akkoorden. Bijvoorbeeld: ' +
+          d.voorbeelden.map(function (x) { return x.titel; }).join(', ') + '.', '');
+      });
+  }
+
+  $('opname-kijk').addEventListener('click', kijk);
+
+  $('opname-begin').addEventListener('click', function () {
+    $('opname-begin').disabled = true;
+    fetch('/api/opname-alles', { method: 'POST', headers: { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d) { toonMelding('opname-melding', 'De app kon niet beginnen.', 'fout'); return; }
+        var volg = function () {
+          fetch('/api/opname-stand', { headers: { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' } })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (s) {
+              toonStand(s);
+              if (s && s.loopt) { setTimeout(volg, 1500); return; }
+              $('opname-begin').disabled = false;
+              laadLiedjes();
+              kijk();
+            });
+        };
+        volg();
+      });
   });
 }
 

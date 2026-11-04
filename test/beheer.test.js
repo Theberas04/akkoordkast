@@ -5,7 +5,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
-const { start, haal, post, alsBeheerder } = require('./hulp');
+const { start, haal, post, alsBeheerder, zetHandleiding } = require('./hulp');
 const beheer = require('../lib/beheer');
 
 test('een wachtwoord wordt nooit bewaard, alleen een afdruk die je kunt controleren', () => {
@@ -51,7 +51,9 @@ test('zonder inloggen kan niemand muziek of liedjes toevoegen', async () => {
       assert.match(uit.data.fout, /beheerder/i);
     }
 
-    // Leeswerk blijft open: liedjes zoeken, een liedje openen, de handleiding.
+    // Leeswerk blijft open: liedjes zoeken, een liedje openen, de handleiding (die uit de
+    // gegevensmap komt; hij zit niet meer in het repo).
+    zetHandleiding(omgeving.wortel);
     const eersteLied = (await haal(omgeving.basis, '/api/liedjes?aantal=1')).data.liedjes[0];
     for (const pad of ['/api/liedjes?aantal=1', '/api/liedjes/' + eersteLied.id, '/api/beheer', '/handleiding/']) {
       const uit = await haal(omgeving.basis, pad);

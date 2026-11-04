@@ -5,7 +5,7 @@ const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
-const { start, haal, post, alsBeheerder } = require('./hulp');
+const { start, haal, post, alsBeheerder, zetHandleiding } = require('./hulp');
 
 let omgeving;
 // De beheerder: alles wat iets toevoegt, gebeurt met dit account (net als in de browser, waar
@@ -592,10 +592,14 @@ test('de pagina heeft de filters voor genre en artiest', () => {
   assert.match(html, /\$\('filter-artiest'\)\.value = ''/);
 });
 
-test('de handleiding is in de app te openen, met de beelden erbij', async () => {
-  // De handleiding staat als pagina in de app zelf, zodat je hem ook zonder internet kunt lezen.
+test('de handleiding is in de app te openen uit de gegevensmap, en zit niet in het repo', async () => {
+  // De handleiding zit niet meer in het repo (die houd je voor jezelf) maar in de gegevensmap, waar de
+  // app hem als eerste zoekt. Zo leest hij hem in de app, zonder dat hij openbaar te vinden is.
+  assert.equal(fs.existsSync(path.join(__dirname, '..', 'public', 'handleiding')), false,
+    'de handleiding hoort niet meer in het repo te staan');
   const omgeving = await start();
   try {
+    zetHandleiding(omgeving.wortel);
     const pagina = await haal(omgeving.basis, '/handleiding/');
     assert.equal(pagina.status, 200, 'de handleiding hoort te openen op /handleiding/');
     assert.match(pagina.data, /AkkoordKast — handleiding/);

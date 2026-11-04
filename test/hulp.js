@@ -79,4 +79,18 @@ async function alsBeheerder(basis, wachtwoord = 'proefwachtwoord') {
   };
 }
 
-module.exports = { start, haal, post, maakOmgeving, alsBeheerder };
+// De handleiding hoort niet meer in het repo maar in de gegevensmap. Een proef die hem wil
+// openen zet hier een klein exemplaar neer (met een beeld erbij), zoals de bijwerker dat doet.
+function zetHandleiding(wortel) {
+  const map = path.join(wortel, 'handleiding');
+  fs.mkdirSync(path.join(map, 'img'), { recursive: true });
+  fs.writeFileSync(path.join(map, 'index.html'),
+    '<!doctype html><meta charset="utf-8"><title>AkkoordKast — handleiding</title>' +
+    '<h1>AkkoordKast — handleiding</h1><h2>Meespelen met muziek</h2>' +
+    '<img src="img/spelen-desktop.png" alt="Spelen">', 'utf8');
+  fs.writeFileSync(path.join(map, 'img', 'spelen-desktop.png'), Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64'));
+  return map;
+}
+
+module.exports = { start, haal, post, maakOmgeving, alsBeheerder, zetHandleiding };

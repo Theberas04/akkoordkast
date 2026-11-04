@@ -88,3 +88,23 @@ test('gegevens aanpassen hoort bij de beheerder, en een lege titel wordt geweige
     await omgeving.stop();
   }
 });
+
+// Wat iets toevoegt of verandert hoort alleen de beheerder te kunnen: het staat in de app zelf
+// achter het beheerdersprofiel, en de server weigert het zonder beheerderssessie.
+test('de pagina toont het beheerderswerk alleen als de beheerder is ingelogd', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+
+  // De knop om akkoorden uit de muziek te halen staat achter de beheerderscontrole.
+  const knop = html.slice(html.indexOf('id="bladmuziek-haal"') - 260, html.indexOf('id="bladmuziek-haal"'));
+  assert.match(knop, /BEHEER\.ingelogd/, 'de bladmuziek-knop hoort alleen voor de beheerder te verschijnen');
+
+  // De kaart met de gegevens van een liedje zit in het Toevoegen-paneel, dat zonder beheerderssessie
+  // helemaal dicht staat.
+  const kaart = html.indexOf('id="gegevens-kaart"');
+  const paneel = html.lastIndexOf('id="paneel-toevoegen"', kaart);
+  assert.ok(paneel > -1 && paneel < kaart, 'de kaart hoort in het Toevoegen-paneel te staan');
+  assert.match(html, /#paneel-toevoegen:not\(\.beheer\) > \.kaart:not\(#beheer-poort\)\{display:none\}/,
+    'het Toevoegen-paneel hoort zonder beheerder dicht te staan');
+});

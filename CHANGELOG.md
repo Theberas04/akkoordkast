@@ -3,6 +3,16 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.15.1] — 4 november 2026
+
+### Veranderd
+
+- **Wat iets toevoegt of verandert is nu ook in de app zelf alleen voor de beheerder te zien.** De knop
+  *Bladmuziek uit de muziek halen* stond bij elk liedje met muziek, ook bij een gewoon profiel; die
+  hoort alleen bij de beheerder. De server weigerde het al zonder beheerderssessie, maar nu is de knop
+  er ook niet meer voor anderen. Samen met de kaart *Gegevens van een liedje aanpassen* (die al achter
+  het beheerdersprofiel zat) is daarmee alles wat iets wijzigt beheerderswerk.
+
 ## [1.15.0] — 4 november 2026
 
 ### Nieuw

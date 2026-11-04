@@ -2707,7 +2707,7 @@ function tekenLiedje(l) {
       '<div class="spotify-speler" id="spotify-speler"></div>' +
 
       '<h3>Begeleiding</h3>' +
-      (l.heeftMuziek
+      ((typeof BEHEER !== 'undefined' && BEHEER.ingelogd && l.heeftMuziek)
         ? '<div class="rij" style="margin:8px 0"><button class="knop zacht" id="bladmuziek-haal">Bladmuziek uit de muziek halen</button>' +
           '<span class="meta" id="bladmuziek-stand">De app leest de opname uit en haalt er het tempo, de toonaard en de akkoorden uit.</span></div>'
         : '') +

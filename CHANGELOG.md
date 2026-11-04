@@ -3,6 +3,25 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.17.0] — 4 november 2026
+
+### Nieuw
+
+- **Je eigen bladmuziek bij een liedje.** In de kaart van een liedje staat nu het onderdeel
+  *Bladmuziek* (alleen voor de beheerder): zet je eigen foto of PDF van het nummer erbij — gekocht,
+  gekregen of zelf uitgeschreven. De app bewaart hem in je eigen map (`media/bladmuziek`) en toont hem
+  in de kaart; bij een foto zie je hem meteen, bij een PDF staat er een knop om hem te openen. Weghalen
+  kan ook, en een nieuw blad vervangt het oude.
+- **Nieuwe routes** `POST`, `GET` en `DELETE /api/liedjes/<id>/eigen-blad` (beheerder), met een
+  maximum van 40 MB en alleen png, jpg, webp, gif of PDF.
+
+### Waarom dit de eerlijke weg is
+
+De verzameling zelf houdt zich aan **publiek domein**: er komt geen akkoordschema van een website in
+voor muziek die nog auteursrechtelijk beschermd is. Voor een nummer als dat van Kensington is er dus
+geen bladmuziek om over te nemen — maar heb je zelf het blad, dan kun je het hier aan het liedje
+hangen. Dat blijft in jouw eigen app en gaat nergens naartoe.
+
 ## [1.16.0] — 4 november 2026
 
 ### Nieuw

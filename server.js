@@ -35,7 +35,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.16.0';
+const VERSIE = '1.17.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -655,6 +655,7 @@ function weergave(lied, opties) {
     // 'bron' = de akkoorden komen uit het liedje zelf, 'voorstel' = de app stelt ze voor omdat het
     // liedje er geen had; de app laat dat verschil zien.
     akkoordenBron: (lied.akkoordenBron === 'opname') ? 'opname' : (bron.voorstel ? 'voorstel' : 'bron'),
+    bladmuziek: (opties && opties.volledig) ? bladmuziekVanLiedje(lied.id) : null,
     akkoordenReeks: reeks,
     model,
     heeftMelodie: !!(lied.noten && lied.noten.length),
@@ -1571,6 +1572,39 @@ function maakLiedjeVanDownload(bestand, titel, url) {
   // Meteen kijken of dit liedje al in de eigen bibliotheek staat (dan komt er echte bladmuziek bij).
   zoekBladmuziekInBibliotheek(nieuwId);
   return nieuwId;
+}
+
+// ---- Bladmuziek bij een liedje: je eigen blad (foto of PDF) -------------------------------
+// De verzameling zelf bevat alleen liedjes waarvan de akkoorden uit publiek domein komen. Voor een
+// liedje waarvoor je zelf de bladmuziek hebt (gekocht, gekregen, of zelf uitgeschreven) kun je hier
+// je eigen blad bij het liedje zetten. Dat blijft in jouw eigen app: er gaat niets naar buiten en
+// er wordt niets van een website overgenomen.
+const BLADM_DIR = path.join(MEDIA_DIR, 'bladmuziek');
+const BLADM_SOORTEN = {
+  'image/png': '.png', 'image/jpeg': '.jpg', 'image/webp': '.webp', 'image/gif': '.gif',
+  'application/pdf': '.pdf'
+};
+
+function bladmuziekTabel() {
+  db.exec('CREATE TABLE IF NOT EXISTS liedje_bladmuziek (liedje_id INTEGER PRIMARY KEY, bestand TEXT NOT NULL, ' +
+    "soort TEXT NOT NULL DEFAULT '', titel TEXT NOT NULL DEFAULT '', wanneer TEXT NOT NULL DEFAULT '')");
+}
+
+function bladmuziekVanLiedje(liedjeId) {
+  try {
+    bladmuziekTabel();
+    const rij = db.prepare('SELECT bestand, soort, titel, wanneer FROM liedje_bladmuziek WHERE liedje_id = ?')
+      .get(Number(liedjeId) || 0);
+    if (!rij || !rij.bestand) return null;
+    let bestaat = false;
+    try { bestaat = fs.statSync(path.join(BLADM_DIR, String(rij.bestand))).isFile(); } catch (e) { bestaat = false; }
+    return {
+      bestand: String(rij.bestand), soort: String(rij.soort || ''), titel: String(rij.titel || ''),
+      wanneer: String(rij.wanneer || ''), bestaat,
+      isPdf: String(rij.soort || '') === 'application/pdf',
+      url: '/api/liedjes/' + Number(liedjeId) + '/eigen-blad'
+    };
+  } catch (e) { return null; }
 }
 
 // Van een meegeleverd liedje een eigen kopie maken. Met `vervang` kunnen meteen andere gegevens
@@ -3473,7 +3507,7 @@ async function verwerk(req, res) {
     const persoon = persoonlijk(profielId);
     const antwoord = weergave(lied, {
       transpose: query.get('transpose'), capoStand: query.get('capo'),
-      beheer: isBeheerder(req), beheerProfiel: isBeheerProfiel(req, query)
+      beheer: isBeheerder(req), beheerProfiel: isBeheerProfiel(req, query), volledig: true
     });
     const nummer = Number(m[1]);
     antwoord.favoriet = persoon.favorieten.includes(nummer);
@@ -3517,6 +3551,71 @@ async function verwerk(req, res) {
   }
 
   // --- opname uploaden ---
+  // Je eigen bladmuziek bij een liedje: een foto of een PDF.
+  const bladmMatch = pad.match(/^\/api\/liedjes\/(\d+)\/eigen-blad$/);
+  if (bladmMatch && methode === 'POST') {
+    if (!eisBeheerder()) return;
+    const lied = vindLiedje(bladmMatch[1]);
+    if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    const soort = String(req.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+    const ext = BLADM_SOORTEN[soort];
+    if (!ext) {
+      json(res, 400, { fout: 'Stuur een foto (png, jpg, webp of gif) of een PDF van je bladmuziek.' });
+      return;
+    }
+    let buffer;
+    try {
+      buffer = await leesBody(req, 40 * 1024 * 1024);
+    } catch (e) {
+      json(res, 400, { fout: 'Dit bestand is groter dan 40 MB.' });
+      return;
+    }
+    if (!buffer.length) { json(res, 400, { fout: 'Het bestand is leeg.' }); return; }
+    fs.mkdirSync(BLADM_DIR, { recursive: true });
+    bladmuziekTabel();
+    // Een eerder blad weghalen, zodat er niets blijft slingeren.
+    const oud = bladmuziekVanLiedje(lied.id);
+    if (oud && oud.bestand) {
+      try { fs.unlinkSync(path.join(BLADM_DIR, oud.bestand)); } catch (e) { /* laat staan */ }
+    }
+    let naamKop = String(req.headers['x-bestandsnaam'] || 'bladmuziek');
+    try { naamKop = decodeURIComponent(naamKop); } catch (e) { /* laat staan */ }
+    const bestand = Number(lied.id) + '-' + Date.now() + ext;
+    fs.writeFileSync(path.join(BLADM_DIR, bestand), buffer);
+    db.prepare('INSERT INTO liedje_bladmuziek (liedje_id, bestand, soort, titel, wanneer) VALUES (?,?,?,?,?) ' +
+      'ON CONFLICT(liedje_id) DO UPDATE SET bestand = excluded.bestand, soort = excluded.soort, ' +
+      'titel = excluded.titel, wanneer = excluded.wanneer')
+      .run(Number(lied.id), bestand, soort, veiligeNaam(naamKop).slice(0, 120), new Date().toISOString());
+    json(res, 200, {
+      ok: true, bladmuziek: bladmuziekVanLiedje(lied.id),
+      bericht: 'Je bladmuziek staat bij dit liedje. Hij blijft in je eigen app.'
+    });
+    return;
+  }
+  if (bladmMatch && methode === 'GET') {
+    if (!eisBeheerder()) return;
+    const info = bladmuziekVanLiedje(bladmMatch[1]);
+    if (!info || !info.bestaat) { json(res, 404, { fout: 'Geen bladmuziek bij dit liedje.' }); return; }
+    res.writeHead(200, {
+      'content-type': info.soort || 'application/octet-stream',
+      'cache-control': 'no-store',
+      'content-disposition': 'inline; filename="' + info.bestand + '"'
+    });
+    fs.createReadStream(path.join(BLADM_DIR, info.bestand)).pipe(res);
+    return;
+  }
+  if (bladmMatch && methode === 'DELETE') {
+    if (!eisBeheerder()) return;
+    const info = bladmuziekVanLiedje(bladmMatch[1]);
+    if (info && info.bestand) {
+      try { fs.unlinkSync(path.join(BLADM_DIR, info.bestand)); } catch (e) { /* laat staan */ }
+    }
+    bladmuziekTabel();
+    db.prepare('DELETE FROM liedje_bladmuziek WHERE liedje_id = ?').run(Number(bladmMatch[1]));
+    json(res, 200, { ok: true });
+    return;
+  }
+
   const uploadMatch = pad.match(/^\/api\/liedjes\/(\d+)\/audio$/);
   if (uploadMatch && methode === 'POST') {
     const n = Number(uploadMatch[1]);

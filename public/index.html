@@ -2724,6 +2724,24 @@ function tekenLiedje(l) {
       '</div>' +
       '<div class="melding" id="spotify-melding" hidden></div>' +
       '<div id="spotify-resultaten"></div>' +
+      ((typeof BEHEER !== 'undefined' && BEHEER.ingelogd)
+        ? ('<h3>Bladmuziek</h3>' +
+          '<p class="melding">De app zelf werkt alleen met liedjes waarvan de akkoorden uit publiek domein komen. ' +
+            'Heb je van dít liedje zelf de bladmuziek — gekocht, gekregen, of zelf uitgeschreven — dan kun je die hier ' +
+            'bewaren. Hij blijft in je eigen app; er gaat niets naar buiten en er wordt niets van een website overgenomen.</p>' +
+          (l.bladmuziek && l.bladmuziek.bestaat
+            ? ('<div class="rij" style="flex-wrap:wrap;align-items:flex-start">' +
+              (l.bladmuziek.isPdf
+                ? '<button class="knop zacht" id="bladmuziek-open">Open de PDF</button>'
+                : '<a href="' + l.bladmuziek.url + '" target="_blank" rel="noopener" title="Groter bekijken">' +
+                  '<img data-bladmuziek-url="' + l.bladmuziek.url + '" alt="Jouw bladmuziek" style="max-height:220px;max-width:100%;border:1px solid #2c3a4a;border-radius:6px;background:#fff"></a>') +
+              '<button class="knop mini zacht" id="bladmuziek-weg">Weghalen</button>' +
+              '<span class="meta">' + (l.bladmuziek.titel ? esc(l.bladmuziek.titel) : 'eigen blad') + '</span></div>')
+            : ('<div class="rij"><input id="bladmuziek-bestand" type="file" accept="image/*,.pdf,application/pdf">' +
+              '<button class="knop mini zacht" id="bladmuziek-zet">Opslaan</button>' +
+              '<span class="meta">foto of PDF, tot 40 MB</span></div>' +
+              '<div class="melding" id="bladmuziek-melding" hidden></div>')))
+        : '') +
       '<div class="spotify-speler" id="spotify-speler"></div>' +
 
       '<h3>Begeleiding</h3>' +
@@ -2904,6 +2922,64 @@ function tekenLiedje(l) {
       if (id) openLiedje(Number(id));
     });
   }
+  // De foto van je eigen bladmuziek met de beheerderssessie ophalen en tonen (een gewone <img>
+  // stuurt geen profiel mee, en daar hangt het beheerdersrecht aan).
+  Array.prototype.forEach.call(document.querySelectorAll('[data-bladmuziek-url]'), function (beeld) {
+    var adres = beeld.getAttribute('data-bladmuziek-url');
+    fetch(adres, { headers: { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' } })
+      .then(function (r) { return r.ok ? r.blob() : null; })
+      .then(function (b) {
+        if (b) beeld.src = URL.createObjectURL(b);
+        else beeld.alt = 'Het blad kon niet geladen worden.';
+      })
+      .catch(function () { beeld.alt = 'Het blad kon niet geladen worden.'; });
+  });
+
+  if ($('bladmuziek-open')) {
+    $('bladmuziek-open').addEventListener('click', function () {
+      fetch(staat.liedje.bladmuziek.url, { headers: { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' } })
+        .then(function (r) { return r.ok ? r.blob() : null; })
+        .then(function (b) {
+          if (!b) { toonMelding('bladmuziek-melding', 'Het blad kon niet geladen worden.', 'fout'); return; }
+          var raam = window.open(URL.createObjectURL(b), '_blank');
+          if (raam) raam.focus();
+        });
+    });
+  }
+
+  // Je eigen bladmuziek (foto of PDF) bij dit liedje zetten of weghalen.
+  if ($('bladmuziek-zet')) {
+    $('bladmuziek-zet').addEventListener('click', function () {
+      var veld = $('bladmuziek-bestand');
+      if (!veld || !veld.files || !veld.files.length) { toonMelding('bladmuziek-melding', 'Kies eerst een foto of een PDF.', 'fout'); return; }
+      var bestand = veld.files[0];
+      if (bestand.size > 40 * 1024 * 1024) { toonMelding('bladmuziek-melding', 'Dit bestand is groter dan 40 MB.', 'fout'); return; }
+      toonMelding('bladmuziek-melding', 'Bezig…', '');
+      fetch('/api/liedjes/' + staat.liedje.id + '/eigen-blad', {
+        method: 'POST',
+        headers: {
+          'content-type': bestand.type || 'application/octet-stream',
+          'x-bestandsnaam': encodeURIComponent(bestand.name || 'bladmuziek'),
+          'x-profiel': String(actiefProfiel())
+        },
+        body: bestand
+      }).then(function (r) {
+        return r.json().then(function (d) { if (!r.ok) throw new Error(d.fout || 'opslaan mislukt'); return d; });
+      }).then(function (d) {
+        toonMelding('bladmuziek-melding', d.bericht || 'Opgeslagen.', 'goed');
+        openLiedje(staat.liedje.id);
+      }).catch(function (e) { toonMelding('bladmuziek-melding', e.message, 'fout'); });
+    });
+  }
+  if ($('bladmuziek-weg')) {
+    $('bladmuziek-weg').addEventListener('click', function () {
+      if (!window.confirm('Je eigen bladmuziek van dit liedje weghalen?')) return;
+      fetch('/api/liedjes/' + staat.liedje.id + '/eigen-blad', {
+        method: 'DELETE', headers: { 'x-profiel': String(actiefProfiel()) }
+      }).then(function (r) { return r.json(); }).then(function () { openLiedje(staat.liedje.id); });
+    });
+  }
+
   if ($('bladmuziek-haal')) {
     $('bladmuziek-haal').addEventListener('click', function () {
       var knop = $('bladmuziek-haal');

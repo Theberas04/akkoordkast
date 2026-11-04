@@ -188,6 +188,10 @@ Het toevoeggereedschap zit in een **eigen profiel** (`Admin`), niet in je gewone
 | Liedjes uit de app halen (eigen liedjes echt, meegeleverde verbergen) | beheerder |
 | Filters beheren: talen en genres toevoegen, weghalen en liedjes eraan koppelen | beheerder |
 
+**Je eigen bladmuziek.** In de kaart van een liedje kun je als beheerder je eigen foto of PDF van het
+nummer zetten (`media/bladmuziek`). De verzameling zelf blijft bij publiek domein; dit is jouw eigen
+materiaal en het blijft in je eigen app.
+
 **Opruimen.** In het beheerdersprofiel (tabblad Toevoegen) staat *Opruimen*: eerst kijken wat er te
 vinden is (dubbele liedjes, lege liedjes, verwijzingen naar muziek die er niet meer is, losse
 muziekbestanden, oude back-ups, verlopen sessies, verborgen liedjes), dan per soort opruimen. De

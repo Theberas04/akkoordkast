@@ -3,6 +3,29 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.3.0] — 4 november 2026
+
+### Nieuw
+
+- **Een beheerdersaccount voor alles wat toevoegt.** Zoeken, spelen, leren, casten en je eigen
+  profielen, favorieten, labels en setlists blijven voor iedereen; muziek uploaden, een link
+  omzetten naar mp3, een muziekmap laten omzetten, eigen liedjes bewerken, een opname uploaden, de
+  back-up, de wachter, de bijwerking en de Spotify-sleutels horen bij de beheerder. Het
+  wachtwoord wordt bewaard als scrypt-afdruk met een eigen zout (nooit als tekst), de sessie is een
+  HttpOnly-koekje van negentig dagen in de nieuwe tabel `sessies`, en na tien foute pogingen binnen
+  een kwartier houdt de app het even voor gezien.
+- De eerste keer stel je het wachtwoord in het tabblad Toevoegen in; je bent dan meteen ingelogd.
+  Zonder login zie je daar alleen de inlogkaart, en in het speelscherm alleen dat muziek toevoegen
+  beheerderswerk is.
+
+### Veranderd
+
+- **De handleiding gaat alleen nog over de app.** Wat installeren, koppelen en beheren betreft
+  staat nu in de README: welke mappen en bestanden waar staan, hoe je een NAS- of Drive-map
+  koppelt, en hoe je het beheerderswachtwoord wist als je het kwijt bent. Zo leest de handleiding
+  als een gebruiksaanwijzing in plaats van een installatiegids.
+- De app-cache naar v30.
+
 ## [1.2.0] — 4 november 2026
 
 ### Nieuw

@@ -35,6 +35,7 @@ function maakMuziekmap() {
 
 test('de muziekmap wordt gevonden, met onderliggende mappen en zonder onzin', async () => {
   const omgeving = await hulp.start();
+  const baas = await hulp.alsBeheerder(omgeving.basis);
   const map = maakMuziekmap();
   try {
     const uit = await hulp.haal(omgeving.basis, '/api/scan?map=' + encodeURIComponent(map));
@@ -56,11 +57,12 @@ test('de muziekmap wordt gevonden, met onderliggende mappen en zonder onzin', as
 
 test('een niet-bestaande map geeft een duidelijke uitleg', async () => {
   const omgeving = await hulp.start();
+  const baas = await hulp.alsBeheerder(omgeving.basis);
   try {
     const uit = await hulp.haal(omgeving.basis, '/api/scan?map=' + encodeURIComponent('/bestaat/niet/hier'));
     assert.equal(uit.status, 400);
     assert.match(uit.data.fout, /bestaat niet/);
-    const leeg = await hulp.post(omgeving.basis, '/api/scan', {});
+    const leeg = await baas.post('/api/scan', {});
     assert.equal(leeg.status, 400);
     assert.match(leeg.data.fout, /map/i);
   } finally {
@@ -70,6 +72,7 @@ test('een niet-bestaande map geeft een duidelijke uitleg', async () => {
 
 test('een hele map omzetten: herkennen, liedje maken, en niets twee keer doen', async () => {
   const omgeving = await hulp.start();
+  const baas = await hulp.alsBeheerder(omgeving.basis);
   const map = maakMuziekmap();
   try {
     // één voor één, zodat we het tussenrapport zien zoals de pagina dat ook doet
@@ -77,7 +80,7 @@ test('een hele map omzetten: herkennen, liedje maken, en niets twee keer doen', 
     let rondes = 0;
     const gemaakt = [];
     while (!klaar && rondes < 6) {
-      const uit = await hulp.post(omgeving.basis, '/api/scan', { map, limiet: 1 });
+      const uit = await baas.post('/api/scan', { map, limiet: 1 });
       assert.equal(uit.status, 201, JSON.stringify(uit.data));
       assert.equal(uit.data.gedaan, 1);
       assert.equal(uit.data.mislukt, 0, JSON.stringify(uit.data.fouten));
@@ -112,7 +115,7 @@ test('een hele map omzetten: herkennen, liedje maken, en niets twee keer doen', 
     assert.match(lied.data.tekstVan, /Amazing Grace \(\d+\)/);
 
     // een tweede ronde doet niets meer
-    const nog = await hulp.post(omgeving.basis, '/api/scan', { map, limiet: 5 });
+    const nog = await baas.post('/api/scan', { map, limiet: 5 });
     assert.equal(nog.status, 200);
     assert.equal(nog.data.gedaan, 0);
     assert.equal(nog.data.rest, 0);

@@ -5,7 +5,7 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const yt = require('../lib/youtube');
-const { start, haal, post } = require('./hulp');
+const { start, haal, post, alsBeheerder } = require('./hulp');
 
 const ID = 'dQw4w9WgXcQ';
 
@@ -60,6 +60,7 @@ test('het insluitadres is altijd youtube-nocookie en het kijkadres youtube.com',
 
 test('een liedje onthoudt zijn YouTube-video, en alleen een echte YouTube-link', async () => {
   const omgeving = await start();
+  const baas = await alsBeheerder(omgeving.basis);
   try {
     const lijst = await haal(omgeving.basis, '/api/liedjes?aantal=1');
     const lied = lijst.data.liedjes[0];
@@ -73,13 +74,13 @@ test('een liedje onthoudt zijn YouTube-video, en alleen een echte YouTube-link',
 
     // Onzin en andermans domein weigeren.
     for (const fout of ['geen link', 'https://example.com/watch?v=' + ID, 'javascript:alert(1)']) {
-      const geweigerd = await post(omgeving.basis, '/api/youtube', { liedje: lied.id, url: fout });
+      const geweigerd = await baas.post('/api/youtube', { liedje: lied.id, url: fout });
       assert.equal(geweigerd.status, 400, 'dit hoorde geweigerd te worden: ' + fout);
       assert.match(geweigerd.data.fout, /geen YouTube-link/);
     }
 
     // Een goede link koppelen.
-    const gekoppeld = await post(omgeving.basis, '/api/youtube', { liedje: lied.id, url: 'https://youtu.be/' + ID + '?t=10' });
+    const gekoppeld = await baas.post('/api/youtube', { liedje: lied.id, url: 'https://youtu.be/' + ID + '?t=10' });
     assert.equal(gekoppeld.status, 200, JSON.stringify(gekoppeld.data));
     assert.equal(gekoppeld.data.video, ID);
     assert.equal(gekoppeld.data.insluit, 'https://www.youtube-nocookie.com/embed/' + ID + '?rel=0&modestbranding=1');
@@ -94,7 +95,7 @@ test('een liedje onthoudt zijn YouTube-video, en alleen een echte YouTube-link',
     assert.equal(inLijst.data.liedjes[0].heeftVideo, true);
 
     // Losmaken.
-    const weg = await post(omgeving.basis, '/api/youtube', { liedje: lied.id, weg: true });
+    const weg = await baas.post('/api/youtube', { liedje: lied.id, weg: true });
     assert.equal(weg.status, 200);
     const na = await haal(omgeving.basis, '/api/youtube?liedje=' + lied.id);
     assert.equal(na.data.video, '');

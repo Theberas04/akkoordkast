@@ -7,7 +7,7 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { start, haal, post } = require('./hulp');
+const { start, haal, post, alsBeheerder } = require('./hulp');
 
 function proefmap() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'ak-dlroute-'));
@@ -52,6 +52,8 @@ test('een link ophalen levert een mp3 op die meteen aan het liedje hangt', async
   fs.mkdirSync(process.env.MUSIC_DIR, { recursive: true });
 
   const omgeving = await start();
+
+  const baas = await alsBeheerder(omgeving.basis);
   try {
     const lijst = await haal(omgeving.basis, '/api/liedjes?aantal=1');
     const lied = lijst.data.liedjes[0];
@@ -59,13 +61,13 @@ test('een link ophalen levert een mp3 op die meteen aan het liedje hangt', async
 
     // Onbruikbare en verboden links worden geweigerd, zonder dat er iets begint.
     for (const fout of ['', 'geen link', 'file:///etc/passwd', 'http://192.168.1.100/muziek.mp3']) {
-      const geweigerd = await post(omgeving.basis, '/api/download', { liedje: lied.id, url: fout });
+      const geweigerd = await baas.post('/api/download', { liedje: lied.id, url: fout });
       assert.equal(geweigerd.status, 400, 'dit hoorde geweigerd te worden: ' + fout);
       assert.ok(geweigerd.data.fout.length > 10);
     }
 
     // En nu een echte link.
-    const gestart = await post(omgeving.basis, '/api/download', { liedje: lied.id, url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' });
+    const gestart = await baas.post('/api/download', { liedje: lied.id, url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' });
     assert.equal(gestart.status, 200, JSON.stringify(gestart.data));
     assert.equal(gestart.data.map, process.env.DOWNLOAD_DIR);
 

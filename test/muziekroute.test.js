@@ -8,10 +8,11 @@ const assert = require('node:assert');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { start, haal, post } = require('./hulp');
+const { start, haal, post, alsBeheerder } = require('./hulp');
 
 test('de muziek van een liedje komt uit je eigen map en nergens anders vandaan', async () => {
   const omgeving = await start();
+  const baas = await alsBeheerder(omgeving.basis);
   const muziekmap = fs.mkdtempSync(path.join(os.tmpdir(), 'akkoordkast-map-'));
   const buiten = fs.mkdtempSync(path.join(os.tmpdir(), 'akkoordkast-buiten-'));
   try {
@@ -26,11 +27,11 @@ test('de muziek van een liedje komt uit je eigen map en nergens anders vandaan',
     fs.writeFileSync(path.join(muziekmap, 'hoes.jpg'), 'x');
 
     // De map aanwijzen zoals de gebruiker dat in de app doet.
-    const toegevoegd = await post(omgeving.basis, '/api/mappen', { pad: muziekmap });
+    const toegevoegd = await baas.post('/api/mappen', { pad: muziekmap });
     assert.equal(toegevoegd.status, 201, JSON.stringify(toegevoegd.data));
 
     // Zoeken levert dat bestand bovenaan op.
-    const gezocht = await post(omgeving.basis, '/api/muziek', { liedje: lied.id, zoek: true });
+    const gezocht = await baas.post('/api/muziek', { liedje: lied.id, zoek: true });
     assert.equal(gezocht.status, 200, JSON.stringify(gezocht.data));
     assert.ok(gezocht.data.kandidaten.length >= 1, 'geen kandidaten: ' + JSON.stringify(gezocht.data));
     const kandidaat = gezocht.data.kandidaten[0];
@@ -40,23 +41,23 @@ test('de muziek van een liedje komt uit je eigen map en nergens anders vandaan',
     assert.ok(gezocht.data.mappen.includes(muziekmap));
 
     // Een bestand buiten de muziekmappen weigeren.
-    const fout = await post(omgeving.basis, '/api/muziek',
+    const fout = await baas.post('/api/muziek',
       { liedje: lied.id, kies: path.join(buiten, lied.titel + '.mp3') });
     assert.equal(fout.status, 400, JSON.stringify(fout.data));
     assert.match(fout.data.fout, /niet in een van je muziekmappen/);
 
     // En een pad dat met '..' naar buiten wijst ook.
-    const sluip = await post(omgeving.basis, '/api/muziek',
+    const sluip = await baas.post('/api/muziek',
       { liedje: lied.id, kies: path.join(muziekmap, '..', path.basename(buiten), lied.titel + '.mp3') });
     assert.equal(sluip.status, 400);
 
     // Niets audio: ook weigeren.
-    const plaatje = await post(omgeving.basis, '/api/muziek', { liedje: lied.id, kies: path.join(muziekmap, 'hoes.jpg') });
+    const plaatje = await baas.post('/api/muziek', { liedje: lied.id, kies: path.join(muziekmap, 'hoes.jpg') });
     assert.equal(plaatje.status, 400);
     assert.match(plaatje.data.fout, /geen audiobestand/);
 
     // Het goede bestand kiezen.
-    const gekozen = await post(omgeving.basis, '/api/muziek', { liedje: lied.id, kies: bestand });
+    const gekozen = await baas.post('/api/muziek', { liedje: lied.id, kies: bestand });
     assert.equal(gekozen.status, 200, JSON.stringify(gekozen.data));
     assert.equal(gekozen.data.titel, lied.titel);
     assert.match(gekozen.data.url, /^\/api\/muziek\/bestand\?liedje=/);
@@ -86,7 +87,7 @@ test('de muziek van een liedje komt uit je eigen map en nergens anders vandaan',
     assert.equal(Buffer.from(await stuk.arrayBuffer()).toString(), 'ID3');
 
     // Losmaken, en dan is er niets meer te streamen.
-    const weg = await post(omgeving.basis, '/api/muziek', { liedje: lied.id, weg: true });
+    const weg = await baas.post('/api/muziek', { liedje: lied.id, weg: true });
     assert.equal(weg.status, 200);
     const na = await haal(omgeving.basis, '/api/muziek?liedje=' + lied.id);
     assert.equal(na.data.pad, '');
@@ -96,7 +97,7 @@ test('de muziek van een liedje komt uit je eigen map en nergens anders vandaan',
 
     // Een bestand dat intussen verdwenen is (NAS los): koppelen kan nog, maar het
     // antwoord zegt eerlijk dat het er niet meer staat.
-    const gekozen2 = await post(omgeving.basis, '/api/muziek', { liedje: lied.id, kies: bestand });
+    const gekozen2 = await baas.post('/api/muziek', { liedje: lied.id, kies: bestand });
     assert.equal(gekozen2.status, 200);
     fs.rmSync(bestand);
     const kwijt = await haal(omgeving.basis, '/api/muziek?liedje=' + lied.id);

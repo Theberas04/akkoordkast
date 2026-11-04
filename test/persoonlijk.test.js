@@ -4,12 +4,17 @@ const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
-const { start, haal, post } = require('./hulp');
+const { start, haal, post, alsBeheerder } = require('./hulp');
 
 let omgeving;
+// Bijwerken, mappen en de wachter horen bij de beheerder.
+let baas;
 const metProfiel = (id, extra) => Object.assign({ headers: { 'x-profiel': String(id) } }, extra || {});
 
-test.before(async () => { omgeving = await start(); });
+test.before(async () => {
+  omgeving = await start();
+  baas = await alsBeheerder(omgeving.basis);
+});
 test.after(async () => { if (omgeving) await omgeving.stop(); });
 
 test('er is altijd een profiel en je kunt er een bijmaken', async () => {
@@ -19,18 +24,18 @@ test('er is altijd een profiel en je kunt er een bijmaken', async () => {
   assert.equal(leeg.data.profielen[0].naam, 'Standaard');
   assert.ok(leeg.data.actief >= 1);
 
-  const nieuw = await post(omgeving.basis, '/api/profielen', { naam: 'Anna' });
+  const nieuw = await baas.post('/api/profielen', { naam: 'Anna' });
   assert.equal(nieuw.status, 201);
   assert.equal(nieuw.data.profiel.naam, 'Anna');
   assert.ok(nieuw.data.profiel.id > 1);
   assert.ok(nieuw.data.profielen.some(p => p.naam === 'Anna'));
 
   // dezelfde naam nog eens: dat weigeren we met uitleg
-  const dubbel = await post(omgeving.basis, '/api/profielen', { naam: 'anna' });
+  const dubbel = await baas.post('/api/profielen', { naam: 'anna' });
   assert.equal(dubbel.status, 409);
   assert.match(dubbel.data.fout, /al een profiel/i);
 
-  const leeg2 = await post(omgeving.basis, '/api/profielen', { naam: '   ' });
+  const leeg2 = await baas.post('/api/profielen', { naam: '   ' });
   assert.equal(leeg2.status, 400);
 
   // het laatste profiel kan er niet uit
@@ -48,7 +53,7 @@ test('favorieten horen bij één profiel en zijn te filteren', async () => {
   const lied = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=3');
   const eerste = lied.data.liedjes[0].id;
 
-  const aan = await post(omgeving.basis, '/api/favoriet', { liedje: eerste, aan: true });
+  const aan = await baas.post('/api/favoriet', { liedje: eerste, aan: true });
   assert.equal(aan.status, 200);
   assert.equal(aan.data.favoriet, true);
 
@@ -59,7 +64,7 @@ test('favorieten horen bij één profiel en zijn te filteren', async () => {
   assert.ok(filters.data.liedjes.some(l => l.id === eerste));
 
   // een tweede profiel ziet die favoriet niet
-  const ander = await post(omgeving.basis, '/api/profielen', { naam: 'Buurman' });
+  const ander = await baas.post('/api/profielen', { naam: 'Buurman' });
   const buur = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=5&favoriet=1', metProfiel(ander.data.profiel.id));
   assert.equal(buur.data.totaal, 0, 'profielen mogen elkaars favorieten niet zien');
 
@@ -67,12 +72,12 @@ test('favorieten horen bij één profiel en zijn te filteren', async () => {
   const een = await haal(omgeving.basis, '/api/liedjes/' + eerste);
   assert.equal(een.data.favoriet, true);
 
-  const uit = await post(omgeving.basis, '/api/favoriet', { liedje: eerste, aan: false });
+  const uit = await baas.post('/api/favoriet', { liedje: eerste, aan: false });
   assert.equal(uit.data.favoriet, false);
   const na = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=5&favoriet=1');
   assert.equal(na.data.totaal, 0);
 
-  const onzin = await post(omgeving.basis, '/api/favoriet', { liedje: 123456789, aan: true });
+  const onzin = await baas.post('/api/favoriet', { liedje: 123456789, aan: true });
   assert.equal(onzin.status, 404);
 });
 
@@ -81,21 +86,21 @@ test('labels maak je zelf en hang je aan liedjes', async () => {
   const eerste = lied.data.liedjes[0].id;
   const tweede = lied.data.liedjes[1].id;
 
-  const nieuw = await post(omgeving.basis, '/api/labels', { naam: 'Bruiloft' });
+  const nieuw = await baas.post('/api/labels', { naam: 'Bruiloft' });
   assert.equal(nieuw.status, 201);
   const labelId = nieuw.data.id;
   assert.equal(nieuw.data.labels.length, 1);
   assert.equal(nieuw.data.labels[0].naam, 'Bruiloft');
 
-  const aan = await post(omgeving.basis, '/api/liedje-label', { liedje: eerste, label: labelId, aan: true });
+  const aan = await baas.post('/api/liedje-label', { liedje: eerste, label: labelId, aan: true });
   assert.equal(aan.status, 200);
   // hetzelfde label nog eens: geen dubbele rij, wel nog steeds gekoppeld
-  await post(omgeving.basis, '/api/liedje-label', { liedje: eerste, label: labelId, aan: true });
+  await baas.post('/api/liedje-label', { liedje: eerste, label: labelId, aan: true });
   const lijst = await haal(omgeving.basis, '/api/labels');
   assert.equal(lijst.data.labels[0].aantal, 1, 'het label is dubbel geteld');
 
   // het label meteen bij het liedje noemen maakt hem ook aan
-  const snel = await post(omgeving.basis, '/api/liedje-label', { liedje: tweede, naam: 'Kroeg', aan: true });
+  const snel = await baas.post('/api/liedje-label', { liedje: tweede, naam: 'Kroeg', aan: true });
   assert.equal(snel.status, 200);
   assert.equal(snel.data.labels.length, 2);
 
@@ -109,7 +114,7 @@ test('labels maak je zelf en hang je aan liedjes', async () => {
   const een = await haal(omgeving.basis, '/api/liedjes/' + eerste);
   assert.ok(een.data.labels.some(l => l.id === labelId && l.naam === 'Bruiloft'));
 
-  const eraf = await post(omgeving.basis, '/api/liedje-label', { liedje: eerste, label: labelId, aan: false });
+  const eraf = await baas.post('/api/liedje-label', { liedje: eerste, label: labelId, aan: false });
   assert.equal(eraf.status, 200);
   const nog = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=5&label=' + labelId);
   assert.equal(nog.data.totaal, 0);
@@ -118,9 +123,9 @@ test('labels maak je zelf en hang je aan liedjes', async () => {
   assert.equal(weg.status, 200);
   assert.ok(!weg.data.labels.some(l => l.id === labelId));
 
-  const leeg = await post(omgeving.basis, '/api/labels', { naam: '' });
+  const leeg = await baas.post('/api/labels', { naam: '' });
   assert.equal(leeg.status, 400);
-  const onbekend = await post(omgeving.basis, '/api/liedje-label', { liedje: eerste, label: 999999, aan: true });
+  const onbekend = await baas.post('/api/liedje-label', { liedje: eerste, label: 999999, aan: true });
   assert.equal(onbekend.status, 404);
 });
 
@@ -129,13 +134,13 @@ test('laatst gespeeld houdt bij wat je onder handen had', async () => {
   const eerste = lied.data.liedjes[0].id;
   const derde = lied.data.liedjes[2].id;
 
-  assert.equal((await post(omgeving.basis, '/api/gespeeld', { liedje: eerste })).status, 200);
+  assert.equal((await baas.post('/api/gespeeld', { liedje: eerste })).status, 200);
   await new Promise(r => setTimeout(r, 12));
-  assert.equal((await post(omgeving.basis, '/api/gespeeld', { liedje: derde })).status, 200);
+  assert.equal((await baas.post('/api/gespeeld', { liedje: derde })).status, 200);
   // nog eens spelen telt op, maar zet hem niet voor de nieuwste
-  await post(omgeving.basis, '/api/gespeeld', { liedje: eerste });
+  await baas.post('/api/gespeeld', { liedje: eerste });
   await new Promise(r => setTimeout(r, 12));
-  await post(omgeving.basis, '/api/gespeeld', { liedje: derde });
+  await baas.post('/api/gespeeld', { liedje: derde });
 
   const gesorteerd = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=5&sorteer=gespeeld');
   assert.equal(gesorteerd.status, 200);
@@ -148,7 +153,7 @@ test('laatst gespeeld houdt bij wat je onder handen had', async () => {
   assert.equal(stats.data.gespeeldeLiedjes.length, 2);
   assert.equal(stats.data.gespeeldeLiedjes[0].id, derde);
 
-  const onzin = await post(omgeving.basis, '/api/gespeeld', { liedje: 123456789 });
+  const onzin = await baas.post('/api/gespeeld', { liedje: 123456789 });
   assert.equal(onzin.status, 404);
 });
 
@@ -156,10 +161,10 @@ test('oefensessies komen in de cijfers terecht', async () => {
   const leeg = await haal(omgeving.basis, '/api/oefenen/statistieken');
   const voor = leeg.data.statistieken.totaalSeconden;
 
-  const niets = await post(omgeving.basis, '/api/oefenen', { soort: 'trainer', seconden: 0, wissels: 0 });
+  const niets = await baas.post('/api/oefenen', { soort: 'trainer', seconden: 0, wissels: 0 });
   assert.equal(niets.status, 400);
 
-  const sessie = await post(omgeving.basis, '/api/oefenen', {
+  const sessie = await baas.post('/api/oefenen', {
     soort: 'trainer', seconden: 95, wissels: 22, akkoorden: ['Em', 'Am', 'C', 'Em']
   });
   assert.equal(sessie.status, 201);
@@ -177,7 +182,7 @@ test('oefensessies komen in de cijfers terecht', async () => {
   assert.equal(st.geoefendeAkkoorden[0].aantal, 2);
 
   // en een andere soort sessie telt ook mee
-  await post(omgeving.basis, '/api/oefenen', { soort: 'ritme', seconden: 60, wissels: 0 });
+  await baas.post('/api/oefenen', { soort: 'ritme', seconden: 60, wissels: 0 });
   const nog = await haal(omgeving.basis, '/api/oefenen/statistieken');
   assert.equal(nog.data.statistieken.totaalSeconden, voor + 155);
 });
@@ -212,7 +217,7 @@ test('de app vertelt welke versie er draait en hoe je bijwerkt', async () => {
   assert.match(versie.data.updateCommando, /CTID/);
 
   // bijwerken zonder script: uitleg plus het commando, geen halve poging
-  const update = await post(omgeving.basis, '/api/update', {});
+  const update = await baas.post('/api/update', {});
   assert.equal(update.status, 400);
   assert.match(update.data.fout, /Proxmox-host/);
   assert.match(update.data.commando, /update-from-github\.sh/);

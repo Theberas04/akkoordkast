@@ -655,7 +655,12 @@
   .week-staaf span{background:linear-gradient(90deg,var(--amber),var(--groen))}
   .week-naam{font-size:.79rem;color:var(--tekst2)}
 
-  /* De regel uit het logboek van het ophalen: klein en ingetogen naast het percentage. */
+  /* Zonder beheerderslogin zie je in het tabblad Toevoegen alleen de inlogkaart. */
+#paneel-toevoegen:not(.beheer) > .kaart:not(#beheer-poort){display:none}
+#beheer-inhoud .rij{margin-top:8px}
+#beheer-inhoud input{max-width:320px}
+
+/* De regel uit het logboek van het ophalen: klein en ingetogen naast het percentage. */
 .haal-log{color:var(--zacht);font-size:.86em;white-space:nowrap;overflow:hidden;
   text-overflow:ellipsis;display:inline-block;max-width:100%;vertical-align:bottom}
 
@@ -961,6 +966,16 @@
 
   <!-- ------------------------------------------------ toevoegen -->
   <section id="paneel-toevoegen" class="paneel">
+    <!-- Muziek toevoegen hoort bij de beheerder. Iedereen kan zoeken, spelen en leren; de
+         kaart hieronder komt pas tevoorschijn als je als beheerder bent ingelogd. -->
+    <div class="kaart" id="beheer-poort">
+      <h2>Beheerder</h2>
+      <div id="beheer-inhoud"><div class="meta">Even kijken of je bent ingelogd…</div></div>
+      <div class="melding" id="beheer-melding" hidden></div>
+      <div class="meta" id="beheer-uitleg">Muziek toevoegen, een link omzetten naar mp3 maken, een
+        muziekmap laten omzetten, eigen liedjes bewerken, de back-up en de bijwerking: dat hoort
+        bij de beheerder. Zoeken, spelen en leren kan iedereen.</div>
+    </div>
     <div class="kaart">
       <h2>Muziek of video uploaden</h2>
       <p class="melding">Kies een <strong>mp3</strong>, <strong>mp4</strong>, m4a, wav of webm. De software haalt het geluid
@@ -2209,6 +2224,9 @@ function tekenLiedje(l) {
             'Staat de koppeling naar je muziekmap (de NAS) er nog?</div>' +
             '<div class="rij"><button class="knop" data-muziek-zoek>Ander bestand zoeken</button></div>';
         }
+        if (!l.beheer) {
+          return '<div class="meta">Aan dit liedje hangt nog geen muziekbestand. De beheerder kan er een aanwijzen uit je eigen map.</div>';
+        }
         return '<div class="rij"><button class="knop" data-muziek-zoek>Zoek de muziek in mijn map</button>' +
           '<span class="meta">Zo speel je mee met de echte muziek uit je eigen map in plaats van met de gitaarsynthesizer.</span></div>';
       })() +
@@ -2216,7 +2234,8 @@ function tekenLiedje(l) {
       // Een link omzetten naar een mp3 in je eigen map. De app start daarvoor yt-dlp op de
       // server; het bestand komt in de downloadmap te staan en wordt meteen aan dit liedje
       // gehangen, zodat je het kunt meespelen.
-      '<h3>Link naar mp3</h3>' +
+      (l.beheer
+        ? '<h3>Link naar mp3</h3>' +
       (l.video && l.video.kijk
         ? '<div class="rij"><span class="meta">Laatst gebruikt: <a href="' + esc(l.video.kijk) + '" target="_blank" rel="noopener">' +
           esc(l.video.kijk) + '</a></span></div>'
@@ -2230,7 +2249,8 @@ function tekenLiedje(l) {
         (l.video && l.video.zoek ? '<a href="' + esc(l.video.zoek) + '" target="_blank" rel="noopener">Zoek het liedje op YouTube</a>.' : '') +
       '</div>' +
       '<div id="haal-stand"></div>' +
-      '<div class="melding" id="haal-melding" hidden></div>' +
+      '<div class="melding" id="haal-melding" hidden></div>'
+        : '<div class="meta">Een link omzetten naar een mp3 kan alleen de beheerder.</div>') +
       (l.audio.opname
         ? '<h3>Eigen opname</h3><div class="speler"><audio id="opname-audio" controls src="' + esc(l.audio.opname) + '"></audio></div>' +
           '<div class="rij speel-knoppen">' +
@@ -2239,10 +2259,12 @@ function tekenLiedje(l) {
             '<span class="meta" id="opname-stand">gestopt</span>' +
             (l.eigen ? '<button class="knop rood" id="opname-weg">Opname verwijderen</button>' : '') +
           '</div>'
-        : (l.eigen
+        : (l.eigen && l.beheer
             ? '<h3>Eigen opname toevoegen</h3><input id="opname-bestand" type="file" accept="audio/*">' +
               '<div class="rij"><button class="knop" id="opname-upload">Opname uploaden</button></div>'
-            : '<div class="melding">Wil je hier je eigen audio aan hangen? Maak eerst een eigen kopie van dit liedje.</div>')) +
+            : (l.eigen
+                ? '<div class="melding">Alleen de beheerder kan hier een opname aan hangen.</div>'
+                : '<div class="melding">Wil je hier je eigen audio aan hangen? Maak eerst een eigen kopie van dit liedje.</div>'))) +
       '<div class="rij" style="margin-top:12px">' +
         '<button class="knop goed" id="cast-dit">Cast dit liedje</button>' +
       '</div>' +
@@ -3954,6 +3976,7 @@ laadLiedjes(true);
 laadArtiesten();
 laadProfielen();
 laadLabels();
+beheerVraag();   // wie is de beheerder? (bepaalt wat je in Toevoegen ziet)
 laadMijnSetlists();
 laadWachter();
 laadAkkoordenboek();
@@ -5126,6 +5149,97 @@ function laadOefencijfers() {
 
 // De profielen ophalen en de keuzelijst vullen. Het actieve profiel staat in
 // localStorage, zodat elk toestel zijn eigen gebruiker onthoudt.
+// ------------------------------------------------------------- de beheerder ---
+// Muziek toevoegen hoort bij de beheerder. Hier staat het inloggen en het instellen van het
+// wachtwoord; de server weigert alles wat iets toevoegt zonder dit.
+var BEHEER = { ingesteld: false, ingelogd: false, minLengte: 8 };
+
+function beheerVraag() {
+  return api('/api/beheer').then(function (d) {
+    BEHEER = d || BEHEER;
+    tekenBeheer();
+    return BEHEER;
+  }).catch(function () { return BEHEER; });
+}
+
+function tekenBeheer() {
+  var houder = $('beheer-inhoud');
+  var paneel = $('paneel-toevoegen');
+  if (paneel) paneel.classList.toggle('beheer', !!BEHEER.ingelogd);
+  if (!houder) return;
+  if (BEHEER.ingelogd) {
+    houder.innerHTML =
+      '<div class="rij"><span class="chip">ingelogd als beheerder</span></div>' +
+      '<div class="rij"><button class="knop zacht" id="beheer-uit">Uitloggen</button>' +
+      '<button class="knop zacht" id="beheer-wijzig">Wachtwoord wijzigen</button></div>' +
+      '<div id="beheer-extra"></div>';
+    $('beheer-uit').addEventListener('click', function () {
+      api('/api/beheer/uitloggen', { method: 'POST' }).then(function () {
+        toonMelding('beheer-melding', 'Je bent uitgelogd. Muziek toevoegen kan nu niet meer.', 'goed');
+        return beheerVraag();
+      });
+    });
+    $('beheer-wijzig').addEventListener('click', function () {
+      var extra = $('beheer-extra');
+      if (extra.dataset.open === '1') return;
+      extra.dataset.open = '1';
+      extra.innerHTML =
+        '<div class="rij"><input id="beheer-oud" type="password" placeholder="huidig wachtwoord"></div>' +
+        '<div class="rij"><input id="beheer-nieuw" type="password" placeholder="nieuw wachtwoord (minstens ' + BEHEER.minLengte + ' tekens)"></div>' +
+        '<div class="rij"><button class="knop" id="beheer-bewaar">Bewaren</button></div>';
+      $('beheer-bewaar').addEventListener('click', function () {
+        beheerStuur('/api/beheer/wachtwoord', {
+          oud: $('beheer-oud').value, wachtwoord: $('beheer-nieuw').value
+        }, 'Wachtwoord bewaard. Je sessie blijft staan.');
+      });
+    });
+    return;
+  }
+  if (!BEHEER.ingesteld) {
+    houder.innerHTML =
+      '<div class="meta">Er is nog geen beheerderswachtwoord. Kies er hier een; daarna kan alleen ' +
+      'wie het weet muziek toevoegen.</div>' +
+      '<div class="rij"><input id="beheer-zet-wachtwoord" type="password" placeholder="wachtwoord (minstens ' + BEHEER.minLengte + ' tekens)"></div>' +
+      '<div class="rij"><input id="beheer-zet-herhaal" type="password" placeholder="nog een keer"></div>' +
+      '<div class="rij"><button class="knop" id="beheer-zet-knop">Wachtwoord instellen</button></div>';
+  } else {
+    houder.innerHTML =
+      '<div class="meta">Log in om muziek toe te voegen.</div>' +
+      '<div class="rij"><input id="beheer-wachtwoord" type="password" placeholder="wachtwoord"></div>' +
+      '<div class="rij"><button class="knop" id="beheer-inloggen">Inloggen</button></div>';
+  }
+  if ($('beheer-zet-knop')) {
+    $('beheer-zet-knop').addEventListener('click', function () {
+      var nieuw = $('beheer-zet-wachtwoord').value;
+      if ($('beheer-zet-herhaal').value !== nieuw) {
+        toonMelding('beheer-melding', 'De twee wachtwoorden zijn niet gelijk.', 'fout');
+        return;
+      }
+      beheerStuur('/api/beheer/wachtwoord', { wachtwoord: nieuw }, 'Het beheerderswachtwoord is ingesteld; je bent meteen ingelogd.');
+    });
+  }
+  if ($('beheer-inloggen')) {
+    var veld = $('beheer-wachtwoord');
+    var inloggen = function () {
+      beheerStuur('/api/beheer/inloggen', { wachtwoord: veld.value }, 'Je bent ingelogd.');
+    };
+    $('beheer-inloggen').addEventListener('click', inloggen);
+    veld.addEventListener('keydown', function (e) { if (e.key === 'Enter') inloggen(); });
+    veld.focus();
+  }
+}
+
+function beheerStuur(pad, lichaam, geluk) {
+  api(pad, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(lichaam || {})
+  }).then(function () {
+    toonMelding('beheer-melding', geluk, 'goed');
+    return beheerVraag();
+  }).catch(function (e) {
+    toonMelding('beheer-melding', e.message, 'fout');
+  });
+}
+
 function laadProfielen() {
   api('/api/profielen').then(function (data) {
     staat.profielen = data.profielen || [];

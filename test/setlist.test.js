@@ -3,9 +3,11 @@
 // posities en de wachter die de muziekmap bijhoudt.
 const test = require('node:test');
 const assert = require('node:assert');
-const { start, haal, post } = require('./hulp');
+const { start, haal, post, alsBeheerder } = require('./hulp');
 
 let omgeving;
+// De wachter en de mappen horen bij de beheerder.
+let baas;
 // Een POST met een profiel erbij: de setlists hangen aan het profiel.
 const postProfiel = (id, pad, lichaam) => haal(omgeving.basis, pad, {
   method: 'POST',
@@ -17,6 +19,7 @@ const ids = [];
 
 test.before(async () => {
   omgeving = await start();
+  baas = await alsBeheerder(omgeving.basis);
   const lijst = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=5');
   assert.equal(lijst.status, 200);
   lijst.data.liedjes.slice(0, 4).forEach(l => ids.push(l.id));
@@ -30,13 +33,13 @@ test('een setlist maken, vullen en weer lezen', async () => {
   assert.equal(leeg.status, 200);
   assert.deepEqual(leeg.data.setlists, []);
 
-  const nieuw = await post(omgeving.basis, '/api/setlists', { naam: 'Kroeg vrijdag' });
+  const nieuw = await baas.post('/api/setlists', { naam: 'Kroeg vrijdag' });
   assert.equal(nieuw.status, 201);
   assert.equal(nieuw.data.setlist.naam, 'Kroeg vrijdag');
   assert.equal(nieuw.data.setlist.aantal, 0);
   const id = nieuw.data.setlist.id;
 
-  const bij = await post(omgeving.basis, `/api/setlists/${id}/liedjes`, { liedje: ids[0], actie: 'bij' });
+  const bij = await baas.post(`/api/setlists/${id}/liedjes`, { liedje: ids[0], actie: 'bij' });
   assert.equal(bij.status, 200);
   assert.equal(bij.data.setlist.aantal, 1);
   assert.equal(bij.data.setlist.liedjes[0].id, ids[0]);
@@ -45,11 +48,11 @@ test('een setlist maken, vullen en weer lezen', async () => {
   assert.ok(typeof bij.data.setlist.liedjes[0].tempo === 'number');
 
   // twee keer hetzelfde liedje levert geen dubbele regel op
-  const nogmaals = await post(omgeving.basis, `/api/setlists/${id}/liedjes`, { liedje: ids[0], actie: 'bij' });
+  const nogmaals = await baas.post(`/api/setlists/${id}/liedjes`, { liedje: ids[0], actie: 'bij' });
   assert.equal(nogmaals.data.setlist.aantal, 1, 'hetzelfde liedje komt er niet twee keer in');
 
   for (const liedje of ids.slice(1, 4)) {
-    await post(omgeving.basis, `/api/setlists/${id}/liedjes`, { liedje, actie: 'bij' });
+    await baas.post(`/api/setlists/${id}/liedjes`, { liedje, actie: 'bij' });
   }
   const vol = await haal(omgeving.basis, `/api/setlists/${id}`);
   assert.equal(vol.data.aantal, ids.length);
@@ -62,33 +65,33 @@ test('een setlist maken, vullen en weer lezen', async () => {
 });
 
 test('de volgorde kun je veranderen en liedjes kun je eruit halen', async () => {
-  const nieuw = await post(omgeving.basis, '/api/setlists', { naam: 'Optreden' });
+  const nieuw = await baas.post('/api/setlists', { naam: 'Optreden' });
   const id = nieuw.data.setlist.id;
   for (const liedje of ids.slice(0, 3)) {
-    await post(omgeving.basis, `/api/setlists/${id}/liedjes`, { liedje, actie: 'bij' });
+    await baas.post(`/api/setlists/${id}/liedjes`, { liedje, actie: 'bij' });
   }
 
-  const omlaag = await post(omgeving.basis, `/api/setlists/${id}/liedjes`, { liedje: ids[0], actie: 'omlaag' });
+  const omlaag = await baas.post(`/api/setlists/${id}/liedjes`, { liedje: ids[0], actie: 'omlaag' });
   assert.deepEqual(omlaag.data.setlist.liedjes.map(l => l.id), [ids[1], ids[0], ids[2]]);
-  const omhoog = await post(omgeving.basis, `/api/setlists/${id}/liedjes`, { liedje: ids[0], actie: 'omhoog' });
+  const omhoog = await baas.post(`/api/setlists/${id}/liedjes`, { liedje: ids[0], actie: 'omhoog' });
   assert.deepEqual(omhoog.data.setlist.liedjes.map(l => l.id), [ids[0], ids[1], ids[2]]);
 
   // bovenaan zetten en er weer uit halen
-  const boven = await post(omgeving.basis, `/api/setlists/${id}/liedjes`, { liedje: ids[2], actie: 'boven' });
+  const boven = await baas.post(`/api/setlists/${id}/liedjes`, { liedje: ids[2], actie: 'boven' });
   assert.deepEqual(boven.data.setlist.liedjes.map(l => l.id), [ids[2], ids[0], ids[1]]);
-  const af = await post(omgeving.basis, `/api/setlists/${id}/liedjes`, { liedje: ids[0], actie: 'af' });
+  const af = await baas.post(`/api/setlists/${id}/liedjes`, { liedje: ids[0], actie: 'af' });
   assert.deepEqual(af.data.setlist.liedjes.map(l => l.id), [ids[2], ids[1]]);
 
   // iets onmogelijks levert uitleg op
-  const onbekend = await post(omgeving.basis, `/api/setlists/${id}/liedjes`, { liedje: ids[0], actie: 'ondersteboven' });
+  const onbekend = await baas.post(`/api/setlists/${id}/liedjes`, { liedje: ids[0], actie: 'ondersteboven' });
   assert.equal(onbekend.status, 400);
   assert.match(onbekend.data.fout, /Onbekende actie/i);
-  const spook = await post(omgeving.basis, `/api/setlists/${id}/liedjes`, { liedje: 987654321, actie: 'bij' });
+  const spook = await baas.post(`/api/setlists/${id}/liedjes`, { liedje: 987654321, actie: 'bij' });
   assert.equal(spook.status, 404);
 });
 
 test('een setlist hoort bij één profiel en kun je weer weggooien', async () => {
-  const anna = await post(omgeving.basis, '/api/profielen', { naam: 'Anna setlist' });
+  const anna = await baas.post('/api/profielen', { naam: 'Anna setlist' });
   const annaId = anna.data.profiel.id;
 
   const vanAnna = await postProfiel(annaId, '/api/setlists', { naam: 'Anna\'s lijstje' });
@@ -159,24 +162,24 @@ test('de wachter staat standaard uit en is in te stellen', async () => {
   assert.equal(eerste.data.minuten, 360);
   assert.ok(typeof eerste.data.updateMogelijk === 'boolean');
 
-  const aan = await post(omgeving.basis, '/api/wachter', { aan: true, minuten: 30, map: '/tmp/bestaat-niet-als-map' });
+  const aan = await baas.post('/api/wachter', { aan: true, minuten: 30, map: '/tmp/bestaat-niet-als-map' });
   assert.equal(aan.status, 200);
   assert.equal(aan.data.wachter.aan, true);
   assert.equal(aan.data.wachter.minuten, 30, 'de tijd wordt bewaard');
   assert.equal(aan.data.wachter.map, '/tmp/bestaat-niet-als-map');
 
   // te korte of te lange tijden worden bijgesteld
-  const kort = await post(omgeving.basis, '/api/wachter', { minuten: 1 });
+  const kort = await baas.post('/api/wachter', { minuten: 1 });
   assert.ok(kort.data.wachter.minuten >= 5, 'sneller dan vijf minuten doen we niet');
-  const lang = await post(omgeving.basis, '/api/wachter', { minuten: 99999 });
+  const lang = await baas.post('/api/wachter', { minuten: 99999 });
   assert.equal(lang.data.wachter.minuten, 24 * 60, 'langer dan een dag doen we niet');
 
   // een ronde met een map die niet bestaat levert een eerlijke melding op
-  const ronde = await post(omgeving.basis, '/api/wachter/nu', {});
+  const ronde = await baas.post('/api/wachter/nu', {});
   assert.equal(ronde.status, 200);
   assert.match(ronde.data.wachter.verslag, /bestaat niet|Let op/i);
 
-  const uit = await post(omgeving.basis, '/api/wachter', { aan: false });
+  const uit = await baas.post('/api/wachter', { aan: false });
   assert.equal(uit.data.wachter.aan, false);
 });
 
@@ -185,10 +188,10 @@ test('een map zonder muziek levert geen omzetting op', async () => {
   const os = require('os');
   const path = require('path');
   const leeg = fs.mkdtempSync(path.join(os.tmpdir(), 'akkoordkast-leeg-'));
-  await post(omgeving.basis, '/api/wachter', { aan: true, map: leeg });
-  const ronde = await post(omgeving.basis, '/api/wachter/nu', {});
+  await baas.post('/api/wachter', { aan: true, map: leeg });
+  const ronde = await baas.post('/api/wachter/nu', {});
   assert.equal(ronde.status, 200);
   assert.match(ronde.data.wachter.verslag, /Niets nieuws/i);
-  await post(omgeving.basis, '/api/wachter', { aan: false, map: '' });
+  await baas.post('/api/wachter', { aan: false, map: '' });
   fs.rmSync(leeg, { recursive: true, force: true });
 });

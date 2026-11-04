@@ -60,6 +60,7 @@ test('de Web API wordt met de juiste vraag aangeroepen', async () => {
 
 test('zonder sleutels geeft zoeken een duidelijke uitleg', async () => {
   const omgeving = await hulp.start();
+  const baas = await hulp.alsBeheerder(omgeving.basis);
   try {
     const status = await hulp.haal(omgeving.basis, '/api/spotify/status');
     assert.equal(status.status, 200);
@@ -75,9 +76,10 @@ test('zonder sleutels geeft zoeken een duidelijke uitleg', async () => {
 
 test('een link koppelen aan een liedje werkt voor meegeleverde en eigen liedjes', async () => {
   const omgeving = await hulp.start();
+  const baas = await hulp.alsBeheerder(omgeving.basis);
   try {
     for (const liedje of [1, 900000 + 1]) {
-      const fout = await hulp.post(omgeving.basis, '/api/spotify/koppeling', { liedje, link: 'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M' });
+      const fout = await baas.post('/api/spotify/koppeling', { liedje, link: 'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M' });
       if (liedje === 1) {
         assert.equal(fout.status, 201, JSON.stringify(fout.data));
       } else {
@@ -87,14 +89,14 @@ test('een link koppelen aan een liedje werkt voor meegeleverde en eigen liedjes'
       assert.equal(fout.data.koppeling.soort, 'playlist');
       assert.match(fout.data.koppeling.embed, /embed\/playlist/);
     }
-    const gelezen = await hulp.haal(omgeving.basis, '/api/spotify/koppeling?liedje=1');
+    const gelezen = await baas.haal('/api/spotify/koppeling?liedje=1');
     assert.equal(gelezen.data.koppeling.uri, 'spotify:playlist:37i9dQZF1DXcBWIGoYBM5M');
     const lied = await hulp.haal(omgeving.basis, '/api/liedjes/1');
     assert.ok(lied.data.spotify, 'de koppeling hoort bij het liedje mee te komen');
     assert.equal(lied.data.spotify.id, '37i9dQZF1DXcBWIGoYBM5M');
-    const weg = await hulp.haal(omgeving.basis, '/api/spotify/koppeling?liedje=1', { method: 'DELETE' });
+    const weg = await baas.haal('/api/spotify/koppeling?liedje=1', { method: 'DELETE' });
     assert.equal(weg.status, 200);
-    const na = await hulp.haal(omgeving.basis, '/api/spotify/koppeling?liedje=1');
+    const na = await baas.haal('/api/spotify/koppeling?liedje=1');
     assert.equal(na.data.koppeling, null);
   } finally {
     await omgeving.stop();
@@ -103,8 +105,9 @@ test('een link koppelen aan een liedje werkt voor meegeleverde en eigen liedjes'
 
 test('een onzin-link wordt met uitleg geweigerd', async () => {
   const omgeving = await hulp.start();
+  const baas = await hulp.alsBeheerder(omgeving.basis);
   try {
-    const r = await hulp.post(omgeving.basis, '/api/spotify/koppeling', { liedje: 1, link: 'https://youtube.com/watch?v=abc' });
+    const r = await baas.post('/api/spotify/koppeling', { liedje: 1, link: 'https://youtube.com/watch?v=abc' });
     assert.equal(r.status, 400);
     assert.match(r.data.fout, /Spotify-link/);
   } finally {

@@ -5,11 +5,22 @@ const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
-const { start, haal, post } = require('./hulp');
+const { start, haal, post, alsBeheerder } = require('./hulp');
 
 let omgeving;
+// De beheerder: alles wat iets toevoegt, gebeurt met dit account (net als in de browser, waar
+// je één keer inlogt en daarna kunt uploaden en omzetten).
+let baas;
 
-test.before(async () => { omgeving = await start(); });
+// Een schrijfactie met het koekje van de beheerder.
+const alsBaas = (pad, opties = {}) => haal(omgeving.basis, pad, Object.assign({}, opties, {
+  headers: Object.assign({}, opties.headers, { cookie: baas.koekje })
+}));
+
+test.before(async () => {
+  omgeving = await start();
+  baas = await alsBeheerder(omgeving.basis);
+});
 test.after(async () => { if (omgeving) await omgeving.stop(); });
 
 test('de pagina komt uit de app zelf, met de app-marker', async () => {
@@ -188,7 +199,7 @@ test('een onbekend liedje geeft 404 en geen leeg antwoord', async () => {
 
 test('een eigen liedje opslaan, lezen, wijzigen en verwijderen', async () => {
   const tekst = '{title: Testliedje}\n{key: G}\n\n[G]eerste regel [C]tweede [D]derde\n[Em]vierde regel [C]vijfde\n[G]zesde regel [D]zevende\n[Em]achtste [C]negende\n[G]tiende [D]elfde\n[C]twaalfde regel [G]dertiende';
-  const nieuw = await post(omgeving.basis, '/api/liedjes/import', { titel: 'Testliedje', taal: 'nl', chordpro: tekst, toonsoort: 'G', tempo: 96, bron: 'Eigen test' });
+  const nieuw = await baas.post('/api/liedjes/import', { titel: 'Testliedje', taal: 'nl', chordpro: tekst, toonsoort: 'G', tempo: 96, bron: 'Eigen test' });
   assert.equal(nieuw.status, 201);
   assert.equal(nieuw.data.aantal, 1);
   const id = nieuw.data.ids[0];
@@ -200,7 +211,7 @@ test('een eigen liedje opslaan, lezen, wijzigen en verwijderen', async () => {
   assert.equal(gelezen.data.eigen, true);
   assert.equal(gelezen.data.tempo, 96);
 
-  const gewijzigd = await haal(omgeving.basis, `/api/liedjes/${id}`, {
+  const gewijzigd = await alsBaas(`/api/liedjes/${id}`, {
     method: 'PATCH', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ titel: 'Testliedje 2', moeilijkheid: 4 })
   });
@@ -211,47 +222,47 @@ test('een eigen liedje opslaan, lezen, wijzigen en verwijderen', async () => {
   // de liedtekst is niet verdwenen bij een gedeeltelijke wijziging
   assert.ok(na.data.model.akkoorden.length >= 3);
 
-  const weg = await haal(omgeving.basis, `/api/liedjes/${id}`, { method: 'DELETE' });
+  const weg = await alsBaas(`/api/liedjes/${id}`, { method: 'DELETE' });
   assert.equal(weg.status, 200);
   const dood = await haal(omgeving.basis, `/api/liedjes/${id}`);
   assert.equal(dood.status, 404);
 });
 
 test('een liedje zonder bruikbare tekst wordt geweigerd', async () => {
-  const leeg = await post(omgeving.basis, '/api/liedjes/import', { titel: 'Leeg' });
+  const leeg = await baas.post('/api/liedjes/import', { titel: 'Leeg' });
   assert.equal(leeg.status, 400);
   assert.match(leeg.data.fout, /ChordPro/i);
   // zonder {title:} krijgt een plaksel een werknaam in plaats van een fout
-  const geenTitel = await post(omgeving.basis, '/api/liedjes/import', {
+  const geenTitel = await baas.post('/api/liedjes/import', {
     chordpro: '[C]regel een\n[G]regel twee\n[Am]regel drie\n[F]regel vier\n[C]regel vijf\n[G]regel zes'
   });
   assert.equal(geenTitel.status, 201);
   const gelezen = await haal(omgeving.basis, `/api/liedjes/${geenTitel.data.ids[0]}`);
   assert.match(gelezen.data.titel, /Geïmporteerd liedje/);
-  await haal(omgeving.basis, `/api/liedjes/${geenTitel.data.ids[0]}`, { method: 'DELETE' });
+  await alsBaas(`/api/liedjes/${geenTitel.data.ids[0]}`, { method: 'DELETE' });
 });
 
 test('meerdere liedjes in één plaksel worden apart opgeslagen', async () => {
   const plaksel = '{title: Eerste import}\n[C]regel een\n[G]regel twee\n[Am]regel drie\n[F]regel vier\n[C]regel vijf\n[G]regel zes\n[Am]regel zeven\n[F]regel acht\n[C]regel negen\n[G]regel tien\n\n{title: Tweede import}\n[G]regel een\n[C]regel twee\n[D]regel drie\n[Em]regel vier\n[G]regel vijf\n[C]regel zes\n[D]regel zeven\n[Em]regel acht\n[G]regel negen\n[C]regel tien';
-  const r = await post(omgeving.basis, '/api/liedjes/import', { chordpro: plaksel, taal: 'nl' });
+  const r = await baas.post('/api/liedjes/import', { chordpro: plaksel, taal: 'nl' });
   assert.equal(r.status, 201);
   assert.equal(r.data.aantal, 2);
   const een = await haal(omgeving.basis, `/api/liedjes/${r.data.ids[0]}`);
   assert.equal(een.data.titel, 'Eerste import');
   const twee = await haal(omgeving.basis, `/api/liedjes/${r.data.ids[1]}`);
   assert.equal(twee.data.titel, 'Tweede import');
-  for (const id of r.data.ids) await haal(omgeving.basis, `/api/liedjes/${id}`, { method: 'DELETE' });
+  for (const id of r.data.ids) await alsBaas(`/api/liedjes/${id}`, { method: 'DELETE' });
 });
 
 test('meegeleverde liedjes zijn niet te wijzigen of te verwijderen', async () => {
   const lijst = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=1');
   const id = lijst.data.liedjes[0].id;
-  const wijzig = await haal(omgeving.basis, `/api/liedjes/${id}`, {
+  const wijzig = await alsBaas(`/api/liedjes/${id}`, {
     method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ titel: 'Hack' })
   });
   assert.equal(wijzig.status, 404);
   assert.match(wijzig.data.fout, /niet wijzigen/i);
-  const del = await haal(omgeving.basis, `/api/liedjes/${id}`, { method: 'DELETE' });
+  const del = await alsBaas(`/api/liedjes/${id}`, { method: 'DELETE' });
   assert.equal(del.status, 404);
   const nog = await haal(omgeving.basis, `/api/liedjes/${id}`);
   assert.equal(nog.status, 200);
@@ -260,23 +271,24 @@ test('meegeleverde liedjes zijn niet te wijzigen of te verwijderen', async () =>
 test('van een meegeleverd liedje kun je een eigen kopie maken', async () => {
   const lijst = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=1');
   const id = lijst.data.liedjes[0].id;
-  const kopie = await post(omgeving.basis, `/api/liedjes/${id}/kopie`);
+  const kopie = await baas.post(`/api/liedjes/${id}/kopie`);
   assert.equal(kopie.status, 201);
   const nieuw = await haal(omgeving.basis, `/api/liedjes/${kopie.data.id}`);
   assert.equal(nieuw.data.eigen, true);
   assert.match(nieuw.data.titel, /eigen kopie/i);
-  await haal(omgeving.basis, `/api/liedjes/${kopie.data.id}`, { method: 'DELETE' });
+  await alsBaas(`/api/liedjes/${kopie.data.id}`, { method: 'DELETE' });
 });
 
 test('audio uploaden naar een eigen liedje en weer verwijderen', async () => {
   const tekst = '{title: Met audio}\n[G]een [C]twee [D]drie\n[Em]vier [C]vijf [G]zes\n[D]zeven [Em]acht [C]negen\n[G]tien [D]elf [C]twaalf';
-  const nieuw = await post(omgeving.basis, '/api/liedjes/import', { titel: 'Met audio', chordpro: tekst });
+  const nieuw = await baas.post('/api/liedjes/import', { titel: 'Met audio', chordpro: tekst });
   const id = nieuw.data.ids[0];
 
   const nepMp3 = Buffer.concat([Buffer.from([0x49, 0x44, 0x33, 0x03]), Buffer.alloc(2000, 7)]);
   const up = await fetch(`${omgeving.basis}/api/liedjes/${id}/audio`, {
     method: 'POST',
-    headers: { 'content-type': 'audio/mpeg', 'x-bestandsnaam': 'mijn opname.mp3', 'x-audio-titel': 'Mijn opname' },
+    // Uploaden hoort bij de beheerder; zonder dit koekje weigert de app het (en dat is de bedoeling).
+    headers: { 'content-type': 'audio/mpeg', 'x-bestandsnaam': 'mijn opname.mp3', 'x-audio-titel': 'Mijn opname', cookie: baas.koekje },
     body: nepMp3
   });
   assert.equal(up.status, 201);
@@ -293,23 +305,23 @@ test('audio uploaden naar een eigen liedje en weer verwijderen', async () => {
   assert.equal(bereik.status, 206);
   assert.equal(bereik.headers.get('content-range'), `bytes 0-99/${nepMp3.length}`);
 
-  const weg = await haal(omgeving.basis, `/api/liedjes/${id}/audio`, { method: 'DELETE' });
+  const weg = await alsBaas(`/api/liedjes/${id}/audio`, { method: 'DELETE' });
   assert.equal(weg.status, 200);
-  const na = await haal(omgeving.basis, `/api/liedjes/${id}`);
+  const na = await alsBaas(`/api/liedjes/${id}`);
   assert.equal(na.data.audio.opname, '');
 
   const verkeerd = await fetch(`${omgeving.basis}/api/liedjes/${id}/audio`, {
-    method: 'POST', headers: { 'content-type': 'text/plain' }, body: 'geen audio'
+    method: 'POST', headers: { 'content-type': 'text/plain', cookie: baas.koekje }, body: 'geen audio'
   });
   assert.equal(verkeerd.status, 400);
 
-  const meegeleverd = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=1');
+  const meegeleverd = await alsBaas('/api/liedjes?compact=1&aantal=1');
   const verboden = await fetch(`${omgeving.basis}/api/liedjes/${meegeleverd.data.liedjes[0].id}/audio`, {
-    method: 'POST', headers: { 'content-type': 'audio/mpeg' }, body: nepMp3
+    method: 'POST', headers: { 'content-type': 'audio/mpeg', cookie: baas.koekje }, body: nepMp3
   });
   assert.equal(verboden.status, 400);
 
-  await haal(omgeving.basis, `/api/liedjes/${id}`, { method: 'DELETE' });
+  await alsBaas(`/api/liedjes/${id}`, { method: 'DELETE' });
 });
 
 test('de begeleiding wordt gegenereerd als audio en daarna uit de cache geserveerd', async () => {
@@ -349,7 +361,7 @@ test('de begeleiding van een onbekend liedje geeft 404', async () => {
 test('instellingen worden bewaard en teruggelezen', async () => {
   const begin = await haal(omgeving.basis, '/api/instellingen');
   assert.equal(begin.status, 200);
-  const zet = await post(omgeving.basis, '/api/instellingen', { cast_apparaat: '192.168.1.100', cast_naam: 'Woonkamer' });
+  const zet = await baas.post('/api/instellingen', { cast_apparaat: '192.168.1.100', cast_naam: 'Woonkamer' });
   assert.equal(zet.status, 200);
   assert.equal(zet.data.instellingen.cast_apparaat, '192.168.1.100');
   const na = await haal(omgeving.basis, '/api/instellingen');
@@ -364,14 +376,14 @@ test('de cast-route levert altijd JSON, ook zonder Chromecast', async () => {
 });
 
 test('casten zonder liedje of apparaat geeft een leesbare fout', async () => {
-  const zonder = await post(omgeving.basis, '/api/cast/start', { apparaat: '192.168.1.100' });
+  const zonder = await baas.post('/api/cast/start', { apparaat: '192.168.1.100' });
   assert.equal(zonder.status, 400);
   assert.match(zonder.data.fout, /geen audio/i);
 });
 
 test('casten naar een niet-bestaand apparaat meldt de fout netjes', async () => {
   const lijst = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=1');
-  const r = await post(omgeving.basis, '/api/cast/start', { apparaat: '192.0.2.99', liedje: lijst.data.liedjes[0].id });
+  const r = await baas.post('/api/cast/start', { apparaat: '192.0.2.99', liedje: lijst.data.liedjes[0].id });
   assert.ok(r.status === 200 || r.status === 502);
   assert.ok(r.data.fout || r.data.ok, 'geen bruikbaar antwoord van de cast-helper');
 });

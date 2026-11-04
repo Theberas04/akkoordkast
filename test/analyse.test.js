@@ -51,12 +51,13 @@ test('een te korte opname wordt netjes geweigerd', () => {
 
 test('een mp3 uploaden levert een liedje met een herkend schema', async () => {
   const omgeving = await hulp.start();
+  const baas = await hulp.alsBeheerder(omgeving.basis);   // uploaden hoort bij de beheerder
   try {
     // geluid maken en als mp3 aanbieden (hetzelfde pad als een echte upload)
     const wav = proefsignaal.naarWav(proefsignaal.akkoordProef(['G', 'C', 'D7', 'G'], 100, SR), SR);
     const antwoord = await fetch(omgeving.basis + '/api/analyse', {
       method: 'POST',
-      headers: { 'content-type': 'audio/wav', 'x-bestandsnaam': encodeURIComponent('Amazing Grace (oefening).wav') },
+      headers: { 'content-type': 'audio/wav', 'x-bestandsnaam': encodeURIComponent('Amazing Grace (oefening).wav'), cookie: baas.koekje },
       body: wav
     });
     const uit = await antwoord.json();
@@ -94,10 +95,11 @@ test('een mp3 uploaden levert een liedje met een herkend schema', async () => {
 
 test('een upload zonder geluid wordt met uitleg geweigerd', async () => {
   const omgeving = await hulp.start();
+  const baas = await hulp.alsBeheerder(omgeving.basis);   // uploaden hoort bij de beheerder
   try {
     const antwoord = await fetch(omgeving.basis + '/api/analyse', {
       method: 'POST',
-      headers: { 'content-type': 'audio/mpeg', 'x-bestandsnaam': 'leeg.mp3' },
+      headers: { 'content-type': 'audio/mpeg', 'x-bestandsnaam': 'leeg.mp3', cookie: baas.koekje },
       body: Buffer.alloc(4096)
     });
     const uit = await antwoord.json();

@@ -21,6 +21,7 @@ const spotify = require('./lib/spotify');
 const muziekbestand = require('./lib/muziekbestand');
 const youtube = require('./lib/youtube');
 const downloader = require('./lib/downloader');
+const beheer = require('./lib/beheer');
 const theorie = require('./lib/theorie');
 const bron = require('./liedjes-bron');
 
@@ -33,7 +34,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.2';
+const VERSIE = '1.3';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -94,6 +95,13 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS instellingen (
     sleutel TEXT PRIMARY KEY,
     waarde TEXT NOT NULL DEFAULT ''
+  );
+  -- Wie is de beheerder? Alleen de afdruk van het wachtwoord (nooit het wachtwoord zelf) en
+  -- de sessies die hij heeft openstaan, met een vervaldatum.
+  CREATE TABLE IF NOT EXISTS sessies (
+    token TEXT PRIMARY KEY,
+    tot INTEGER NOT NULL DEFAULT 0,
+    wanneer TEXT NOT NULL DEFAULT ''
   );
   -- Wie gebruikt de app: elk profiel heeft zijn eigen favorieten, labels,
   -- speelgeschiedenis en oefensessies.
@@ -182,6 +190,105 @@ function leesInstelling(sleutel, standaard) {
   const rij = db.prepare('SELECT waarde FROM instellingen WHERE sleutel = ?').get(String(sleutel));
   return rij ? rij.waarde : (standaard === undefined ? '' : standaard);
 }
+// --- de beheerder ------------------------------------------------------------
+// Lezen (zoeken, spelen, leren, je favorieten) kan iedereen. Iets toevoegen of veranderen op
+// de machine hoort bij de beheerder: muziek uploaden, een map laten omzetten, een link naar
+// mp3 halen, eigen liedjes bewerken, de back-up en de bijwerking.
+const SESSIEKOEKJE = 'ak_beheer';
+const SLEUTEL_WACHTWOORD = 'beheer_hash';
+const GEVOELIGE_INSTELLINGEN = ['spotify_client_id', 'spotify_client_secret', 'spotify_token', 'spotify_token_verloopt'];
+const MAX_POGINGEN = 10;
+const POGINGVENSTER_MS = 15 * 60 * 1000;
+const pogingen = new Map();   // per adres: hoeveel keer fout, en sinds wanneer
+
+function leesCookies(req) {
+  const uit = {};
+  for (const stuk of String(req.headers.cookie || '').split(';')) {
+    const i = stuk.indexOf('=');
+    if (i < 0) continue;
+    const naam = stuk.slice(0, i).trim();
+    if (!naam) continue;
+    uit[naam] = decodeURIComponent(stuk.slice(i + 1).trim());
+  }
+  return uit;
+}
+
+function wachtwoordAfdruk() {
+  return leesInstelling(SLEUTEL_WACHTWOORD, '');
+}
+
+function isBeheerder(req) {
+  const token = leesCookies(req)[SESSIEKOEKJE] || '';
+  if (!token) return false;
+  let rij = null;
+  try {
+    rij = db.prepare('SELECT tot FROM sessies WHERE token = ?').get(token);
+  } catch (e) {
+    return false;
+  }
+  if (!rij) return false;
+  if (Number(rij.tot) < Date.now()) {
+    db.prepare('DELETE FROM sessies WHERE token = ?').run(token);
+    return false;
+  }
+  return true;
+}
+
+function beginSessie(res) {
+  const token = beheer.nieuwToken();
+  const tot = Date.now() + beheer.SESSIE_DAGEN * 24 * 60 * 60 * 1000;
+  db.prepare('INSERT INTO sessies (token, tot, wanneer) VALUES (?, ?, ?)')
+    .run(token, tot, new Date().toISOString());
+  // Oude sessies opruimen, zodat de tabel niet vol loopt.
+  db.prepare('DELETE FROM sessies WHERE tot < ?').run(Date.now());
+  res.setHeader('set-cookie', SESSIEKOEKJE + '=' + token + '; HttpOnly; SameSite=Lax; Path=/; Max-Age=' +
+    (beheer.SESSIE_DAGEN * 24 * 60 * 60));
+  return token;
+}
+
+function beeindigSessie(req, res) {
+  const token = leesCookies(req)[SESSIEKOEKJE] || '';
+  if (token) db.prepare('DELETE FROM sessies WHERE token = ?').run(token);
+  res.setHeader('set-cookie', SESSIEKOEKJE + '=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0');
+}
+
+// Te veel foute pogingen van hetzelfde adres? Dan even niet meer.
+function teVeelPogingen(req) {
+  const adres = String(req.socket && req.socket.remoteAddress || '?');
+  const nu = Date.now();
+  const staat = pogingen.get(adres);
+  if (!staat || nu - staat.sinds > POGINGVENSTER_MS) {
+    pogingen.set(adres, { aantal: 0, sinds: nu });
+    return false;
+  }
+  return staat.aantal >= MAX_POGINGEN;
+}
+
+function telPoging(req, goed) {
+  const adres = String(req.socket && req.socket.remoteAddress || '?');
+  if (goed) {
+    pogingen.delete(adres);
+    return;
+  }
+  const staat = pogingen.get(adres) || { aantal: 0, sinds: Date.now() };
+  staat.aantal += 1;
+  pogingen.set(adres, staat);
+}
+
+// Wat de beheerder wel en niet mag: alles wat iets toevoegt of verandert.
+function beheerNodig(pad, methode) {
+  if (methode === 'GET' || methode === 'HEAD') return false;
+  if (pad === '/api/beheer' || pad.startsWith('/api/beheer/')) return false;
+  if (pad === '/api/mappen' || pad === '/api/mappen/weg') return true;
+  if (pad === '/api/muziek' || pad === '/api/youtube') return true;
+  if (pad === '/api/wachter') return true;
+  if (/^\/api\/(upload|download|scan|backup|update|analyse|import)/.test(pad)) return true;
+  if (/^\/api\/liedjes(\/|$)/.test(pad)) return true;
+  if (/^\/api\/media\//.test(pad)) return true;
+  if (/^\/api\/spotify\//.test(pad)) return true;
+  return false;
+}
+
 function alleInstellingen() {
   const uit = {};
   for (const rij of db.prepare('SELECT sleutel, waarde FROM instellingen').all()) uit[rij.sleutel] = rij.waarde;
@@ -417,7 +524,7 @@ function vindLiedje(id) {
 // ------------------------------------------------------------------ weergave ---
 // Bouwt het complete beeld van een liedje: model, capo-advies, grepen en audio.
 function weergave(lied, opties) {
-  const o = Object.assign({ transpose: 0, capoStand: null }, opties || {});
+  const o = Object.assign({ transpose: 0, capoStand: null, beheer: false }, opties || {});
   const stappen = Math.max(-11, Math.min(11, parseInt(o.transpose, 10) || 0));
   const mol = theorie.toonsoortVoorkeur(lied.toonsoort || 'C', stappen);
   const model = stappen ? chordpro.transponeerModel(lied.model, stappen, mol) : lied.model;
@@ -475,6 +582,7 @@ function weergave(lied, opties) {
     licentie: lied.licentie || '',
     heeftMuziek: !!muziekVanLiedje(lied.id),
     heeftVideo: !!videoVanLiedje(lied.id),
+    beheer: !!o.beheer,
     // Waar een opgehaald mp3-bestand terechtkomt (de app laat dat pad zien bij het plakken
     // van een link).
     download: { map: DOWNLOAD_DIR, ytdlp: OPHAAL.ytdlp },
@@ -1726,6 +1834,74 @@ async function verwerk(req, res) {
     json(res, 200, { profielen: profielLijst(), actief: profielVan(req, query) });
     return;
   }
+  // --- beheerder: wachtwoord instellen, inloggen, uitloggen ---
+  if (pad === '/api/beheer' && methode === 'GET') {
+    json(res, 200, {
+      ingesteld: !!wachtwoordAfdruk(),
+      ingelogd: isBeheerder(req),
+      minLengte: beheer.MIN_LENGTE,
+      dagen: beheer.SESSIE_DAGEN
+    });
+    return;
+  }
+  if (pad === '/api/beheer/wachtwoord' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    const nieuw = String(body.wachtwoord || '');
+    const afdruk = wachtwoordAfdruk();
+    // De eerste keer mag het zonder inloggen (er is nog niets om in te loggen); daarna alleen
+    // als je de beheerder bent, en met het oude wachtwoord erbij.
+    if (afdruk) {
+      if (!isBeheerder(req)) { json(res, 403, { fout: 'Log eerst in als beheerder.' }); return; }
+      if (!beheer.controleerWachtwoord(String(body.oud || ''), afdruk)) {
+        json(res, 401, { fout: 'Het oude wachtwoord klopt niet.' });
+        return;
+      }
+    }
+    if (!beheer.sterkGenoeg(nieuw)) {
+      json(res, 400, { fout: 'Kies een wachtwoord van minstens ' + beheer.MIN_LENGTE + ' tekens.' });
+      return;
+    }
+    zetInstelling(SLEUTEL_WACHTWOORD, beheer.hashWachtwoord(nieuw));
+    // Iedereen die nog ingelogd was moet opnieuw inloggen; deze sessie zetten we meteen klaar,
+    // zodat je niet direct na het instellen weer moet inloggen.
+    db.prepare('DELETE FROM sessies').run();
+    beginSessie(res);
+    json(res, 200, { ok: true, ingesteld: true, ingelogd: true });
+    return;
+  }
+  if (pad === '/api/beheer/inloggen' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    if (teVeelPogingen(req)) {
+      json(res, 429, { fout: 'Te veel foute pogingen. Probeer het over een kwartier weer.' });
+      return;
+    }
+    const afdruk = wachtwoordAfdruk();
+    if (!afdruk) { json(res, 400, { fout: 'Er is nog geen beheerderswachtwoord ingesteld.' }); return; }
+    if (!beheer.controleerWachtwoord(String(body.wachtwoord || ''), afdruk)) {
+      telPoging(req, false);
+      json(res, 401, { fout: 'Dat wachtwoord klopt niet.' });
+      return;
+    }
+    telPoging(req, true);
+    beginSessie(res);
+    json(res, 200, { ok: true, ingelogd: true });
+    return;
+  }
+  if (pad === '/api/beheer/uitloggen' && methode === 'POST') {
+    beeindigSessie(req, res);
+    json(res, 200, { ok: true, ingelogd: false });
+    return;
+  }
+
+  // Alles wat iets toevoegt of verandert, is voor de beheerder.
+  if (beheerNodig(pad, methode) && !isBeheerder(req)) {
+    json(res, 403, {
+      fout: 'Alleen de beheerder kan muziek en liedjes toevoegen. Log in bij het tabblad Toevoegen.',
+      beheer: true
+    });
+    return;
+  }
+
   if (pad === '/api/profielen' && methode === 'POST') {
     const body = await leesJsonBody(req);
     const naam = String(body.naam || '').trim().slice(0, 40);
@@ -2251,7 +2427,9 @@ async function verwerk(req, res) {
     zetInstelling('laatste_liedje', String(m[1]));
     const profielId = profielVan(req, query);
     const persoon = persoonlijk(profielId);
-    const antwoord = weergave(lied, { transpose: query.get('transpose'), capoStand: query.get('capo') });
+    const antwoord = weergave(lied, {
+      transpose: query.get('transpose'), capoStand: query.get('capo'), beheer: isBeheerder(req)
+    });
     const nummer = Number(m[1]);
     antwoord.favoriet = persoon.favorieten.includes(nummer);
     antwoord.labels = (persoon.perLiedje[nummer] || []).map(id => {
@@ -2556,9 +2734,13 @@ async function verwerk(req, res) {
   }
   if (pad === '/api/instellingen' && methode === 'POST') {
     const body = await leesJsonBody(req);
-    for (const sleutel of SLEUTELS) {
-      if (Object.prototype.hasOwnProperty.call(body, sleutel)) zetInstelling(sleutel, body[sleutel]);
+    const gevraagd = SLEUTELS.filter(sleutel => Object.prototype.hasOwnProperty.call(body, sleutel));
+    const gevoelig = gevraagd.filter(sleutel => GEVOELIGE_INSTELLINGEN.indexOf(sleutel) >= 0);
+    if (gevoelig.length && !isBeheerder(req)) {
+      json(res, 403, { fout: 'Alleen de beheerder kan de Spotify-sleutels instellen.' });
+      return;
     }
+    for (const sleutel of gevraagd) zetInstelling(sleutel, body[sleutel]);
     json(res, 200, { ok: true, instellingen: alleInstellingen() });
     return;
   }

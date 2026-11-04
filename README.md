@@ -118,6 +118,10 @@ in plaats van wav. Geen npm-afhankelijkheden.
 
 ## Wat zit erin
 
+- **Een beheerdersaccount voor alles wat toevoegt.** Zoeken, spelen, leren en je eigen lijstjes
+  kan iedereen; muziek uploaden, een link omzetten naar mp3, mappen laten omzetten, eigen liedjes
+  bewerken, de back-up en de bijwerking horen bij de beheerder. Het wachtwoord wordt als
+  scrypt-afdruk bewaard (nooit als tekst) en de sessie is een HttpOnly-koekje van negentig dagen.
 - **Capo-advies dat rekent.** Voor elke capostand 0–8 telt de app de grepen die je dan pakt,
   straft barrés en onbekende grepen, en kiest de makkelijkste stand. Het advies zegt ook wat het
   kost om *zonder* capo te spelen ("Zonder capo zou je F als barré moeten pakken").
@@ -167,6 +171,42 @@ in plaats van wav. Geen npm-afhankelijkheden.
   jij zegt of het tweede hoger of lager klinkt. Je hoeft niets te zien.
 - **PWA.** Installeerbaar op je telefoon, met de app-schil in de cache maar liedjes, audio en
   cast-status altijd live.
+
+## De beheerder
+
+De app is voor iedereen te gebruiken, maar wat er *op de machine komt* hoort bij één account:
+
+| Wat | Wie |
+| --- | --- |
+| Zoeken, filteren, spelen, meespelen, leren, casten, eigen profielen/favorieten/setlists | iedereen |
+| Muziek of video uploaden, een link omzetten naar mp3, een map laten omzetten | beheerder |
+| Muziekmappen toevoegen of weghalen, eigen liedjes bewerken, opnamen uploaden | beheerder |
+| Back-up, wachter, bijwerken, Spotify-sleutels | beheerder |
+
+De eerste keer stel je bij het tabblad **Toevoegen** een wachtwoord in (minstens acht tekens); je
+bent daarna meteen ingelogd. Je blijft negentig dagen ingelogd per apparaat. Na tien foute pogingen
+binnen een kwartier weigert de app het even.
+
+Het wachtwoord zelf wordt nooit bewaard: er staat alleen een scrypt-afdruk met een eigen zout in de
+database (`beheer_hash` in de tabel `instellingen`). De sessies staan in de tabel `sessies`.
+
+**Wachtwoord vergeten?** Wis de afdruk en de sessies in de container; daarna kun je in de app weer
+een nieuw wachtwoord instellen:
+
+```bash
+pct exec 106 -- bash -c 'cd /opt/akkoordkast && node -e "
+const { DatabaseSync } = require("node:sqlite");
+const db = new DatabaseSync(process.env.DB_PATH || "/var/lib/akkoordkast/akkoordkast.db");
+db.prepare("DELETE FROM instellingen WHERE sleutel = ?").run("beheer_hash");
+db.prepare("DELETE FROM sessies").run();
+console.log("beheerderswachtwoord gewist");
+"'
+```
+
+Een andere container dan 106? Vervang het nummer, of laat `pct exec` weg als je al in de container
+zit. Wat er in de database staat kun je ook bekijken met
+`pct exec 106 -- bash -c 'cd /opt/akkoordkast && node -e "…"'`, maar het wissen hierboven is
+meestal wat je zoekt.
 
 ## De liedjes
 
@@ -717,7 +757,7 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 169 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+node --test test/*.test.js          # 173 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
                                     # setlists, akkoordenboek, de wachter en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL
@@ -732,6 +772,21 @@ bestaat, dat de downloadlijsten van de installer en de updater bij elkaar passen
 `Cannot find module`-oorzaak), en dat de gezondheidscontrole de app-marker eist en controleert of
 node op de poort luistert. Deploy-scripts worden met `bash -n` en een aanhalingstekensbalans per
 regel nagelopen, omdat een afgebroken quote in een single-quoted heredoc stil blijft.
+
+## Waar alles staat
+
+- **De app zelf:** `/opt/akkoordkast` — de code, de liedjes en de pagina's.
+- **Je gegevens:** `/var/lib/akkoordkast` — de database, je opnamen en de omgezette audio. De
+  updater komt hier nooit aan.
+- **Je muziekmap:** standaard `/home/akkoordkast/muziek`, of het koppelpunt van je NAS. Wat je via
+  *Link naar mp3* ophaalt, komt in de ondermap `Gedownload` (`DOWNLOAD_DIR` in de dienst).
+- **De dienst:** `akkoordkast.service`, draait als gewone gebruiker op poort 80 met
+  `CAP_NET_BIND_SERVICE`. Extra instellingen, zoals `MUSIC_DIR`, horen in
+  `/etc/systemd/system/akkoordkast.service.d/`.
+- **Bijwerken:** `deploy/proxmox/update-from-github.sh` op de host.
+- **Controleren:** `deploy/proxmox/check-akkoordkast.sh` (alleen-lezen, met per bevinding de
+  letterlijke opdracht die het oplost).
+- **Logboek:** `pct exec 106 -- journalctl -u akkoordkast -n 50 --no-pager`.
 
 ## Licentie
 

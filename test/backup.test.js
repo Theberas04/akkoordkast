@@ -42,18 +42,19 @@ test('de bestandsnaam is sorteerbaar en het opruimen bewaart de nieuwste', () =>
 
 test('een back-up maken levert een bestand met de gegevens en zonder geheimen', async () => {
   const omgeving = await hulp.start();
+  const baas = await hulp.alsBeheerder(omgeving.basis);
   const map = fs.mkdtempSync(path.join(os.tmpdir(), 'backup-'));
   try {
     // Een geheim in de instellingen zetten: dat hoort niet in het bestand te belanden.
-    await hulp.post(omgeving.basis, '/api/spotify/instellingen', { client_secret: 'streng-geheim-123' });
-    await hulp.post(omgeving.basis, '/api/mappen', { pad: os.tmpdir() });
+    await baas.post('/api/spotify/instellingen', { client_secret: 'streng-geheim-123' });
+    await baas.post('/api/mappen', { pad: os.tmpdir() });
 
-    const gezet = await hulp.post(omgeving.basis, '/api/backup', { aan: true, map, bewaren: 2 });
+    const gezet = await baas.post('/api/backup', { aan: true, map, bewaren: 2 });
     assert.equal(gezet.status, 200, JSON.stringify(gezet.data));
     assert.equal(gezet.data.backup.aan, true);
     assert.equal(gezet.data.backup.map, path.resolve(map));
 
-    const nu = await hulp.post(omgeving.basis, '/api/backup/nu', {});
+    const nu = await baas.post('/api/backup/nu', {});
     assert.equal(nu.status, 201, JSON.stringify(nu.data));
     const bestand = path.join(map, nu.data.uitkomst.bestand);
     assert.ok(fs.existsSync(bestand), 'het back-upbestand staat er');
@@ -77,11 +78,12 @@ test('een back-up maken levert een bestand met de gegevens en zonder geheimen', 
 
 test('oude back-ups worden opgeruimd als je er maar twee wilt bewaren', async () => {
   const omgeving = await hulp.start();
+  const baas = await hulp.alsBeheerder(omgeving.basis);
   const map = fs.mkdtempSync(path.join(os.tmpdir(), 'backup-opruim-'));
   try {
-    await hulp.post(omgeving.basis, '/api/backup', { aan: false, map, bewaren: 2 });
+    await baas.post('/api/backup', { aan: false, map, bewaren: 2 });
     for (let i = 0; i < 3; i++) {
-      const uit = await hulp.post(omgeving.basis, '/api/backup/nu', {});
+      const uit = await baas.post('/api/backup/nu', {});
       assert.equal(uit.status, 201, JSON.stringify(uit.data));
       await new Promise(r => setTimeout(r, 1100));   // de naam heeft seconden, dus even wachten
     }
@@ -98,14 +100,15 @@ test('oude back-ups worden opgeruimd als je er maar twee wilt bewaren', async ()
 
 test('zonder map of met een map die niet kan: een eerlijke melding', async () => {
   const omgeving = await hulp.start();
+  const baas = await hulp.alsBeheerder(omgeving.basis);
   try {
-    const zonder = await hulp.post(omgeving.basis, '/api/backup', { map: '' });
+    const zonder = await baas.post('/api/backup', { map: '' });
     assert.equal(zonder.status, 200);
-    const nu = await hulp.post(omgeving.basis, '/api/backup/nu', {});
+    const nu = await baas.post('/api/backup/nu', {});
     assert.equal(nu.status, 400);
     assert.match(nu.data.fout, /geen map gekozen/);
 
-    const foutPad = await hulp.post(omgeving.basis, '/api/backup', { map: 'backup-map' });
+    const foutPad = await baas.post('/api/backup', { map: 'backup-map' });
     assert.equal(foutPad.status, 400);
     assert.match(foutPad.data.fout, /volledig pad/);
   } finally {

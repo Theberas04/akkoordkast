@@ -50,4 +50,25 @@ const post = (basis, pad, lichaam) => haal(basis, pad, {
   body: JSON.stringify(lichaam || {})
 });
 
-module.exports = { start, haal, post, maakOmgeving };
+// De beheerder worden, zoals de browser dat doet: een wachtwoord instellen, het koekje
+// onthouden en daarna alles met dat koekje sturen. Zonder dit weigert de app alles wat iets
+// toevoegt (dat is juist de bedoeling).
+async function alsBeheerder(basis, wachtwoord = 'proefwachtwoord') {
+  const eerste = await post(basis, '/api/beheer/wachtwoord', { wachtwoord });
+  const koekje = String(eerste.headers.get('set-cookie') || '').split(';')[0];
+  const metKoekje = (opties = {}) => Object.assign({}, opties, {
+    headers: Object.assign({}, opties.headers, { cookie: koekje })
+  });
+  return {
+    wachtwoord,
+    koekje,
+    eerste,
+    haal: (pad, opties) => haal(basis, pad, metKoekje(opties)),
+    post: (pad, lichaam) => haal(basis, pad, metKoekje({
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(lichaam || {})
+    })),
+    del: pad => haal(basis, pad, metKoekje({ method: 'DELETE' }))
+  };
+}
+
+module.exports = { start, haal, post, maakOmgeving, alsBeheerder };

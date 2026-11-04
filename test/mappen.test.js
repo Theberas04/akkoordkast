@@ -27,13 +27,14 @@ function maakMuziekmap(voorvoegsel, akkoorden) {
 
 test('een map toevoegen, terugzien in de lijst, en weer weghalen', async () => {
   const omgeving = await hulp.start();
+  const baas = await hulp.alsBeheerder(omgeving.basis);
   const map = maakMuziekmap('map-een-', ['G', 'C', 'G', 'D7']);
   try {
     const leeg = await hulp.haal(omgeving.basis, '/api/mappen');
     assert.equal(leeg.status, 200, JSON.stringify(leeg.data));
     assert.deepEqual(leeg.data.mappen, [], 'nog geen mappen');
 
-    const toe = await hulp.post(omgeving.basis, '/api/mappen', { pad: map });
+    const toe = await baas.post('/api/mappen', { pad: map });
     assert.equal(toe.status, 201, JSON.stringify(toe.data));
     assert.equal(toe.data.mappen.length, 1);
     assert.equal(toe.data.mappen[0].pad, path.resolve(map));
@@ -44,7 +45,7 @@ test('een map toevoegen, terugzien in de lijst, en weer weghalen', async () => {
     const nogEens = await hulp.haal(omgeving.basis, '/api/mappen');
     assert.equal(nogEens.data.mappen.length, 1, 'de map is onthouden');
 
-    const weg = await hulp.post(omgeving.basis, '/api/mappen/weg', { pad: map });
+    const weg = await baas.post('/api/mappen/weg', { pad: map });
     assert.equal(weg.status, 200);
     assert.deepEqual(weg.data.mappen, []);
   } finally {
@@ -55,18 +56,19 @@ test('een map toevoegen, terugzien in de lijst, en weer weghalen', async () => {
 
 test('zonder volledig pad, met een niet-bestaande map en met een bestand: duidelijke uitleg', async () => {
   const omgeving = await hulp.start();
+  const baas = await hulp.alsBeheerder(omgeving.basis);
   try {
-    const leeg = await hulp.post(omgeving.basis, '/api/mappen', {});
+    const leeg = await baas.post('/api/mappen', {});
     assert.equal(leeg.status, 400);
     assert.match(leeg.data.fout, /Geef een map op/);
 
-    const betrekkelijk = await hulp.post(omgeving.basis, '/api/mappen', { pad: 'muziek' });
+    const betrekkelijk = await baas.post('/api/mappen', { pad: 'muziek' });
     assert.equal(betrekkelijk.status, 400);
     assert.match(betrekkelijk.data.fout, /volledig pad/);
 
     // Een NAS-pad dat nog niet gekoppeld is: dat is precies het geval waarin je wilt
     // weten dat de koppeling er niet staat.
-    const niet = await hulp.post(omgeving.basis, '/api/mappen', { pad: '/mnt/Nas/Nas-Opslag/Muziek' });
+    const niet = await baas.post('/api/mappen', { pad: '/mnt/Nas/Nas-Opslag/Muziek' });
     if (fs.existsSync('/mnt/Nas/Nas-Opslag/Muziek')) {
       assert.equal(niet.status, 201, 'bestaat de map hier wel, dan mag hij toegevoegd worden');
     } else {
@@ -76,7 +78,7 @@ test('zonder volledig pad, met een niet-bestaande map en met een bestand: duidel
 
     const bestand = path.join(os.tmpdir(), 'map-test-bestand.txt');
     fs.writeFileSync(bestand, 'x');
-    const geenMap = await hulp.post(omgeving.basis, '/api/mappen', { pad: bestand });
+    const geenMap = await baas.post('/api/mappen', { pad: bestand });
     assert.equal(geenMap.status, 400);
     assert.match(geenMap.data.fout, /geen map/);
     fs.rmSync(bestand, { force: true });
@@ -87,10 +89,11 @@ test('zonder volledig pad, met een niet-bestaande map en met een bestand: duidel
 
 test('twee keer dezelfde map geeft geen dubbele regel', async () => {
   const omgeving = await hulp.start();
+  const baas = await hulp.alsBeheerder(omgeving.basis);
   const map = maakMuziekmap('map-dubbel-', ['C', 'F', 'G7', 'C']);
   try {
-    await hulp.post(omgeving.basis, '/api/mappen', { pad: map });
-    const tweede = await hulp.post(omgeving.basis, '/api/mappen', { pad: map });
+    await baas.post('/api/mappen', { pad: map });
+    const tweede = await baas.post('/api/mappen', { pad: map });
     assert.equal(tweede.status, 201);
     assert.equal(tweede.data.mappen.length, 1, 'dezelfde map hoort maar één keer in de lijst te staan');
   } finally {
@@ -101,13 +104,14 @@ test('twee keer dezelfde map geeft geen dubbele regel', async () => {
 
 test('een ronde zonder map doet alle mappen die in de app staan', async () => {
   const omgeving = await hulp.start();
+  const baas = await hulp.alsBeheerder(omgeving.basis);
   const een = maakMuziekmap('map-ronde-a-', ['G', 'D', 'Em', 'C']);
   const twee = maakMuziekmap('map-ronde-b-', ['C', 'Am', 'F', 'G']);
   try {
-    await hulp.post(omgeving.basis, '/api/mappen', { pad: een });
-    await hulp.post(omgeving.basis, '/api/mappen', { pad: twee });
+    await baas.post('/api/mappen', { pad: een });
+    await baas.post('/api/mappen', { pad: twee });
 
-    const uit = await hulp.post(omgeving.basis, '/api/scan', { limiet: 4 });
+    const uit = await baas.post('/api/scan', { limiet: 4 });
     assert.equal(uit.status, 201, JSON.stringify(uit.data));
     assert.equal(uit.data.mappen.length, 2, 'beide mappen horen langs te komen');
     assert.equal(uit.data.gedaan, 2, 'één nummer per map');
@@ -124,14 +128,15 @@ test('een ronde zonder map doet alle mappen die in de app staan', async () => {
 
 test('de wachter loopt alle mappen langs en meldt een map die ontbreekt', async () => {
   const omgeving = await hulp.start();
+  const baas = await hulp.alsBeheerder(omgeving.basis);
   const map = maakMuziekmap('map-wachter-', ['Am', 'Dm', 'E7', 'Am']);
   const wegMap = path.join(os.tmpdir(), 'akkoordkast-bestaat-niet-' + Date.now());
   try {
-    const gezet = await hulp.post(omgeving.basis, '/api/wachter', { aan: true, mappen: [map, wegMap], perRonde: 5 });
+    const gezet = await baas.post('/api/wachter', { aan: true, mappen: [map, wegMap], perRonde: 5 });
     assert.equal(gezet.status, 200, JSON.stringify(gezet.data));
     assert.equal(gezet.data.wachter.mappen.length, 2);
 
-    const nu = await hulp.post(omgeving.basis, '/api/wachter/nu', {});
+    const nu = await baas.post('/api/wachter/nu', {});
     assert.equal(nu.status, 200, JSON.stringify(nu.data));
     const verslag = nu.data.wachter.verslag;
     assert.match(verslag, /1 omgezet/, 'uit de bestaande map: ' + verslag);
@@ -147,6 +152,7 @@ test('de omgeving (MUSIC_DIR) is de map die de app zelf voorstelt', async () => 
   const map = maakMuziekmap('map-omgeving-', ['G', 'C', 'D7', 'G']);
   process.env.MUSIC_DIR = map;
   const omgeving = await hulp.start();
+  const baas = await hulp.alsBeheerder(omgeving.basis);
   try {
     const uit = await hulp.haal(omgeving.basis, '/api/mappen');
     assert.equal(uit.data.standaard, map);

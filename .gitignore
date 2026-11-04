@@ -12,3 +12,8 @@ chrome-profile/
 # tijdelijke bestanden van de beeld- en videobouw
 /tmp/
 *.log
+
+# de handleiding houd je voor jezelf: die hoort niet in het openbare repo
+handleiding/
+docs/handleiding.*
+docs/index.html

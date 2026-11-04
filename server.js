@@ -35,7 +35,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.18.0';
+const VERSIE = '1.18.1';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -4456,11 +4456,19 @@ async function verwerk(req, res) {
       stuurBestand(req, res, path.join(__dirname, rest), MIME['.js'], { 'cache-control': 'public, max-age=300' });
       return;
     }
-    // De handleiding hoort bij een map met een eigen pagina: /handleiding/ opent hem.
-    if (rest === 'handleiding' || rest === 'handleiding/') {
-      stuurBestand(req, res, path.join(__dirname, 'public', 'handleiding', 'index.html'),
-        MIME['.html'], { 'cache-control': 'no-cache' });
-      return;
+    // De handleiding hoort bij een map met een eigen pagina: /handleiding/ opent hem. Hij zit niet meer
+    // in het repo (die houd je voor jezelf): staat hij in de gegevensmap, dan komt hij daarvandaan, en
+    // anders uit public/ zoals vroeger.
+    if (/^handleiding(\/|$)/.test(rest)) {
+      const restant = rest.replace(/^handleiding\/?/, '') || 'index.html';
+      const eigen = path.join(DATA_DIR, 'handleiding', restant);
+      const uitRepo = path.join(__dirname, 'public', 'handleiding', restant);
+      const bestand = fs.existsSync(eigen) ? eigen : uitRepo;
+      if (fs.existsSync(bestand) && fs.statSync(bestand).isFile()) {
+        stuurBestand(req, res, bestand, MIME[path.extname(bestand).toLowerCase()] || MIME['.html'],
+          { 'cache-control': 'no-cache' });
+        return;
+      }
     }
     const bestand = path.join(__dirname, 'public', rest);
     if (!bestand.startsWith(path.join(__dirname, 'public'))) { json(res, 400, { fout: 'Ongeldige bestandsnaam' }); return; }

@@ -103,19 +103,6 @@ FILES=(
   "public/icon-512.png"
   "public/icon-512-maskable.png"
   "public/apple-touch-icon.png"
-  "public/handleiding/index.html"
-  "public/handleiding/img/leren-cursus.png"
-  "public/handleiding/img/oefenplan.png"
-  "public/handleiding/img/opnemen.png"
-  "public/handleiding/img/ritme-trainer.png"
-  "public/handleiding/img/toonladder.png"
-  "public/handleiding/img/stemmer.png"
-  "public/handleiding/img/liedjes-desktop.png"
-  "public/handleiding/img/muziek-van-het-liedje.png"
-  "public/handleiding/img/oefenen-per-week.png"
-  "public/handleiding/img/setlist-overgangen.png"
-  "public/handleiding/img/spelen-desktop.png"
-  "public/handleiding/img/spotify-blok.png"
   "song-data/liedjes.json"
   "song-data/volkswijsjes.json"
   "song-data/kerkwijsjes.json"
@@ -163,19 +150,6 @@ PAGINA=(
   "public/icon-512.png"
   "public/icon-512-maskable.png"
   "public/apple-touch-icon.png"
-  "public/handleiding/index.html"
-  "public/handleiding/img/leren-cursus.png"
-  "public/handleiding/img/oefenplan.png"
-  "public/handleiding/img/opnemen.png"
-  "public/handleiding/img/ritme-trainer.png"
-  "public/handleiding/img/toonladder.png"
-  "public/handleiding/img/stemmer.png"
-  "public/handleiding/img/liedjes-desktop.png"
-  "public/handleiding/img/muziek-van-het-liedje.png"
-  "public/handleiding/img/oefenen-per-week.png"
-  "public/handleiding/img/setlist-overgangen.png"
-  "public/handleiding/img/spelen-desktop.png"
-  "public/handleiding/img/spotify-blok.png"
 )
 DATA=(
   "song-data/liedjes.json"
@@ -208,6 +182,14 @@ echo "   $(echo "${#FILES[@]}") bestanden opgehaald"
 
 STAMP="$(date +%Y%m%d-%H%M%S)"
 echo "== Reservekopie maken in de container ($STAMP)"
+# De handleiding zit niet meer in het repo: die houd je voor jezelf. Wat er in de container staat,
+# verhuist eerst naar de gegevensmap, zodat de app hem blijft tonen als de bestanden uit $APP_DIR
+# verdwijnen. De app kijkt daar als eerste.
+if pct exec "$CTID" -- test -f "$APP_DIR/public/handleiding/index.html" 2>/dev/null; then
+  pct exec "$CTID" -- bash -c "install -d -o $GEBRUIKER -g $GEBRUIKER $DATA_DIR/handleiding && cp -a $APP_DIR/public/handleiding/. $DATA_DIR/handleiding/" \
+    && echo "De handleiding is naar $DATA_DIR/handleiding verhuisd." || true
+fi
+
 binnen_bash "rm -rf $APP_DIR.bak && cp -a $APP_DIR $APP_DIR.bak"
 if [ ! -d "$APP_DIR.bak" ] && ! pct exec "$CTID" -- test -d "$APP_DIR.bak"; then
   echo "Kon geen reservekopie maken; ik stop voordat er iets verandert." >&2

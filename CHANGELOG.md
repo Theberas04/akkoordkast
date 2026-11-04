@@ -3,6 +3,22 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.18.1] — 4 november 2026
+
+### De handleiding en de landingspagina gaan uit het openbare repo
+
+- **De handleiding zit niet meer op GitHub** (`docs/handleiding.md`, `.html` en `.pdf`, de map
+  `public/handleiding/` en `scripts/maak-handleiding.py`). Hij blijft wel werken in de app: die kijkt
+  eerst in de gegevensmap (`/var/lib/akkoordkast/handleiding/`) en pas daarna in `public/handleiding/`.
+  De bijwerker verhuist de handleiding bij het bijwerken naar die gegevensmap, zodat hij in de app
+  blijft staan en niet verdwijnt als de bestanden uit de app-map gaan verdwijnen.
+- **Het adres van de app staat nergens meer in het repo.** In de changelog staat nu "je eigen adres van
+  de app" in plaats van het volledige adres.
+- **De landingspagina (`docs/index.html`) is uit het repo** en **GitHub Pages staat uit**, zodat er geen
+  site meer vanaf GitHub te vinden is.
+- Een verse installatie krijgt de handleiding dus niet meer mee; hij staat wel in je eigen gegevensmap
+  (of in de app, bij een bestaande installatie).
+
 ## [1.18.0] — 4 november 2026
 
 ### Nieuw

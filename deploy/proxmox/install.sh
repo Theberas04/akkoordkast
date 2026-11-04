@@ -29,21 +29,29 @@ CONTROLEER_PAKKET="${CONTROLEER_PAKKET:-0}"
 # aan wat er in de repository staat. Lukt dat niet (geen internet naar de API), dan gaan we
 # door met de branch en melden we dat de bestanden even oud kunnen zijn.
 if [ "${RAW_BASE#file://}" = "$RAW_BASE" ] && [ -z "${COMMIT_VAST:-}" ]; then
-  COMMIT_VAST="$(curl -fsSL --max-time 20 -H 'Accept: application/vnd.github+json' \
-    "https://api.github.com/repos/$REPO_OWNER/$REPO_NAAM/commits/$BRANCH" 2>/dev/null \
-    | sed -n 's/.*"sha" *: *"\([0-9a-f]\{40\}\)".*/\1/p' | head -1)"
+  # Eerst de Atom-feed van de commits: die is geen API, heeft geen limiet per IP en noemt de
+  # nieuwste commit bovenaan. De API geeft bij veel gebruik tijdelijk 403 (curl: (22) ... 403),
+  # en dan zouden we terugvallen op de branch met zijn vijf minuten oude schijfcache.
+  COMMIT_VAST="$(curl -fsSL --max-time 20 \
+    "https://github.com/$REPO_OWNER/$REPO_NAAM/commits/$BRANCH.atom" 2>/dev/null \
+    | sed -n 's/.*Grit::Commit\/\([0-9a-f]\{40\}\).*/\1/p' | head -1)"
+  if [ -z "$COMMIT_VAST" ]; then
+    COMMIT_VAST="$(curl -fsSL --max-time 20 -H 'Accept: application/vnd.github+json' \
+      "https://api.github.com/repos/$REPO_OWNER/$REPO_NAAM/commits/$BRANCH" 2>/dev/null \
+      | sed -n 's/.*"sha" *: *"\([0-9a-f]\{40\}\)".*/\1/p' | head -1)"
+  fi
   if [ -n "$COMMIT_VAST" ]; then
     RAW_BASE="https://raw.githubusercontent.com/$REPO_OWNER/$REPO_NAAM/$COMMIT_VAST"
     echo "== Commit ${COMMIT_VAST:0:7} van $BRANCH (alle bestanden komen uit die versie)"
   else
     echo "LET OP: kon de commit van $BRANCH niet ophalen; de bestanden kunnen tot vijf" >&2
-    echo "minuten oud zijn. Forceer een verse kopie via de API:" >&2
-    echo "   bash -c \"\$(curl -fsSL -H 'Accept: application/vnd.github.raw' https://api.github.com/repos/$REPO_OWNER/$REPO_NAAM/contents/deploy/proxmox/install.sh?ref=$BRANCH)\"" >&2
+    echo "minuten oud zijn. Haal de nieuwste versie van dit script zo op:" >&2
+    echo "   bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/$REPO_OWNER/$REPO_NAAM/$BRANCH/deploy/proxmox/install.sh)\"" >&2
   fi
 fi
 # Stempel van deze installer. Staat bovenaan de uitvoer, zodat je meteen ziet welke versie
 # er draait: een oude kopie (uit de schijfcache van GitHub, of een bewaard bestand) valt zo op.
-PAKKET_VERSIE="2026-11-03.3"
+PAKKET_VERSIE="2026-11-04.1"
 
 # Let op: hier hoort ELK script in te staan dat hieronder met 'bash "$TARGET_DIR/..."'
 # wordt uitgevoerd (dus ook create-akkoordkast-lxc.sh). Staat het er niet in, dan stopt de

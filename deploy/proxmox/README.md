@@ -29,7 +29,7 @@ wijziging hebt gekregen — haal het dan via de API in plaats van via de ruwe UR
 
 ```bash
 bash -c "$(curl -fsSL -H 'Accept: application/vnd.github.raw' \
-  'https://api.github.com/repos/Theberas04/akkoordkast/contents/deploy/proxmox/install.sh?ref=main')"
+  'https://raw.githubusercontent.com/Theberas04/akkoordkast/main/deploy/proxmox/install.sh')"
 ```
 
 De installer doet vier dingen:

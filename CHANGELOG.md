@@ -20,6 +20,12 @@ nieuw is, wat er veranderd is en wat er gerepareerd is.
 - Op een telefoon liepen de liedjeskaartjes in de knoop: de titel werd in een smalle strook naast de
   knoppen geperst en brak in drie regels af. De knoppen staan nu onder het liedje, over de volle
   breedte.
+- **De installer en de bijwerker liepen vast op een 403 van GitHub.** Ze vroegen de nieuwste
+  commit op via de GitHub-API, en die heeft een limiet per IP-adres (zestig verzoeken per uur);
+  daarna gaf hij `curl: (22) The requested URL returned error: 403` en kon de bijwerking niet
+  doorgaan. Nu halen ze de commit eerst uit de Atom-feed van de commits — dat is geen API en heeft
+  geen limiet — en pas als dat niet lukt via de API. De aanbevolen opdracht in de documentatie
+  gebruikt de ruwe bestands-URL en raakt de API helemaal niet meer.
 - De app-cache naar v40.
 
 ## [1.5.0] — 4 november 2026

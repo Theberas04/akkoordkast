@@ -87,7 +87,7 @@ function maakLiedje(lied, id) {
       // zegt er zelf bij dat het een voorstel is en niet uit de bron komt.
       if (!model.akkoorden.length) {
         const v = voorstel.voorstelReeks(lied.toonsoort || '');
-        model = { meta: model.meta, regels: [], akkoorden: v.akkoorden.slice() };
+        model = { meta: model.meta, regels: model.regels, akkoorden: v.akkoorden.slice() };
         voorstelGebruikt = true;
         voorstelToonsoort = v.toonsoort;
       }

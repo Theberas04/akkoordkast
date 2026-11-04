@@ -533,7 +533,7 @@ function eigenRij(id) {
   let akkoordenBron = 'bron';
   if (!model.akkoorden.length) {
     const v = voorstel.voorstelReeks(rij.toonsoort || '');
-    model = { meta: model.meta, regels: [], akkoorden: v.akkoorden.slice() };
+    model = { meta: model.meta, regels: model.regels, akkoorden: v.akkoorden.slice() };
     akkoordenBron = 'voorstel';
   }
   const toonsoort = rij.toonsoort || model.meta.toonsoort || model.akkoorden[0] || 'C';
@@ -1114,7 +1114,11 @@ function modelMetVoorstel(lied) {
   if (eigen) return { model: lied.model, voorstel: lied.akkoordenBron === 'voorstel' };
   const v = voorstel.voorstelReeks(lied.toonsoort || 'C');
   return {
-    model: { meta: (lied.model && lied.model.meta) || {}, regels: [], akkoorden: v.akkoorden.slice() },
+    model: {
+      meta: (lied.model && lied.model.meta) || {},
+      regels: (lied.model && lied.model.regels) || [],
+      akkoorden: v.akkoorden.slice()
+    },
     voorstel: true,
     toonsoortVoorstel: v.toonsoort
   };
@@ -1149,7 +1153,7 @@ function meespeelPlan(lied, query) {
   let model = bron.model;
   // Een zelf ingevulde reeks gaat vóór het voorstel.
   if (gekozenReeks.length) {
-    model = { meta: model.meta || {}, regels: [], akkoorden: gekozenReeks.slice() };
+    model = { meta: model.meta || {}, regels: model.regels || [], akkoorden: gekozenReeks.slice() };
   }
   if (stappen) model = chordpro.transponeerModel(model, stappen, mol);
   const advies = capo.advies(model.akkoorden, theorie.transponeerToonsoort(lied.toonsoort || 'C', stappen));

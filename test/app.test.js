@@ -526,3 +526,20 @@ test('de pagina heeft de filters voor genre en artiest', () => {
   // de filters wissen zet ze ook echt terug
   assert.match(html, /\$\('filter-artiest'\)\.value = ''/);
 });
+
+test('de handleiding is in de app te openen, met de beelden erbij', async () => {
+  // De handleiding staat als pagina in de app zelf, zodat je hem ook zonder internet kunt lezen.
+  const omgeving = await start();
+  try {
+    const pagina = await haal(omgeving.basis, '/handleiding/');
+    assert.equal(pagina.status, 200, 'de handleiding hoort te openen op /handleiding/');
+    assert.match(pagina.data, /AkkoordKast — handleiding/);
+    assert.match(pagina.data, /Meespelen met muziek/);
+    const eerste = (pagina.data.match(/img\/([a-z0-9-]+\.png)/) || [])[1];
+    assert.ok(eerste, 'er hoort minstens een schermafbeelding in te staan');
+    const beeld = await haal(omgeving.basis, '/handleiding/img/' + eerste);
+    assert.equal(beeld.status, 200, 'het beeld ' + eerste + ' hoort te bestaan');
+  } finally {
+    await omgeving.stop();
+  }
+});

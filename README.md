@@ -18,7 +18,7 @@ je dan pakt**, de greepdiagrammen, en een audiospeler met begeleiding van de akk
 Die begeleiding cast je naar een Chromecast in je netwerk.
 
 **Wat staat waar:** [rondleiding](#rondleiding-van-56-seconden) ·
-[installeren op Proxmox](#installeren-op-je-proxmox-host) · [zelf draaien](#zelf-draaien-zonder-container) ·
+[handleiding](docs/handleiding.md) · [PDF](docs/handleiding.pdf) · [installeren op Proxmox](#installeren-op-je-proxmox-host) · [zelf draaien](#zelf-draaien-zonder-container) ·
 [wat zit erin](#wat-zit-erin) · [de liedjes](#de-liedjes) · [gitaar leren spelen](#gitaar-leren-spelen) ·
 [muziek erbij zoeken](#muziek-of-video-erbij-zoeken) · [een muziekmap in één keer](#een-hele-muziekmap-in-één-keer) ·
 [op een NAS of in Drive](#de-muziekmap-op-een-nas-of-in-google-drive) ·
@@ -135,6 +135,12 @@ in plaats van wav. Geen npm-afhankelijkheden.
   het toestel moet de container kunnen bereiken.
 - **Een akkoordenboek met alle posities.** Van elk akkoord niet één greep maar alles wat je
   kunt pakken: de open positie en de barré-vormen verder naar boven, met de tekening erbij.
+- **Een link omzetten naar mp3.** Plak een link (YouTube en honderden andere sites) en de app
+  zet er een mp3 van in je eigen muziekmap en hangt die meteen aan het liedje — daarna speel je
+  ermee mee. Het zware werk doet `yt-dlp` met `ffmpeg` op de server. De app weigert links naar je
+  eigen netwerk (anders zou je via de app bestanden van je router of NAS kunnen ophalen) en er
+  loopt er één tegelijk, want omzetten naar mp3 kost de hele processor. Het bestand blijft in je
+  eigen map staan: gebruik het voor materiaal dat je mag downloaden.
 - **Meespelen met de muziek van het liedje.** De app speelt standaard begeleiding uit een eigen
   gitaarsynthesizer. Heb je het liedje zelf als muziekbestand — bijvoorbeeld in de map op je NAS —
   dan zoek je dat op met één knop en speel je mee met de echte muziek: de akkoorden, de maat en de
@@ -711,7 +717,7 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 155 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+node --test test/*.test.js          # 168 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
                                     # setlists, akkoordenboek, de wachter en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL

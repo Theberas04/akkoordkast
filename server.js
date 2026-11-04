@@ -19,6 +19,8 @@ const overgangen = require('./lib/overgangen');
 const analyse = require('./lib/analyse');
 const spotify = require('./lib/spotify');
 const muziekbestand = require('./lib/muziekbestand');
+const youtube = require('./lib/youtube');
+const downloader = require('./lib/downloader');
 const theorie = require('./lib/theorie');
 const bron = require('./liedjes-bron');
 
@@ -31,7 +33,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.1';
+const VERSIE = '1.2';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -66,6 +68,11 @@ db.exec(`
     pad TEXT PRIMARY KEY,
     grootte INTEGER NOT NULL DEFAULT 0,
     liedje_id INTEGER NOT NULL DEFAULT 0,
+    wanneer TEXT NOT NULL DEFAULT ''
+  );
+  CREATE TABLE IF NOT EXISTS liedje_youtube (
+    liedje_id INTEGER PRIMARY KEY,
+    video TEXT NOT NULL,
     wanneer TEXT NOT NULL DEFAULT ''
   );
   CREATE TABLE IF NOT EXISTS liedje_muziek (
@@ -467,7 +474,12 @@ function weergave(lied, opties) {
     maatsoort: lied.maatsoort || 4,
     licentie: lied.licentie || '',
     heeftMuziek: !!muziekVanLiedje(lied.id),
+    heeftVideo: !!videoVanLiedje(lied.id),
+    // Waar een opgehaald mp3-bestand terechtkomt (de app laat dat pad zien bij het plakken
+    // van een link).
+    download: { map: DOWNLOAD_DIR, ytdlp: OPHAAL.ytdlp },
     muziek: muziekBeeld(lied),
+    video: videoBeeld(lied),
     audio: {
       opname: lied.audio_bestand ? `/media/audio/${lied.audio_bestand}` : '',
       opnameTitel: lied.audio_titel || '',
@@ -1062,6 +1074,63 @@ function scanRonde(mapPad, limiet) {
 // NAS- of Drive-koppeling) hoef je dat pad niet elke keer in te typen.
 const STANDAARD_MUZIEKMAP = String(process.env.MUSIC_DIR || '').trim();
 
+// Waar een opgehaald mp3-bestand komt te staan. Bij voorkeur in de muziekmap zelf, in een
+// eigen ondermap, zodat de app het meteen kan vinden en afspelen. Is er geen muziekmap
+// bekend, dan komt het in de map met de gegevens van de app.
+const DOWNLOAD_DIR = path.resolve(String(process.env.DOWNLOAD_DIR || '').trim() ||
+  (STANDAARD_MUZIEKMAP ? path.join(STANDAARD_MUZIEKMAP, 'Gedownload') : path.join(DATA_DIR, 'gedownload')));
+
+const OPHAAL = downloader.maakDownloader({ map: DOWNLOAD_DIR, ytdlp: process.env.YTDLP || 'yt-dlp' });
+let ophaalLiedje = 0;
+let ophaalWacht = null;
+
+// Zodra het ophalen klaar is, hangt de app het bestand meteen aan het liedje, zodat je het
+// kunt meespelen. Ligt het bestand buiten de mappen die de app kent, dan wordt de
+// downloadmap eerst toegevoegd — anders mag de app het bestand niet openen (dat is de
+// veiligheidsregel: alleen bestanden binnen de aangewezen mappen).
+function bewaakOphaal(liedjeId) {
+  if (ophaalWacht) clearInterval(ophaalWacht);
+  ophaalWacht = setInterval(() => {
+    const stand = OPHAAL.standVan();
+    if (stand.status === 'bezig') return;
+    clearInterval(ophaalWacht);
+    ophaalWacht = null;
+    if (stand.status !== 'klaar' || !stand.bestand) return;
+    try {
+      const mappen = leesMappen();
+      if (!muziekbestand.veilig(stand.bestand, [DOWNLOAD_DIR])) {
+        console.log('opgehaald bestand valt buiten de downloadmap; ik koppel het niet:', stand.bestand);
+        return;
+      }
+      if (!mappen.includes(DOWNLOAD_DIR)) zetMappen(mappen.concat([DOWNLOAD_DIR]));
+      zetLiedjeMuziek(liedjeId, stand.bestand, path.basename(stand.bestand));
+      console.log('opgehaald en gekoppeld aan liedje ' + liedjeId + ': ' + path.basename(stand.bestand));
+    } catch (fout) {
+      console.log('koppelen van het opgehaalde bestand mislukte:', fout.message);
+    }
+  }, 700);
+}
+
+// Wat de app van het ophalen laat zien: de stand, plus of het bestand al aan dit liedje hangt.
+function ophaalBeeld(liedjeId) {
+  const stand = OPHAAL.standVan();
+  const eigen = Number(liedjeId) || 0;
+  const vanDitLiedje = eigen && ophaalLiedje === eigen;
+  const m = eigen ? muziekVanLiedje(eigen) : null;
+  return {
+    map: DOWNLOAD_DIR,
+    ytdlp: OPHAAL.ytdlp,
+    status: vanDitLiedje ? stand.status : 'leeg',
+    procent: vanDitLiedje ? stand.procent : 0,
+    bestand: vanDitLiedje ? (stand.bestand ? path.basename(stand.bestand) : '') : '',
+    fout: vanDitLiedje ? stand.fout : '',
+    log: vanDitLiedje ? stand.log : [],
+    url: vanDitLiedje ? stand.url : '',
+    bezig: stand.status === 'bezig',
+    gekoppeld: !!(m && m.bestaat)
+  };
+}
+
 // De app kan naar meerdere mappen kijken: de map op deze machine, de NAS-map die als
 // koppeling in de container staat, enzovoort. De lijst staat in de instellingen.
 function leesMappen() {
@@ -1119,6 +1188,49 @@ function liedjesMetMuziek() {
     /* geen tabel: dan niets */
   }
   return uit;
+}
+
+// --- een YouTube-video aan een liedje ----------------------------------------
+// De app speelt de video via de officiele insluiting van YouTube. Hij downloadt niets: dat
+// mag niet van andermans muziek, en de app hoort geen auteursrechtelijke opnamen te bewaren.
+
+function videoVanLiedje(liedjeId) {
+  const rij = db.prepare('SELECT video, wanneer FROM liedje_youtube WHERE liedje_id = ?')
+    .get(Number(liedjeId) || 0);
+  const id = rij ? youtube.videoId(rij.video) : '';
+  if (!id) return null;
+  return { video: id, wanneer: rij ? String(rij.wanneer || '') : '' };
+}
+
+function zetLiedjeVideo(liedjeId, videoId) {
+  db.prepare('INSERT INTO liedje_youtube (liedje_id, video, wanneer) VALUES (?, ?, ?) ' +
+    'ON CONFLICT(liedje_id) DO UPDATE SET video = excluded.video, wanneer = excluded.wanneer')
+    .run(Number(liedjeId) || 0, String(videoId), new Date().toISOString());
+}
+
+function wisLiedjeVideo(liedjeId) {
+  db.prepare('DELETE FROM liedje_youtube WHERE liedje_id = ?').run(Number(liedjeId) || 0);
+}
+
+function liedjesMetVideo() {
+  const uit = new Set();
+  try {
+    for (const rij of db.prepare('SELECT liedje_id FROM liedje_youtube').all()) uit.add(Number(rij.liedje_id));
+  } catch (e) {
+    /* geen tabel: niets */
+  }
+  return uit;
+}
+
+function videoBeeld(lied) {
+  const v = videoVanLiedje(lied.id);
+  return {
+    video: v ? v.video : '',
+    insluit: v ? youtube.insluitUrl(v.video) : '',
+    kijk: v ? youtube.kijkUrl(v.video) : '',
+    // De zoeklink blijft bruikbaar als je nog geen video hebt gekozen.
+    zoek: lied.youtube || `https://www.youtube.com/results?search_query=${encodeURIComponent(`${lied.titel} ${lied.artiest}`)}`
+  };
 }
 
 function muziekBeeld(lied) {
@@ -2063,6 +2175,7 @@ async function verwerk(req, res) {
     const aantal = Math.max(1, Math.min(200, parseInt(query.get('aantal'), 10) || (compact ? 48 : 200)));
     const pagina = uit.slice(vanaf, vanaf + aantal);
     const metMuziek = liedjesMetMuziek();
+    const metVideo = liedjesMetVideo();
     json(res, 200, {
       totaal,
       vanaf,
@@ -2071,7 +2184,7 @@ async function verwerk(req, res) {
       statistieken: bron.statistieken(),
       profiel: profielId,
       liedjes: pagina.map(l => Object.assign(lijstItem(metPersoonlijk(l, persoon)),
-        { heeftMuziek: metMuziek.has(l.id) }))
+        { heeftMuziek: metMuziek.has(l.id), heeftVideo: metVideo.has(l.id) }))
     });
     return;
   }
@@ -2255,6 +2368,60 @@ async function verwerk(req, res) {
       gegevens.toonsoort, gegevens.tempo, gegevens.strum, gegevens.bron, gegevens.youtube,
       '', gegevens.chordpro, new Date().toISOString());
     json(res, 201, { ok: true, id: EIGEN_START + Number(info.lastInsertRowid) });
+    return;
+  }
+
+  // --- een link omzetten naar een mp3 in je eigen map ---
+  if (pad === '/api/download' && methode === 'GET') {
+    const lied = vindLiedje(query.get('liedje'));
+    if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    json(res, 200, Object.assign({ liedje: { id: lied.id, titel: lied.titel } }, ophaalBeeld(lied.id)));
+    return;
+  }
+  if (pad === '/api/download' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    const lied = vindLiedje(body.liedje);
+    if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    if (body.stop) {
+      // Alleen de stand wissen; een lopende download laten we met rust.
+      if (ophaalLiedje === lied.id) { ophaalLiedje = 0; }
+      json(res, 200, Object.assign({ ok: true }, ophaalBeeld(lied.id)));
+      return;
+    }
+    const gestart = OPHAAL.start(body.url);
+    if (!gestart.ok) { json(res, 400, { fout: gestart.fout }); return; }
+    ophaalLiedje = lied.id;
+    // De link zelf ook bewaren, zodat je hem later terugziet naast het bestand.
+    const id = youtube.videoId(body.url);
+    if (id) zetLiedjeVideo(lied.id, id);
+    bewaakOphaal(lied.id);
+    json(res, 200, Object.assign({ ok: true }, ophaalBeeld(lied.id)));
+    return;
+  }
+
+  // --- een YouTube-video aan een liedje koppelen ---
+  if (pad === '/api/youtube' && methode === 'GET') {
+    const lied = vindLiedje(query.get('liedje'));
+    if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    json(res, 200, Object.assign({ liedje: { id: lied.id, titel: lied.titel } }, videoBeeld(lied)));
+    return;
+  }
+  if (pad === '/api/youtube' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    const lied = vindLiedje(body.liedje);
+    if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    if (body.weg) {
+      wisLiedjeVideo(lied.id);
+      json(res, 200, { ok: true, video: '', insluit: '', kijk: '' });
+      return;
+    }
+    const id = youtube.videoId(body.url);
+    if (!id) {
+      json(res, 400, { fout: 'Dat is geen YouTube-link. Plak bijvoorbeeld https://www.youtube.com/watch?v=... of https://youtu.be/...' });
+      return;
+    }
+    zetLiedjeVideo(lied.id, id);
+    json(res, 200, Object.assign({ ok: true, video: id }, videoBeeld(lied)));
     return;
   }
 
@@ -2750,6 +2917,12 @@ async function verwerk(req, res) {
     // rekenkunde die zowel de server als de app gebruikt (bijvoorbeeld de metronoom).
     if (/^lib\/[a-z0-9-]+\.js$/.test(rest)) {
       stuurBestand(req, res, path.join(__dirname, rest), MIME['.js'], { 'cache-control': 'public, max-age=300' });
+      return;
+    }
+    // De handleiding hoort bij een map met een eigen pagina: /handleiding/ opent hem.
+    if (rest === 'handleiding' || rest === 'handleiding/') {
+      stuurBestand(req, res, path.join(__dirname, 'public', 'handleiding', 'index.html'),
+        MIME['.html'], { 'cache-control': 'no-cache' });
       return;
     }
     const bestand = path.join(__dirname, 'public', rest);

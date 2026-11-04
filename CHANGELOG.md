@@ -3,6 +3,38 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.2.0] — 4 november 2026
+
+### Nieuw
+
+- **Meespelen met de muziek van het liedje.** Naast de begeleiding die de app zelf maakt (een
+  gitaarsynthesizer), kun je nu meespelen met de echte muziek: de app zoekt het bestand bij de titel
+  in jouw muziekmappen (ook de map op de NAS), je kiest de juiste uitvoering en de akkoorden, de
+  maat, de notenbalk en de hals lopen mee. Met de snelheidsregelaar oefen je trager zonder dat de
+  toonhoogte verandert, en met vier tikken neemt de app het tempo van de opname over. De app leest
+  het bestand alleen: er wordt niets naar je NAS geschreven.
+- **Een link omzetten naar mp3.** Plak een link in het speelscherm en de app zet er met `yt-dlp` en
+  `ffmpeg` een mp3 van in je eigen muziekmap (ondermap `Gedownload`). Het bestand wordt meteen aan
+  het liedje gehangen, dus je kunt er direct mee meespelen. De app weigert links naar je eigen
+  netwerk, en er loopt er één tegelijk.
+- **Een handleiding.** Stap voor stap door alle functies heen, met schermafbeeldingen: te lezen in
+  de app (tabblad Toevoegen → *Handleiding openen*), in de repo (`docs/handleiding.md`) en als PDF
+  (`docs/handleiding.pdf`). De handleiding wordt uit één bron gemaakt met
+  `scripts/maak-handleiding.py`, zodat tekst en beelden niet uit elkaar kunnen lopen.
+
+### Veiligheid
+
+- Een verzoek om een muziekbestand wordt geweigerd als het pad buiten de mappen valt die jij hebt
+  aangewezen — ook als dat via `..` of een symbolische link gaat.
+- Bij het ophalen van een link worden adressen binnen je eigen netwerk (`192.168.…`, `10.…`,
+  `localhost`, `*.local`) geweigerd, zodat je niet per ongeluk bestanden van je router of NAS
+  ophaalt.
+
+### Veranderd
+
+- De knop in het speelblok heet **Meespelen met de muziek** zodra er een bestand aan het liedje
+  hangt; de app-cache is naar v28.
+
 ## [1.1.0] — 3 november 2026
 
 ### Nieuw

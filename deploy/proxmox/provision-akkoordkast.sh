@@ -54,6 +54,8 @@ RUNTIME=(
   "lib/overgangen.js"
   "lib/week.js"
   "lib/muziekbestand.js"
+  "lib/downloader.js"
+  "lib/youtube.js"
   "lib/akkoorden.js"
   "lib/analyse.js"
   "lib/spotify.js"
@@ -67,6 +69,23 @@ PAGINA=(
   "public/icon-512.png"
   "public/icon-512-maskable.png"
   "public/apple-touch-icon.png"
+  "public/handleiding/index.html"
+  "public/handleiding/img/backup-naar-nas.png"
+  "public/handleiding/img/leren-cursus.png"
+  "public/handleiding/img/liedjes-desktop.png"
+  "public/handleiding/img/link-naar-mp3-bezig.png"
+  "public/handleiding/img/link-naar-mp3-klaar.png"
+  "public/handleiding/img/link-naar-mp3-voor.png"
+  "public/handleiding/img/link-naar-mp3.png"
+  "public/handleiding/img/mappen-toevoegen.png"
+  "public/handleiding/img/muziek-kandidaten.png"
+  "public/handleiding/img/muziek-van-het-liedje.png"
+  "public/handleiding/img/muziekmap-klaar.png"
+  "public/handleiding/img/oefenen-per-week.png"
+  "public/handleiding/img/setlist-overgangen.png"
+  "public/handleiding/img/spelen-desktop.png"
+  "public/handleiding/img/spotify-blok.png"
+  "public/handleiding/img/upload-herkend.png"
 )
 DATA=(
   "song-data/liedjes.json"
@@ -93,6 +112,14 @@ binnen_bash() { pct exec "$CTID" -- bash -c "$1"; }
 
 echo "== Pakketten installeren in container $CTID"
 binnen_bash "export DEBIAN_FRONTEND=noninteractive; apt-get update -qq && apt-get install -y -qq curl ca-certificates gnupg ffmpeg python3 python3-venv >/dev/null"
+
+echo "== yt-dlp installeren (voor het omzetten van een link naar mp3)"
+if binnen_bash "curl -fsSL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && chmod 755 /usr/local/bin/yt-dlp"; then
+  echo "   $(binnen_bash '/usr/local/bin/yt-dlp --version' 2>/dev/null || echo 'versie onbekend')"
+else
+  echo "   let op: yt-dlp kon niet worden opgehaald. Het ophalen van links naar mp3 werkt dan niet."
+  echo "   Later inhalen: pct exec $CTID -- bash -c 'curl -fsSL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && chmod 755 /usr/local/bin/yt-dlp'"
+fi
 
 echo "== Node.js 22 installeren (node:sqlite vereist 22.5 of nieuwer)"
 if ! binnen_bash "test -s /etc/apt/sources.list.d/nodesource.list"; then
@@ -160,6 +187,8 @@ Environment=DB_PATH=$DATA_DIR/akkoordkast.db
 Environment=CAST_PYTHON=$APP_DIR/venv/bin/python
 Environment=FFMPEG=/usr/bin/ffmpeg
 Environment=MUSIC_DIR=$MUZIEKMAP
+Environment=DOWNLOAD_DIR=$MUZIEKMAP/Gedownload
+Environment=YTDLP=/usr/local/bin/yt-dlp
 AmbientCapabilities=CAP_NET_BIND_SERVICE
 CapabilityBoundingSet=CAP_NET_BIND_SERVICE
 NoNewPrivileges=yes

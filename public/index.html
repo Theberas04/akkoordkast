@@ -655,7 +655,11 @@
   .week-staaf span{background:linear-gradient(90deg,var(--amber),var(--groen))}
   .week-naam{font-size:.79rem;color:var(--tekst2)}
 
-  /* Een zoekuitkomst bij "Muziek van het liedje": titel links, score en map rechts, en de
+  /* De regel uit het logboek van het ophalen: klein en ingetogen naast het percentage. */
+.haal-log{color:var(--zacht);font-size:.86em;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;display:inline-block;max-width:100%;vertical-align:bottom}
+
+/* Een zoekuitkomst bij "Muziek van het liedje": titel links, score en map rechts, en de
    kiesknop eronder. Zo loopt de titel niet tegen de score aan. */
 .kandidaat{margin:8px 0;padding:10px 12px;background:rgba(255,255,255,.03);
   border:1px solid var(--lijn-zacht);border-radius:var(--r-klein)}
@@ -1035,6 +1039,10 @@
 
     <div class="kaart">
       <h2>Beheer en bijwerken</h2>
+      <div class="rij" style="margin-top:2px">
+        <a class="knop zacht" href="/handleiding/" target="_blank" rel="noopener">Handleiding openen</a>
+        <span class="meta">Alles wat de app doet, stap voor stap, met schermafbeeldingen.</span>
+      </div>
       <div class="chips">
         <span class="chip">versie <span id="versie-nummer">…</span></span>
         <span class="chip">laatste aanpassing <span id="versie-commit">…</span></span>
@@ -2205,6 +2213,24 @@ function tekenLiedje(l) {
           '<span class="meta">Zo speel je mee met de echte muziek uit je eigen map in plaats van met de gitaarsynthesizer.</span></div>';
       })() +
       '<div id="muziek-uitkomst"></div>' +
+      // Een link omzetten naar een mp3 in je eigen map. De app start daarvoor yt-dlp op de
+      // server; het bestand komt in de downloadmap te staan en wordt meteen aan dit liedje
+      // gehangen, zodat je het kunt meespelen.
+      '<h3>Link naar mp3</h3>' +
+      (l.video && l.video.kijk
+        ? '<div class="rij"><span class="meta">Laatst gebruikt: <a href="' + esc(l.video.kijk) + '" target="_blank" rel="noopener">' +
+          esc(l.video.kijk) + '</a></span></div>'
+        : '') +
+      '<div class="rij"><input id="haal-url" type="url" inputmode="url" ' +
+        'placeholder="https://www.youtube.com/watch?v=...">' +
+        '<button class="knop" id="haal-start">Downloaden als mp3</button></div>' +
+      '<div class="meta">Plak een link naar het liedje; de app zet er een mp3 van in <code>' +
+        esc((l.download && l.download.map) || 'de downloadmap') + '</code> en hangt het bestand meteen aan dit liedje. ' +
+        'Gebruik het voor materiaal dat je mag downloaden. ' +
+        (l.video && l.video.zoek ? '<a href="' + esc(l.video.zoek) + '" target="_blank" rel="noopener">Zoek het liedje op YouTube</a>.' : '') +
+      '</div>' +
+      '<div id="haal-stand"></div>' +
+      '<div class="melding" id="haal-melding" hidden></div>' +
       (l.audio.opname
         ? '<h3>Eigen opname</h3><div class="speler"><audio id="opname-audio" controls src="' + esc(l.audio.opname) + '"></audio></div>' +
           '<div class="rij speel-knoppen">' +
@@ -2362,6 +2388,7 @@ function tekenLiedje(l) {
   Array.prototype.forEach.call(document.querySelectorAll('[data-muziek-zoek]'), function (knop) {
     knop.addEventListener('click', function () { zoekMuziekVoorLiedje(l); });
   });
+  koppelHaalKnoppen(l);
 }
 
 // ----------------------------------------------- meeluisteren met de microfoon ---
@@ -2875,6 +2902,70 @@ function zoekMuziekVoorLiedje(l) {
   }).catch(function (e) {
     uit.innerHTML = '<div class="melding fout">' + esc(e.message) + '</div>';
   });
+}
+
+// Een link ophalen en omzetten naar mp3. Dat gebeurt op de server (yt-dlp + ffmpeg); hier
+// laten we alleen de voortgang zien en verversen we het liedje zodra het bestand er is.
+function haalLinkOp(l) {
+  var veld = $('haal-url');
+  var waarde = veld ? String(veld.value || '').trim() : '';
+  if (!waarde) { toonMelding('haal-melding', 'Plak eerst een link.', 'fout'); return; }
+  var knop = $('haal-start');
+  if (knop) knop.disabled = true;
+  toonMelding('haal-melding', 'Bezig met ophalen…', 'goed');
+  api('/api/download', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ liedje: l.id, url: waarde })
+  }).then(function () { volgOphaal(l); })
+    .catch(function (e) {
+      if (knop) knop.disabled = false;
+      toonMelding('haal-melding', e.message, 'fout');
+    });
+}
+
+// Elke seconde of zo kijken hoe ver het ophalen is. Klaar? Dan verversen we het liedje, zodat
+// de speler met het nieuwe bestand verschijnt.
+function volgOphaal(l) {
+  var houder = $('haal-stand');
+  var ronden = 0;
+  var tik = setInterval(function () {
+    ronden++;
+    if (ronden > 900) { clearInterval(tik); return; }
+    api('/api/download?liedje=' + l.id).then(function (d) {
+      if (d.status === 'bezig') {
+        if (houder) {
+          var regel = (d.log && d.log.length) ? d.log[d.log.length - 1] : '';
+          houder.innerHTML = '<div class="meta">Bezig met ophalen en omzetten… ' + d.procent + '%' +
+            (regel ? ' <span class="haal-log">' + esc(regel) + '</span>' : '') + '</div>';
+        }
+        return;
+      }
+      clearInterval(tik);
+      var knop = $('haal-start');
+      if (knop) knop.disabled = false;
+      if (d.status === 'klaar') {
+        // De melding hierboven zegt het al; niet twee keer hetzelfde bericht.
+        if (houder) houder.innerHTML = '<div class="meta">Klaar: <strong>' + esc(d.bestand) +
+          '</strong> — het bestand hangt nu aan dit liedje en staat in ' + esc(d.map || 'de downloadmap') + '.</div>';
+        toonMelding('haal-melding', '', '');
+        // Ruim de tijd geven om "Klaar: <bestand>" te lezen voordat het speelscherm
+        // zichzelf ververst met de nieuwe speler.
+        setTimeout(function () { openLiedje(l.id); }, 2600);
+        return;
+      }
+      if (houder) houder.innerHTML = '';
+      if (d.status === 'fout') toonMelding('haal-melding', d.fout, 'fout');
+    }).catch(function () { clearInterval(tik); });
+  }, 1200);
+}
+
+function koppelHaalKnoppen(l) {
+  if ($('haal-start')) $('haal-start').addEventListener('click', function () { haalLinkOp(l); });
+  if ($('haal-url')) {
+    $('haal-url').addEventListener('keydown', function (gebeurtenis) {
+      if (gebeurtenis.key === 'Enter') haalLinkOp(l);
+    });
+  }
 }
 
 // Meeticksen om het tempo van de muziek te vinden: vier tikken, dan het gemiddelde. Dat

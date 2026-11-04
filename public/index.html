@@ -2749,6 +2749,11 @@ function tekenLiedje(l) {
         ? '<div class="rij" style="margin:8px 0"><button class="knop zacht" id="bladmuziek-haal">Bladmuziek uit de muziek halen</button>' +
           '<span class="meta" id="bladmuziek-stand">De app leest de opname uit en haalt er het tempo, de toonaard en de akkoorden uit.</span></div>'
         : '') +
+      ((l.akkoordenBron === 'bron' && l.eigen)
+        ? '<div class="melding">De akkoorden van dit liedje zaten <strong>in wat je zelf hebt toegevoegd</strong> \u2014 ' +
+          'een geplakt schema, een eigen bestand of een opname waar ze al bij zaten. De app zoekt zelf geen ' +
+          'akkoorden van websites op.</div>'
+        : '') +
       (l.akkoordenBron === 'opname'
         ? '<div class="melding">De akkoorden van dit liedje zijn <strong>automatisch uit de muziek gehaald</strong> \u2014 ' +
           'controleer ze gerust en pas ze aan waar nodig.</div>'

@@ -98,3 +98,16 @@ test('de pagina haalt je eigen bladmuziek met de beheerderssessie op', () => {
   assert.match(html, /querySelectorAll\('\[data-bladmuziek-url\]'\)/, 'er hoort een lader voor de afbeelding te zijn');
   assert.match(html, /x-profiel/, 'de lader hoort het profiel mee te sturen');
 });
+
+// De kaart hoort te zeggen waar de akkoorden van een eigen liedje vandaan komen: uit wat je zelf
+// toevoegde, niet van een website. Bij meegeleverde liedjes blijft die regel weg.
+test('de kaart noemt de herkomst van zelf ingevoerde akkoorden', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  assert.match(html, /akkoordenBron === 'bron' && l\.eigen/,
+    'de regel hoort alleen bij eigen liedjes te verschijnen');
+  assert.match(html, /De app zoekt zelf geen/,
+    'de kaart hoort eerlijk te zeggen dat de app geen akkoorden van websites haalt');
+  assert.match(html, /van websites op/);
+});

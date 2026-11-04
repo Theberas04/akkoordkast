@@ -3,6 +3,17 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.17.2] — 4 november 2026
+
+### Nieuw
+
+- **De kaart zegt nu waar de akkoorden van een eigen liedje vandaan komen.** Zaten ze al in wat je zelf
+  toevoegde (een geplakt schema, een eigen bestand of een opname waar ze bij zaten), dan staat er:
+  *"De akkoorden van dit liedje zaten in wat je zelf hebt toegevoegd — de app zoekt zelf geen akkoorden
+  van websites op."* Bij de meegeleverde liedjes blijft die regel weg, zodat de bibliotheek rustig
+  blijft. Zo is meteen te zien dat bijvoorbeeld een eigen nummer met akkoorden in de tekst bij jou
+  vandaan komt en niet uit de publiek-domeinverzameling.
+
 ## [1.17.1] — 4 november 2026
 
 ### Gerepareerd

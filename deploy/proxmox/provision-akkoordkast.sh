@@ -88,6 +88,7 @@ PAGINA=(
   "public/handleiding/img/profiel-admin.png"
   "public/handleiding/img/profiel-slot.png"
   "public/handleiding/img/telefoon-profiel.png"
+  "public/handleiding/img/mp3-als-nieuwe-muziek.png"
   "public/handleiding/img/telefoon-toevoegen.png"
   "public/handleiding/img/profiel-gewoon.png"
   "public/handleiding/img/setlist-overgangen.png"

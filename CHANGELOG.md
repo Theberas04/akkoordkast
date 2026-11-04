@@ -3,6 +3,27 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.7.0] — 4 november 2026
+
+### Nieuw
+
+- **Een link kan nu ook nieuwe muziek worden.** In de kaart **Downloaden als mp3** kies je voortaan
+  wat je met de link wilt:
+  - *Als nieuwe muziek* (het nieuwe standaardgedrag): het bestand wordt een **eigen liedje** in de
+    bibliotheek, met de muziek eraan, zodat je het meteen kunt spelen en meespelen. De titel komt uit
+    de link, of je typt er zelf een. Dit is de weg voor nummers die nog niet in de app staan.
+  - *Bij een liedje dat er al staat*: het zoeken en kiezen van een liedje, zoals het eerder werkte.
+- De server maakt dat nieuwe liedje zelf aan (titel, artiest *Gedownload*, de muziek eraan, en de
+  video-id als het een YouTube-link was) en zegt pas **klaar** als het liedje er echt is — anders zou
+  de app melden dat het klaar is terwijl het liedje nog gemaakt moest worden.
+- Lukt het maken van het liedje niet, dan zegt de app dat; het bestand staat dan wel gewoon in de
+  muziekmap.
+
+### Gerepareerd
+
+- De knop **Openen in Spelen** zette de uitslag ("Klaar: welk bestand") buiten beeld; de knop staat nu
+  onder die regel in plaats van eroverheen.
+
 ## [1.6.0] — 4 november 2026
 
 ### Nieuw

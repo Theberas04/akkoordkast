@@ -200,10 +200,15 @@ test('het beheerdersprofiel zit achter een wachtwoordkaartje in de pagina', () =
 
 test('het gereedschap "Downloaden als mp3" staat in het tabblad Toevoegen', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
-  for (const id of ['mp3-kaart', 'mp3-zoek', 'mp3-uitkomst', 'mp3-gekozen', 'mp3-url', 'mp3-start',
-    'mp3-melding', 'mp3-stand']) {
+  for (const id of ['mp3-kaart', 'mp3-wijze', 'mp3-nieuw-vak', 'mp3-titel', 'mp3-bestaand-vak',
+    'mp3-zoek', 'mp3-uitkomst', 'mp3-gekozen', 'mp3-url', 'mp3-start', 'mp3-melding', 'mp3-stand']) {
     assert.ok(html.includes('id="' + id + '"'), 'id ontbreekt: ' + id);
   }
+  // Een link kan als nieuwe muziek (nieuw liedje) of bij een bestaand liedje.
+  assert.match(html, /Als nieuwe muziek/);
+  assert.match(html, /Bij een liedje dat er al staat/);
+  assert.match(html, /function volgNieuweMuziek\(\)/);
+  assert.match(html, /function toonMp3Openen\(liedjeId\)/);
   assert.match(html, /Downloaden als mp3/);
   assert.match(html, /function koppelMp3Tool\(\)/);
   assert.match(html, /function startMp3Download\(\)/);

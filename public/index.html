@@ -1004,13 +1004,25 @@
     <div class="kaart" id="mp3-kaart">
       <h2>Downloaden als mp3</h2>
       <p class="melding">Plak een link (YouTube of iets dergelijks) en de software haalt het geluid
-        eruit als mp3 in je muziekmap. Kies eerst bij welk liedje het hoort — dan kun je daarna
-        meteen meespelen met de echte muziek. Eén download tegelijk, en wat je ophaalt is jouw
-        verantwoordelijkheid.</p>
-      <label for="mp3-zoek">Bij welk liedje hoort het?</label>
-      <input id="mp3-zoek" type="search" placeholder="Zoek op titel of artiest">
-      <div id="mp3-uitkomst" class="mp3-uitkomst"></div>
-      <div id="mp3-gekozen" class="meta">Nog geen liedje gekozen.</div>
+        eruit als mp3 in je muziekmap. Dat kan als <strong>nieuwe muziek</strong> — het wordt dan een
+        eigen liedje in de bibliotheek, meteen klaar om mee te spelen — of <strong>bij een liedje dat
+        er al staat</strong>, zodat je met die muziek kunt meespelen. Eén download tegelijk, en wat je
+        ophaalt is jouw verantwoordelijkheid.</p>
+      <label for="mp3-wijze">Wat wil je ermee?</label>
+      <select id="mp3-wijze">
+        <option value="nieuw">Als nieuwe muziek (nieuw liedje in de bibliotheek)</option>
+        <option value="bestaand">Bij een liedje dat er al staat</option>
+      </select>
+      <div id="mp3-nieuw-vak">
+        <label for="mp3-titel">Titel (leeg = uit de link)</label>
+        <input id="mp3-titel" type="text" placeholder="bv. Amazing Grace">
+      </div>
+      <div id="mp3-bestaand-vak" hidden>
+        <label for="mp3-zoek">Bij welk liedje hoort het?</label>
+        <input id="mp3-zoek" type="search" placeholder="Zoek op titel of artiest">
+        <div id="mp3-uitkomst" class="mp3-uitkomst"></div>
+        <div id="mp3-gekozen" class="meta">Nog geen liedje gekozen.</div>
+      </div>
       <label for="mp3-url">De link</label>
       <div class="rij">
         <input id="mp3-url" type="url" placeholder="https://www.youtube.com/watch?v=..."
@@ -3130,29 +3142,121 @@ function zoekMp3Liedjes() {
   }).catch(function (e) { uit.innerHTML = '<div class="melding fout">' + esc(e.message) + '</div>'; });
 }
 
+function mp3Wijze() {
+  var kies = $('mp3-wijze');
+  var waarde = kies ? String(kies.value || '') : '';
+  return waarde === 'bestaand' ? 'bestaand' : 'nieuw';
+}
+
 function startMp3Download() {
-  if (!MP3.liedje) {
-    toonMelding('mp3-melding', 'Kies eerst bij welk liedje het hoort (zoek hierboven op de titel).', 'fout');
-    var zoek = $('mp3-zoek');
-    if (zoek) zoek.focus();
+  var veld = $('mp3-url');
+  var link = String(veld ? veld.value : '').trim();
+  if (!link) {
+    toonMelding('mp3-melding', 'Plak eerst een link.', 'fout');
+    if (veld) veld.focus();
     return;
   }
-  haalLinkOp({ id: MP3.liedje, titel: MP3.titel }, HAAL_TOOL, function (d) {
-    var houder = $('mp3-stand');
-    if (houder) {
-      houder.innerHTML = '<div class="rij"><button class="knop zacht" id="mp3-open">Openen in Spelen</button></div>';
-      $('mp3-open').addEventListener('click', function () {
-        toonTab('spelen');
-        openLiedje(MP3.liedje);
-      });
+  if (mp3Wijze() === 'bestaand') {
+    if (!MP3.liedje) {
+      toonMelding('mp3-melding', 'Kies eerst bij welk liedje het hoort (zoek hierboven op de titel).', 'fout');
+      var zoek = $('mp3-zoek');
+      if (zoek) zoek.focus();
+      return;
     }
-    laadLiedjes(true);   // het muziekvlaggetje bij het liedje bijwerken
-    var veld = $('mp3-url');
-    if (veld) veld.value = '';
+    haalLinkOp({ id: MP3.liedje, titel: MP3.titel }, HAAL_TOOL, function () {
+      toonMp3Openen(MP3.liedje);
+      laadLiedjes(true);   // het muziekvlaggetje bij het liedje bijwerken
+      var leeg = $('mp3-url');
+      if (leeg) leeg.value = '';
+    });
+    return;
+  }
+  // Nieuwe muziek: er is nog geen liedje; dat komt er zodra het bestand binnen is.
+  var titelVeld = $('mp3-titel');
+  var titel = titelVeld ? String(titelVeld.value || '').trim() : '';
+  var knop = $('mp3-start');
+  if (knop) knop.disabled = true;
+  toonMelding('mp3-melding', 'Bezig met ophalen…', 'goed');
+  api('/api/download', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ nieuw: true, titel: titel, url: link })
+  }).then(function () { volgNieuweMuziek(); })
+    .catch(function (e) {
+      if (knop) knop.disabled = false;
+      toonMelding('mp3-melding', e.message, 'fout');
+    });
+}
+
+// De knop onder de uitslag zetten, niet in plaats van de uitslag: anders lees je nooit welk bestand
+// het geworden is.
+function toonMp3Openen(liedjeId) {
+  var houder = $('mp3-stand');
+  if (!houder) return;
+  if ($('mp3-open')) return;
+  var rij = document.createElement('div');
+  rij.className = 'rij';
+  rij.innerHTML = '<button class="knop zacht" id="mp3-open">Openen in Spelen</button>';
+  houder.appendChild(rij);
+  $('mp3-open').addEventListener('click', function () {
+    toonTab('spelen');
+    openLiedje(liedjeId);
   });
 }
 
+// Een download die nieuwe muziek wordt: het bestand volgen en, zodra het er is, het nieuwe liedje
+// openen kunnen aanbieden.
+function volgNieuweMuziek() {
+  var houder = $('mp3-stand');
+  var ronden = 0;
+  var tik = setInterval(function () {
+    ronden++;
+    if (ronden > 900) { clearInterval(tik); return; }
+    api('/api/download?los=1').then(function (d) {
+      if (d.status === 'bezig') {
+        if (houder) {
+          var regel = (d.log && d.log.length) ? d.log[d.log.length - 1] : '';
+          houder.innerHTML = '<div class="meta">Bezig met ophalen en omzetten… ' + d.procent + '%' +
+            (regel ? ' <span class="haal-log">' + esc(regel) + '</span>' : '') + '</div>';
+        }
+        return;
+      }
+      clearInterval(tik);
+      var knop = $('mp3-start');
+      if (knop) knop.disabled = false;
+      if (d.status === 'klaar') {
+        var nieuw = Number(d.nieuwLiedje) || 0;
+        if (houder) {
+          houder.innerHTML = '<div class="meta">Klaar: <strong>' + esc(d.bestand) + '</strong> — ' +
+            (nieuw ? 'het staat als nieuw liedje in de bibliotheek en hangt aan de muziek.'
+                   : 'het bestand staat in ' + esc(d.map || 'de downloadmap') + '.') + '</div>';
+        }
+        if (nieuw) toonMp3Openen(nieuw);
+        toonMelding('mp3-melding', '', '');
+        laadLiedjes(true);
+        var urlVeld = $('mp3-url');
+        if (urlVeld) urlVeld.value = '';
+        var titelVeld = $('mp3-titel');
+        if (titelVeld) titelVeld.value = '';
+        return;
+      }
+      if (houder) houder.innerHTML = '';
+      if (d.status === 'fout') toonMelding('mp3-melding', d.fout, 'fout');
+    }).catch(function () { clearInterval(tik); });
+  }, 1200);
+}
+
 function koppelMp3Tool() {
+  var wijze = $('mp3-wijze');
+  if (wijze) {
+    wijze.addEventListener('change', function () {
+      var nieuw = mp3Wijze() !== 'bestaand';
+      if ($('mp3-nieuw-vak')) $('mp3-nieuw-vak').hidden = !nieuw;
+      if ($('mp3-bestaand-vak')) $('mp3-bestaand-vak').hidden = nieuw;
+      toonMelding('mp3-melding', '', '');
+      var houder = $('mp3-stand');
+      if (houder) houder.innerHTML = '';
+    });
+  }
   var zoek = $('mp3-zoek');
   if (!zoek) return;
   var wacht = 0;

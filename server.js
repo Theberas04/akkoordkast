@@ -34,7 +34,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.6';
+const VERSIE = '1.7';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -1236,6 +1236,10 @@ const OPHAAL = downloader.maakDownloader({ map: DOWNLOAD_DIR, ytdlp: process.env
 if (typeof beheerProfiel === 'function') beheerProfiel();
 let ophaalLiedje = 0;
 let ophaalWacht = null;
+// Als je een link ophaalt als *nieuwe muziek* (zonder bestaand liedje), maken we het liedje pas
+// zodra het bestand binnen is. Hier staat dan welk liedje dat geworden is (en of dat mislukte).
+let ophaalNieuweLiedje = 0;
+let ophaalNieuweFout = '';
 
 // Zodra het ophalen klaar is, hangt de app het bestand meteen aan het liedje, zodat je het
 // kunt meespelen. Ligt het bestand buiten de mappen die de app kent, dan wordt de
@@ -1264,23 +1268,86 @@ function bewaakOphaal(liedjeId) {
   }, 700);
 }
 
+// Een link ophalen als nieuwe muziek: het bestand wordt een eigen liedje in de bibliotheek, met de
+// muziek eraan. Zo kun je het meteen spelen en meespelen, zonder eerst een liedje te kiezen. De
+// bladmuziek staat er nog niet in — die vul je later aan met het tabblad Toevoegen.
+function maakLiedjeVanDownload(bestand, titel, url) {
+  const schoon = (waarde) => String(waarde || '').replace(/[{}]/g, '').replace(/\s+/g, ' ').trim();
+  const uitBestand = path.basename(bestand, path.extname(bestand)).replace(/_+/g, ' ');
+  const naam = (schoon(titel) || schoon(uitBestand) || 'Gedownload').slice(0, 160);
+  const videoId = youtube.videoId(url || '');
+  const tekst = '{title: ' + naam + '}\n' +
+    '\nDit liedje is opgehaald uit een link. De bladmuziek staat er nog niet in, maar de muziek\n' +
+    'wel: druk in het speelscherm op Meespelen met de muziek en de akkoorden lopen mee.';
+  const gegevens = normaliseerLiedje({
+    titel: naam, artiest: 'Gedownload', taal: 'nl', genre: 'Gedownload',
+    youtube: videoId || '', chordpro: tekst
+  });
+  const nu = new Date().toISOString();
+  const info = db.prepare(`INSERT INTO liedjes (titel, artiest, taal, genre, moeilijkheid, toonsoort, tempo, strum, bron, youtube, notitie, chordpro, aangemaakt)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
+    gegevens.titel, gegevens.artiest, gegevens.taal, gegevens.genre, gegevens.moeilijkheid,
+    gegevens.toonsoort, gegevens.tempo, gegevens.strum, gegevens.bron, gegevens.youtube,
+    gegevens.notitie, gegevens.chordpro, nu);
+  const nieuwId = EIGEN_START + Number(info.lastInsertRowid);
+  zetLiedjeMuziek(nieuwId, bestand, path.basename(bestand));
+  if (videoId) zetLiedjeVideo(nieuwId, videoId);
+  return nieuwId;
+}
+
+// Waken over een download die nieuwe muziek wordt: zodra het bestand er is, komt er een liedje bij.
+function bewaakNieuweMuziek(titel, url) {
+  if (ophaalWacht) clearInterval(ophaalWacht);
+  ophaalWacht = setInterval(() => {
+    const stand = OPHAAL.standVan();
+    if (stand.status === 'bezig') return;
+    clearInterval(ophaalWacht);
+    ophaalWacht = null;
+    if (stand.status !== 'klaar' || !stand.bestand) return;
+    try {
+      if (!muziekbestand.veilig(stand.bestand, [DOWNLOAD_DIR])) {
+        console.log('opgehaald bestand valt buiten de downloadmap; ik maak er geen liedje van:', stand.bestand);
+        return;
+      }
+      const mappen = leesMappen();
+      if (!mappen.includes(DOWNLOAD_DIR)) zetMappen(mappen.concat([DOWNLOAD_DIR]));
+      ophaalNieuweLiedje = maakLiedjeVanDownload(stand.bestand, titel, url);
+      console.log('opgehaald als nieuw liedje ' + ophaalNieuweLiedje + ': ' + path.basename(stand.bestand));
+    } catch (fout) {
+      ophaalNieuweFout = 'Van het opgehaalde bestand kon ik geen liedje maken: ' + fout.message;
+      console.log('van het opgehaalde bestand een liedje maken mislukte:', fout.message);
+    }
+  }, 700);
+}
+
 // Wat de app van het ophalen laat zien: de stand, plus of het bestand al aan dit liedje hangt.
-function ophaalBeeld(liedjeId) {
+function ophaalBeeld(liedjeId, opties) {
   const stand = OPHAAL.standVan();
+  const o = opties || {};
   const eigen = Number(liedjeId) || 0;
-  const vanDitLiedje = eigen && ophaalLiedje === eigen;
+  // eigen = 0 met de vlag 'los': de download die nieuwe muziek wordt (nog geen liedje).
+  const vanDitLiedje = eigen ? ophaalLiedje === eigen : !!(o.los && ophaalLiedje === 0);
   const m = eigen ? muziekVanLiedje(eigen) : null;
+  // Bij nieuwe muziek hoort het liedje er te zijn voordat we 'klaar' zeggen; lukte dat niet, dan
+  // zeggen we dat het misging.
+  let status = vanDitLiedje ? stand.status : 'leeg';
+  let fout = vanDitLiedje ? stand.fout : '';
+  if (o.los && vanDitLiedje && stand.status === 'klaar' && !ophaalNieuweLiedje) {
+    if (ophaalNieuweFout) { status = 'fout'; fout = ophaalNieuweFout; }
+    else { status = 'bezig'; }
+  }
   return {
     map: DOWNLOAD_DIR,
     ytdlp: OPHAAL.ytdlp,
-    status: vanDitLiedje ? stand.status : 'leeg',
+    status,
     procent: vanDitLiedje ? stand.procent : 0,
     bestand: vanDitLiedje ? (stand.bestand ? path.basename(stand.bestand) : '') : '',
-    fout: vanDitLiedje ? stand.fout : '',
+    fout,
     log: vanDitLiedje ? stand.log : [],
     url: vanDitLiedje ? stand.url : '',
     bezig: stand.status === 'bezig',
-    gekoppeld: !!(m && m.bestaat)
+    gekoppeld: !!(m && m.bestaat),
+    nieuwLiedje: vanDitLiedje ? ophaalNieuweLiedje : 0
   };
 }
 
@@ -2607,6 +2674,11 @@ async function verwerk(req, res) {
 
   // --- een link omzetten naar een mp3 in je eigen map ---
   if (pad === '/api/download' && methode === 'GET') {
+    // Los: een download die nieuwe muziek wordt; er is nog geen liedje om aan te hangen.
+    if (query.get('los')) {
+      json(res, 200, Object.assign({ liedje: null }, ophaalBeeld(0, { los: true })));
+      return;
+    }
     const lied = vindLiedje(query.get('liedje'));
     if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
     json(res, 200, Object.assign({ liedje: { id: lied.id, titel: lied.titel } }, ophaalBeeld(lied.id)));
@@ -2614,6 +2686,19 @@ async function verwerk(req, res) {
   }
   if (pad === '/api/download' && methode === 'POST') {
     const body = await leesJsonBody(req);
+    // Een link ophalen als nieuwe muziek: geen bestaand liedje nodig. Het liedje komt er pas als
+    // het bestand binnen is; dan zeggen we welk liedje het geworden is.
+    if (body.nieuw) {
+      const titel = String(body.titel || '').slice(0, 160);
+      ophaalNieuweLiedje = 0;
+      ophaalNieuweFout = '';
+      const gestart = OPHAAL.start(body.url);
+      if (!gestart.ok) { json(res, 400, { fout: gestart.fout }); return; }
+      ophaalLiedje = 0;
+      bewaakNieuweMuziek(titel, gestart.url);
+      json(res, 200, Object.assign({ ok: true }, ophaalBeeld(0, { los: true })));
+      return;
+    }
     const lied = vindLiedje(body.liedje);
     if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
     if (body.stop) {
@@ -2625,6 +2710,8 @@ async function verwerk(req, res) {
     const gestart = OPHAAL.start(body.url);
     if (!gestart.ok) { json(res, 400, { fout: gestart.fout }); return; }
     ophaalLiedje = lied.id;
+    ophaalNieuweLiedje = 0;
+    ophaalNieuweFout = '';
     // De link zelf ook bewaren, zodat je hem later terugziet naast het bestand.
     const id = youtube.videoId(body.url);
     if (id) zetLiedjeVideo(lied.id, id);

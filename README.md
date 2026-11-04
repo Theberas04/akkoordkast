@@ -182,7 +182,7 @@ Het toevoeggereedschap zit in een **eigen profiel** (`Admin`), niet in je gewone
 | --- | --- |
 | Zoeken, filteren, spelen, meespelen, leren, casten, eigen profielen/favorieten/setlists | iedereen, in elk profiel |
 | Muziek of video uploaden, een map laten omzetten | beheerder, in het profiel Admin |
-| Downloaden als mp3 (link plakken; het bestand komt bij het gekozen liedje) | beheerder, in het profiel Admin |
+| Downloaden als mp3 (link plakken; als nieuwe muziek of bij een bestaand liedje) | beheerder, in het profiel Admin |
 | Muziekmappen toevoegen of weghalen, eigen liedjes bewerken, opnamen uploaden | beheerder |
 | Back-up, wachter, bijwerken, Spotify-sleutels | beheerder |
 
@@ -768,7 +768,7 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 178 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+node --test test/*.test.js          # 179 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
                                     # setlists, akkoordenboek, de wachter en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL

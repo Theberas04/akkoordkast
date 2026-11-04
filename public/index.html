@@ -655,7 +655,16 @@
   .week-staaf span{background:linear-gradient(90deg,var(--amber),var(--groen))}
   .week-naam{font-size:.79rem;color:var(--tekst2)}
 
-  @media (min-width:761px){
+  /* Een zoekuitkomst bij "Muziek van het liedje": titel links, score en map rechts, en de
+   kiesknop eronder. Zo loopt de titel niet tegen de score aan. */
+.kandidaat{margin:8px 0;padding:10px 12px;background:rgba(255,255,255,.03);
+  border:1px solid var(--lijn-zacht);border-radius:var(--r-klein)}
+.kandidaat .kandidaat-kop{display:flex;justify-content:space-between;gap:10px;
+  align-items:baseline;flex-wrap:wrap;margin-bottom:6px}
+.kandidaat .kandidaat-kop strong{color:var(--tekst)}
+.kandidaat .meta{text-transform:none;letter-spacing:0}
+
+@media (min-width:761px){
     #filter-toggle{display:inline-flex}
     #meer-filters{display:none}
     #meer-filters.open{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
@@ -2116,7 +2125,7 @@ function tekenLiedje(l) {
         '<div class="mees-aftel" id="mees-aftel" hidden><div><span>Aftellen</span><em id="mees-aftel-nummer">4</em></div></div>' +
       '</div>' +
       '<div class="rij mees-knoppen">' +
-        '<button class="knop" id="mees-start">' + (l.heeftEigenOpname ? 'Meespelen met je opname' : 'Meespelen') + '</button>' +
+        '<button class="knop" id="mees-start">' + (l.heeftMuziek ? 'Meespelen met de muziek' : (l.heeftEigenOpname ? 'Meespelen met je opname' : 'Meespelen')) + '</button>' +
         '<button class="knop zacht" id="mees-stop" hidden>Stoppen</button>' +
         '<button class="knop zacht" id="mees-herhaal">Herhalen</button>' +
         '<label class="mees-schakel">tempo <input id="mees-tempo" type="range" min="40" max="160" value="100" step="5"><span id="mees-tempo-waarde">100%</span></label>' +
@@ -2169,6 +2178,33 @@ function tekenLiedje(l) {
         '<a class="knop zacht" href="' + esc(l.audio.youtube) + '" target="_blank" rel="noopener">Zoek de muziek online</a>' +
       '</div>' +
       '<div class="melding" id="speler-melding">De begeleiding wordt op deze server gemaakt met een gitaarsynthesizer (tokkels van de akkoordenreeks) — geen auteursrechtelijke opname.</div>' +
+      // De muziek van het liedje: een bestand uit je eigen muziekmap (bijvoorbeeld op de NAS).
+      // Daarmee speel je mee met de echte muziek in plaats van met de synthesizer. De app
+      // haalt zelf geen opnamen van internet: je koppelt wat je al hebt.
+      '<h3>Muziek van het liedje</h3>' +
+      (function () {
+        var mz = l.muziek || {};
+        if (mz.pad && mz.bestaat) {
+          return '<div class="speler"><audio id="muziek-audio" controls preload="metadata" src="' + esc(mz.url) + '"></audio></div>' +
+            '<div class="rij speel-knoppen">' +
+              '<button class="knop goed" id="muziek-start">▶ Start</button>' +
+              '<button class="knop rood" id="muziek-stop">■ Stop</button>' +
+              '<span class="meta" id="muziek-stand">gestopt</span>' +
+              '<label class="mees-schakel">snelheid <input id="muziek-snelheid" type="range" min="50" max="100" step="5" value="100"><span id="muziek-snelheid-waarde">100%</span></label>' +
+              '<button class="knop zacht" id="muziek-tik">Tik mee voor het tempo</button>' +
+              '<button class="knop zacht" id="muziek-weg">Losmaken</button>' +
+            '</div>' +
+            '<div class="meta">' + esc(mz.pad) + '</div>';
+        }
+        if (mz.pad) {
+          return '<div class="melding">Het muziekbestand van dit liedje staat er niet meer: <code>' + esc(mz.pad) + '</code>. ' +
+            'Staat de koppeling naar je muziekmap (de NAS) er nog?</div>' +
+            '<div class="rij"><button class="knop" data-muziek-zoek>Ander bestand zoeken</button></div>';
+        }
+        return '<div class="rij"><button class="knop" data-muziek-zoek>Zoek de muziek in mijn map</button>' +
+          '<span class="meta">Zo speel je mee met de echte muziek uit je eigen map in plaats van met de gitaarsynthesizer.</span></div>';
+      })() +
+      '<div id="muziek-uitkomst"></div>' +
       (l.audio.opname
         ? '<h3>Eigen opname</h3><div class="speler"><audio id="opname-audio" controls src="' + esc(l.audio.opname) + '"></audio></div>' +
           '<div class="rij speel-knoppen">' +
@@ -2303,6 +2339,29 @@ function tekenLiedje(l) {
         .catch(function (e) { toonMelding('speler-melding', e.message, 'fout'); });
     });
   }
+  if ($('muziek-audio')) {
+    koppelSpeler('muziek-audio', 'muziek-start', 'muziek-stop', 'muziek-stand');
+    if ($('muziek-snelheid')) {
+      $('muziek-snelheid').addEventListener('input', function () {
+        var a = $('muziek-audio');
+        if (a) a.playbackRate = Math.max(0.5, Math.min(2, Number(this.value) / 100));
+        if ($('muziek-snelheid-waarde')) $('muziek-snelheid-waarde').textContent = this.value + '%';
+      });
+    }
+    if ($('muziek-tik')) tikTempoVoorMuziek(l);
+    if ($('muziek-weg')) {
+      $('muziek-weg').addEventListener('click', function () {
+        api('/api/muziek', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ liedje: l.id, weg: true })
+        }).then(function () { openLiedje(l.id); })
+          .catch(function (e) { toonMelding('speler-melding', e.message, 'fout'); });
+      });
+    }
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-muziek-zoek]'), function (knop) {
+    knop.addEventListener('click', function () { zoekMuziekVoorLiedje(l); });
+  });
 }
 
 // ----------------------------------------------- meeluisteren met de microfoon ---
@@ -2770,6 +2829,79 @@ function koppelSpeler(audioId, startId, stopId, standId) {
   a.addEventListener('play', function () { zet('speelt', true); });
   a.addEventListener('pause', function () { zet(a.currentTime > 0.05 && !a.ended ? 'gepauzeerd' : 'gestopt'); });
   a.addEventListener('ended', function () { zet('klaar, opnieuw beginnen'); });
+}
+
+// Zoeken naar de muziek van dit liedje in de mappen die de gebruiker heeft aangewezen.
+// De server loopt de mappen langs en beoordeelt elk audiobestand op de titel; hier tonen we
+// de beste treffers met de map erbij, zodat je zelf kunt kiezen wat de juiste uitvoering is.
+function zoekMuziekVoorLiedje(l) {
+  var uit = $('muziek-uitkomst');
+  if (!uit) return;
+  uit.innerHTML = '<div class="meta">Bezig met zoeken in je muziekmappen…</div>';
+  api('/api/muziek', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ liedje: l.id, zoek: true })
+  }).then(function (data) {
+    var mappen = data.mappen || [];
+    var aantal = (data.kandidaten || []).length;
+    var kop = aantal
+      ? '<div class="meta">' + aantal + ' bestand' + (aantal === 1 ? '' : 'en') + ' dat bij "' + esc(l.titel) +
+        '" past, uit ' + data.bekeken + ' bekeken bestanden.</div>'
+      : '<div class="meta">Niets gevonden dat bij "' + esc(l.titel) + '" past in ' +
+        (mappen.length ? esc(mappen.join(', ')) : 'je muziekmappen') + '.</div>';
+    if (!aantal) {
+      uit.innerHTML = kop + '<div class="meta">Staat de muziek wel in een map die de app kent? ' +
+        'Die zet je in het tabblad Toevoegen onder Muziekmappen.</div>';
+      return;
+    }
+    uit.innerHTML = kop + data.kandidaten.map(function (k) {
+      return '<div class="kandidaat"><div class="kandidaat-kop"><strong>' + esc(k.titel) + '</strong>' +
+        '<span class="meta">' + Math.round(k.score) + '% · ' + esc(k.map) + '</span></div>' +
+        '<div class="rij"><button class="knop zacht" data-kies="' + esc(k.pad) + '">Dit is hem</button></div></div>';
+    }).join('');
+    Array.prototype.forEach.call(uit.querySelectorAll('[data-kies]'), function (knop) {
+      knop.addEventListener('click', function () {
+        knop.disabled = true;
+        api('/api/muziek', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ liedje: l.id, kies: knop.getAttribute('data-kies') })
+        }).then(function () { openLiedje(l.id); })
+          .catch(function (e) {
+            knop.disabled = false;
+            toonMelding('speler-melding', e.message, 'fout');
+          });
+      });
+    });
+  }).catch(function (e) {
+    uit.innerHTML = '<div class="melding fout">' + esc(e.message) + '</div>';
+  });
+}
+
+// Meeticksen om het tempo van de muziek te vinden: vier tikken, dan het gemiddelde. Dat
+// tempo gaat in het tempoveld, zodat de metronoom en het meespelen de muziek volgen.
+function tikTempoVoorMuziek(l) {
+  var tikken = [];
+  var knop = $('muziek-tik');
+  knop.addEventListener('click', function () {
+    var nu = (window.performance && performance.now) ? performance.now() : Date.now();
+    if (tikken.length && nu - tikken[tikken.length - 1] > 3000) tikken = [];
+    tikken.push(nu);
+    if (tikken.length < 4) {
+      knop.textContent = 'Tik mee (' + tikken.length + '/4)';
+      return;
+    }
+    var som = 0;
+    for (var i = 1; i < tikken.length; i++) som += tikken[i] - tikken[i - 1];
+    var bpm = Math.round(60000 / (som / (tikken.length - 1)));
+    tikken = [];
+    knop.textContent = 'Tik mee voor het tempo';
+    if (bpm < 40 || bpm > 200) {
+      toonMelding('speler-melding', 'Dat tempo (' + bpm + ' bpm) valt buiten wat de app aankan. Tik nog eens rustig mee.', 'fout');
+      return;
+    }
+    if ($('speler-tempo')) $('speler-tempo').value = bpm;
+    toonMelding('speler-melding', 'Tempo op ' + bpm + ' bpm gezet. Druk op Meespelen om met de muziek mee te lopen.', 'goed');
+  });
 }
 
 // ------------------------------------------------------------------ spotify ---

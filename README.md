@@ -23,6 +23,7 @@ Die begeleiding cast je naar een Chromecast in je netwerk.
 [muziek erbij zoeken](#muziek-of-video-erbij-zoeken) · [een muziekmap in één keer](#een-hele-muziekmap-in-één-keer) ·
 [op een NAS of in Drive](#de-muziekmap-op-een-nas-of-in-google-drive) ·
 [spelen op het podium](#spelen-op-het-podium) · [een setlist en optredenmodus](#een-setlist-en-optredenmodus) ·
+[meespelen met de muziek](#meespelen-met-de-muziek-van-het-liedje) ·
 [oefenen met moeilijke stukken](#oefenen-met-moeilijke-stukken) ·
 [metronoom en tik-tempo](#metronoom-aftellen-en-tik-tempo) ·
 [back-up](#back-up-naar-een-nas-of-map) · [je oefenen per week](#jouw-oefenen-per-week) ·
@@ -42,6 +43,7 @@ Die begeleiding cast je naar een Chromecast in je netwerk.
 | ![toevoegen](docs/img/toevoegen-desktop.png) | **Eigen liedjes** — ChordPro plakken of een bestand kiezen. Aan je eigen liedjes hang je je eigen opname. |
 | ![casten](docs/img/casten-desktop.png) | **Casten** — Chromecasts zoeken (of een IP intypen), casten, stoppen en het volume regelen. |
 | ![upload](docs/img/upload-herkend.png) | **Mp3 of mp4 uploaden** — de app haalt het geluid uit je bestand, herkent tempo, toonsoort en akkoorden en zoekt het liedje er meteen bij in de bibliotheek. |
+| ![muziek van het liedje](docs/img/muziek-van-het-liedje.png) | **Meespelen met de muziek** — zoek de opname in je eigen muziekmap, kies de juiste uitvoering en speel mee; de akkoorden en de hals lopen mee. |
 | ![metronoom](docs/img/metronoom.png) | **Metronoom en tik-tempo** — klikt de maat mee, telt af voor je begint en neemt het tempo over als je meetikt. |
 | ![overgangen](docs/img/setlist-overgangen.png) | **Akkoordovergangen** — hoe je van het ene liedje in het andere komt, met de capo erbij. |
 | ![week](docs/img/oefenen-per-week.png) | **Je oefenen per week** — minuten, aantal keer en de akkoorden waar je mee bezig was. |
@@ -133,6 +135,12 @@ in plaats van wav. Geen npm-afhankelijkheden.
   het toestel moet de container kunnen bereiken.
 - **Een akkoordenboek met alle posities.** Van elk akkoord niet één greep maar alles wat je
   kunt pakken: de open positie en de barré-vormen verder naar boven, met de tekening erbij.
+- **Meespelen met de muziek van het liedje.** De app speelt standaard begeleiding uit een eigen
+  gitaarsynthesizer. Heb je het liedje zelf als muziekbestand — bijvoorbeeld in de map op je NAS —
+  dan zoek je dat op met één knop en speel je mee met de echte muziek: de akkoorden, de maat en de
+  hals lopen mee. Je kunt langzamer afspelen, en met vier tikken het tempo van de opname overnemen
+  zodat de klik en het meescrollen kloppen. De app haalt zelf geen opnamen van internet; hij speelt
+  uitsluitend bestanden binnen de muziekmappen die jij hebt aangewezen.
 - **Metronoom, aftellen en tik-tempo.** In de speler klikt de maat mee (met een zware tik op
   de eerste tel), telt de app de maat af voor je begint, en neemt hij het tempo over als je vier
   keer meetikt. De klikken komen uit Web Audio en volgen je oefentempo.
@@ -552,6 +560,31 @@ de akkoorden en een lege kolom voor je eigen notities.
 
 ![Setlist op papier](docs/img/setlist-print.png)
 
+## Meespelen met de muziek van het liedje
+
+De begeleiding die de app zelf maakt, is een gitaarsynthesizer: tokkels van de akkoordenreeks
+(met de melodie er hoorbaar bovenop als de app die van het liedje heeft). Wil je liever meespelen
+met de **echte muziek**, dan koppel je een muziekbestand aan het liedje.
+
+1. Open het liedje en ga naar het blok **Muziek van het liedje**.
+2. Druk op **Zoek de muziek in mijn map**. De app loopt de muziekmappen langs die je in het
+   tabblad Toevoegen hebt aangewezen — de map op de machine zelf en bijvoorbeeld de map op je NAS —
+   en beoordeelt elk audiobestand op de titel van het liedje.
+3. Je krijgt de beste treffers te zien met een percentage en de map erbij. Kies **Dit is hem**.
+4. Nu staat er een speler met **Start** en **Stop**, een **snelheid** (trager oefenen zonder de
+   toonhoogte te veranderen) en **Tik mee voor het tempo**: vier tikken op de maat van de muziek en
+   het tempo van het liedje staat gelijk aan de opname, zodat de metronoom en het meescrollen
+   kloppen. Met **Losmaken** haal je de koppeling weer weg.
+
+Druk daarna op **Meespelen met de muziek** in het speelblok: je hoort dan je eigen bestand en de
+akkoorden, de maat, de notenbalk en de hals lopen daarmee mee. Staat de koppeling er niet meer
+(bijvoorbeeld omdat de NAS los is), dan zegt de app dat en kun je een ander bestand kiezen.
+
+Wat de app **niet** doet: opnamen van internet halen. Auteursrechtelijk beschermde muziek mag niet
+in de app of op deze server staan. De app speelt alleen wat er in jouw eigen mappen staat, en
+alleen bestanden binnen de mappen die jij hebt aangewezen — een verzoek met `..` erin wordt
+geweigerd, ook als het via een symbolische link zou gaan.
+
 ## Metronoom, aftellen en tik-tempo
 
 In de speler staat naast het meescrollen een rij met de maat: **Metronoom**, **Aftellen en starten** en
@@ -678,7 +711,7 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 141 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+node --test test/*.test.js          # 155 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
                                     # setlists, akkoordenboek, de wachter en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL

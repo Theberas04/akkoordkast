@@ -199,6 +199,21 @@ test('de container-maker haalt sjablonen van een opslag die sjablonen aankan', (
   assert.match(tekst, /--net0/, 'er wordt geen netwerk aan de container gegeven');
 });
 
+test('elk bestand in lib/ gaat mee naar de container', () => {
+  // Een nieuw hulpbestand in lib/ dat de app requiret maar dat niet naar de container gaat,
+  // laat de dienst crashen met 'Cannot find module' — na een update, als het kwaad al gedaan is.
+  // De bestaande controles keken alleen de andere kant op (alles wat je stuurt, moet je ook
+  // ophalen), dus deze richting hoort er ook te zijn.
+  const libs = fs.readdirSync(path.join(WORTEL, 'lib')).filter(n => n.endsWith('.js')).sort();
+  assert.ok(libs.length >= 10, 'te weinig lib-bestanden gevonden: ' + libs.length);
+  for (const naam of ['install.sh', 'update-from-github.sh', 'provision-akkoordkast.sh']) {
+    const tekst = lees(naam);
+    for (const lib of libs) {
+      assert.ok(tekst.includes('lib/' + lib), `${naam} mist lib/${lib}`);
+    }
+  }
+});
+
 test('de installatie laat het apparaat zijn eigen bestanden serveren, zonder proxy', () => {
   const provision = lees('provision-akkoordkast.sh');
   assert.doesNotMatch(provision, /nginx/, 'er hoort geen nginx in de installatie te zitten');

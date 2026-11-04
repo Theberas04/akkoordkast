@@ -18,6 +18,7 @@ const backup = require('./lib/backup');
 const overgangen = require('./lib/overgangen');
 const analyse = require('./lib/analyse');
 const spotify = require('./lib/spotify');
+const muziekbestand = require('./lib/muziekbestand');
 const theorie = require('./lib/theorie');
 const bron = require('./liedjes-bron');
 
@@ -65,6 +66,12 @@ db.exec(`
     pad TEXT PRIMARY KEY,
     grootte INTEGER NOT NULL DEFAULT 0,
     liedje_id INTEGER NOT NULL DEFAULT 0,
+    wanneer TEXT NOT NULL DEFAULT ''
+  );
+  CREATE TABLE IF NOT EXISTS liedje_muziek (
+    liedje_id INTEGER PRIMARY KEY,
+    pad TEXT NOT NULL,
+    titel TEXT NOT NULL DEFAULT '',
     wanneer TEXT NOT NULL DEFAULT ''
   );
   CREATE TABLE IF NOT EXISTS spotify_koppelingen (
@@ -459,6 +466,8 @@ function weergave(lied, opties) {
     spotify: koppelingVan(lied.id),
     maatsoort: lied.maatsoort || 4,
     licentie: lied.licentie || '',
+    heeftMuziek: !!muziekVanLiedje(lied.id),
+    muziek: muziekBeeld(lied),
     audio: {
       opname: lied.audio_bestand ? `/media/audio/${lied.audio_bestand}` : '',
       opnameTitel: lied.audio_titel || '',
@@ -833,10 +842,22 @@ function meespeelVoorLiedje(lied, query) {
   return meespeelPlan(lied, query);
 }
 
-// Speelt dit liedje met een eigen opname mee? Dan is de opname de muziek en
-// loopt het herkende akkoordschema daarlangs.
+// Welke muziek speelt er mee bij dit liedje? Een eigen opname (die je uploadde, met het
+// herkende akkoordschema) gaat voor; anders een muziekbestand uit je eigen map — dan speel
+// je mee met de echte muziek in plaats van met de gitaarsynthesizer.
+function eigenAudioUrl(lied) {
+  if (lied.audio_bestand && lied.akkoordenPerMaat && lied.akkoordenPerMaat.length) {
+    return `/media/audio/${lied.audio_bestand}`;
+  }
+  const m = muziekVanLiedje(lied.id);
+  if (m && m.bestaat) return `/api/muziek/bestand?liedje=${lied.id}`;
+  return '';
+}
+
+// Speelt dit liedje met eigen audio mee? Dan is die audio de muziek en loopt het
+// akkoordschema daarlangs.
 function meespeelEigenAudio(lied) {
-  return !!(lied.audio_bestand && lied.akkoordenPerMaat && lied.akkoordenPerMaat.length);
+  return !!eigenAudioUrl(lied);
 }
 
 // Dezelfde query, maar dan voor het audio-adres onder de tijdlijn.
@@ -1058,6 +1079,57 @@ function leesMappen() {
     if (!uit.includes(p)) uit.push(p);
   }
   return uit;
+}
+
+// --- de muziek van een liedje -------------------------------------------------
+// Welk audiobestand uit de muziekmappen hoort bij dit liedje? De app haalt zelf geen
+// opnamen van internet (auteursrecht): je koppelt een bestand dat je al hebt, en de app
+// speelt dat mee terwijl de akkoorden en de hals meelopen.
+
+function muziekVanLiedje(liedjeId) {
+  const rij = db.prepare('SELECT pad, titel, wanneer FROM liedje_muziek WHERE liedje_id = ?')
+    .get(Number(liedjeId) || 0);
+  if (!rij || !rij.pad) return null;
+  const pad = String(rij.pad);
+  let bestaat = false;
+  try {
+    bestaat = fs.statSync(pad).isFile();
+  } catch (e) {
+    bestaat = false;
+  }
+  return { pad, titel: String(rij.titel || ''), wanneer: String(rij.wanneer || ''), bestaat };
+}
+
+function zetLiedjeMuziek(liedjeId, pad, titel) {
+  db.prepare('INSERT INTO liedje_muziek (liedje_id, pad, titel, wanneer) VALUES (?, ?, ?, ?) ' +
+    'ON CONFLICT(liedje_id) DO UPDATE SET pad = excluded.pad, titel = excluded.titel, wanneer = excluded.wanneer')
+    .run(Number(liedjeId) || 0, String(pad), String(titel || ''), new Date().toISOString());
+}
+
+function wisLiedjeMuziek(liedjeId) {
+  db.prepare('DELETE FROM liedje_muziek WHERE liedje_id = ?').run(Number(liedjeId) || 0);
+}
+
+// Voor de lijst: welke liedjes hebben al muziek? Eén vraag in plaats van één per liedje.
+function liedjesMetMuziek() {
+  const uit = new Set();
+  try {
+    for (const rij of db.prepare('SELECT liedje_id FROM liedje_muziek').all()) uit.add(Number(rij.liedje_id));
+  } catch (e) {
+    /* geen tabel: dan niets */
+  }
+  return uit;
+}
+
+function muziekBeeld(lied) {
+  const m = muziekVanLiedje(lied.id);
+  return {
+    pad: m ? m.pad : '',
+    titel: m ? m.titel : '',
+    bestaat: !!(m && m.bestaat),
+    url: m ? `/api/muziek/bestand?liedje=${lied.id}` : '',
+    mappen: leesMappen(),
+  };
 }
 
 function zetMappen(lijst) {
@@ -1990,6 +2062,7 @@ async function verwerk(req, res) {
     const vanaf = Math.max(0, parseInt(query.get('vanaf'), 10) || 0);
     const aantal = Math.max(1, Math.min(200, parseInt(query.get('aantal'), 10) || (compact ? 48 : 200)));
     const pagina = uit.slice(vanaf, vanaf + aantal);
+    const metMuziek = liedjesMetMuziek();
     json(res, 200, {
       totaal,
       vanaf,
@@ -1997,7 +2070,8 @@ async function verwerk(req, res) {
       meer: vanaf + pagina.length < totaal,
       statistieken: bron.statistieken(),
       profiel: profielId,
-      liedjes: pagina.map(l => lijstItem(metPersoonlijk(l, persoon)))
+      liedjes: pagina.map(l => Object.assign(lijstItem(metPersoonlijk(l, persoon)),
+        { heeftMuziek: metMuziek.has(l.id) }))
     });
     return;
   }
@@ -2184,6 +2258,73 @@ async function verwerk(req, res) {
     return;
   }
 
+  // --- de muziek van een liedje: een bestand uit je eigen muziekmap ---
+  if (pad === '/api/muziek' && methode === 'GET') {
+    const lied = vindLiedje(query.get('liedje'));
+    if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    const beeld = muziekBeeld(lied);
+    json(res, 200, {
+      liedje: { id: lied.id, titel: lied.titel, artiest: lied.artiest },
+      pad: beeld.pad,
+      titel: beeld.titel,
+      bestaat: beeld.bestaat,
+      url: beeld.url,
+      mappen: beeld.mappen
+    });
+    return;
+  }
+  if (pad === '/api/muziek' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    const lied = vindLiedje(body.liedje);
+    if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    const mappen = leesMappen();
+
+    if (body.weg) {
+      wisLiedjeMuziek(lied.id);
+      json(res, 200, { ok: true, pad: '', url: '' });
+      return;
+    }
+
+    if (body.kies) {
+      // Alleen bestanden binnen de muziekmappen van de gebruiker, en alleen audio.
+      const pad = muziekbestand.veilig(body.kies, mappen);
+      if (!pad) { json(res, 400, { fout: 'Dat bestand ligt niet in een van je muziekmappen.' }); return; }
+      let stat = null;
+      try { stat = fs.statSync(pad); } catch (e) { stat = null; }
+      if (!stat || !stat.isFile()) { json(res, 400, { fout: 'Dat bestand bestaat niet (meer).' }); return; }
+      if (!muziekbestand.isAudio(pad)) { json(res, 400, { fout: 'Dat is geen audiobestand.' }); return; }
+      const titel = muziekbestand.titelVan(pad);
+      zetLiedjeMuziek(lied.id, pad, titel);
+      json(res, 200, { ok: true, pad, titel, url: `/api/muziek/bestand?liedje=${lied.id}` });
+      return;
+    }
+
+    // Anders: zoeken in de mappen naar muziek die bij dit liedje past.
+    const uit = muziekbestand.zoek(mappen, lied, { max: 20 });
+    json(res, 200, {
+      liedje: { id: lied.id, titel: lied.titel, artiest: lied.artiest },
+      mappen,
+      bekeken: uit.bekeken,
+      kandidaten: uit.kandidaten
+    });
+    return;
+  }
+  if (pad === '/api/muziek/bestand' && methode === 'GET') {
+    const lied = vindLiedje(query.get('liedje'));
+    if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    const m = muziekVanLiedje(lied.id);
+    if (!m) { json(res, 404, { fout: 'Aan dit liedje hangt nog geen muziekbestand.' }); return; }
+    // Bij elk verzoek opnieuw controleren of het pad nog binnen een muziekmap valt: de
+    // mappen kunnen intussen veranderd zijn, en dit is de plek waar een bestand de deur uit gaat.
+    const pad = muziekbestand.veilig(m.pad, leesMappen());
+    if (!pad || !fs.existsSync(pad)) {
+      json(res, 404, { fout: 'Het muziekbestand staat er niet meer. Staat de koppeling naar de NAS er wel?' });
+      return;
+    }
+    stuurBestand(req, res, pad, muziekbestand.mimeVan(pad));
+    return;
+  }
+
   // --- audio preview ---
   if (pad === '/api/audio/preview' && methode === 'GET') {
     const lied = vindLiedje(query.get('liedje'));
@@ -2220,7 +2361,10 @@ async function verwerk(req, res) {
         eigenAudio: metOpname
       },
       tijdlijn: tijdlijn.tijdlijnVanPlan(plan),
-      audio: metOpname ? `/media/audio/${lied.audio_bestand}` : `/api/meespelen/audio?${meespeelQuery(query)}`
+      audio: metOpname ? eigenAudioUrl(lied) : `/api/meespelen/audio?${meespeelQuery(query)}`,
+      bron: metOpname
+        ? ((lied.audio_bestand && lied.akkoordenPerMaat && lied.akkoordenPerMaat.length) ? 'opname' : 'muziek')
+        : 'synth'
     });
     return;
   }

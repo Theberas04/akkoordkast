@@ -62,6 +62,7 @@ FILES=(
   "lib/metronoom.js"
   "lib/overgangen.js"
   "lib/week.js"
+  "lib/muziekbestand.js"
   "lib/akkoorden.js"
   "lib/analyse.js"
   "lib/spotify.js"

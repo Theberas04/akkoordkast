@@ -273,6 +273,15 @@ test('de gezondheidscontrole eist de app-marker en een node-proces op de poort',
   }
 });
 
+test('de updater zet het ophaalgereedschap klaar voor een oudere container', () => {
+  // Een container die eerder is ingericht heeft yt-dlp nog niet; zonder deze stap zou het
+  // omzetten van een link naar mp3 na een bijwerking stilletjes niet werken.
+  const tekst = lees('update-from-github.sh');
+  assert.match(tekst, /yt-dlp\/releases\/latest\/download\/yt-dlp/, 'de updater hoort yt-dlp op te halen');
+  assert.match(tekst, /\/usr\/local\/bin\/yt-dlp/, 'en op een plek te zetten die in het pad staat');
+  assert.match(tekst, /command -v ffmpeg/, 'ffmpeg hoort ook gecontroleerd te worden');
+});
+
 test('de scripts accepteren het container-id ook via bash -c (nummer in $0)', () => {
   // De documentatie zegt 'bash -c "$(curl ...)" <CTID>'. Dat zet het nummer in $0 en niet in
   // $1, terwijl alle drie de scripts $1 lazen: het id kwam nooit aan en de opdracht stopte met

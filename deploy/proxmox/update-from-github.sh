@@ -208,6 +208,24 @@ for f in "${DATA[@]}"; do pct push "$CTID" "$STAGING/$f" "$APP_DIR/$f" --perms 6
 GEBRUIKER="$(binnen_bash "stat -c %U $APP_DIR" | tr -d '\r')"
 binnen_bash "chmod 755 $APP_DIR/scripts/cast-helper.py && chown -R $GEBRUIKER:$GEBRUIKER $APP_DIR"
 
+echo "== Gereedschap controleren"
+# ffmpeg is nodig om geluid uit een bestand te halen, en yt-dlp om een link naar mp3 te kunnen
+# omzetten. Beide horen er te staan; we halen alleen op wat ontbreekt, zodat een bijwerking ook
+# een oudere container bijwerkt.
+if ! binnen_bash "command -v ffmpeg >/dev/null 2>&1"; then
+  echo "   ffmpeg ontbreekt; ik installeer het"
+  binnen_bash "export DEBIAN_FRONTEND=noninteractive; apt-get update -qq && apt-get install -y -qq ffmpeg >/dev/null" || \
+    echo "   let op: ffmpeg kon niet worden geinstalleerd."
+fi
+if ! binnen_bash "test -x /usr/local/bin/yt-dlp"; then
+  echo "   yt-dlp ontbreekt; ik haal de nieuwste versie op"
+  if binnen_bash "curl -fsSL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && chmod 755 /usr/local/bin/yt-dlp"; then
+    echo "   $(binnen_bash "/usr/local/bin/yt-dlp --version" 2>/dev/null || echo 'versie onbekend')"
+  else
+    echo "   let op: yt-dlp kon niet worden opgehaald; het omzetten van een link naar mp3 werkt dan niet."
+  fi
+fi
+
 echo "== Dienst herstarten"
 binnen_bash "systemctl restart akkoordkast"
 

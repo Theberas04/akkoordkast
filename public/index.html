@@ -1316,6 +1316,49 @@
       <div class="melding" id="weg-melding" hidden></div>
     </div>
 
+    <div class="kaart" id="gegevens-kaart">
+      <h2>Gegevens van een liedje aanpassen</h2>
+      <p class="melding">Zoek een liedje en pas de titel, de zanger, de taal, het genre, de toonaard, het
+        tempo en de maatsoort aan. Een <strong>eigen</strong> liedje wordt bijgewerkt. Een
+        <strong>meegeleverd</strong> liedje zit in de bestanden van de app: daar maakt de app een eigen kopie
+        van met jouw gegevens, zodat de verzameling zelf ongemoeid blijft.</p>
+      <div class="rij">
+        <input id="geg-zoek" type="search" placeholder="Zoek een liedje op titel of artiest…" style="flex:1;min-width:200px">
+        <button class="knop zacht" id="geg-zoek-knop">Zoeken</button>
+      </div>
+      <div class="weg-lijst" id="geg-lijst"></div>
+      <div id="geg-form" hidden style="margin-top:10px">
+        <div class="veld2">
+          <div><label for="geg-titel">Titel</label><input id="geg-titel" type="text"></div>
+          <div><label for="geg-artiest">Zanger of artiest</label><input id="geg-artiest" type="text"></div>
+        </div>
+        <div class="veld2">
+          <div><label for="geg-taal">Taal (bijvoorbeeld nl)</label><input id="geg-taal" type="text"></div>
+          <div><label for="geg-genre">Genre</label><input id="geg-genre" type="text"></div>
+        </div>
+        <div class="veld2">
+          <div><label for="geg-toonsoort">Toonaard</label><input id="geg-toonsoort" type="text"></div>
+          <div><label for="geg-tempo">Tempo (BPM)</label><input id="geg-tempo" type="number" min="40" max="200" onfocus="this.select()"></div>
+        </div>
+        <div class="veld2">
+          <div><label for="geg-maatsoort">Maatsoort (tellen per maat)</label><input id="geg-maatsoort" type="number" min="2" max="12" onfocus="this.select()"></div>
+          <div><label for="geg-moeilijkheid">Moeilijkheid (1 tot 5)</label><input id="geg-moeilijkheid" type="number" min="1" max="5" onfocus="this.select()"></div>
+        </div>
+        <div class="veld2">
+          <div><label for="geg-strum">Slagpatroon</label><input id="geg-strum" type="text" placeholder="bijvoorbeeld D DU UDU"></div>
+          <div><label for="geg-youtube">YouTube-link of -nummer</label><input id="geg-youtube" type="text"></div>
+        </div>
+        <label for="geg-notitie">Notitie</label>
+        <input id="geg-notitie" type="text">
+        <div class="rij" style="margin-top:8px">
+          <button class="knop" id="geg-opslaan">Opslaan</button>
+          <button class="knop zacht" id="geg-annuleer">Annuleren</button>
+          <span class="meta" id="geg-wat"></span>
+        </div>
+      </div>
+      <div class="melding" id="geg-melding" hidden></div>
+    </div>
+
     <div class="kaart" id="filters-kaart">
       <h2>Filters beheren</h2>
       <p class="melding">Dit zijn de talen en genres die de app als filter laat zien. Je kunt er zelf een
@@ -2139,6 +2182,7 @@ laadMappen();
 laadBackup();
 laadWeken();
 koppelBeheerKaarten();
+koppelGegevensKaart();
 tabUitAdres();
 
 // ------------------------------------------------------------ liedjesboek ---
@@ -4552,6 +4596,78 @@ function koppelMetronoom(lied) {
   }
   if ($('metronoom-aftellen')) $('metronoom-aftellen').addEventListener('click', metroAftellen);
   if ($('metronoom-tik')) $('metronoom-tik').addEventListener('click', metroTik);
+}
+
+// --- de gegevens van een liedje aanpassen ---
+function koppelGegevensKaart() {
+  if (!$('geg-zoek-knop')) return;
+  var gekozen = null;
+  var velden = ['titel', 'artiest', 'taal', 'genre', 'toonsoort', 'tempo', 'maatsoort', 'moeilijkheid', 'strum', 'youtube', 'notitie'];
+
+  function vulFormulier(l) {
+    gekozen = l;
+    $('geg-titel').value = l.titel || '';
+    $('geg-artiest').value = l.artiest || '';
+    $('geg-taal').value = l.eigenTaal || l.taal || 'nl';
+    $('geg-genre').value = l.eigenGenre || l.genre || '';
+    $('geg-toonsoort').value = l.toonsoort || '';
+    $('geg-tempo').value = l.tempo || 84;
+    $('geg-maatsoort').value = l.maatsoort || 4;
+    $('geg-moeilijkheid').value = l.moeilijkheid || 2;
+    $('geg-strum').value = l.strum || '';
+    $('geg-youtube').value = l.youtube || '';
+    $('geg-notitie').value = l.notitie || '';
+    $('geg-form').hidden = false;
+    $('geg-wat').textContent = l.eigen
+      ? 'Eigen liedje ' + l.id + ' — wordt bijgewerkt.'
+      : 'Meegeleverd liedje ' + l.id + ' — de app maakt een eigen kopie met jouw gegevens.';
+    toonMelding('geg-melding', '', '');
+  }
+
+  function zoek() {
+    var q = $('geg-zoek').value.trim();
+    if (!q) { toonMelding('geg-melding', 'Vul een titel of artiest in.', 'fout'); return; }
+    toonMelding('geg-melding', 'Zoeken…', '');
+    api('/api/liedjes?zoek=' + encodeURIComponent(q) + '&limiet=30').then(function (d) {
+      var items = d.liedjes || d.items || [];
+      var vak = $('geg-lijst');
+      if (!items.length) {
+        vak.innerHTML = '<div class="les-klein">Niets gevonden.</div>';
+        toonMelding('geg-melding', '', '');
+        return;
+      }
+      vak.innerHTML = items.map(function (l) {
+        return '<div class="weg-rij"><span class="wie">' + esc(l.titel) +
+          (l.artiest ? ' <span class="meta">' + esc(l.artiest) + '</span>' : '') +
+          (l.eigen ? '' : ' <span class="meta">(meegeleverd)</span>') + '</span>' +
+          '<button class="knop mini zacht" data-geg="' + l.id + '">Aanpassen</button></div>';
+      }).join('');
+      Array.prototype.forEach.call(vak.querySelectorAll('[data-geg]'), function (b) {
+        b.addEventListener('click', function () {
+          api('/api/liedjes/' + b.getAttribute('data-geg')).then(vulFormulier)
+            .catch(function (e) { toonMelding('geg-melding', e.message, 'fout'); });
+        });
+      });
+      toonMelding('geg-melding', items.length + ' liedje(s) gevonden. Kies er een.', '');
+    }).catch(function (e) { toonMelding('geg-melding', e.message, 'fout'); });
+  }
+
+  $('geg-zoek-knop').addEventListener('click', zoek);
+  $('geg-zoek').addEventListener('keydown', function (e) { if (e.key === 'Enter') zoek(); });
+  $('geg-annuleer').addEventListener('click', function () { $('geg-form').hidden = true; gekozen = null; });
+  $('geg-opslaan').addEventListener('click', function () {
+    if (!gekozen) return;
+    var lichaam = {};
+    velden.forEach(function (v) { lichaam[v] = $('geg-' + v).value; });
+    api('/api/liedjes/' + gekozen.id + '/gegevens', {
+      method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(lichaam)
+    }).then(function (d) {
+      toonMelding('geg-melding', d.bericht || 'Opgeslagen.', 'goed');
+      $('geg-wat').textContent = 'Opgeslagen als liedje ' + d.id + '.';
+      laadLiedjes();
+      if (staat.liedje && staat.liedje.id === gekozen.id) openLiedje(d.id);
+    }).catch(function (e) { toonMelding('geg-melding', e.message, 'fout'); });
+  });
 }
 
 function laadMappen() {

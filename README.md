@@ -188,6 +188,11 @@ Het toevoeggereedschap zit in een **eigen profiel** (`Admin`), niet in je gewone
 | Liedjes uit de app halen (eigen liedjes echt, meegeleverde verbergen) | beheerder |
 | Filters beheren: talen en genres toevoegen, weghalen en liedjes eraan koppelen | beheerder |
 
+**Gegevens aanpassen.** In het beheerdersprofiel (tabblad Toevoegen) staat *Gegevens van een liedje
+aanpassen*: titel, zanger, taal, genre, toonaard, tempo, maatsoort, moeilijkheid, slagpatroon, YouTube
+en notitie. Van een meegeleverd liedje maakt de app daarbij een eigen kopie (`maakEigenKopie`), zodat
+de verzameling zelf ongemoeid blijft.
+
 **Akkoorden bij elk liedje.** Een liedje waarvan de bron geen akkoorden heeft (een nummer dat je via
 een link ophaalt, of een liedje waarvan alleen de tekst is overgeleverd) krijgt een **voorgesteld**
 schema in de toonaard van het liedje (zie `lib/voorstel.js`). De app zegt er zelf bij dat het een

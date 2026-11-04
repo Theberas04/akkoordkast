@@ -3,6 +3,21 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.15.0] — 4 november 2026
+
+### Nieuw
+
+- **De gegevens van een liedje aanpassen.** In het beheerdersprofiel staat op het tabblad Toevoegen de
+  kaart *Gegevens van een liedje aanpassen*: zoek een liedje en pas de titel, de **zanger of artiest**,
+  de taal, het genre, de toonaard, het tempo, de maatsoort, de moeilijkheid, het slagpatroon, de
+  YouTube-link en de notitie aan. De app zegt erbij wat er gebeurt: een eigen liedje wordt bijgewerkt,
+  en van een **meegeleverd** liedje maakt de app een eigen kopie met jouw gegevens — het origineel
+  blijft staan (en kun je verbergen). Muziek en video gaan mee naar de kopie, zodat je hem meteen kunt
+  spelen.
+- **Nieuwe route** `PUT /api/liedjes/<id>/gegevens` (beheerder) die dit regelt, met nette grenzen:
+  een lege titel wordt geweigerd, tempo blijft tussen 40 en 200, maatsoort tussen 2 en 12,
+  moeilijkheid tussen 1 en 5, en de taal wordt in kleine letters bewaard.
+
 ## [1.14.0] — 4 november 2026
 
 ### Nieuw

@@ -35,7 +35,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.14.0';
+const VERSIE = '1.15.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -1570,6 +1570,38 @@ function maakLiedjeVanDownload(bestand, titel, url) {
   if (videoId) zetLiedjeVideo(nieuwId, videoId);
   // Meteen kijken of dit liedje al in de eigen bibliotheek staat (dan komt er echte bladmuziek bij).
   zoekBladmuziekInBibliotheek(nieuwId);
+  return nieuwId;
+}
+
+// Van een meegeleverd liedje een eigen kopie maken. Met `vervang` kunnen meteen andere gegevens
+// meegegeven worden (dat gebruikt het aanpassen van een liedje).
+function maakEigenKopie(bronLied, vervang) {
+  const v = vervang || {};
+  const gegevens = normaliseerLiedje({
+    titel: v.titel || `${bronLied.titel} (eigen kopie)`,
+    artiest: v.artiest !== undefined ? v.artiest : bronLied.artiest,
+    taal: v.taal || bronLied.taal,
+    genre: v.genre || 'Eigen',
+    moeilijkheid: v.moeilijkheid || bronLied.moeilijkheid,
+    toonsoort: v.toonsoort !== undefined ? v.toonsoort : bronLied.toonsoort,
+    tempo: v.tempo || bronLied.tempo,
+    strum: v.strum !== undefined ? v.strum : bronLied.strum,
+    bron: bronLied.bron,
+    youtube: v.youtube !== undefined ? v.youtube : bronLied.youtube,
+    chordpro: bronLied.chordpro
+  });
+  const info = db.prepare(`INSERT INTO liedjes (titel, artiest, taal, genre, moeilijkheid, toonsoort, tempo, maatsoort, strum, bron, youtube, notitie, chordpro, aangemaakt)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
+    gegevens.titel, gegevens.artiest, gegevens.taal, gegevens.genre, gegevens.moeilijkheid,
+    gegevens.toonsoort, gegevens.tempo,
+    Math.max(2, Math.min(12, parseInt(v.maatsoort, 10) || bronLied.maatsoort || 4)), gegevens.strum, gegevens.bron,
+    gegevens.youtube, v.notitie || gegevens.notitie || '', gegevens.chordpro, new Date().toISOString());
+  const nieuwId = EIGEN_START + Number(info.lastInsertRowid);
+  // Muziek en video gaan mee naar de kopie, zodat je hem meteen kunt spelen.
+  const muziek = muziekVanLiedje(bronLied.id);
+  if (muziek && muziek.bestaat) zetLiedjeMuziek(nieuwId, muziek.pad, muziek.titel || '');
+  const video = videoVanLiedje(bronLied.id);
+  if (video && video.videoId) zetLiedjeVideo(nieuwId, video.videoId);
   return nieuwId;
 }
 
@@ -3263,29 +3295,56 @@ async function verwerk(req, res) {
   }
 
   // --- meegeleverde liedjes als eigen kopie ---
+  // De gegevens van een liedje aanpassen (titel, zanger, taal, genre, toonaard, tempo, enzovoort).
+  // Een eigen liedje wordt bijgewerkt; een meegeleverd liedje zit in de bestanden van de app, dus
+  // daar maken we een eigen kopie van met de nieuwe gegevens — de verzameling blijft ongemoeid.
+  let gegevensMatch = pad.match(/^\/api\/liedjes\/(\d+)\/gegevens$/);
+  if (gegevensMatch && (methode === 'PUT' || methode === 'POST')) {
+    if (!isBeheerder(req)) {
+      json(res, 403, { fout: 'Dit hoort bij het beheerdersprofiel (Admin). Kies dat profiel en probeer het opnieuw.' });
+      return;
+    }
+    const lied = vindLiedje(gegevensMatch[1]);
+    if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    const body = await leesJsonBody(req);
+    const tekst = (waarde, max) => String(waarde === undefined || waarde === null ? '' : waarde).replace(/\s+/g, ' ').trim().slice(0, max);
+    const titel = tekst(body.titel, 160);
+    if (!titel) { json(res, 400, { fout: 'Geef het liedje een titel.' }); return; }
+    const velden = {
+      titel,
+      artiest: tekst(body.artiest, 160),
+      taal: (tekst(body.taal, 5) || 'nl').toLowerCase(),
+      genre: tekst(body.genre, 40) || 'Eigen',
+      moeilijkheid: Math.max(1, Math.min(5, parseInt(body.moeilijkheid, 10) || lied.moeilijkheid || 2)),
+      toonsoort: tekst(body.toonsoort, 8),
+      tempo: Math.max(40, Math.min(200, parseInt(body.tempo, 10) || lied.tempo || 84)),
+      maatsoort: Math.max(2, Math.min(12, parseInt(body.maatsoort, 10) || lied.maatsoort || 4)),
+      strum: tekst(body.strum, 40),
+      youtube: tekst(body.youtube, 200),
+      notitie: tekst(body.notitie, 400)
+    };
+    if (!lied.eigen) {
+      const nieuwId = maakEigenKopie(lied, velden);
+      json(res, 200, {
+        ok: true, id: nieuwId, kopie: true,
+        bericht: 'Dit liedje hoort bij de meegeleverde verzameling. Ik heb er een eigen kopie van gemaakt met de nieuwe gegevens; het origineel blijft staan (en kun je verbergen).'
+      });
+      return;
+    }
+    db.prepare(`UPDATE liedjes SET titel = ?, artiest = ?, taal = ?, genre = ?, moeilijkheid = ?,
+      toonsoort = ?, tempo = ?, maatsoort = ?, strum = ?, youtube = ?, notitie = ? WHERE id = ?`).run(
+      velden.titel, velden.artiest, velden.taal, velden.genre, velden.moeilijkheid,
+      velden.toonsoort, velden.tempo, velden.maatsoort, velden.strum, velden.youtube,
+      velden.notitie, Number(lied.id) - EIGEN_START);
+    json(res, 200, { ok: true, id: Number(lied.id), kopie: false, bericht: 'De gegevens zijn aangepast.' });
+    return;
+  }
+
   const kopieMatch = pad.match(/^\/api\/liedjes\/(\d+)\/kopie$/);
   if (kopieMatch && methode === 'POST') {
     const bronLied = vindLiedje(kopieMatch[1]);
     if (!bronLied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
-    const gegevens = normaliseerLiedje({
-      titel: `${bronLied.titel} (eigen kopie)`,
-      artiest: bronLied.artiest,
-      taal: bronLied.taal,
-      genre: 'Eigen',
-      moeilijkheid: bronLied.moeilijkheid,
-      toonsoort: bronLied.toonsoort,
-      tempo: bronLied.tempo,
-      strum: bronLied.strum,
-      bron: bronLied.bron,
-      youtube: bronLied.youtube,
-      chordpro: bronLied.chordpro
-    });
-    const info = db.prepare(`INSERT INTO liedjes (titel, artiest, taal, genre, moeilijkheid, toonsoort, tempo, strum, bron, youtube, notitie, chordpro, aangemaakt)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
-      gegevens.titel, gegevens.artiest, gegevens.taal, gegevens.genre, gegevens.moeilijkheid,
-      gegevens.toonsoort, gegevens.tempo, gegevens.strum, gegevens.bron, gegevens.youtube,
-      '', gegevens.chordpro, new Date().toISOString());
-    json(res, 201, { ok: true, id: EIGEN_START + Number(info.lastInsertRowid) });
+    json(res, 201, { ok: true, id: maakEigenKopie(bronLied) });
     return;
   }
 

@@ -501,13 +501,24 @@
   .leren-links{display:flex;flex-wrap:wrap;gap:8px}
   @media (max-width:760px){
     header{padding:10px 12px 8px}
-    .onderkop{display:none}
+    /* De profielkiezer moet ook op een telefoon te gebruiken zijn: alleen de ondertitel weg. */
+    .onderkop{display:flex;gap:6px;align-items:center}
+    .onderkop > span:first-child{display:none}
+    .profiel-rij{display:flex;width:100%;gap:6px}
+    .profiel-rij label{flex:0 0 auto}
+    .profiel-rij select{flex:1 1 auto;min-width:0;max-width:none}
+    .profiel-rij .knop{flex:0 0 auto}
     h1{font-size:1.1rem}
     nav{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;padding:8px 8px 0}
     nav button{font-size:.68rem;min-height:52px}
     nav button{font-size:.7rem;min-height:50px;padding:5px 2px}
     main{padding:10px 8px 24px}
     .veld2{grid-template-columns:1fr}
+    /* Op een telefoon staan de knoppen onder het liedje in plaats van ernaast: anders wordt de
+       titel in een smalle strook geperst en breekt hij in drie regels af. */
+    .lied{grid-template-columns:1fr;gap:7px}
+    .lied .rij{justify-content:flex-start}
+    .lied .rij .knop{flex:1 1 auto}
     /* op een telefoon eerst de liedjes, de filters achter één knop */
     #filter-toggle{display:inline-flex}
     #meer-filters{display:none}
@@ -673,6 +684,10 @@
 /* De regel uit het logboek van het ophalen: klein en ingetogen naast het percentage. */
 .haal-log{color:var(--zacht);font-size:.86em;white-space:nowrap;overflow:hidden;
   text-overflow:ellipsis;display:inline-block;max-width:100%;vertical-align:bottom}
+
+/* De zoekuitkomsten in de mp3-kaart: compact, want het is een tussenstap. */
+.mp3-uitkomst:empty{display:none}
+.mp3-uitkomst .kandidaat{margin:6px 0}
 
 /* Een zoekuitkomst bij "Muziek van het liedje": titel links, score en map rechts, en de
    kiesknop eronder. Zo loopt de titel niet tegen de score aan. */
@@ -985,6 +1000,25 @@
       <div class="meta" id="beheer-uitleg">Muziek toevoegen, een link omzetten naar mp3 maken, een
         muziekmap laten omzetten, eigen liedjes bewerken, de back-up en de bijwerking: dat hoort
         bij de beheerder. Zoeken, spelen en leren kan iedereen.</div>
+    </div>
+    <div class="kaart" id="mp3-kaart">
+      <h2>Downloaden als mp3</h2>
+      <p class="melding">Plak een link (YouTube of iets dergelijks) en de software haalt het geluid
+        eruit als mp3 in je muziekmap. Kies eerst bij welk liedje het hoort — dan kun je daarna
+        meteen meespelen met de echte muziek. Eén download tegelijk, en wat je ophaalt is jouw
+        verantwoordelijkheid.</p>
+      <label for="mp3-zoek">Bij welk liedje hoort het?</label>
+      <input id="mp3-zoek" type="search" placeholder="Zoek op titel of artiest">
+      <div id="mp3-uitkomst" class="mp3-uitkomst"></div>
+      <div id="mp3-gekozen" class="meta">Nog geen liedje gekozen.</div>
+      <label for="mp3-url">De link</label>
+      <div class="rij">
+        <input id="mp3-url" type="url" placeholder="https://www.youtube.com/watch?v=..."
+               style="flex:1;min-width:200px">
+        <button class="knop" id="mp3-start">Downloaden als mp3</button>
+      </div>
+      <div class="melding" id="mp3-melding" hidden></div>
+      <div id="mp3-stand"></div>
     </div>
     <div class="kaart">
       <h2>Muziek of video uploaden</h2>
@@ -2985,27 +3019,34 @@ function zoekMuziekVoorLiedje(l) {
 
 // Een link ophalen en omzetten naar mp3. Dat gebeurt op de server (yt-dlp + ffmpeg); hier
 // laten we alleen de voortgang zien en verversen we het liedje zodra het bestand er is.
-function haalLinkOp(l) {
-  var veld = $('haal-url');
+// De velden van het linkblok. Het speelscherm gebruikt ze bij een liedje; het tabblad Toevoegen
+// heeft een eigen set (dezelfde code, andere id's).
+var HAAL_SPEL = { url: 'haal-url', start: 'haal-start', stand: 'haal-stand', melding: 'haal-melding' };
+var HAAL_TOOL = { url: 'mp3-url', start: 'mp3-start', stand: 'mp3-stand', melding: 'mp3-melding' };
+
+function haalLinkOp(l, ids, klaar) {
+  ids = ids || HAAL_SPEL;
+  var veld = $(ids.url);
   var waarde = veld ? String(veld.value || '').trim() : '';
-  if (!waarde) { toonMelding('haal-melding', 'Plak eerst een link.', 'fout'); return; }
-  var knop = $('haal-start');
+  if (!waarde) { toonMelding(ids.melding, 'Plak eerst een link.', 'fout'); return; }
+  var knop = $(ids.start);
   if (knop) knop.disabled = true;
-  toonMelding('haal-melding', 'Bezig met ophalen…', 'goed');
+  toonMelding(ids.melding, 'Bezig met ophalen…', 'goed');
   api('/api/download', {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ liedje: l.id, url: waarde })
-  }).then(function () { volgOphaal(l); })
+  }).then(function () { volgOphaal(l, ids, klaar); })
     .catch(function (e) {
       if (knop) knop.disabled = false;
-      toonMelding('haal-melding', e.message, 'fout');
+      toonMelding(ids.melding, e.message, 'fout');
     });
 }
 
 // Elke seconde of zo kijken hoe ver het ophalen is. Klaar? Dan verversen we het liedje, zodat
 // de speler met het nieuwe bestand verschijnt.
-function volgOphaal(l) {
-  var houder = $('haal-stand');
+function volgOphaal(l, ids, klaar) {
+  ids = ids || HAAL_SPEL;
+  var houder = $(ids.stand);
   var ronden = 0;
   var tik = setInterval(function () {
     ronden++;
@@ -3020,30 +3061,111 @@ function volgOphaal(l) {
         return;
       }
       clearInterval(tik);
-      var knop = $('haal-start');
+      var knop = $(ids.start);
       if (knop) knop.disabled = false;
       if (d.status === 'klaar') {
         // De melding hierboven zegt het al; niet twee keer hetzelfde bericht.
         if (houder) houder.innerHTML = '<div class="meta">Klaar: <strong>' + esc(d.bestand) +
           '</strong> — het bestand hangt nu aan dit liedje en staat in ' + esc(d.map || 'de downloadmap') + '.</div>';
-        toonMelding('haal-melding', '', '');
+        toonMelding(ids.melding, '', '');
+        if (typeof klaar === 'function') { klaar(d); return; }
         // Ruim de tijd geven om "Klaar: <bestand>" te lezen voordat het speelscherm
         // zichzelf ververst met de nieuwe speler.
         setTimeout(function () { openLiedje(l.id); }, 2600);
         return;
       }
       if (houder) houder.innerHTML = '';
-      if (d.status === 'fout') toonMelding('haal-melding', d.fout, 'fout');
+      if (d.status === 'fout') toonMelding(ids.melding, d.fout, 'fout');
     }).catch(function () { clearInterval(tik); });
   }, 1200);
 }
 
-function koppelHaalKnoppen(l) {
-  if ($('haal-start')) $('haal-start').addEventListener('click', function () { haalLinkOp(l); });
-  if ($('haal-url')) {
-    $('haal-url').addEventListener('keydown', function (gebeurtenis) {
-      if (gebeurtenis.key === 'Enter') haalLinkOp(l);
+function koppelHaalKnoppen(l, ids) {
+  ids = ids || HAAL_SPEL;
+  if ($(ids.start)) $(ids.start).addEventListener('click', function () { haalLinkOp(l, ids); });
+  if ($(ids.url)) {
+    $(ids.url).addEventListener('keydown', function (gebeurtenis) {
+      if (gebeurtenis.key === 'Enter') haalLinkOp(l, ids);
     });
+  }
+}
+
+// Het gereedschap in het tabblad Toevoegen: eerst het liedje zoeken en kiezen, dan de link plakken.
+var MP3 = { liedje: 0, titel: '', gevonden: {} };
+
+function kiesMp3Liedje(id) {
+  var l = MP3.gevonden[id] || (staat.liedjes || []).filter(function (x) { return x.id === id; })[0];
+  MP3.liedje = id;
+  MP3.titel = l ? l.titel : ('liedje ' + id);
+  var uit = $('mp3-uitkomst');
+  if (uit) uit.innerHTML = '';
+  var zoek = $('mp3-zoek');
+  if (zoek) zoek.value = '';
+  var gek = $('mp3-gekozen');
+  if (gek) gek.innerHTML = 'Gekozen: <strong>' + esc(MP3.titel) + '</strong>' +
+    (l && l.heeftMuziek ? ' <span class="meta">(heeft al muziek; het nieuwe bestand komt erbij)</span>' : '');
+  toonMelding('mp3-melding', '', '');
+}
+
+function zoekMp3Liedjes() {
+  var veld = $('mp3-zoek');
+  var uit = $('mp3-uitkomst');
+  if (!veld || !uit) return;
+  var tekst = String(veld.value || '').trim();
+  if (tekst.length < 2) { uit.innerHTML = ''; return; }
+  api('/api/liedjes?zoek=' + encodeURIComponent(tekst) + '&aantal=8').then(function (data) {
+    var liedjes = data.liedjes || [];
+    MP3.gevonden = {};
+    liedjes.forEach(function (x) { MP3.gevonden[x.id] = x; });
+    if (!liedjes.length) { uit.innerHTML = '<div class="meta">Niets gevonden.</div>'; return; }
+    uit.innerHTML = liedjes.map(function (x) {
+      return '<div class="kandidaat"><div class="kandidaat-kop"><strong>' + esc(x.titel) + '</strong>' +
+        (x.artiest ? '<span class="meta">' + esc(x.artiest) + '</span>' : '') + '</div>' +
+        '<div class="rij"><button class="knop zacht" data-mp3-kies="' + x.id + '">Dit liedje</button>' +
+        (x.heeftMuziek ? '<span class="meta">heeft al muziek</span>' : '') + '</div></div>';
+    }).join('');
+    Array.prototype.forEach.call(uit.querySelectorAll('[data-mp3-kies]'), function (knop) {
+      knop.addEventListener('click', function () { kiesMp3Liedje(Number(knop.getAttribute('data-mp3-kies'))); });
+    });
+  }).catch(function (e) { uit.innerHTML = '<div class="melding fout">' + esc(e.message) + '</div>'; });
+}
+
+function startMp3Download() {
+  if (!MP3.liedje) {
+    toonMelding('mp3-melding', 'Kies eerst bij welk liedje het hoort (zoek hierboven op de titel).', 'fout');
+    var zoek = $('mp3-zoek');
+    if (zoek) zoek.focus();
+    return;
+  }
+  haalLinkOp({ id: MP3.liedje, titel: MP3.titel }, HAAL_TOOL, function (d) {
+    var houder = $('mp3-stand');
+    if (houder) {
+      houder.innerHTML = '<div class="rij"><button class="knop zacht" id="mp3-open">Openen in Spelen</button></div>';
+      $('mp3-open').addEventListener('click', function () {
+        toonTab('spelen');
+        openLiedje(MP3.liedje);
+      });
+    }
+    laadLiedjes(true);   // het muziekvlaggetje bij het liedje bijwerken
+    var veld = $('mp3-url');
+    if (veld) veld.value = '';
+  });
+}
+
+function koppelMp3Tool() {
+  var zoek = $('mp3-zoek');
+  if (!zoek) return;
+  var wacht = 0;
+  zoek.addEventListener('input', function () {
+    clearTimeout(wacht);
+    wacht = setTimeout(zoekMp3Liedjes, 250);
+  });
+  zoek.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { clearTimeout(wacht); zoekMp3Liedjes(); }
+  });
+  if ($('mp3-start')) $('mp3-start').addEventListener('click', startMp3Download);
+  if ($('mp3-url')) {
+    $('mp3-url').addEventListener('keydown', function (e) { if (e.key === 'Enter') startMp3Download(); });
   }
 }
 
@@ -4033,6 +4155,7 @@ laadLiedjes(true);
 laadArtiesten();
 laadProfielen();
 laadLabels();
+koppelMp3Tool();   // het gereedschap "Downloaden als mp3" in het tabblad Toevoegen
 beheerVraag();   // wie is de beheerder? (bepaalt wat je in Toevoegen ziet)
 laadMijnSetlists();
 laadWachter();

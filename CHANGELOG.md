@@ -3,6 +3,25 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.6.0] — 4 november 2026
+
+### Nieuw
+
+- **Downloaden als mp3 staat nu ook in het tabblad Toevoegen.** Zoek bij welk liedje de muziek
+  hoort, klik *Dit liedje*, plak de link en downloaden maar. Het bestand komt in je muziekmap en
+  hangt meteen aan dat liedje; daarna is er één knop *Openen in Spelen*. De oude weg — een link
+  plakken in het speelscherm van een liedje — blijft bestaan.
+
+### Gerepareerd
+
+- **Op een telefoon was de profielkiezer niet te gebruiken.** In de mobiele stijl werd de hele
+  onderkop van de pagina verborgen, en daar zat de profielkiezer in. Nu blijft alleen de ondertitel
+  weg; de kiezer staat bovenin onder de titel, met het plusje voor een nieuw profiel.
+- Op een telefoon liepen de liedjeskaartjes in de knoop: de titel werd in een smalle strook naast de
+  knoppen geperst en brak in drie regels af. De knoppen staan nu onder het liedje, over de volle
+  breedte.
+- De app-cache naar v40.
+
 ## [1.5.0] — 4 november 2026
 
 ### Nieuw

@@ -197,3 +197,33 @@ test('het beheerdersprofiel zit achter een wachtwoordkaartje in de pagina', () =
   const script = html.indexOf('<script>\n');
   assert.ok(kaart > 0 && script > 0 && kaart < script, 'het kaartje hoort vóór het grote script te staan');
 });
+
+test('het gereedschap "Downloaden als mp3" staat in het tabblad Toevoegen', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  for (const id of ['mp3-kaart', 'mp3-zoek', 'mp3-uitkomst', 'mp3-gekozen', 'mp3-url', 'mp3-start',
+    'mp3-melding', 'mp3-stand']) {
+    assert.ok(html.includes('id="' + id + '"'), 'id ontbreekt: ' + id);
+  }
+  assert.match(html, /Downloaden als mp3/);
+  assert.match(html, /function koppelMp3Tool\(\)/);
+  assert.match(html, /function startMp3Download\(\)/);
+  assert.match(html, /function kiesMp3Liedje\(id\)/);
+  // De kaart hoort in het beheerdersgedeelte te zitten: hij is een direct kind van het paneel,
+  // waardoor de regel #paneel-toevoegen:not(.beheer) > .kaart hem verbergt zonder inloggen.
+  const i = html.indexOf('id="paneel-toevoegen"');
+  const j = html.indexOf('id="paneel-casten"');
+  assert.ok(html.indexOf('id="mp3-kaart"') > i && html.indexOf('id="mp3-kaart"') < j, 'de kaart hoort in Toevoegen');
+  // En de zoek- en startknop moeten gekoppeld worden bij het opstarten.
+  assert.match(html, /koppelMp3Tool\(\);/, 'het gereedschap wordt niet gekoppeld bij het opstarten');
+});
+
+test('op een telefoon blijft de profielkiezer staan', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  // De regel met de mobiele stijl van de kop opzoeken (er zijn meer media-blokken).
+  const i = html.indexOf('.onderkop > span:first-child{display:none}');
+  assert.ok(i > 0, 'de ondertitel hoort op een telefoon weg te blijven, de kiezer te blijven');
+  const blok = html.slice(i, i + 800);
+  assert.ok(!/\.onderkop\{display:none\}/.test(html), 'de onderkop mag niet meer verborgen worden');
+  assert.match(blok, /\.profiel-rij\{display:flex/, 'de profielrij hoort op een telefoon zichtbaar te zijn');
+  assert.match(blok, /\.lied\{grid-template-columns:1fr/, 'de liedjeskaartjes horen op een telefoon onder elkaar te staan');
+});

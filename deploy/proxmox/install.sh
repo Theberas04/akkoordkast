@@ -103,6 +103,8 @@ FILES=(
   "public/handleiding/img/oefenen-per-week.png"
   "public/handleiding/img/profiel-admin.png"
   "public/handleiding/img/profiel-slot.png"
+  "public/handleiding/img/telefoon-profiel.png"
+  "public/handleiding/img/telefoon-toevoegen.png"
   "public/handleiding/img/profiel-gewoon.png"
   "public/handleiding/img/setlist-overgangen.png"
   "public/handleiding/img/spelen-desktop.png"

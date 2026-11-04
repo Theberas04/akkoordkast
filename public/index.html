@@ -506,6 +506,53 @@
   .stem-uitslag{font-weight:800;font-size:1.05rem;margin-top:10px;line-height:1.35}
   .stem-uitslag.gestemd{color:var(--groen)}
   .stem-rij .knop.nu{border-color:var(--amber);box-shadow:0 0 0 2px rgba(245,165,36,.3)}
+  /* Grepen leren: per greep een afvinkvakje, en het vakje zelf licht op als je hem kent. */
+  .greep-klaar{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:.72rem;color:var(--tekst2);cursor:pointer}
+  .greep-klaar input{margin:0}
+  .greep-kaart.klaar{border-color:#2f6b4a;box-shadow:0 0 0 1px rgba(47,107,74,.35) inset}
+  .greep-kaart.klaar .naam::after{content:" \2713";color:var(--groen)}
+  /* Ritme-trainer met de microfoon */
+  .rt-vak{margin:12px 0 0}
+  .rt-tellen{display:flex;gap:6px;margin-bottom:8px}
+  .rt-tellen span{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+    background:#0c1425;border:1px solid var(--lijn);color:var(--tekst2);font-weight:700;transition:background .08s linear}
+  .rt-tellen span.nu{background:var(--amber);border-color:var(--amber);color:#20160a}
+  .rt-meter{height:26px;border-radius:10px;background:linear-gradient(90deg,#7a3b3b 0%,#7a6a3b 32%,#2f6b4a 50%,#7a6a3b 68%,#7a3b3b 100%);
+    position:relative;border:1px solid var(--lijn);overflow:hidden}
+  .rt-midden{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.55)}
+  .rt-schaal{display:flex;justify-content:space-between;font-size:.7rem;color:var(--tekst2);margin-top:4px}
+  .rt-lijst{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+  .rt-lijst .stip{width:15px;height:15px;border-radius:50%;border:1px solid var(--lijn);background:#0c1425}
+  .rt-lijst .stip.goed{background:var(--groen);border-color:var(--groen)}
+  .rt-lijst .stip.vroeg{background:#e0b34a;border-color:#e0b34a}
+  .rt-lijst .stip.laat{background:#d97b6c;border-color:#d97b6c}
+  .rt-lijst .stip .naald{display:block;width:2px;height:100%;background:rgba(255,255,255,.75);margin:0 auto}
+  /* Toonladders op de hals */
+  .ladder-neck{overflow-x:auto;padding:4px 0}
+  .ladder-neck svg{display:block}
+  .ln-fret{stroke:#cbd5e1;stroke-width:1}
+  .ln-kam{stroke:#e2e8f0;stroke-width:4}
+  .ln-snaar{stroke:#94a3b8;stroke-width:1}
+  .ln-vak{font-size:9px;fill:#94a3b8}
+  .ln-stip{fill:#0ea5e9}
+  .ln-grond{fill:var(--amber)}
+  .ln-naam{font-size:8.5px;fill:#0b1220;font-weight:700}
+  .ln-naam-grond{font-size:8.5px;fill:#20160a;font-weight:700}
+  .ln-snaar-naam{font-size:9px;fill:var(--tekst2)}
+  /* Oefenplan */
+  .plan-week{background:#0d1526;border:1px solid var(--lijn);border-radius:var(--r);padding:10px 12px;margin-top:10px}
+  .plan-week.klaar{border-color:#2f6b4a}
+  .plan-kop{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .plan-kop b{font-size:.95rem}
+  .plan-taak{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-top:1px solid rgba(148,163,184,.12)}
+  .plan-taak:first-of-type{border-top:0}
+  .plan-taak input{margin:2px 0 0}
+  .plan-taak .plan-min{margin-left:auto;color:var(--tekst2);font-size:.74rem;white-space:nowrap}
+  .plan-soort{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--tekst2);min-width:74px}
+  /* Jezelf opnemen */
+  .opn-meter{height:14px;border-radius:8px;background:#0c1425;border:1px solid var(--lijn);overflow:hidden;margin-top:10px}
+  .opn-niveau{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--groen),var(--amber),#d97b6c);transition:width .06s linear}
+  audio#opn-audio{width:100%;margin-top:10px}
   .ritme-rij{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
   .ritme-rij .patroon{font-family:var(--mono,monospace);font-size:1.05rem;letter-spacing:.12em}
   .leren-links{display:flex;flex-wrap:wrap;gap:8px}
@@ -838,7 +885,7 @@
       <div class="leren-kop">
         <div>
           <h2>Leren gitaarspelen</h2>
-          <div class="les-klein">Zesentwintig lessen in vier delen, van het vasthouden van de gitaar tot een oefenplan dat je volhoudt — met per les een oefening in de app.</div>
+          <div class="les-klein">Honderdtien lessen in acht delen, van het vasthouden van de gitaar tot samenspelen en optreden — met per les een oefening in de app.</div>
         </div>
         <div class="voortgang">
           <div class="voortgang-balk"><span id="leren-balk"></span></div>
@@ -862,6 +909,50 @@
       </div>
       <div id="oefencijfers" style="margin-top:12px"></div>
       <div id="oefen-weken" style="margin-top:16px"></div>
+    </div>
+
+    <div class="kaart" id="oefenplan-kaart">
+      <h2>Mijn oefenplan</h2>
+      <p class="les-klein" style="margin:0 0 12px">Kies een liedje dat je onder de knie wilt hebben, en hoe lang je erover wilt doen.
+        De app verdeelt het werk over de weken: eerst de grepen, dan de overgangen en de delen van het liedje,
+        en in de laatste week het hele liedje op tempo. Per taak zie je hoeveel minuten ervoor staan, en je
+        vinkt af wat je gedaan hebt.</p>
+      <div class="rij">
+        <label for="plan-zoek">Welk liedje?</label>
+        <input id="plan-zoek" type="search" placeholder="Zoek op titel of artiest" style="flex:1;min-width:190px">
+        <span class="pilletje" id="plan-gekozen">Nog geen liedje gekozen</span>
+      </div>
+      <div id="plan-uitkomst" class="mp3-uitkomst"></div>
+      <div class="rij" style="margin-top:10px">
+        <label for="plan-weken">Weken</label>
+        <select id="plan-weken">
+          <option value="3">3 weken</option>
+          <option value="4">4 weken</option>
+          <option value="6" selected>6 weken</option>
+          <option value="8">8 weken</option>
+          <option value="12">12 weken</option>
+        </select>
+        <label for="plan-minuten">Minuten per dag</label>
+        <select id="plan-minuten">
+          <option value="10">10 minuten</option>
+          <option value="15">15 minuten</option>
+          <option value="20" selected>20 minuten</option>
+          <option value="30">30 minuten</option>
+          <option value="45">45 minuten</option>
+        </select>
+        <label for="plan-perweek">Dagen per week</label>
+        <select id="plan-perweek">
+          <option value="3">3 dagen</option>
+          <option value="4">4 dagen</option>
+          <option value="5" selected>5 dagen</option>
+          <option value="6">6 dagen</option>
+          <option value="7">7 dagen</option>
+        </select>
+        <button class="knop" id="plan-maak">Maak mijn plan</button>
+        <button class="knop zacht" id="plan-wis" disabled>Plan weggooien</button>
+      </div>
+      <div id="plan-vak" style="margin-top:6px"></div>
+      <div class="les-klein" id="plan-melding" style="margin-top:8px"></div>
     </div>
 
     <div class="kaart">
@@ -894,7 +985,7 @@
               <option value="Am Em Dm">Mineurakkoorden: Am · Em · Dm</option>
               <option value="C F G">Toonladder-akkoorden: C · F · G</option>
               <option value="A Am D Dm">Groot tegen klein: A · Am · D · Dm</option>
-              <option value="C C7 Cm Cmaj7 D D7 Dm Dm7 E E7 Em Em7 F F7 Fm Fmaj7 G G7 Gm A A7 Am Am7 Bb B7 Bm">Alles door elkaar (26 grepen)</option>
+              <option value="C C7 Cm Cmaj7 D D7 Dm Dm7 E E7 Em Em7 F F7 Fmaj7 G G7 Gm A A7 Am Am7 Bb B7 Bm">Alles door elkaar (26 grepen)</option>
             </datalist>
           </div>
           <div>
@@ -978,6 +1069,27 @@
       <div class="les-klein" id="stem-melding" style="margin-top:8px"></div>
     </div>
 
+    <div class="kaart" id="opnemen-kaart">
+      <h2>Neem jezelf op</h2>
+      <p class="les-klein" style="margin:0 0 12px">Neem een stukje van jezelf op en luister het terug. Dit is de snelste manier
+        om te horen of je akkoorden zuiver klinken, of je gelijkmatig slaat en of je tempo blijft liggen. Doe het in een stille
+        kamer en gebruik een beveiligd adres (<code>https</code>). De opname blijft in dit toestel; er gaat niets naar de server.</p>
+      <div class="rij">
+        <button class="knop" id="opn-start">Opnemen</button>
+        <button class="knop zacht" id="opn-stop" disabled>Stop</button>
+        <span class="pilletje" id="opn-stand">Nog niets opgenomen</span>
+        <span class="les-klein" id="opn-tijd">0:00</span>
+      </div>
+      <div class="opn-meter" id="opn-meter"><span class="opn-niveau" id="opn-niveau"></span></div>
+      <div class="rij" style="margin-top:10px">
+        <button class="knop zacht" id="opn-speel" disabled>Terugluisteren</button>
+        <a class="knop zacht" id="opn-bewaar" download="opname.webm" hidden>Bewaren op dit toestel</a>
+        <button class="knop zacht" id="opn-weg" disabled>Weggooien</button>
+      </div>
+      <audio id="opn-audio" controls hidden></audio>
+      <div class="les-klein" id="opn-melding" style="margin-top:8px"></div>
+    </div>
+
     <div class="kaart">
       <h2>Ritme en slagpatronen</h2>
       <p class="les-klein" style="margin:0 0 12px">D = naar beneden slaan, U = naar boven. Tel hardop mee: <strong>1</strong> en <strong>2</strong> en 3 en 4 en.
@@ -989,6 +1101,48 @@
         <span class="tellen" id="ritme-tellen"><span>1</span><span>2</span><span>3</span><span>4</span></span>
       </div>
       <div class="les-klein" id="ritme-uitleg" style="margin-top:10px"></div>
+    </div>
+
+    <div class="kaart" id="ritmetrainer-kaart">
+      <h2>Ritme-trainer met de microfoon</h2>
+      <p class="les-klein" style="margin:0 0 12px">Sla of klap mee en de app luistert of je op de maat zit. Hij telt zichtbaar mee
+        (1 · 2 · 3 · 4) en laat per slag zien hoe ver je ernaast zat, of je neigt naar te vroeg of te laat, en welk deel op de maat was.
+        De tik staat standaard <strong>stil</strong>: de microfoon zou de tik uit de luidspreker horen en dat als jouw slag tellen.
+        Wil je de tik wél horen, doe dan oortjes in. Doe het verder in een stille kamer, en gebruik een beveiligd adres
+        (<code>https</code>) — anders mag de browser niet bij de microfoon. Er wordt niets opgenomen of bewaard.</p>
+      <p class="les-klein" style="margin:0 0 12px">Let op twee dingen bij het lezen van de cijfers. Elk toestel laat geluid
+        een paar milliseconden later binnenkomen dan het klinkt, dus <em>een klein beetje te laat</em> is normaal — kijk daarom
+        vooral naar de <strong>schommeling</strong>: blijft die klein, dan speel je gelijkmatig. En de app hoort alleen wat er in
+        de kamer klinkt: sla je zacht, dan duurt het langer voor hij je slag ziet.</p>
+      <div class="rij">
+        <label for="rt-tempo">Tempo: <span id="rt-tempo-waarde">80</span> bpm</label>
+        <input id="rt-tempo" type="range" min="40" max="160" step="2" value="80">
+        <label for="rt-maat">Maatsoort</label>
+        <select id="rt-maat">
+          <option value="4" selected>4 tellen</option>
+          <option value="3">3 tellen</option>
+          <option value="2">2 tellen</option>
+        </select>
+        <label for="rt-tik">Tik</label>
+        <select id="rt-tik">
+          <option value="uit" selected>Stil (ik tel zichtbaar mee)</option>
+          <option value="aan">Hoorbaar (doe oortjes in, anders hoort de app zijn eigen tik)</option>
+        </select>
+      </div>
+      <div class="rij" style="margin-top:8px">
+        <button class="knop" id="rt-start">Start de ritme-trainer</button>
+        <button class="knop zacht" id="rt-stop" disabled>Stop</button>
+        <span class="pilletje" id="rt-stand">Nog niet gestart</span>
+        <span class="les-klein" id="rt-niveau">microfoon uit</span>
+      </div>
+      <div class="rt-vak">
+        <div class="rt-tellen" id="rt-tellen"></div>
+        <div class="rt-meter" id="rt-meter"><span class="rt-midden"></span></div>
+        <div class="rt-schaal"><span>te vroeg</span><span>op de maat</span><span>te laat</span></div>
+      </div>
+      <div class="stem-uitslag" id="rt-uitslag">Druk op Start, en sla mee op de tik.</div>
+      <div class="rt-lijst" id="rt-lijst"></div>
+      <div class="les-klein" id="rt-melding" style="margin-top:8px"></div>
     </div>
 
     <div class="kaart" id="akb-kaart">
@@ -1006,10 +1160,57 @@
       <div class="grepen" id="akb-posities"></div>
     </div>
 
-    <div class="kaart">
-      <h2>Alle grepen</h2>
-      <p class="les-klein" style="margin:0 0 12px">Klik op een greep om hem te horen. De cijfers in de bolletjes zijn je vingers:
-        1 = wijsvinger, 2 = middelvinger, 3 = ringvinger, 4 = pink. Een boogje over de snaren betekent dat je één vinger plat over alle snaren legt (barré).</p>
+    <div class="kaart" id="ladder-kaart">
+      <h2>Toonladders op de hals</h2>
+      <p class="les-klein" style="margin:0 0 12px">Kies een grondtoon en een ladder, en je ziet waar je vingers moeten staan —
+        tot en met vak 12. De grondtoon is oranje; de andere bolletjes hebben de naam van de noot erin. Speel de ladder
+        eerst langzaam mee met <strong>Horen</strong>, dan op de hals. Zo leer je waar de noten zitten en waarom een solo
+        boven een liedje past bij de akkoorden.</p>
+      <div class="rij">
+        <label for="ladder-grond">Grondtoon</label>
+        <select id="ladder-grond"></select>
+        <label for="ladder-soort">Ladder</label>
+        <select id="ladder-soort"></select>
+        <label for="ladder-octaven">Octaven</label>
+        <select id="ladder-octaven">
+          <option value="1">1</option>
+          <option value="2" selected>2</option>
+          <option value="3">3</option>
+        </select>
+        <button class="knop zacht" id="ladder-horen">Horen</button>
+        <button class="knop" id="ladder-oefenen">Oefenen met de tik</button>
+      </div>
+      <div class="ladder-neck" id="ladder-hals"></div>
+      <div class="les-klein" id="ladder-uitleg"></div>
+      <div class="les-klein" id="ladder-melding"></div>
+    </div>
+
+    <div class="kaart" id="grepen-kaart">
+      <div class="leren-kop">
+        <div>
+          <h2>Alle grepen</h2>
+          <div class="les-klein">Klik op een greep om hem te horen. De cijfers in de bolletjes zijn je vingers:
+            1 = wijsvinger, 2 = middelvinger, 3 = ringvinger, 4 = pink. Een boogje over de snaren betekent dat je één vinger plat over alle snaren legt (barré).
+            Vink per greep af wat je al kunt: dan zie je groeien wat je beheerst, en de grepen die je nog moet leren blijven over.</div>
+        </div>
+        <div class="voortgang">
+          <div class="voortgang-balk"><span id="grepen-balk"></span></div>
+          <div class="voortgang-tekst" id="grepen-voortgang">Nog geen greep afgevinkt — vink aan wat je al kunt.</div>
+        </div>
+      </div>
+      <div class="rij" style="margin:14px 0 4px">
+        <label for="grepen-set">Nu oefenen met</label>
+        <select id="grepen-set">
+          <option value="alle">Alle 26 grepen</option>
+          <option value="rest">Alleen wat ik nog niet ken</option>
+          <option value="majeur">Alleen de grote akkoorden</option>
+          <option value="mineur">Alleen de kleine akkoorden</option>
+          <option value="zevende">Alleen de zevende en maj7</option>
+          <option value="barre">Alleen de barré-grepen</option>
+        </select>
+        <button class="knop" id="grepen-trainen">Oefenen in de akkoordentrainer</button>
+        <span class="les-klein" id="grepen-kies-uitleg"></span>
+      </div>
       <div class="leer-raster" id="leren-grepen"></div>
     </div>
   </section>
@@ -1308,6 +1509,9 @@
 
 <script src="/lib/metronoom.js"></script>
 <script src="/lib/stemmen.js"></script>
+<script src="/lib/ritme.js"></script>
+<script src="/lib/toonladders.js"></script>
+<script src="/lib/oefenplan.js"></script>
 <script src="/lib/lessen-uitgebreid.js"></script>
 <script>
 'use strict';
@@ -4424,12 +4628,13 @@ function leerStand() {
     var ruw = JSON.parse(localStorage.getItem(LEER_SLEUTEL) || '{}');
     return {
       lessen: ruw.lessen || {},
+      grepen: ruw.grepen || {},
       minuten: ruw.minuten || 0,
       oefeningen: ruw.oefeningen || 0,
       wissels: ruw.wissels || 0
     };
   } catch (e) {
-    return { lessen: {}, minuten: 0, oefeningen: 0, wissels: 0 };
+    return { lessen: {}, grepen: {}, minuten: 0, oefeningen: 0, wissels: 0 };
   }
 }
 
@@ -5266,6 +5471,21 @@ function lesKaart(les, i, af) {
 }
 
 // -------------------------------------------------------------- grepen ---
+// De rekenbestanden van de nieuwe onderdelen (ritme, toonladders, oefenplan) staan als
+// eigen bestand in /lib. Ze horen bij het script al binnen te zijn; is dat niet zo (een
+// oude versie in de cache van de browser), dan haalt de app ze hier alsnog op.
+function laadRekenbestand(pad, naam) {
+  if (window[naam]) return Promise.resolve(window[naam]);
+  return fetch(pad + '?v=' + Date.now()).then(function (r) {
+    return r.ok ? r.text() : '';
+  }).then(function (tekst) {
+    if (tekst && !window[naam]) {
+      try { (new Function(tekst))(); } catch (e) {}
+    }
+    return window[naam] || null;
+  }).catch(function () { return null; });
+}
+
 function laadLeerGrepen() {
   if (leerGrepen) return Promise.resolve(leerGrepen);
   return api('/api/grepen').then(function (data) {
@@ -5280,15 +5500,50 @@ function greepVan(naam) {
   return leerGrepen.filter(function (g) { return g.naam === naam; })[0] || null;
 }
 
+// Welke grepen ken je al? Net als de lessen staat dat per toestel in de leerstand.
+function grepenStand() {
+  return leerStand().grepen || {};
+}
+
+function grepenVoortgang() {
+  var stand = grepenStand();
+  var alle = leerGrepen || [];
+  var gedaan = alle.filter(function (g) { return stand[g.naam]; }).length;
+  var balk = $('grepen-balk');
+  if (balk) balk.style.width = alle.length ? Math.round(gedaan / alle.length * 100) + '%' : '0%';
+  var tekst = $('grepen-voortgang');
+  if (tekst) {
+    tekst.textContent = gedaan
+      ? gedaan + ' van ' + alle.length + ' grepen afgevinkt' + (gedaan === alle.length ? ' — allemaal!' : '')
+      : 'Nog geen greep afgevinkt — vink aan wat je al kunt.';
+  }
+}
+
+// Welke grepen horen bij de keuze in het kiesvak? Zo begint de trainer meteen met
+// de grepen waar je nog niet bent, of met alleen de barré-grepen.
+function grepenKeuze(soort) {
+  var stand = grepenStand();
+  var alle = leerGrepen || [];
+  if (soort === 'rest') return alle.filter(function (g) { return !stand[g.naam]; });
+  if (soort === 'barre') return alle.filter(function (g) { return g.isBarre; });
+  if (soort === 'majeur') return alle.filter(function (g) { return /^(C|D|E|F|G|A|Bb|B)$/.test(g.naam); });
+  if (soort === 'mineur') return alle.filter(function (g) { return /^(Cm|Dm|Em|Gm|Am|Bm)$/.test(g.naam); });
+  if (soort === 'zevende') return alle.filter(function (g) { return /7$/.test(g.naam); });
+  return alle;
+}
+
 function tekenLeerGrepen() {
   var vak = $('leren-grepen');
   if (!vak || !leerGrepen) return;
+  var stand = grepenStand();
   vak.innerHTML = leerGrepen.map(function (g) {
     var extra = [];
     if (g.isBarre) extra.push('barré');
     extra.push(g.noten.length + ' snaren');
-    return '<div class="greep-kaart" data-akkoord="' + esc(g.naam) + '" role="button" tabindex="0">' +
-      g.svg + '<div class="naam">' + esc(g.naam) + '</div><div class="klein">' + esc(extra.join(' · ')) + '</div></div>';
+    return '<div class="greep-kaart' + (stand[g.naam] ? ' klaar' : '') + '" data-akkoord="' + esc(g.naam) + '" role="button" tabindex="0">' +
+      g.svg + '<div class="naam">' + esc(g.naam) + '</div><div class="klein">' + esc(extra.join(' · ')) + '</div>' +
+      '<label class="greep-klaar"><input type="checkbox" data-greep-klaar="' + esc(g.naam) + '"' +
+      (stand[g.naam] ? ' checked' : '') + '> deze ken ik</label></div>';
   }).join('');
   vak.querySelectorAll('.greep-kaart').forEach(function (kaart) {
     var naam = kaart.getAttribute('data-akkoord');
@@ -5299,13 +5554,44 @@ function tekenLeerGrepen() {
       setTimeout(function () { kaart.classList.remove('vast'); }, 700);
       speelGreep(g.noten);
     };
-    kaart.addEventListener('click', doe);
+    kaart.addEventListener('click', function (e) {
+      // Op het afvinkvakje klikken hoort niet de greep te spelen.
+      if (e.target && e.target.tagName === 'INPUT') return;
+      doe();
+    });
     kaart.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); doe(); }
     });
   });
+  vak.querySelectorAll('[data-greep-klaar]').forEach(function (vakje) {
+    vakje.addEventListener('change', function () {
+      var nieuw = leerStand();
+      var naam = vakje.getAttribute('data-greep-klaar');
+      if (!nieuw.grepen) nieuw.grepen = {};
+      if (vakje.checked) nieuw.grepen[naam] = true; else delete nieuw.grepen[naam];
+      bewaarLeerStand(nieuw);
+      tekenLeerGrepen();
+      toonLeerVoortgang(nieuw);
+    });
+  });
+  grepenVoortgang();
 }
 
+// De gekozen grepen meteen in de akkoordentrainer zetten en starten.
+function grepenNaarTrainer() {
+  var kies = $('grepen-set');
+  var lijst = grepenKeuze(kies ? kies.value : 'alle');
+  var uitleg = $('grepen-kies-uitleg');
+  if (!lijst.length) {
+    if (uitleg) uitleg.textContent = 'Er is geen greep die bij deze keuze past — vink eerst wat af of kies een andere groep.';
+    return;
+  }
+  $('trein-set').value = lijst.map(function (g) { return g.naam; }).join(' ');
+  controleerTrainerSet();
+  if (uitleg) uitleg.textContent = lijst.length + (lijst.length === 1 ? ' greep' : ' grepen') + ' staan klaar in de trainer.';
+  $('trein-akkoord').scrollIntoView({ block: 'center' });
+  startTrainer();
+}
 // ------------------------------------------------------------ trainer ---
 var trainer = {
   bezig: false, akkoorden: [], index: 0, maten: 2, bpm: 60, maat: 4,
@@ -5698,6 +5984,612 @@ function kleurSnaren(uitslag) {
   });
 }
 
+// ------------------------------------------- ritme-trainer met de microfoon ---
+// De tik geeft de maat, de microfoon hoort wanneer jij slaat, en het rekenwerk in
+// /lib/ritme.js zegt hoe ver je ernaast zat. De app luistert en laat zien; de microfoon
+// gaat alleen aan als je op Start drukt en er wordt niets bewaard.
+var RT = {
+  aan: false, stream: null, ctx: null, analyser: null, timer: null, tikTimer: null,
+  bpm: 80, maat: 4, tikAan: true, buffer: null, bufferSeconden: 1.2,
+  gridStart: 0, volgendeTik: 0, tikTeller: 0, laatsteSlag: 0, slagen: [], teller: 0, laatsteTeken: 0
+};
+
+function rtRekenwerk() {
+  return window.ritmeRekenen || null;
+}
+
+function rtTekenTellen(nu) {
+  var vak = $('rt-tellen');
+  if (!vak) return;
+  var tel = ((nu % RT.maat) + RT.maat) % RT.maat + 1;
+  if (vak.children.length !== RT.maat) {
+    var uit = '';
+    for (var t = 1; t <= RT.maat; t++) uit += '<span data-tel="' + t + '">' + t + '</span>';
+    vak.innerHTML = uit;
+  }
+  Array.prototype.forEach.call(vak.children, function (k) {
+    k.classList.toggle('nu', Number(k.getAttribute('data-tel')) === tel);
+  });
+}
+
+function rtZetStand(tekst, soort) {
+  var el = $('rt-stand');
+  if (!el) return;
+  el.textContent = tekst;
+  el.className = 'pilletje' + (soort ? ' ' + soort : '');
+}
+
+// Hoeveel weegt deze slag? Links = te vroeg, rechts = te laat. Een halve tel is het uiterste.
+function rtPen(afwijking) {
+  var half = 60000 / RT.bpm / 2;
+  var deel = 50 + (afwijking / half) * 50;
+  return Math.max(4, Math.min(96, deel));
+}
+
+function rtToon(uitslag) {
+  var opties = null;
+  var vak = $('rt-uitslag');
+  if (!vak) return;
+  if (!uitslag || !uitslag.aantal) {
+    vak.textContent = 'Nog geen slag gehoord. Sla mee op de tik.';
+    vak.className = 'stem-uitslag';
+    return;
+  }
+  var laatste = uitslag.slagen[uitslag.slagen.length - 1];
+  var richting = laatste.afwijking > 1 ? 'te laat' : (laatste.afwijking < -1 ? 'te vroeg' : 'precies op de maat');
+  vak.innerHTML = 'Laatste slag: <strong>' + (laatste.afwijking > 0 ? '+' : '') + laatste.afwijking + ' ms</strong> (' +
+    richting + ', tel ' + laatste.tel + ') · <strong>' + uitslag.opMaat + '%</strong> op de maat over ' +
+    uitslag.aantal + (uitslag.aantal === 1 ? ' slag' : ' slagen') +
+    '<br><span class="les-klein">Gemiddeld ' + (uitslag.gemiddelde > 0 ? '+' : '') + uitslag.gemiddelde +
+    ' ms · schommeling ' + uitslag.spreiding + ' ms · ' + uitslag.vroeg + ' te vroeg, ' + uitslag.laat + ' te laat</span>';
+  vak.className = 'stem-uitslag' + (uitslag.opMaat >= 70 ? ' gestemd' : '');
+  var pen = document.querySelector('#rt-meter .stip-pen');
+  if (pen) pen.style.left = rtPen(laatste.afwijking) + '%';
+}
+
+function rtTekenSlagen(uitslag) {
+  var vak = $('rt-lijst');
+  if (!vak) return;
+  var reken = rtRekenwerk();
+  var goed = reken ? reken.GOED_MS : 90;
+  var half = 60000 / RT.bpm / 2;
+  var laatste = (uitslag && uitslag.slagen ? uitslag.slagen : []).slice(-24);
+  vak.innerHTML = laatste.map(function (s) {
+    var klasse = Math.abs(s.afwijking) <= goed ? 'goed' : (s.afwijking < 0 ? 'vroeg' : 'laat');
+    var hoogte = Math.max(3, Math.min(100, Math.abs(s.afwijking) / half * 100));
+    var toelichting = s.tel + ': ' + (s.afwijking > 0 ? '+' : '') + s.afwijking + ' ms';
+    return '<span class="stip ' + klasse + '" title="' + toelichting + '"><span class="naald" style="height:' +
+      hoogte + '%"></span></span>';
+  }).join('');
+  var meter = $('rt-meter');
+  if (meter && !meter.querySelector('.stip-pen')) {
+    var pen = document.createElement('span');
+    pen.className = 'stip-pen';
+    pen.style.cssText = 'position:absolute;top:0;bottom:0;width:3px;border-radius:2px;background:#fff;left:50%;transition:left .12s linear';
+    meter.appendChild(pen);
+  }
+}
+
+function rtNiveau(sterkte) {
+  var el = $('rt-niveau');
+  if (!el) return;
+  el.textContent = sterkte > 0.06 ? 'ik hoor je' : (sterkte > 0.01 ? 'ik hoor je zachtjes' : 'stil');
+}
+
+function startRt() {
+  if (RT.aan) return;
+  var reken = rtRekenwerk();
+  if (!reken) {
+    toonMelding('rt-melding', 'Het rekenwerk van de ritme-trainer is er nog niet. Ververs de pagina.', 'fout');
+    return;
+  }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    toonMelding('rt-melding', 'Deze browser kan niet bij de microfoon.', 'fout');
+    return;
+  }
+  RT.bpm = Number($('rt-tempo').value) || 80;
+  RT.maat = Number($('rt-maat').value) || 4;
+  RT.tikAan = $('rt-tik').value === 'aan';
+  toonMelding('rt-melding', '', '');
+  navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } })
+    .then(function (stream) {
+      var knoppen = kiesAnalyserNode(stream);
+      RT.aan = true;
+      RT.stream = stream;
+      RT.ctx = knoppen.ctx;
+      RT.analyser = knoppen.analyser;
+      RT.buffer = new Float32Array(Math.round(knoppen.ctx.sampleRate * RT.bufferSeconden));
+      RT.slagen = [];
+      RT.laatsteSlag = 0;
+      RT.tikTeller = 0;
+      RT.teller = 0;
+      RT.gridStart = knoppen.ctx.currentTime + 0.8;   // even tijd om je klaar te zetten
+      RT.volgendeTik = RT.gridStart;
+      $('rt-start').disabled = true;
+      $('rt-stop').disabled = false;
+      rtZetStand('Ik luister', 'goed');
+      $('rt-lijst').innerHTML = '';
+      rtTekenTellen(0);
+      rtToon(null);
+      RT.tikTimer = setInterval(rtTikLoop, 40);
+      rtLoop();
+    })
+    .catch(function (e) {
+      toonMelding('rt-melding', 'Geen toegang tot de microfoon: ' + e.message +
+        ' (werkt dit adres met https en heb je toegang gegeven?)', 'fout');
+    });
+}
+
+// De tikken vooruit plannen, zoals de metronoom dat doet: een tiende seconde vooruit is genoeg.
+function rtTikLoop() {
+  var ctx = RT.ctx;
+  if (!ctx || !RT.aan) return;
+  var secondePerTel = 60 / RT.bpm;
+  while (RT.volgendeTik < ctx.currentTime + 0.2) {
+    if (RT.tikAan) speelKlik(RT.tikTeller % RT.maat === 0, RT.volgendeTik - ctx.currentTime);
+    RT.volgendeTik += secondePerTel;
+    RT.tikTeller++;
+  }
+}
+
+function rtLoop() {
+  if (!RT.aan) return;
+  var reken = rtRekenwerk();
+  var ctx = RT.ctx;
+  var analyser = RT.analyser;
+  var blok = new Float32Array(analyser.fftSize);
+  analyser.getFloatTimeDomainData(blok);
+  // Het nieuwste stukje achter in de schuivende buffer zetten.
+  RT.buffer.copyWithin(0, blok.length);
+  RT.buffer.set(blok, RT.buffer.length - blok.length);
+  var secondePerTel = 60 / RT.bpm;
+  rtTekenTellen(Math.floor((ctx.currentTime - RT.gridStart) / secondePerTel));
+  if (RT.teller % 2 === 0) {
+    var sterkte = reken ? (reken.energieVan(blok)[0] || 0) : 0;
+    rtNiveau(sterkte);
+    if (reken) {
+      var startTijd = ctx.currentTime - RT.buffer.length / ctx.sampleRate;
+      var gevonden = reken.slagenVan(RT.buffer, ctx.sampleRate);
+      gevonden.forEach(function (slag) {
+        var tijd = startTijd + slag.tijd;
+        // Alleen nieuwe slagen: dichter dan de minimumafstand bij de vorige hoort erbij.
+        if (tijd > RT.laatsteSlag + reken.MIN_AFSTAND) {
+          RT.slagen.push(tijd);
+          RT.laatsteSlag = tijd;
+        }
+      });
+      // uitslagVan werkt met slagen die hun eigen tijdstip bij zich hebben ({ tijd: ... }).
+      var metTijd = RT.slagen.map(function (t) { return { tijd: t }; });
+      var uitslag = reken.uitslagVan(metTijd, { bpm: RT.bpm, maat: RT.maat, vanaf: RT.gridStart, goed: reken.GOED_MS });
+      rtToon(uitslag);
+      rtTekenSlagen(uitslag);
+      RT.uitslag = uitslag;
+    }
+  }
+  RT.teller++;
+  RT.timer = requestAnimationFrame(rtLoop);
+}
+
+function stopRt() {
+  if (!RT.aan) return;
+  RT.aan = false;
+  cancelAnimationFrame(RT.timer);
+  clearInterval(RT.tikTimer);
+  try { RT.stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+  RT.stream = null;
+  RT.ctx = null;
+  RT.analyser = null;
+  $('rt-start').disabled = false;
+  $('rt-stop').disabled = true;
+  $('rt-niveau').textContent = 'microfoon uit';
+  var uitslag = RT.uitslag;
+  if (uitslag && uitslag.aantal) {
+    rtZetStand(uitslag.opMaat >= 70 ? 'Goed op de maat' : 'Nog niet gelijkmatig', uitslag.opMaat >= 70 ? 'goed' : 'half');
+    rtToon(uitslag);
+  } else {
+    rtZetStand('Gestopt', '');
+  }
+}
+
+// ------------------------------------------------- toonladders op de hals ---
+// Welke noten horen bij een ladder, en waar zitten ze op de hals? Dat rekent
+// /lib/toonladders.js uit; de app tekent het en speelt het voor.
+var LADDER = { grond: 'A', soort: 'pentatonisch mineur', octaven: 2, noten: [], oefen: false, timer: null };
+
+function ladderRekenwerk() {
+  return window.toonladderRekenen || null;
+}
+
+function laadLadderKeuzes() {
+  var reken = ladderRekenwerk();
+  var grond = $('ladder-grond');
+  var soort = $('ladder-soort');
+  if (!reken || !grond || !soort) return false;
+  if (!grond.options.length) {
+    grond.innerHTML = reken.TOONNAMEN.map(function (n) {
+      return '<option value="' + esc(n) + '">' + esc(n) + '</option>';
+    }).join('');
+    grond.value = 'A';
+  }
+  if (!soort.options.length) {
+    soort.innerHTML = reken.LADDERS.map(function (l) {
+      return '<option value="' + esc(l.naam) + '">' + esc(l.naam) + '</option>';
+    }).join('');
+    soort.value = 'pentatonisch mineur';
+  }
+  return true;
+}
+
+function tekenLadder() {
+  var reken = ladderRekenwerk();
+  var vak = $('ladder-hals');
+  if (!reken || !vak) return;
+  LADDER.grond = $('ladder-grond').value;
+  LADDER.soort = $('ladder-soort').value;
+  LADDER.octaven = Number($('ladder-octaven').value) || 2;
+  var noten = reken.notenVan(LADDER.grond, LADDER.soort, LADDER.octaven);
+  LADDER.noten = noten;
+  if (!noten.length) {
+    vak.innerHTML = '<div class="les-klein">Deze ladder of grondtoon ken ik niet.</div>';
+    return;
+  }
+  var posities = reken.positiesOpHals(noten, { hoogsteVak: 12 });
+  var grondKlasse = reken.grondtoonNaarKlasse(LADDER.grond);
+  var x0 = 46, y0 = 24, snaarAfstand = 17, fretBreedte = 44, vakken = 12;
+  var breed = x0 + vakken * fretBreedte + 14;
+  var hoog = y0 + 5 * snaarAfstand + 30;
+  var svg = '<svg width="' + breed + '" height="' + hoog + '" viewBox="0 0 ' + breed + ' ' + hoog +
+    '" role="img" aria-label="hals met de toonladder van ' + esc(LADDER.grond) + ' ' + esc(LADDER.soort) + '">';
+  var f, s;
+  for (f = 1; f <= vakken; f++) {
+    svg += '<line class="ln-fret" x1="' + (x0 + f * fretBreedte) + '" y1="' + y0 + '" x2="' + (x0 + f * fretBreedte) +
+      '" y2="' + (y0 + 5 * snaarAfstand) + '"/>';
+  }
+  svg += '<line class="ln-kam" x1="' + x0 + '" y1="' + (y0 - 2) + '" x2="' + x0 + '" y2="' + (y0 + 5 * snaarAfstand + 2) + '"/>';
+  for (f = 1; f <= vakken; f++) {
+    svg += '<text class="ln-vak" x="' + (x0 + f * fretBreedte - fretBreedte / 2) + '" y="' + (y0 + 5 * snaarAfstand + 16) +
+      '" text-anchor="middle">' + f + '</text>';
+  }
+  var snaarNamen = ['E', 'A', 'D', 'G', 'B', 'e'];
+  for (s = 0; s < 6; s++) {
+    var y = y0 + s * snaarAfstand;
+    svg += '<line class="ln-snaar" x1="' + x0 + '" y1="' + y + '" x2="' + (x0 + vakken * fretBreedte) + '" y2="' + y + '"/>';
+    svg += '<text class="ln-snaar-naam" x="' + (x0 - 30) + '" y="' + (y + 3.5) + '" text-anchor="end">' + snaarNamen[s] + '</text>';
+  }
+  posities.forEach(function (p) {
+    var y = y0 + p.snaar * snaarAfstand;
+    var x = p.vak === 0 ? x0 - 14 : x0 + (p.vak - 0.5) * fretBreedte;
+    var isGrond = (((p.midi % 12) + 12) % 12) === grondKlasse;
+    svg += '<circle class="' + (isGrond ? 'ln-grond' : 'ln-stip') + '" cx="' + x + '" cy="' + y + '" r="' +
+      (isGrond ? 8.4 : 7.6) + '"/>';
+    svg += '<text class="' + (isGrond ? 'ln-naam-grond' : 'ln-naam') + '" x="' + x + '" y="' + (y + 3) +
+      '" text-anchor="middle">' + esc(p.naam) + '</text>';
+  });
+  svg += '</svg>';
+  vak.innerHTML = svg;
+  var uitleg = $('ladder-uitleg');
+  if (uitleg) {
+    uitleg.textContent = LADDER.grond + ' ' + LADDER.soort + ' over ' + LADDER.octaven +
+      (LADDER.octaven === 1 ? ' octaaf' : ' octaven') + ': ' + noten.length + ' noten, ' + posities.length +
+      ' plekken op de hals tot en met vak ' + vakken + '. De oranje bolletjes zijn de grondtoon (' + LADDER.grond + ').' +
+      (vak.scrollWidth > vak.clientWidth ? ' Veeg de hals opzij voor de hogere vakken.' : '');
+  }
+}
+
+function ladderHoren() {
+  var reken = ladderRekenwerk();
+  if (!reken || !LADDER.noten.length) return;
+  LADDER.noten.forEach(function (m, i) {
+    speelToon(m, i * 0.34, 0.55, 0.16);
+  });
+}
+
+// De ladder laten klinken met een tik erbij, zodat je hem mee kunt spelen.
+function ladderOefenen() {
+  var knop = $('ladder-oefenen');
+  if (LADDER.oefen) {
+    LADDER.oefen = false;
+    clearInterval(LADDER.timer);
+    if (knop) { knop.textContent = 'Oefenen met de tik'; knop.className = 'knop'; }
+    return;
+  }
+  if (!LADDER.noten.length) return;
+  LADDER.oefen = true;
+  if (knop) { knop.textContent = 'Stop met oefenen'; knop.className = 'knop goed'; }
+  var tel = 0;
+  var doen = function () {
+    if (!LADDER.oefen) return;
+    var noot = LADDER.noten[tel % LADDER.noten.length];
+    speelKlik(tel % 4 === 0, 0);
+    speelToon(noot, 0.02, 0.5, 0.15);
+    $('ladder-melding').textContent = 'Noot ' + (tel % LADDER.noten.length + 1) + ' van ' + LADDER.noten.length +
+      ' · ' + rekenNootNaam(noot);
+    tel++;
+  };
+  doen();
+  LADDER.timer = setInterval(doen, 700);
+}
+
+function rekenNootNaam(midi) {
+  var reken = ladderRekenwerk();
+  return reken ? reken.naamVan(midi) : '';
+}
+
+// --------------------------------------------------------------- oefenplan ---
+// Een plan dat zichzelf vult: /lib/oefenplan.js verdeelt het werk over de weken.
+var PLAN = { doel: null, plan: null, klaar: {} };
+var PLAN_SLEUTEL = 'akkoordkast-plan';
+
+function planRekenwerk() {
+  return window.oefenplanRekenen || null;
+}
+
+function bewaarPlan() {
+  try {
+    localStorage.setItem(PLAN_SLEUTEL, JSON.stringify({ doel: PLAN.doel, plan: PLAN.plan }));
+  } catch (e) {}
+}
+
+function laadPlan() {
+  try {
+    var ruw = JSON.parse(localStorage.getItem(PLAN_SLEUTEL) || '{}');
+    if (ruw.plan && ruw.plan.weken) {
+      PLAN.doel = ruw.doel || null;
+      PLAN.plan = ruw.plan;
+      PLAN.klaar = {};
+      ruw.plan.weken.forEach(function (w) {
+        w.taken.forEach(function (t, i) { if (t.klaar) PLAN.klaar[w.nummer + '-' + i] = true; });
+      });
+      if (PLAN.doel) $('plan-gekozen').textContent = PLAN.doel.titel;
+      $('plan-wis').disabled = false;
+      tekenPlan();
+    }
+  } catch (e) {}
+}
+
+function planZoekLiedje() {
+  var vak = $('plan-uitkomst');
+  var q = ($('plan-zoek').value || '').trim();
+  if (q.length < 2) { vak.innerHTML = ''; return; }
+  api('/api/liedjes?compact=1&aantal=6&zoek=' + encodeURIComponent(q)).then(function (data) {
+    var lijst = data.liedjes || [];
+    if (!lijst.length) { vak.innerHTML = '<div class="les-klein">Niets gevonden.</div>'; return; }
+    vak.innerHTML = lijst.map(function (l) {
+      return '<button class="knop zacht" data-plan-liedje="' + l.id + '">' + esc(l.titel) +
+        (l.artiest ? ' <span class="les-klein">· ' + esc(l.artiest) + '</span>' : '') + '</button>';
+    }).join(' ');
+    Array.prototype.forEach.call(vak.querySelectorAll('[data-plan-liedje]'), function (knop) {
+      knop.addEventListener('click', function () { planKies(knop.getAttribute('data-plan-liedje')); });
+    });
+  }).catch(function () {});
+}
+
+function planKies(id) {
+  api('/api/liedjes/' + id).then(function (l) {
+    var namen = [];
+    (l.akkoorden || []).forEach(function (a) {
+      var naam = a.vorm || a.naam;
+      if (naam && namen.indexOf(naam) < 0) namen.push(naam);
+    });
+    PLAN.doel = { id: l.id, titel: l.titel, akkoorden: namen, moeilijkheid: l.moeilijkheid };
+    $('plan-gekozen').textContent = l.titel;
+    $('plan-gekozen').className = 'pilletje goed';
+    $('plan-uitkomst').innerHTML = '';
+    $('plan-zoek').value = '';
+    toonMelding('plan-melding', 'Gekozen: ' + l.titel + (namen.length ? ' — akkoorden: ' + namen.join(', ') : '') +
+      '. Druk op "Maak mijn plan".', '');
+  }).catch(function (e) {
+    toonMelding('plan-melding', 'Dat liedje kon ik niet ophalen: ' + e.message, 'fout');
+  });
+}
+
+function planMaak() {
+  var reken = planRekenwerk();
+  if (!reken) { toonMelding('plan-melding', 'Het rekenwerk van het oefenplan is er nog niet. Ververs de pagina.', 'fout'); return; }
+  if (!PLAN.doel) { toonMelding('plan-melding', 'Kies eerst een liedje dat je wilt kunnen spelen.', 'fout'); return; }
+  var invoer = {
+    doel: { titel: PLAN.doel.titel, akkoorden: PLAN.doel.akkoorden || [] },
+    weken: Number($('plan-weken').value) || 6,
+    minutenPerDag: Number($('plan-minuten').value) || 20,
+    perWeek: Number($('plan-perweek').value) || 5,
+    lessen: LESSEN.map(function (l) { return { titel: l.titel }; })
+  };
+  try {
+    PLAN.plan = reken.maakPlan(invoer);
+  } catch (e) {
+    toonMelding('plan-melding', 'Dat plan kon ik niet maken: ' + e.message, 'fout');
+    return;
+  }
+  PLAN.klaar = {};
+  bewaarPlan();
+  $('plan-wis').disabled = false;
+  toonMelding('plan-melding', 'Klaar: ' + PLAN.plan.weken.length + ' weken, samen ' + PLAN.plan.totaalMinuten +
+    ' minuten. Vink af wat je gedaan hebt.', '');
+  tekenPlan();
+}
+
+function tekenPlan() {
+  var vak = $('plan-vak');
+  if (!vak) return;
+  if (!PLAN.plan || !PLAN.plan.weken) { vak.innerHTML = ''; return; }
+  vak.innerHTML = '<div class="les-klein" style="margin-top:10px"><strong>' + esc(PLAN.plan.titel || 'Mijn oefenplan') +
+    '</strong> · ' + PLAN.plan.weken.length + ' weken · ' + PLAN.plan.totaalMinuten + ' minuten in totaal</div>' +
+    PLAN.plan.weken.map(function (w) {
+      var gedaan = 0;
+      var taken = w.taken.map(function (t, i) {
+        var sleutel = w.nummer + '-' + i;
+        var klaar = !!PLAN.klaar[sleutel];
+        if (klaar) gedaan++;
+        return '<label class="plan-taak"><input type="checkbox" data-plan-taak="' + sleutel + '"' + (klaar ? ' checked' : '') + '>' +
+          '<span class="plan-soort">' + esc(t.soort) + '</span>' +
+          '<span>' + esc(t.titel) + '</span>' +
+          '<span class="plan-min">' + t.minuten + ' min</span></label>';
+      }).join('');
+      var helemaal = gedaan === w.taken.length;
+      return '<div class="plan-week' + (helemaal ? ' klaar' : '') + '">' +
+        '<div class="plan-kop"><b>' + esc(w.van || ('Week ' + w.nummer)) + (w.titel ? ' · ' + esc(w.titel) : '') + '</b>' +
+        '<span class="les-klein">' + gedaan + ' van ' + w.taken.length + ' taken · ' + (w.minuten || 0) + ' minuten</span></div>' +
+        taken + '</div>';
+    }).join('');
+  Array.prototype.forEach.call(vak.querySelectorAll('[data-plan-taak]'), function (vakje) {
+    vakje.addEventListener('change', function () {
+      var sleutel = vakje.getAttribute('data-plan-taak');
+      if (vakje.checked) PLAN.klaar[sleutel] = true; else delete PLAN.klaar[sleutel];
+      var delen = sleutel.split('-');
+      var week = null;
+      PLAN.plan.weken.forEach(function (w) {
+        if (String(w.nummer) === delen[0]) week = w;
+      });
+      var taak = week && week.taken[Number(delen[1])];
+      if (taak) taak.klaar = !!vakje.checked;
+      bewaarPlan();
+      tekenPlan();
+    });
+  });
+}
+
+function planWis() {
+  PLAN.doel = null;
+  PLAN.plan = null;
+  PLAN.klaar = {};
+  try { localStorage.removeItem(PLAN_SLEUTEL); } catch (e) {}
+  $('plan-gekozen').textContent = 'Nog geen liedje gekozen';
+  $('plan-gekozen').className = 'pilletje';
+  $('plan-wis').disabled = true;
+  $('plan-vak').innerHTML = '';
+  toonMelding('plan-melding', 'Plan weggegooid.', '');
+}
+
+// ---------------------------------------------------- jezelf opnemen ---
+// Opnemen met de microfoon en terugluisteren. De opname blijft in dit toestel; hij
+// gaat niet naar de server en wordt nergens bewaard.
+var OPN = { aan: false, stream: null, recorder: null, brokken: [], url: null, timer: null, ctx: null,
+  analyser: null, kind: null, start: 0, soort: '' };
+var OPN_MAX = 300;   // vijf minuten is genoeg voor een oefenstuk
+
+function opnTijd(seconden) {
+  var m = Math.floor(seconden / 60);
+  var s = Math.floor(seconden % 60);
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function opnStart() {
+  if (OPN.aan) return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    toonMelding('opn-melding', 'Deze browser kan niet bij de microfoon.', 'fout');
+    return;
+  }
+  if (typeof window.MediaRecorder === 'undefined') {
+    toonMelding('opn-melding', 'Deze browser kan geen geluid opnemen.', 'fout');
+    return;
+  }
+  toonMelding('opn-melding', '', '');
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+    OPN.soort = (window.MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('audio/webm')) ? 'audio/webm' : '';
+    OPN.recorder = OPN.soort ? new MediaRecorder(stream, { mimeType: OPN.soort }) : new MediaRecorder(stream);
+    OPN.brokken = [];
+    OPN.stream = stream;
+    OPN.aan = true;
+    OPN.start = Date.now();
+    OPN.recorder.addEventListener('dataavailable', function (e) {
+      if (e.data && e.data.size) OPN.brokken.push(e.data);
+    });
+    OPN.recorder.addEventListener('stop', opnKlaar);
+    OPN.recorder.start();
+    var knoppen = kiesAnalyserNode(stream);
+    OPN.ctx = knoppen.ctx;
+    OPN.analyser = knoppen.analyser;
+    var blok = new Float32Array(OPN.analyser.fftSize);
+    OPN.timer = setInterval(function () {
+      if (!OPN.aan) return;
+      var reken = window.ritmeRekenen;
+      OPN.analyser.getFloatTimeDomainData(blok);
+      var sterkte = reken ? (reken.energieVan(blok)[0] || 0) : 0;
+      var deel = Math.max(0, Math.min(100, Math.round(sterkte * 260)));
+      var niveau = $('opn-niveau');
+      if (niveau) niveau.style.width = deel + '%';
+      var seconden = (Date.now() - OPN.start) / 1000;
+      $('opn-tijd').textContent = opnTijd(seconden);
+      if (seconden >= OPN_MAX) opnStop();
+    }, 80);
+    $('opn-start').disabled = true;
+    $('opn-stop').disabled = false;
+    $('opn-weg').disabled = true;
+    $('opn-stand').textContent = 'Ik neem op';
+    $('opn-stand').className = 'pilletje goed';
+  }).catch(function (e) {
+    toonMelding('opn-melding', 'Geen toegang tot de microfoon: ' + e.message +
+      ' (werkt dit adres met https en heb je toegang gegeven?)', 'fout');
+  });
+}
+
+function opnStop() {
+  if (!OPN.aan) return;
+  OPN.aan = false;
+  clearInterval(OPN.timer);
+  try { OPN.recorder.stop(); } catch (e) {}
+  try { OPN.stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+  OPN.stream = null;
+  $('opn-start').disabled = false;
+  $('opn-stop').disabled = true;
+  $('opn-niveau').style.width = '0%';
+}
+
+function opnKlaar() {
+  var soort = OPN.soort || (OPN.recorder && OPN.recorder.mimeType) || 'audio/webm';
+  var blob = new Blob(OPN.brokken, { type: soort });
+  OPN.brokken = [];
+  var seconden = Math.max(1, Math.round((Date.now() - OPN.start) / 1000));
+  if (!blob.size) {
+    $('opn-stand').textContent = 'Niets opgenomen';
+    $('opn-stand').className = 'pilletje';
+    toonMelding('opn-melding', 'De opname bleef leeg. Probeer het nog een keer.', 'fout');
+    return;
+  }
+  if (OPN.url) { try { URL.revokeObjectURL(OPN.url); } catch (e) {} }
+  OPN.url = URL.createObjectURL(blob);
+  var speler = $('opn-audio');
+  speler.src = OPN.url;
+  speler.hidden = false;
+  var bewaar = $('opn-bewaar');
+  bewaar.href = OPN.url;
+  bewaar.download = 'opname-' + new Date().toISOString().slice(0, 16).replace(/[:T]/g, '') +
+    (soort.indexOf('webm') >= 0 ? '.webm' : '.ogg');
+  bewaar.hidden = false;
+  bewaar.textContent = 'Bewaren op dit toestel';
+  $('opn-speel').disabled = false;
+  $('opn-weg').disabled = false;
+  $('opn-stand').textContent = 'Opname klaar · ' + opnTijd(seconden);
+  $('opn-stand').className = 'pilletje goed';
+  $('opn-tijd').textContent = opnTijd(seconden);
+  toonMelding('opn-melding', 'Klaar. Luister het terug en let op zuiverheid, gelijkmatigheid en tempo.', '');
+}
+
+function opnSpeel() {
+  var speler = $('opn-audio');
+  if (!speler || !speler.src) return;
+  speler.hidden = false;
+  speler.currentTime = 0;
+  speler.play().catch(function () {});
+}
+
+function opnWeg() {
+  if (OPN.aan) opnStop();
+  if (OPN.url) { try { URL.revokeObjectURL(OPN.url); } catch (e) {} }
+  OPN.url = null;
+  var speler = $('opn-audio');
+  speler.pause();
+  speler.removeAttribute('src');
+  speler.hidden = true;
+  $('opn-bewaar').hidden = true;
+  $('opn-speel').disabled = true;
+  $('opn-weg').disabled = true;
+  $('opn-stand').textContent = 'Nog niets opgenomen';
+  $('opn-stand').className = 'pilletje';
+  $('opn-tijd').textContent = '0:00';
+  toonMelding('opn-melding', 'Opname weggegooid.', '');
+}
+
 // ---------------------------------------------------------------- laden ---
 var lerenGeladen = false;
 // De oefencijfers van dit profiel: de laatste twee weken als staafjes, hoeveel dagen
@@ -6023,6 +6915,13 @@ function laadLeren() {
   tekenSnaren();
   tekenStemmer();
   laadLeerGrepen();
+  // De rekenbestanden van de nieuwe onderdelen: staan ze er niet (oude cache), haal ze dan op
+  // en teken het onderdeel opnieuw.
+  laadRekenbestand('/lib/ritme.js', 'ritmeRekenen');
+  laadRekenbestand('/lib/toonladders.js', 'toonladderRekenen').then(function () {
+    if (laadLadderKeuzes()) tekenLadder();
+  });
+  laadRekenbestand('/lib/oefenplan.js', 'oefenplanRekenen');
   $('leren-naar-trainer').addEventListener('click', function () {
     $('trein-set').scrollIntoView({ block: 'center' });
   });
@@ -6045,11 +6944,40 @@ function laadLeren() {
   $('trein-luister').addEventListener('click', function () {
     if (LUISTER.aan) stopLuisteren(); else startLuisteren();
   });
+  // Grepen leren met voortgang
+  $('grepen-trainen').addEventListener('click', grepenNaarTrainer);
+  // Ritme-trainer met de microfoon
+  $('rt-tempo').addEventListener('input', function () {
+    $('rt-tempo-waarde').textContent = $('rt-tempo').value;
+    RT.bpm = Number($('rt-tempo').value) || 80;
+  });
+  $('rt-tellen').innerHTML = '<span data-tel="1">1</span><span data-tel="2">2</span><span data-tel="3">3</span><span data-tel="4">4</span>';
+  $('rt-start').addEventListener('click', startRt);
+  $('rt-stop').addEventListener('click', stopRt);
+  // Toonladders op de hals
+  if (laadLadderKeuzes()) {
+    tekenLadder();
+    $('ladder-grond').addEventListener('change', tekenLadder);
+    $('ladder-soort').addEventListener('change', tekenLadder);
+    $('ladder-octaven').addEventListener('change', tekenLadder);
+    $('ladder-horen').addEventListener('click', ladderHoren);
+    $('ladder-oefenen').addEventListener('click', ladderOefenen);
+  }
+  // Mijn oefenplan
+  $('plan-zoek').addEventListener('input', debounce(planZoekLiedje, 250));
+  $('plan-maak').addEventListener('click', planMaak);
+  $('plan-wis').addEventListener('click', planWis);
+  laadPlan();
+  // Jezelf opnemen
+  $('opn-start').addEventListener('click', opnStart);
+  $('opn-stop').addEventListener('click', opnStop);
+  $('opn-speel').addEventListener('click', opnSpeel);
+  $('opn-weg').addEventListener('click', opnWeg);
 }
 
 document.addEventListener('visibilitychange', function () {
   if (document.hidden && LUISTER.aan) stopLuisteren();
-  if (document.hidden) { stopTrainer(true); stopRitme(); }
+  if (document.hidden) { stopTrainer(true); stopRitme(); stopRt(); if (OPN.aan) opnStop(); }
 });
 
 if (navigator.serviceWorker) {

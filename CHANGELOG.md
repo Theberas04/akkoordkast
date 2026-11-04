@@ -3,6 +3,41 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.11.0] — 4 november 2026
+
+### Nieuw
+
+- **Grepen leren met voortgang.** In het tabblad Leren kun je bij *Alle grepen* per greep afvinken wat
+  je al kunt. Bovenaan loopt een balk mee ("7 van 26 grepen afgevinkt") en een greep die je kent krijgt
+  een groen vinkje. Met *Nu oefenen met* kies je alleen wat je nog niet kent, alleen de grote, de
+  kleine, de zevende of alleen de barré-grepen, en één knop zet die reeks meteen in de
+  akkoordentrainer.
+- **Ritme-trainer met de microfoon.** Sla of klap mee en de app luistert of je op de maat zit. Hij
+  telt zichtbaar mee, laat per slag de afwijking in milliseconden zien, zegt of je neigt naar te vroeg
+  of te laat, en geeft het deel van je slagen dat op de maat was. De tik staat standaard stil — een
+  microfoon zou de tik uit de luidspreker als jouw slag tellen — met een uitleg over de vertraging van
+  je toestel (kijk naar de schommeling).
+- **Toonladders op de hals.** Majeur, mineur, pentatonisch majeur, pentatonisch mineur en blues in elke
+  grondtoon, over één tot drie octaven: de noten op de hals tot en met vak 12, de grondtoon oranje, met
+  een knop om te horen en een om noot voor noot mee te spelen op een tik.
+- **Mijn oefenplan.** Kies een liedje, het aantal weken, de minuten per dag en de dagen per week, en de
+  app vult het plan: eerst de grepen, dan de overgangen en de delen van het liedje, en in de laatste
+  week het hele liedje op tempo en twee keer achter elkaar zonder stoppen. Elke taak heeft een aantal
+  minuten en een afvinkvakje, en het plan blijft bewaard.
+- **Neem jezelf op.** Opnemen met de microfoon (maximaal vijf minuten), terugluisteren, bewaren als
+  bestand op je toestel of weggooien. De opname blijft in het toestel; er gaat niets naar de server.
+
+### Veranderd
+
+- Drie nieuwe rekenbestanden, los van de pagina en met eigen tests, net als bij de stemmer:
+  `lib/ritme.js` (slagen uit het geluid halen, afwijking per slag), `lib/toonladders.js` (ladders en
+  hun posities op de hals) en `lib/oefenplan.js` (het plan vullen). Daarmee zijn er 28 tests bij.
+- De kop van het tabblad Leren zei nog "zesentwintig lessen in vier delen"; dat is nu honderdtien
+  lessen in acht delen.
+- De reeks "Alles door elkaar" noemde Fm, en dat akkoord heeft geen greep in de app.
+- De app-cache gaat naar v40 met de drie nieuwe rekenbestanden erin, en de microfoon gaat alleen aan
+  als je zelf op Start drukt.
+
 ## [1.10.0] — 4 november 2026
 
 ### Nieuw

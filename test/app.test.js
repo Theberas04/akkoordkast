@@ -596,3 +596,126 @@ test('de handleiding is in de app te openen, met de beelden erbij', async () => 
     await omgeving.stop();
   }
 });
+
+
+// ------------------------------- grepen, ritme, toonladders, oefenplan, opnemen ---
+
+function leesPagina() {
+  return fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+}
+
+function leesLib(naam) {
+  return fs.readFileSync(path.join(__dirname, '..', 'lib', naam), 'utf8');
+}
+
+function eisIds(html, ids, waar) {
+  for (const id of ids) assert.ok(html.includes('id="' + id + '"'), 'id ontbreekt in ' + waar + ': ' + id);
+}
+
+// Elk nieuw rekenbestand hoort in een eigen afsluiting te staan: een aangifte op het hoogste
+// niveau botst met de pagina zelf en laat het hele bestand dan stil stuklopen.
+function eisAfsluiting(bron, naam) {
+  const open = bron.indexOf('(function (root) {');
+  assert.ok(open > 0, naam + ': hoort in een eigen afsluiting te staan');
+  assert.match(bron, new RegExp('root\\.' + naam + ' = reken'));
+  assert.match(bron, /module\.exports = reken/);
+  assert.ok(open < bron.indexOf('var reken'), naam + ': de afsluiting moet om alles heen staan');
+}
+
+test('grepen leren met voortgang: per greep afvinken, en de grepen naar de trainer', () => {
+  const html = leesPagina();
+  eisIds(html, ['grepen-kaart', 'grepen-balk', 'grepen-voortgang', 'grepen-set', 'grepen-trainen',
+    'grepen-kies-uitleg'], 'het grepenvak');
+  assert.match(html, /data-greep-klaar=/);
+  assert.match(html, /function grepenVoortgang/);
+  assert.match(html, /function grepenKeuze/);
+  assert.match(html, /function grepenStand\(\)/);
+  assert.match(html, /if \(vakje\.checked\) nieuw\.grepen\[naam\] = true; else delete nieuw\.grepen\[naam\];/);
+  assert.match(html, /grepen: ruw\.grepen \|\| \{\}/, 'de leerstand hoort de grepen te onthouden');
+  assert.match(html, /\$\('grepen-trainen'\)\.addEventListener\('click', grepenNaarTrainer\)/);
+  // Een afgevinkte greep mag geen streepjes meer door de tekening krijgen.
+  assert.match(html, /greep-kaart' \+ \(stand\[g\.naam\] \? ' klaar' : ''\)/);
+  // Op het afvinkvakje klikken speelt de greep niet.
+  assert.match(html, /if \(e\.target && e\.target\.tagName === 'INPUT'\) return;/);
+});
+
+test('de ritme-trainer met de microfoon: rekenwerk in lib/ritme.js, de pagina luistert mee', () => {
+  const html = leesPagina();
+  eisIds(html, ['ritmetrainer-kaart', 'rt-tempo', 'rt-tempo-waarde', 'rt-maat', 'rt-tik', 'rt-start',
+    'rt-stop', 'rt-stand', 'rt-niveau', 'rt-tellen', 'rt-meter', 'rt-uitslag', 'rt-lijst', 'rt-melding'],
+    'de ritme-trainer');
+  assert.match(html, /<script src="\/lib\/ritme\.js"><\/script>/);
+  assert.match(html, /window\.ritmeRekenen \|\| null/);
+  assert.match(html, /reken\.slagenVan\(RT\.buffer, ctx\.sampleRate\)/);
+  // uitslagVan werkt met slagen die hun eigen tijdstip bij zich hebben ({ tijd: ... }).
+  assert.match(html, /var metTijd = RT\.slagen\.map\(function \(t\) \{ return \{ tijd: t \}; \}\);/);
+  assert.match(html, /reken\.uitslagVan\(metTijd, \{ bpm: RT\.bpm, maat: RT\.maat, vanaf: RT\.gridStart, goed: reken\.GOED_MS \}\)/);
+  assert.match(html, /function rtTikLoop/);
+  assert.match(html, /\$\('rt-start'\)\.addEventListener\('click', startRt\)/);
+  // De tik staat standaard stil: de microfoon zou de tik uit de luidspreker horen en dat als
+  // jouw slag tellen. Wie hem wil horen, doet oortjes in.
+  assert.match(html, /<option value="uit" selected>Stil/);
+  assert.match(html, /oortjes in/);
+  const lib = leesLib('ritme.js');
+  eisAfsluiting(lib, 'ritmeRekenen');
+  assert.match(lib, /GOED_MS = 90/);
+  assert.match(lib, /MIN_AFSTAND = 0\.12/);
+});
+
+test('toonladders op de hals: rekenwerk in lib/toonladders.js en een hals in de pagina', () => {
+  const html = leesPagina();
+  eisIds(html, ['ladder-kaart', 'ladder-grond', 'ladder-soort', 'ladder-octaven', 'ladder-horen',
+    'ladder-oefenen', 'ladder-hals', 'ladder-uitleg', 'ladder-melding'], 'de toonladderkaart');
+  assert.match(html, /<script src="\/lib\/toonladders\.js"><\/script>/);
+  assert.match(html, /reken\.notenVan\(LADDER\.grond, LADDER\.soort, LADDER\.octaven\)/);
+  assert.match(html, /reken\.positiesOpHals\(noten, \{ hoogsteVak: 12 \}\)/);
+  assert.match(html, /function tekenLadder/);
+  assert.match(html, /function ladderHoren/);
+  assert.match(html, /function ladderOefenen/);
+  assert.match(html, /\$\('ladder-horen'\)\.addEventListener\('click', ladderHoren\)/);
+  const lib = leesLib('toonladders.js');
+  eisAfsluiting(lib, 'toonladderRekenen');
+  assert.match(lib, /pentatonisch mineur/);
+  assert.match(lib, /blues/);
+});
+
+test('een oefenplan dat zichzelf vult: rekenwerk in lib/oefenplan.js en een plan in de pagina', () => {
+  const html = leesPagina();
+  eisIds(html, ['oefenplan-kaart', 'plan-zoek', 'plan-gekozen', 'plan-uitkomst', 'plan-weken',
+    'plan-minuten', 'plan-perweek', 'plan-maak', 'plan-wis', 'plan-vak', 'plan-melding'], 'het oefenplan');
+  assert.match(html, /<script src="\/lib\/oefenplan\.js"><\/script>/);
+  assert.match(html, /window\.oefenplanRekenen \|\| null/);
+  assert.match(html, /reken\.maakPlan\(invoer\)/);
+  // Het plan wordt gevuld met de echte lessen van de app, en met de akkoorden van het liedje.
+  assert.match(html, /lessen: LESSEN\.map\(function \(l\) \{ return \{ titel: l\.titel \}; \}\)/);
+  assert.match(html, /doel: \{ titel: PLAN\.doel\.titel, akkoorden: PLAN\.doel\.akkoorden \|\| \[\] \}/);
+  assert.match(html, /api\('\/api\/liedjes\/' \+ id\)/);
+  assert.match(html, /akkoordkast-plan/);
+  assert.match(html, /data-plan-taak=/);
+  assert.match(html, /\$\('plan-maak'\)\.addEventListener\('click', planMaak\)/);
+  const lib = leesLib('oefenplan.js');
+  eisAfsluiting(lib, 'oefenplanRekenen');
+  assert.match(lib, /'herhalen'/);
+});
+
+test('jezelf opnemen en terugluisteren: opnemen, terugluisteren, bewaren of weggooien', () => {
+  const html = leesPagina();
+  eisIds(html, ['opnemen-kaart', 'opn-start', 'opn-stop', 'opn-stand', 'opn-tijd', 'opn-meter',
+    'opn-niveau', 'opn-speel', 'opn-bewaar', 'opn-weg', 'opn-audio', 'opn-melding'], 'het opneemvak');
+  assert.match(html, /function opnStart/);
+  assert.match(html, /function opnStop/);
+  assert.match(html, /function opnKlaar/);
+  assert.match(html, /new MediaRecorder\(stream/);
+  assert.match(html, /URL\.createObjectURL\(blob\)/);
+  assert.match(html, /URL\.revokeObjectURL\(OPN\.url\)/);
+  assert.match(html, /\$\('opn-start'\)\.addEventListener\('click', opnStart\)/);
+  assert.match(html, /\$\('opn-weg'\)\.addEventListener\('click', opnWeg\)/);
+  // De opname blijft in het toestel: in het opneemgedeelte gaat niets naar de server.
+  const begin = html.indexOf('// ---------------------------------------------------- jezelf opnemen');
+  const eind = html.indexOf('// ---------------------------------------------------------------- laden');
+  const opnBlok = html.slice(begin, eind);
+  assert.ok(opnBlok.length > 1000, 'het opneemgedeelte hoort er te zijn');
+  assert.ok(!/api\(/.test(opnBlok), 'een opname hoort niet naar de server te gaan');
+  // Vijf minuten is het maximum; daarna stopt de opname vanzelf.
+  assert.match(html, /var OPN_MAX = 300/);
+});

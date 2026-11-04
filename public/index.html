@@ -1316,6 +1316,25 @@
       <div class="melding" id="weg-melding" hidden></div>
     </div>
 
+    <div class="kaart" id="opruimen-kaart">
+      <h2>Opruimen</h2>
+      <p class="melding">Kijk eerst wat er op te ruimen valt; er gebeurt niets voordat je op een knop
+        drukt. De <strong>meegeleverde verzameling</strong> blijft altijd staan — opgeruimd worden alleen
+        je eigen liedjes (dubbelen en lege), verwijzingen naar muziek die er niet meer is, losse
+        muziekbestanden die bij geen enkel liedje horen, oude back-ups en verlopen sessies.</p>
+      <div class="rij">
+        <button class="knop zacht" id="opruim-kijk">Kijken wat er op te ruimen valt</button>
+      </div>
+      <div id="opruim-uit" hidden style="margin-top:8px">
+        <div class="weg-lijst" id="opruim-lijst"></div>
+        <div class="rij" style="margin-top:8px">
+          <button class="knop" id="opruim-alles">Alles hierboven opruimen</button>
+          <span class="meta">Losse bestanden worden pas weggehaald als ze bij geen enkel liedje horen.</span>
+        </div>
+      </div>
+      <div class="melding" id="opruim-melding" hidden></div>
+    </div>
+
     <div class="kaart" id="gegevens-kaart">
       <h2>Gegevens van een liedje aanpassen</h2>
       <p class="melding">Zoek een liedje en pas de titel, de zanger, de taal, het genre, de toonaard, het
@@ -2183,6 +2202,7 @@ laadBackup();
 laadWeken();
 koppelBeheerKaarten();
 koppelGegevensKaart();
+koppelOpruimKaart();
 tabUitAdres();
 
 // ------------------------------------------------------------ liedjesboek ---
@@ -4667,6 +4687,82 @@ function koppelGegevensKaart() {
       laadLiedjes();
       if (staat.liedje && staat.liedje.id === gekozen.id) openLiedje(d.id);
     }).catch(function (e) { toonMelding('geg-melding', e.message, 'fout'); });
+  });
+}
+
+// --- opruimen ---
+function koppelOpruimKaart() {
+  if (!$('opruim-kijk')) return;
+  var laatste = null;
+
+  function kB(k) { return Math.round(k / 1024) + ' kB'; }
+  function mB(b) { return (b / 1024 / 1024 >= 1 ? (b / 1024 / 1024).toFixed(1) + ' MB' : kB(b)); }
+
+  function teken(scan) {
+    laatste = scan;
+    var regels = [];
+    function rij(soort, tekst, knop) {
+      regels.push('<div class="weg-rij"><span class="wie">' + tekst + '</span>' +
+        (knop === false ? '' : '<button class="knop mini zacht" data-opruim="' + soort + '">' + (knop || 'Opruimen') + '</button>') +
+        '</div>');
+    }
+    var d = scan.dubbelen || [], l = scan.leeg || [], z = scan.zonderMuziek || [];
+    var w = scan.wees || {}, bk = scan.backups || {}, ss = scan.sessies || {}, vb = scan.verborgen || [];
+    if (d.length) {
+      rij('dubbelen', d.length + ' liedje(s) die dubbel in de verzameling staan, bijvoorbeeld <strong>' +
+        esc(d[0].titel) + '</strong>' + (d[0].artiest ? ' van ' + esc(d[0].artiest) : '') + ' (het liedje met de meeste inhoud blijft)');
+    }
+    if (l.length) rij('leeg', l.length + ' eigen liedje(s) zonder akkoorden en zonder tekst');
+    if (z.length) rij('zonderMuziek', z.length + ' verwijzing(en) naar muziek die er niet meer is (bijvoorbeeld omdat de map weg is)');
+    if (w.aantal) rij('wees', w.aantal + ' los muziekbestand(en) die bij geen enkel liedje horen (' + mB(w.bytes) + ')');
+    if (bk.aantal) rij('backups', bk.aantal + ' oude back-up(s) (' + mB(bk.bytes) + '), de nieuwste ' + (bk.bewaren || 10) + ' blijven staan');
+    if (ss.aantal) rij('sessies', ss.aantal + ' verlopen beheerderssessie(s)');
+    if (vb.length) rij('verborgen', vb.length + ' verborgen liedje(s)', 'Weer zichtbaar maken');
+    if (!regels.length) {
+      regels.push('<div class="les-klein">Er valt niets op te ruimen: de verzameling is netjes.</div>');
+    }
+    $('opruim-lijst').innerHTML = regels.join('');
+    $('opruim-uit').hidden = false;
+    Array.prototype.forEach.call($('opruim-lijst').querySelectorAll('[data-opruim]'), function (b) {
+      b.addEventListener('click', function () { doe([b.getAttribute('data-opruim')]); });
+    });
+    $('opruim-alles').disabled = !regels.length;
+  }
+
+  function kijk() {
+    toonMelding('opruim-melding', 'Kijken…', '');
+    api('/api/opruimen').then(function (scan) {
+      teken(scan);
+      toonMelding('opruim-melding', 'Dit is te vinden in ' + scan.verzameling.eigen + ' eigen liedje(s) naast ' +
+        scan.verzameling.meegeleverd + ' meegeleverde liedjes.', '');
+    }).catch(function (e) { toonMelding('opruim-melding', e.message, 'fout'); });
+  }
+
+  function doe(wat) {
+    toonMelding('opruim-melding', 'Bezig…', '');
+    api('/api/opruimen', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ wat: wat })
+    }).then(function (d) {
+      toonMelding('opruim-melding', d.bericht || 'Klaar.', 'goed');
+      laadLiedjes();
+      return api('/api/opruimen');
+    }).then(function (scan) {
+      teken(scan);
+    }).catch(function (e) { toonMelding('opruim-melding', e.message, 'fout'); });
+  }
+
+  $('opruim-kijk').addEventListener('click', kijk);
+  $('opruim-alles').addEventListener('click', function () {
+    if (!laatste) return;
+    var wat = [];
+    if (laatste.dubbelen && laatste.dubbelen.length) wat.push('dubbelen');
+    if (laatste.leeg && laatste.leeg.length) wat.push('leeg');
+    if (laatste.zonderMuziek && laatste.zonderMuziek.length) wat.push('zonderMuziek');
+    if (laatste.wees && laatste.wees.aantal) wat.push('wees');
+    if (laatste.backups && laatste.backups.aantal) wat.push('backups');
+    if (laatste.sessies && laatste.sessies.aantal) wat.push('sessies');
+    if (!wat.length) return;
+    doe(wat);
   });
 }
 

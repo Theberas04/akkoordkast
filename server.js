@@ -35,7 +35,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.15.1';
+const VERSIE = '1.16.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -1605,6 +1605,263 @@ function maakEigenKopie(bronLied, vervang) {
   return nieuwId;
 }
 
+// ---- Opruimen (beheerder) ----------------------------------------------------------------
+// Eerst kijken wat er op te ruimen valt, dan pas opruimen. Niets wordt weggehaald wat niet in dat
+// overzicht staat, en de meegeleverde verzameling blijft altijd ongemoeid.
+const OPRUIM_SOORTEN = ['dubbelen', 'leeg', 'zonderMuziek', 'wees', 'backups', 'sessies', 'verborgen'];
+
+function isBestand(pad) {
+  try { return fs.statSync(pad).isFile(); } catch (e) { return false; }
+}
+
+function isMap(pad) {
+  try { return fs.statSync(pad).isDirectory(); } catch (e) { return false; }
+}
+
+function ophaalMappenLijst() {
+  const uit = [];
+  const voegToe = (m) => { const t = String(m || '').trim(); if (t && uit.indexOf(t) === -1) uit.push(t); };
+  try {
+    const d = downloadMappen();
+    if (typeof d === 'string') voegToe(d);
+    else if (d) { voegToe(d.map); voegToe(d.terugval); voegToe(d.gevraagd); }
+  } catch (e) { /* geen downloadmap: dan slaan we het opruimen van losse bestanden over */ }
+  try { voegToe(ophaalMap()); } catch (e) { /* niets */ }
+  voegToe(NOOD_DIR);
+  voegToe(MEDIA_DIR);
+  return uit.filter(isMap);
+}
+
+function eigenRijen() {
+  return db.prepare('SELECT id, titel, artiest, taal, chordpro FROM liedjes').all().map(r => ({
+    id: EIGEN_START + Number(r.id),
+    titel: String(r.titel || ''),
+    artiest: String(r.artiest || ''),
+    taal: String(r.taal || 'nl'),
+    chordpro: String(r.chordpro || '')
+  }));
+}
+
+// Alle bestanden die ergens bij horen (muziek bij een liedje, of wat er ooit is ingelezen).
+function gebruikteBestandsnamen() {
+  const namen = new Set();
+  const voegToe = (pad) => {
+    const t = String(pad || '').trim();
+    if (!t) return;
+    namen.add(path.basename(t).toLowerCase());
+  };
+  for (const r of db.prepare('SELECT pad FROM liedje_muziek').all()) voegToe(r.pad);
+  for (const r of db.prepare('SELECT pad FROM imports').all()) voegToe(r.pad);
+  for (const r of db.prepare('SELECT audio_bestand FROM liedjes').all()) voegToe(r.audio_bestand);
+  return namen;
+}
+
+function loopBestanden(map, diep, uit) {
+  let inhoud;
+  try { inhoud = fs.readdirSync(map, { withFileTypes: true }); } catch (e) { return; }
+  for (const ding of inhoud) {
+    const pad = path.join(map, ding.name);
+    if (ding.isDirectory()) {
+      if (diep > 0) loopBestanden(pad, diep - 1, uit);
+    } else if (ding.isFile()) {
+      let grootte = 0;
+      try { grootte = fs.statSync(pad).size; } catch (e) { grootte = 0; }
+      uit.push({ pad, naam: ding.name.toLowerCase(), grootte });
+    }
+  }
+}
+
+function scanOpruimen() {
+  const uit = {
+    dubbelen: [], leeg: [], zonderMuziek: [], verborgen: [],
+    wees: { aantal: 0, bytes: 0, voorbeelden: [] },
+    backups: { aantal: 0, bytes: 0, namen: [] },
+    sessies: { aantal: 0 },
+    verzameling: { aantal: eigenRijen().length, meegeleverd: bron.alle().length }
+  };
+  const eigen = uit.verzameling.eigen = eigenRijen();
+
+  // 1. Dubbelen: eigen liedjes met dezelfde titel en (vrijwel) dezelfde artiest. Van elk stel blijft
+  //    het liedje met de meeste inhoud staan: eerst een liedje met akkoorden, dan met muziek, dan het
+  //    oudste. Een lege artiest telt bij elke artiest van dezelfde titel.
+  const rijenMuziek = new Set(db.prepare('SELECT liedje_id FROM liedje_muziek').all().map(r => Number(r.liedje_id)));
+  const waarde = (l) => {
+    let punt = 0;
+    if (/\[[A-G][#b]?[^\]]*\]/.test(l.chordpro)) punt += 2;
+    if (rijenMuziek.has(l.id)) punt += 1;
+    return punt;
+  };
+  const perTitel = new Map();
+  for (const l of eigen) {
+    const sleutel = l.titel.toLowerCase().replace(/\s+/g, ' ').trim() || ('zonder titel ' + l.id);
+    if (!perTitel.has(sleutel)) perTitel.set(sleutel, []);
+    perTitel.get(sleutel).push(l);
+  }
+  const alWeg = new Set();
+  perTitel.forEach((groep) => {
+    if (groep.length < 2) return;
+    groep.sort((a, b) => (waarde(b) - waarde(a)) || (a.id - b.id));
+    const hou = groep[0];
+    const weg = groep.slice(1).filter(l => {
+      // Alleen echt dubbel: dezelfde artiest, of een van de twee heeft geen artiest.
+      return l.artiest.toLowerCase().trim() === hou.artiest.toLowerCase().trim() || !l.artiest.trim() || !hou.artiest.trim();
+    }).map(l => l.id).filter(id => !alWeg.has(id));
+    if (!weg.length) return;
+    for (const id of weg) alWeg.add(id);
+    uit.dubbelen.push({ bewaren: hou.id, titel: hou.titel, artiest: hou.artiest, weg });
+  });
+
+  // 2. Lege eigen liedjes: geen akkoorden en vrijwel geen tekst (de aanwijzingen tussen { } en de
+  //    akkoorden tussen [ ] tellen niet mee).
+  for (const l of eigen) {
+    const heeftAkkoord = /\[[A-G][#b]?[^\]]*\]/.test(l.chordpro);
+    const tekst = l.chordpro.replace(/\[[^\]]*\]/g, ' ').replace(/\{[^}]*\}/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!heeftAkkoord && tekst.length < 12) uit.leeg.push({ id: l.id, titel: l.titel, artiest: l.artiest });
+  }
+
+  // 3. Muziek waarvan het bestand weg is (bijvoorbeeld omdat de NAS-map er niet meer is).
+  for (const r of db.prepare('SELECT liedje_id, pad, titel FROM liedje_muziek').all()) {
+    const pad = String(r.pad || '');
+    if (!pad || isBestand(pad)) continue;
+    const lied = vindLiedje(Number(r.liedje_id));
+    uit.zonderMuziek.push({
+      id: Number(r.liedje_id),
+      titel: lied ? lied.titel : String(r.titel || ''),
+      pad
+    });
+  }
+
+  // 4. Liedjes die verborgen staan.
+  for (const r of db.prepare('SELECT liedje_id, sinds FROM verborgen_liedjes').all()) {
+    const lied = vindLiedje(Number(r.liedje_id));
+    if (lied) uit.verborgen.push({ id: Number(r.liedje_id), titel: lied.titel, artiest: lied.artiest || '', sinds: String(r.sinds || '') });
+  }
+
+  // 5. Bestanden in de muziekmappen die bij geen enkel liedje horen.
+  const gebruikt = gebruikteBestandsnamen();
+  const gezien = new Set();
+  const muziekSoorten = ['.mp3', '.m4a', '.wav', '.ogg', '.opus', '.flac', '.mp4', '.webm'];
+  for (const map of ophaalMappenLijst()) {
+    const bestanden = [];
+    loopBestanden(map, 2, bestanden);
+    for (const b of bestanden) {
+      if (gezien.has(b.pad)) continue;
+      gezien.add(b.pad);
+      if (muziekSoorten.indexOf(path.extname(b.naam)) === -1) continue;
+      if (gebruikt.has(b.naam)) continue;
+      uit.wees.aantal++;
+      uit.wees.bytes += b.grootte;
+      if (uit.wees.voorbeelden.length < 8) uit.wees.voorbeelden.push(b.pad);
+    }
+  }
+
+  // 6. Oude back-ups (de nieuwste vijf blijven staan).
+  try {
+    const namen = backupBestanden(BACKUP.map).map(b => b.naam);
+    const teWeg = backup.teVerwijderen(namen, BACKUP.bewaren);
+    uit.backups.aantal = teWeg.length;
+    uit.backups.namen = teWeg;
+    uit.backups.map = BACKUP.map || '';
+    uit.backups.bewaren = BACKUP.bewaren;
+    for (const naam of teWeg) {
+      const pad = path.join(BACKUP.map, naam);
+      if (isBestand(pad)) { try { uit.backups.bytes += fs.statSync(pad).size; } catch (e) { /* niets */ } }
+    }
+  } catch (e) { /* geen back-upmap: niets op te ruimen */ }
+
+  // 7. Verlopen beheerderssessies.
+  try {
+    const nu = Date.now();
+    uit.sessies.aantal = db.prepare('SELECT COUNT(*) AS n FROM sessies WHERE tot < ?').get(nu).n;
+  } catch (e) { uit.sessies.aantal = 0; }
+
+  return uit;
+}
+
+function voerOpruimenUit(wat) {
+  const lijst = Array.isArray(wat) ? wat.filter(w => OPRUIM_SOORTEN.indexOf(w) !== -1) : [];
+  const gedaan = {};
+  const scan = scanOpruimen();
+
+  if (lijst.indexOf('dubbelen') !== -1) {
+    let n = 0;
+    for (const groep of scan.dubbelen) {
+      for (const id of groep.weg) { verwijderEigenLiedje(id); n++; }
+    }
+    gedaan.dubbelen = n;
+  }
+
+  if (lijst.indexOf('leeg') !== -1) {
+    for (const l of scan.leeg) verwijderEigenLiedje(l.id);
+    gedaan.leeg = scan.leeg.length;
+  }
+
+  if (lijst.indexOf('zonderMuziek') !== -1) {
+    for (const l of scan.zonderMuziek) wisLiedjeMuziek(l.id);
+    gedaan.zonderMuziek = scan.zonderMuziek.length;
+  }
+
+  if (lijst.indexOf('wees') !== -1) {
+    let n = 0;
+    for (const pad of scan.wees.voorbeelden.concat([])) { /* niets: hieronder de volledige ronde */ }
+    const gebruikt = gebruikteBestandsnamen();
+    for (const map of ophaalMappenLijst()) {
+      const bestanden = [];
+      loopBestanden(map, 2, bestanden);
+      for (const b of bestanden) {
+        if (gebruikt.has(b.naam)) continue;
+        if (['.mp3', '.m4a', '.wav', '.ogg', '.opus', '.flac', '.mp4', '.webm'].indexOf(path.extname(b.naam)) === -1) continue;
+        if (!isBestand(b.pad)) continue;
+        try { fs.unlinkSync(b.pad); n++; } catch (e) { /* niet gelukt: laten staan */ }
+      }
+    }
+    gedaan.wees = n;
+  }
+
+  if (lijst.indexOf('backups') !== -1) {
+    let n = 0;
+    for (const naam of scan.backups.namen) {
+      const pad = path.join(BACKUP.map, naam);
+      if (!isBestand(pad)) continue;
+      try { fs.unlinkSync(pad); n++; } catch (e) { /* niet gelukt: laten staan */ }
+    }
+    gedaan.backups = n;
+  }
+
+  if (lijst.indexOf('sessies') !== -1) {
+    const voor = Date.now();
+    db.prepare('DELETE FROM sessies WHERE tot < ?').run(voor);
+    gedaan.sessies = scan.sessies.aantal;
+  }
+
+  if (lijst.indexOf('verborgen') !== -1) {
+    const n = scan.verborgen.length;
+    db.prepare('DELETE FROM verborgen_liedjes').run();
+    laadFilters();
+    gedaan.verborgen = n;
+  }
+
+  const stukjes = [];
+  const namen = {
+    dubbelen: ['dubbel liedje', 'dubbele liedjes'],
+    leeg: ['leeg liedje', 'lege liedjes'],
+    zonderMuziek: ['verwijzing naar muziek die er niet meer is', 'verwijzingen naar muziek die er niet meer is'],
+    wees: ['los muziekbestand', 'losse muziekbestanden'],
+    backups: ['oude back-up', 'oude back-ups'],
+    sessies: ['verlopen sessie', 'verlopen sessies'],
+    verborgen: ['liedje weer zichtbaar gemaakt', 'liedjes weer zichtbaar gemaakt']
+  };
+  for (const soort of OPRUIM_SOORTEN) {
+    const aantal = gedaan[soort];
+    if (aantal === undefined || aantal === 0) continue;
+    stukjes.push(aantal + ' ' + (aantal === 1 ? namen[soort][0] : namen[soort][1]));
+  }
+  return {
+    ok: true, gedaan,
+    bericht: stukjes.length ? 'Opgeruimd: ' + stukjes.join(', ') + '.' : 'Er viel niets op te ruimen.'
+  };
+}
+
 // Bladmuziek zoeken bij een opgehaald nummer: staat het liedje al in de eigen bibliotheek (zelfde
 // titel)? Dan nemen we die bladmuziek over — de woorden én de akkoorden. Zo krijgt een opgehaald
 // volkswijsje meteen een echte akkoordenschema in plaats van een voorstel. Dit is een gewone
@@ -2849,6 +3106,19 @@ async function verwerk(req, res) {
   }
 
   // --- back-up ---
+  // Opruimen: eerst kijken wat er op te ruimen valt, dan pas opruimen.
+  if (pad === '/api/opruimen' && methode === 'GET') {
+    if (!eisBeheerder()) return;
+    json(res, 200, scanOpruimen());
+    return;
+  }
+  if (pad === '/api/opruimen' && methode === 'POST') {
+    if (!eisBeheerder()) return;
+    const opruimBody = await leesJsonBody(req);
+    json(res, 200, voerOpruimenUit(opruimBody.wat));
+    return;
+  }
+
   if (pad === '/api/backup' && methode === 'GET') {
     json(res, 200, backupBeeld());
     return;

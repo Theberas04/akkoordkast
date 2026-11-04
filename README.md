@@ -188,6 +188,11 @@ Het toevoeggereedschap zit in een **eigen profiel** (`Admin`), niet in je gewone
 | Liedjes uit de app halen (eigen liedjes echt, meegeleverde verbergen) | beheerder |
 | Filters beheren: talen en genres toevoegen, weghalen en liedjes eraan koppelen | beheerder |
 
+**Opruimen.** In het beheerdersprofiel (tabblad Toevoegen) staat *Opruimen*: eerst kijken wat er te
+vinden is (dubbele liedjes, lege liedjes, verwijzingen naar muziek die er niet meer is, losse
+muziekbestanden, oude back-ups, verlopen sessies, verborgen liedjes), dan per soort opruimen. De
+meegeleverde verzameling blijft altijd staan.
+
 **Gegevens aanpassen.** In het beheerdersprofiel (tabblad Toevoegen) staat *Gegevens van een liedje
 aanpassen*: titel, zanger, taal, genre, toonaard, tempo, maatsoort, moeilijkheid, slagpatroon, YouTube
 en notitie. Van een meegeleverd liedje maakt de app daarbij een eigen kopie (`maakEigenKopie`), zodat
@@ -814,6 +819,18 @@ Met **Grepenkaart printen** zet je van alle akkoorden in het liedje dat je open 
 één vel — een poster voor je oefenhoek.
 
 ![Grepenkaart](docs/img/grepenkaart.png)
+
+De beheerder kan liedjes ophalen, de gegevens aanpassen en opruimen:
+
+![Gegevens van een liedje aanpassen](docs/img/gegevens-aanpassen.png)
+
+![Zonder beheerder is dit er niet](docs/img/gegevens-geen-beheerder.png)
+
+Opruimen kijkt eerst wat er te vinden is en ruimt dan pas op:
+
+![Opruimen in de beheerder](docs/img/opruimen-kijken.png)
+
+![Na het opruimen](docs/img/opruimen-gedaan.png)
 
 ## Jouw eigen lijstjes
 

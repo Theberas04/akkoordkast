@@ -3,6 +3,30 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.16.0] — 4 november 2026
+
+### Nieuw
+
+- **Opruimen in de beheerder.** Op het tabblad Toevoegen staat nu de kaart *Opruimen* met de knop
+  *Kijken wat er op te ruimen valt*. Die kijkt eerst en laat zien wat er te vinden is; er gebeurt niets
+  voordat je op een knop drukt. Per soort staat er een eigen knop, plus *Alles hierboven opruimen*:
+
+  - **dubbele liedjes** — eigen liedjes met dezelfde titel (en dezelfde artiest, of een lege artiest).
+    Van elk stel blijft het liedje met de meeste inhoud staan: eerst een liedje met akkoorden, dan met
+    muziek, dan het oudste.
+  - **lege liedjes** — eigen liedjes zonder akkoorden en vrijwel zonder tekst (de aanwijzingen tussen
+    `{ }` en de akkoorden tussen `[ ]` tellen niet mee).
+  - **verwijzingen naar muziek die er niet meer is** — bijvoorbeeld omdat de NAS-map weg is; de
+    verwijzing wordt opgeruimd, het liedje blijft staan.
+  - **losse muziekbestanden** — bestanden in de muziekmappen die bij geen enkel liedje horen (alleen
+    geluids- en videobestanden; wat ergens bij hoort blijft met rust).
+  - **oude back-ups** — alles boven het ingestelde aantal (standaard tien) gaat weg.
+  - **verlopen sessies** — opgeruimd.
+  - **verborgen liedjes** zijn hier ook weer zichtbaar te maken.
+
+  De **meegeleverde verzameling blijft altijd ongemoeid**: opgeruimd worden alleen je eigen liedjes,
+  verwijzingen, losse bestanden, back-ups en sessies. Alles hoort bij het beheerdersprofiel.
+
 ## [1.15.1] — 4 november 2026
 
 ### Veranderd

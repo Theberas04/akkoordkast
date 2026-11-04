@@ -34,7 +34,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.3';
+const VERSIE = '1.4';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -164,6 +164,12 @@ db.exec(`
 
 // Er is altijd minstens één profiel: zonder profiel weet de app niet van wie de
 // favorieten zijn.
+// Een oudere database heeft deze kolom nog niet; die zetten we er zonder verlies bij.
+const PROFIEL_KOLOMMEN = db.prepare('PRAGMA table_info(profielen)').all().map(k => String(k.name));
+if (!PROFIEL_KOLOMMEN.includes('is_beheer')) {
+  db.prepare('ALTER TABLE profielen ADD COLUMN is_beheer INTEGER NOT NULL DEFAULT 0').run();
+}
+
 if (!db.prepare('SELECT COUNT(*) AS n FROM profielen').get().n) {
   db.prepare('INSERT INTO profielen (naam, aangemaakt) VALUES (?, ?)').run('Standaard', new Date().toISOString());
 }
@@ -296,8 +302,36 @@ function alleInstellingen() {
 }
 
 // ----------------------------------------------------------------- profielen ---
+// Het beheerdersprofiel: het profiel waarin je muziek toevoegt. Het bestaat altijd en kan niet
+// worden weggegooid, zodat je gewone profielen (voor het gezin, per persoon, voor een optreden)
+// schoon blijven: daar staat het gereedschap om iets toe te voegen niet in.
+const BEHEER_PROFIEL_NAAM = 'Admin';
+
+function beheerProfiel() {
+  let rij = db.prepare('SELECT id, naam FROM profielen WHERE is_beheer = 1 ORDER BY id LIMIT 1').get();
+  if (rij) return { id: Number(rij.id), naam: String(rij.naam) };
+  db.prepare('INSERT INTO profielen (naam, aangemaakt, is_beheer) VALUES (?, ?, 1)')
+    .run(BEHEER_PROFIEL_NAAM, new Date().toISOString());
+  rij = db.prepare('SELECT id, naam FROM profielen WHERE is_beheer = 1 ORDER BY id LIMIT 1').get();
+  return { id: Number(rij.id), naam: String(rij.naam) };
+}
+
+// Is het profiel dat deze bezoeker gebruikt het beheerdersprofiel?
+function isBeheerProfiel(req, query) {
+  const baas = beheerProfiel();
+  if (!baas) return false;
+  return Number(profielVan(req, query)) === Number(baas.id);
+}
+
 function profielLijst() {
-  return db.prepare('SELECT id, naam, aangemaakt FROM profielen ORDER BY id').all();
+  beheerProfiel();   // bestaat hij nog niet, dan komt hij hier te staan
+  return db.prepare('SELECT id, naam, aangemaakt, is_beheer FROM profielen ORDER BY id').all()
+    .map(rij => ({
+      id: Number(rij.id),
+      naam: String(rij.naam),
+      aangemaakt: String(rij.aangemaakt || ''),
+      beheer: !!rij.is_beheer
+    }));
 }
 
 // Welk profiel hoort bij dit verzoek? De pagina stuurt 'x-profiel' mee; onbekend of
@@ -524,7 +558,7 @@ function vindLiedje(id) {
 // ------------------------------------------------------------------ weergave ---
 // Bouwt het complete beeld van een liedje: model, capo-advies, grepen en audio.
 function weergave(lied, opties) {
-  const o = Object.assign({ transpose: 0, capoStand: null, beheer: false }, opties || {});
+  const o = Object.assign({ transpose: 0, capoStand: null, beheer: false, beheerProfiel: false }, opties || {});
   const stappen = Math.max(-11, Math.min(11, parseInt(o.transpose, 10) || 0));
   const mol = theorie.toonsoortVoorkeur(lied.toonsoort || 'C', stappen);
   const model = stappen ? chordpro.transponeerModel(lied.model, stappen, mol) : lied.model;
@@ -583,6 +617,7 @@ function weergave(lied, opties) {
     heeftMuziek: !!muziekVanLiedje(lied.id),
     heeftVideo: !!videoVanLiedje(lied.id),
     beheer: !!o.beheer,
+    beheerProfiel: !!o.beheerProfiel,
     // Waar een opgehaald mp3-bestand terechtkomt (de app laat dat pad zien bij het plakken
     // van een link).
     download: { map: DOWNLOAD_DIR, ytdlp: OPHAAL.ytdlp },
@@ -1189,6 +1224,9 @@ const DOWNLOAD_DIR = path.resolve(String(process.env.DOWNLOAD_DIR || '').trim() 
   (STANDAARD_MUZIEKMAP ? path.join(STANDAARD_MUZIEKMAP, 'Gedownload') : path.join(DATA_DIR, 'gedownload')));
 
 const OPHAAL = downloader.maakDownloader({ map: DOWNLOAD_DIR, ytdlp: process.env.YTDLP || 'yt-dlp' });
+
+// Zorg dat het beheerdersprofiel bestaat zodra de app start, zodat het in de profielenlijst staat.
+if (typeof beheerProfiel === 'function') beheerProfiel();
 let ophaalLiedje = 0;
 let ophaalWacht = null;
 
@@ -1893,11 +1931,17 @@ async function verwerk(req, res) {
     return;
   }
 
-  // Alles wat iets toevoegt of verandert, is voor de beheerder.
-  if (beheerNodig(pad, methode) && !isBeheerder(req)) {
+  // Alles wat iets toevoegt of verandert, hoort bij de beheerder: ingelogd zijn én in het
+  // beheerdersprofiel werken.
+  if (beheerNodig(pad, methode) && !(isBeheerder(req) && isBeheerProfiel(req, query))) {
+    const ingelogd = isBeheerder(req);
     json(res, 403, {
-      fout: 'Alleen de beheerder kan muziek en liedjes toevoegen. Log in bij het tabblad Toevoegen.',
-      beheer: true
+      fout: ingelogd
+        ? 'Dit hoort bij het beheerdersprofiel (' + beheerProfiel().naam + '). Kies dat profiel en probeer het opnieuw.'
+        : 'Alleen de beheerder kan muziek en liedjes toevoegen. Kies het profiel ' + beheerProfiel().naam +
+          ' en log daar in (tabblad Toevoegen).',
+      beheer: true,
+      ingelogd
     });
     return;
   }
@@ -1928,7 +1972,11 @@ async function verwerk(req, res) {
   if (profielMatch && methode === 'DELETE') {
     const id = Number(profielMatch[1]);
     if (!db.prepare('SELECT id FROM profielen WHERE id = ?').get(id)) { json(res, 404, { fout: 'Profiel niet gevonden' }); return; }
-    if (profielLijst().length <= 1) { json(res, 400, { fout: 'Het laatste profiel kun je niet verwijderen.' }); return; }
+    if (Number(id) === Number(beheerProfiel().id)) {
+      json(res, 400, { fout: 'Het beheerdersprofiel kan niet worden verwijderd: daarin zit het gereedschap om muziek toe te voegen.' });
+      return;
+    }
+    // het laatste profiel kan niet weg { json(res, 400, { fout: 'Het laatste profiel kun je niet verwijderen.' }); return; }
     for (const tabel of ['favorieten', 'liedje_labels', 'labels', 'gespeeld', 'oefensessies']) {
       db.prepare(`DELETE FROM ${tabel} WHERE profiel_id = ?`).run(id);
     }
@@ -2428,7 +2476,8 @@ async function verwerk(req, res) {
     const profielId = profielVan(req, query);
     const persoon = persoonlijk(profielId);
     const antwoord = weergave(lied, {
-      transpose: query.get('transpose'), capoStand: query.get('capo'), beheer: isBeheerder(req)
+      transpose: query.get('transpose'), capoStand: query.get('capo'),
+      beheer: isBeheerder(req), beheerProfiel: isBeheerProfiel(req, query)
     });
     const nummer = Number(m[1]);
     antwoord.favoriet = persoon.favorieten.includes(nummer);

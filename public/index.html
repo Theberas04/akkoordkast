@@ -655,7 +655,10 @@
   .week-staaf span{background:linear-gradient(90deg,var(--amber),var(--groen))}
   .week-naam{font-size:.79rem;color:var(--tekst2)}
 
-  /* Zonder beheerderslogin zie je in het tabblad Toevoegen alleen de inlogkaart. */
+  /* Iets helemaal weglaten (het tabblad Toevoegen in een gewoon profiel). */
+.weg{display:none !important}
+
+/* Zonder beheerderslogin zie je in het tabblad Toevoegen alleen de inlogkaart. */
 #paneel-toevoegen:not(.beheer) > .kaart:not(#beheer-poort){display:none}
 #beheer-inhoud .rij{margin-top:8px}
 #beheer-inhoud input{max-width:320px}
@@ -1449,6 +1452,7 @@ $('filter-wis').addEventListener('click', function () {
 // Van profiel wisselen: alles wat bij een profiel hoort verversen.
 $('profiel-kies').addEventListener('change', function () {
   zetActiefProfiel($('profiel-kies').value);
+  beheerProfielWissel();
   laadLabels();
   laadLiedjes(true);
   laadOefencijfers();
@@ -2224,7 +2228,7 @@ function tekenLiedje(l) {
             'Staat de koppeling naar je muziekmap (de NAS) er nog?</div>' +
             '<div class="rij"><button class="knop" data-muziek-zoek>Ander bestand zoeken</button></div>';
         }
-        if (!l.beheer) {
+        if (!(l.beheer && l.beheerProfiel)) {
           return '<div class="meta">Aan dit liedje hangt nog geen muziekbestand. De beheerder kan er een aanwijzen uit je eigen map.</div>';
         }
         return '<div class="rij"><button class="knop" data-muziek-zoek>Zoek de muziek in mijn map</button>' +
@@ -2234,7 +2238,7 @@ function tekenLiedje(l) {
       // Een link omzetten naar een mp3 in je eigen map. De app start daarvoor yt-dlp op de
       // server; het bestand komt in de downloadmap te staan en wordt meteen aan dit liedje
       // gehangen, zodat je het kunt meespelen.
-      (l.beheer
+      (l.beheer && l.beheerProfiel
         ? '<h3>Link naar mp3</h3>' +
       (l.video && l.video.kijk
         ? '<div class="rij"><span class="meta">Laatst gebruikt: <a href="' + esc(l.video.kijk) + '" target="_blank" rel="noopener">' +
@@ -2259,7 +2263,7 @@ function tekenLiedje(l) {
             '<span class="meta" id="opname-stand">gestopt</span>' +
             (l.eigen ? '<button class="knop rood" id="opname-weg">Opname verwijderen</button>' : '') +
           '</div>'
-        : (l.eigen && l.beheer
+        : (l.eigen && l.beheer && l.beheerProfiel
             ? '<h3>Eigen opname toevoegen</h3><input id="opname-bestand" type="file" accept="audio/*">' +
               '<div class="rij"><button class="knop" id="opname-upload">Opname uploaden</button></div>'
             : (l.eigen
@@ -5154,6 +5158,25 @@ function laadOefencijfers() {
 // wachtwoord; de server weigert alles wat iets toevoegt zonder dit.
 var BEHEER = { ingesteld: false, ingelogd: false, minLengte: 8 };
 
+// Het gereedschap om muziek toe te voegen zit in het beheerdersprofiel. In een gewoon profiel
+// (voor het gezin, per persoon, voor een optreden) laten we het tabblad Toevoegen helemaal weg,
+// zodat daar alleen staat waar je mee speelt en leert.
+function beheerProfielWissel() {
+  var baas = staat.profielen.filter(function (p) { return p.id === actiefProfiel(); })[0];
+  var isBaas = !!(baas && baas.beheer);
+  var knop = $('tab-toevoegen');
+  if (knop) knop.classList.toggle('weg', !isBaas);
+  var paneel = $('paneel-toevoegen');
+  if (!isBaas && paneel && paneel.classList.contains('actief')) toonTab('liedjes');
+  if (!isBaas) {
+    // In een gewoon profiel is er geen beheerderslogin te zien; de kaarten blijven verborgen.
+    BEHEER.ingelogd = false;
+    if (paneel) paneel.classList.remove('beheer');
+  }
+  tekenBeheer();
+  return isBaas;
+}
+
 function beheerVraag() {
   return api('/api/beheer').then(function (d) {
     BEHEER = d || BEHEER;
@@ -5249,8 +5272,10 @@ function laadProfielen() {
     if (!staat.profielen.some(function (p) { return p.id === actief; })) actief = data.actief || staat.profielen[0].id;
     zetActiefProfiel(actief);
     sel.innerHTML = staat.profielen.map(function (p) {
-      return '<option value="' + p.id + '"' + (p.id === actief ? ' selected' : '') + '>' + esc(p.naam) + '</option>';
+      return '<option value="' + p.id + '"' + (p.id === actief ? ' selected' : '') + '>' + esc(p.naam) +
+        (p.beheer ? ' · beheerder' : '') + '</option>';
     }).join('');
+    beheerProfielWissel();
   }).catch(function () {});
 }
 

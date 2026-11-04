@@ -14,7 +14,8 @@ let baas;
 
 // Een schrijfactie met het koekje van de beheerder.
 const alsBaas = (pad, opties = {}) => haal(omgeving.basis, pad, Object.assign({}, opties, {
-  headers: Object.assign({}, opties.headers, { cookie: baas.koekje })
+  headers: Object.assign({}, opties.headers,
+    { cookie: baas.koekje, 'x-profiel': String(baas.profiel) })
 }));
 
 test.before(async () => {
@@ -288,7 +289,7 @@ test('audio uploaden naar een eigen liedje en weer verwijderen', async () => {
   const up = await fetch(`${omgeving.basis}/api/liedjes/${id}/audio`, {
     method: 'POST',
     // Uploaden hoort bij de beheerder; zonder dit koekje weigert de app het (en dat is de bedoeling).
-    headers: { 'content-type': 'audio/mpeg', 'x-bestandsnaam': 'mijn opname.mp3', 'x-audio-titel': 'Mijn opname', cookie: baas.koekje },
+    headers: { 'content-type': 'audio/mpeg', 'x-bestandsnaam': 'mijn opname.mp3', 'x-audio-titel': 'Mijn opname', cookie: baas.koekje, 'x-profiel': String(baas.profiel) },
     body: nepMp3
   });
   assert.equal(up.status, 201);
@@ -311,13 +312,13 @@ test('audio uploaden naar een eigen liedje en weer verwijderen', async () => {
   assert.equal(na.data.audio.opname, '');
 
   const verkeerd = await fetch(`${omgeving.basis}/api/liedjes/${id}/audio`, {
-    method: 'POST', headers: { 'content-type': 'text/plain', cookie: baas.koekje }, body: 'geen audio'
+    method: 'POST', headers: { 'content-type': 'text/plain', cookie: baas.koekje, 'x-profiel': String(baas.profiel) }, body: 'geen audio'
   });
   assert.equal(verkeerd.status, 400);
 
   const meegeleverd = await alsBaas('/api/liedjes?compact=1&aantal=1');
   const verboden = await fetch(`${omgeving.basis}/api/liedjes/${meegeleverd.data.liedjes[0].id}/audio`, {
-    method: 'POST', headers: { 'content-type': 'audio/mpeg', cookie: baas.koekje }, body: nepMp3
+    method: 'POST', headers: { 'content-type': 'audio/mpeg', cookie: baas.koekje, 'x-profiel': String(baas.profiel) }, body: nepMp3
   });
   assert.equal(verboden.status, 400);
 

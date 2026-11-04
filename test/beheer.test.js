@@ -117,3 +117,42 @@ test('inloggen, een verkeerd wachtwoord en uitloggen', async () => {
     await omgeving.stop();
   }
 });
+
+test('het gereedschap hoort bij het beheerdersprofiel en niet bij je gewone profielen', async () => {
+  const omgeving = await start();
+  try {
+    const profielen = await haal(omgeving.basis, '/api/profielen');
+    const bazen = profielen.data.profielen.filter(p => p.beheer);
+    assert.equal(bazen.length, 1, 'er hoort precies één beheerdersprofiel te zijn');
+    assert.equal(bazen[0].naam, 'Admin');
+    const gewoon = profielen.data.profielen.find(p => !p.beheer);
+    assert.ok(gewoon, 'er hoort ook een gewoon profiel te bestaan');
+
+    const ingelogd = await alsBeheerder(omgeving.basis);
+    const lied = (await haal(omgeving.basis, '/api/liedjes?aantal=1')).data.liedjes[0];
+
+    // Ingelogd zijn is niet genoeg: het moet ook het beheerdersprofiel zijn.
+    const inGewoonProfiel = await haal(omgeving.basis, '/api/download', {
+      method: 'POST',
+      headers: { cookie: ingelogd.koekje, 'x-profiel': String(gewoon.id), 'content-type': 'application/json' },
+      body: JSON.stringify({ liedje: lied.id, url: 'https://youtu.be/dQw4w9WgXcQ' })
+    });
+    assert.equal(inGewoonProfiel.status, 403, 'in een gewoon profiel hoort dit geweigerd te worden');
+    assert.match(inGewoonProfiel.data.fout, /beheerdersprofiel/i);
+    assert.equal(inGewoonProfiel.data.ingelogd, true, 'de app vertelt dat je wel bent ingelogd');
+
+    // In het beheerdersprofiel mag het wel.
+    const inBaasProfiel = await ingelogd.post('/api/mappen', { pad: '/tmp' });
+    assert.ok([200, 201].includes(inBaasProfiel.status), JSON.stringify(inBaasProfiel.data));
+
+    // En de app hoort te weten in welk profiel je zit (dan kan hij het tabblad weglaten).
+    const detailGewoon = await haal(omgeving.basis, '/api/liedjes/' + lied.id,
+      { headers: { cookie: ingelogd.koekje, 'x-profiel': String(gewoon.id) } });
+    assert.equal(detailGewoon.data.beheer, true, 'je bent ingelogd');
+    assert.equal(detailGewoon.data.beheerProfiel, false, 'maar niet in het beheerdersprofiel');
+    const detailBaas = await ingelogd.haal('/api/liedjes/' + lied.id);
+    assert.equal(detailBaas.data.beheerProfiel, true);
+  } finally {
+    await omgeving.stop();
+  }
+});

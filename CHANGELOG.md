@@ -3,6 +3,25 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.4.0] — 4 november 2026
+
+### Nieuw
+
+- **Het toevoeggereedschap zit in een eigen profiel: `Admin`.** Het tabblad Toevoegen (en de
+  toevoegblokken in het speelscherm) bestaan alleen in dat profiel; in je gewone profielen — voor
+  het gezin, per persoon, voor een optreden — is het er niet, zodat daar alleen staat waar je mee
+  speelt en leert. In de profielkiezer staat het als *Admin · beheerder*.
+- Het beheerdersprofiel wordt automatisch aangemaakt (ook in een database die al bestond, via een
+  kolom `is_beheer` die er zonder verlies bij komt) en kan niet worden verwijderd.
+- De poortwachter eist nu beide: ingelogd zijn **en** in het beheerdersprofiel werken. Wie is
+  ingelogd maar in een gewoon profiel zit, krijgt een uitleg waarin staat welk profiel je moet
+  kiezen in plaats van een kaal "niet toegestaan".
+
+### Veranderd
+
+- De handleiding en de README leggen uit hoe je bij het beheerdersprofiel komt.
+- De app-cache naar v33.
+
 ## [1.3.0] — 4 november 2026
 
 ### Nieuw

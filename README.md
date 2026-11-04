@@ -176,15 +176,20 @@ in plaats van wav. Geen npm-afhankelijkheden.
 
 De app is voor iedereen te gebruiken, maar wat er *op de machine komt* hoort bij één account:
 
+Het toevoeggereedschap zit in een **eigen profiel** (`Admin`), niet in je gewone profielen:
+
 | Wat | Wie |
 | --- | --- |
-| Zoeken, filteren, spelen, meespelen, leren, casten, eigen profielen/favorieten/setlists | iedereen |
-| Muziek of video uploaden, een link omzetten naar mp3, een map laten omzetten | beheerder |
+| Zoeken, filteren, spelen, meespelen, leren, casten, eigen profielen/favorieten/setlists | iedereen, in elk profiel |
+| Muziek of video uploaden, een link omzetten naar mp3, een map laten omzetten | beheerder, in het profiel Admin |
 | Muziekmappen toevoegen of weghalen, eigen liedjes bewerken, opnamen uploaden | beheerder |
 | Back-up, wachter, bijwerken, Spotify-sleutels | beheerder |
 
-De eerste keer stel je bij het tabblad **Toevoegen** een wachtwoord in (minstens acht tekens); je
-bent daarna meteen ingelogd. Je blijft negentig dagen ingelogd per apparaat. Na tien foute pogingen
+Het tabblad **Toevoegen** bestaat alleen in het profiel `Admin` (in de profielkiezer staat het als
+*Admin · beheerder*); in andere profielen is het er niet, zodat daar alleen staat waar je mee speelt
+en leert. Het beheerdersprofiel kan niet worden verwijderd. Ernaast geldt het wachtwoord: zonder
+inloggen kun je in Admin rondkijken maar niets toevoegen. De eerste keer stel je daar een wachtwoord
+in (minstens acht tekens); je bent daarna meteen ingelogd. Je blijft negentig dagen ingelogd per apparaat. Na tien foute pogingen
 binnen een kwartier weigert de app het even.
 
 Het wachtwoord zelf wordt nooit bewaard: er staat alleen een scrypt-afdruk met een eigen zout in de
@@ -757,7 +762,7 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 173 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+node --test test/*.test.js          # 174 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
                                     # setlists, akkoordenboek, de wachter en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL

@@ -56,13 +56,21 @@ const post = (basis, pad, lichaam) => haal(basis, pad, {
 async function alsBeheerder(basis, wachtwoord = 'proefwachtwoord') {
   const eerste = await post(basis, '/api/beheer/wachtwoord', { wachtwoord });
   const koekje = String(eerste.headers.get('set-cookie') || '').split(';')[0];
+  // Het toevoeggereedschap hoort bij het beheerdersprofiel, dus sturen we dat profiel mee
+  // (in de app kies je het in de profielkiezer).
+  const profielen = await haal(basis, '/api/profielen', { headers: { cookie: koekje } });
+  const baas = (profielen.data.profielen || []).find(p => p.beheer);
+  const profielKop = baas ? { 'x-profiel': String(baas.id) } : {};
   const metKoekje = (opties = {}) => Object.assign({}, opties, {
-    headers: Object.assign({}, opties.headers, { cookie: koekje })
+    // Een expliciet meegegeven profiel (voor de test met meerdere profielen) wint van het
+    // beheerdersprofiel.
+    headers: Object.assign({}, profielKop, opties.headers, { cookie: koekje })
   });
   return {
     wachtwoord,
     koekje,
     eerste,
+    profiel: baas ? baas.id : 0,
     haal: (pad, opties) => haal(basis, pad, metKoekje(opties)),
     post: (pad, lichaam) => haal(basis, pad, metKoekje({
       method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(lichaam || {})

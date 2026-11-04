@@ -20,7 +20,7 @@ const ids = [];
 test.before(async () => {
   omgeving = await start();
   baas = await alsBeheerder(omgeving.basis);
-  const lijst = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=5');
+  const lijst = await baas.haal('/api/liedjes?compact=1&aantal=5');
   assert.equal(lijst.status, 200);
   lijst.data.liedjes.slice(0, 4).forEach(l => ids.push(l.id));
   assert.ok(ids.length >= 3, 'we hebben een paar liedjes nodig voor de setlist');
@@ -29,7 +29,7 @@ test.before(async () => {
 test.after(async () => { if (omgeving) await omgeving.stop(); });
 
 test('een setlist maken, vullen en weer lezen', async () => {
-  const leeg = await haal(omgeving.basis, '/api/setlists');
+  const leeg = await baas.haal('/api/setlists');
   assert.equal(leeg.status, 200);
   assert.deepEqual(leeg.data.setlists, []);
 
@@ -54,11 +54,11 @@ test('een setlist maken, vullen en weer lezen', async () => {
   for (const liedje of ids.slice(1, 4)) {
     await baas.post(`/api/setlists/${id}/liedjes`, { liedje, actie: 'bij' });
   }
-  const vol = await haal(omgeving.basis, `/api/setlists/${id}`);
+  const vol = await baas.haal(`/api/setlists/${id}`);
   assert.equal(vol.data.aantal, ids.length);
   assert.deepEqual(vol.data.liedjes.map(l => l.id), ids);
 
-  const lijst = await haal(omgeving.basis, '/api/setlists');
+  const lijst = await baas.haal('/api/setlists');
   const gevonden = lijst.data.setlists.find(s => s.id === id);
   assert.ok(gevonden, 'de setlist staat in de lijst');
   assert.equal(gevonden.aantal, ids.length);
@@ -102,9 +102,9 @@ test('een setlist hoort bij één profiel en kun je weer weggooien', async () =>
   assert.equal(bijAnna.status, 200);
 
   // het standaardprofiel ziet die setlist niet
-  const standaard = await haal(omgeving.basis, '/api/setlists');
+  const standaard = await baas.haal('/api/setlists');
   assert.ok(!standaard.data.setlists.some(s => s.id === annaSetlist), 'setlists zijn persoonlijk');
-  const andermans = await haal(omgeving.basis, `/api/setlists/${annaSetlist}`);
+  const andermans = await baas.haal(`/api/setlists/${annaSetlist}`);
   assert.equal(andermans.status, 404);
 
   const eigen = await haalProfiel(annaId, `/api/setlists/${annaSetlist}`);
@@ -118,7 +118,7 @@ test('een setlist hoort bij één profiel en kun je weer weggooien', async () =>
 });
 
 test('het akkoordenboek geeft van elk akkoord alle posities met een tekening', async () => {
-  const boek = await haal(omgeving.basis, '/api/akkoordenboek');
+  const boek = await baas.haal('/api/akkoordenboek');
   assert.equal(boek.status, 200);
   assert.ok(boek.data.akkoorden.length >= 26, 'minstens de 26 grepen');
 
@@ -147,16 +147,16 @@ test('het akkoordenboek geeft van elk akkoord alle posities met een tekening', a
     }
   }
 
-  const een = await haal(omgeving.basis, '/api/akkoordenboek?akkoord=F');
+  const een = await baas.haal('/api/akkoordenboek?akkoord=F');
   assert.equal(een.status, 200);
   assert.equal(een.data.naam, 'F');
   assert.ok(een.data.posities.length >= 2, 'F heeft meer dan één positie');
-  const geen = await haal(omgeving.basis, '/api/akkoordenboek?akkoord=Zx');
+  const geen = await baas.haal('/api/akkoordenboek?akkoord=Zx');
   assert.equal(geen.status, 404);
 });
 
 test('de wachter staat standaard uit en is in te stellen', async () => {
-  const eerste = await haal(omgeving.basis, '/api/wachter');
+  const eerste = await baas.haal('/api/wachter');
   assert.equal(eerste.status, 200);
   assert.equal(eerste.data.aan, false);
   assert.equal(eerste.data.minuten, 360);

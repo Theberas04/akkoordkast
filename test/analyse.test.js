@@ -57,7 +57,7 @@ test('een mp3 uploaden levert een liedje met een herkend schema', async () => {
     const wav = proefsignaal.naarWav(proefsignaal.akkoordProef(['G', 'C', 'D7', 'G'], 100, SR), SR);
     const antwoord = await fetch(omgeving.basis + '/api/analyse', {
       method: 'POST',
-      headers: { 'content-type': 'audio/wav', 'x-bestandsnaam': encodeURIComponent('Amazing Grace (oefening).wav'), cookie: baas.koekje },
+      headers: { 'content-type': 'audio/wav', 'x-bestandsnaam': encodeURIComponent('Amazing Grace (oefening).wav'), cookie: baas.koekje, 'x-profiel': String(baas.profiel) },
       body: wav
     });
     const uit = await antwoord.json();
@@ -99,7 +99,7 @@ test('een upload zonder geluid wordt met uitleg geweigerd', async () => {
   try {
     const antwoord = await fetch(omgeving.basis + '/api/analyse', {
       method: 'POST',
-      headers: { 'content-type': 'audio/mpeg', 'x-bestandsnaam': 'leeg.mp3', cookie: baas.koekje },
+      headers: { 'content-type': 'audio/mpeg', 'x-bestandsnaam': 'leeg.mp3', cookie: baas.koekje, 'x-profiel': String(baas.profiel) },
       body: Buffer.alloc(4096)
     });
     const uit = await antwoord.json();

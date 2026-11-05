@@ -3,6 +3,24 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.40.0] — 5 november 2026
+
+### Het bladmuziek loopt mee met de muziek
+
+Tijdens het meespelen liepen de notenbalk, de tabulatuur en de hals wel mee, maar het bladmuziek zelf
+stond stil: je zag nergens waar de muziek was. Nu licht het akkoord van de maat die klinkt op, en loopt
+het uit beeld, dan schuift het blad mee.
+
+- Elk akkoord op het blad krijgt een nummer mee (`data-ak`), zodat het beeld de maat kan terugvinden.
+- De animatielus zet het opgelichte akkoord op de maat die hij uit de audiotijd haalt (`zetBladOpMaat`),
+  en zoekt dat in de hele pagina — het blad staat in meer dan één houder (liedblad, meespeelkaart,
+  boek), en het opzoeken binnen één houder vond niets.
+- Het blad schuift alleen als het akkoord niet goed in beeld staat, zodat het niet onder je handen danst.
+- Stoppen laat de markering weer los (`laatBladLos`).
+
+Nieuwe proef die de onderdelen bewaakt; nagekeken in Chromium met een telefoonformaat, waarbij het
+opgelichte akkoord meeliep met de audio (C → F → G7).
+
 ## [1.39.0] — 5 november 2026
 
 ### De beheerder zet de handleiding in de app, zonder dat hij in het repo staat

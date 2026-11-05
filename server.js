@@ -35,7 +35,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.18.1';
+const VERSIE = '1.19.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -3275,17 +3275,22 @@ async function verwerk(req, res) {
   }
 
   // --- versie en bijwerken ---
+  // Iedereen mag zien welke versie er draait (de pagina zet hem in de kop); de velden over het
+  // bijwerken komen er alleen bij voor de beheerder.
   if (pad === '/api/versie' && methode === 'GET') {
-    json(res, 200, {
+    const uit = {
       versie: VERSIE,
       commit: korteCommit(),
-      gestart: GESTART,
-      liedjes: bron.alle().length,
-      updateMogelijk: updateMogelijk(),
-      updateScript: updateMogelijk() ? UPDATE_SCRIPT : '',
-      updateCommando: updateCommando(),
-      muziekmap: STANDAARD_MUZIEKMAP
-    });
+      liedjes: bron.alle().length
+    };
+    if (isBeheerder(req)) {
+      uit.gestart = GESTART;
+      uit.updateMogelijk = updateMogelijk();
+      uit.updateScript = updateMogelijk() ? UPDATE_SCRIPT : '';
+      uit.updateCommando = updateCommando();
+      uit.muziekmap = STANDAARD_MUZIEKMAP;
+    }
+    json(res, 200, uit);
     return;
   }
   if (pad === '/api/versie/controle' && methode === 'GET') {
@@ -3312,7 +3317,12 @@ async function verwerk(req, res) {
     const r = spawnSync('bash', [UPDATE_SCRIPT], { cwd: __dirname, encoding: 'utf8', timeout: 180000 });
     const uitvoer = ((r.stdout || '') + (r.stderr || '')).slice(-4000);
     if (r.status === 0) {
-      json(res, 200, { ok: true, uitvoer: uitvoer, commando: UPDATE_SCRIPT });
+      json(res, 200, { ok: true, uitvoer: uitvoer, commando: UPDATE_SCRIPT, herstart: true });
+      // De nieuwe bestanden staan op hun plek, maar deze dienst draait nog de oude code in het
+      // geheugen. Daarom stopt hij hier: systemd (Restart=always) start hem meteen opnieuw op met
+      // de nieuwe versie. De pagina wacht daarop en ververscht zichzelf.
+      console.log('bijgewerkt; de dienst start opnieuw op met de nieuwe versie');
+      setTimeout(() => { try { process.exit(0); } catch (e) {} }, 1200);
     } else {
       json(res, 500, {
         fout: 'Het bijwerken stopte met code ' + r.status + '. De oude versie blijft draaien.',

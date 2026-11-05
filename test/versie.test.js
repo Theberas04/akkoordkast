@@ -1,0 +1,63 @@
+'use strict';
+// De versie in de app, de uitleg bij een geblokkeerde microfoon, en het bijwerken vanuit de app.
+const test = require('node:test');
+const assert = require('node:assert');
+const fs = require('fs');
+const path = require('path');
+const hulp = require('./hulp');
+
+const wortel = path.join(__dirname, '..');
+
+test('de versie is op te vragen en de pagina zet hem in de kop', async () => {
+  const omgeving = await hulp.start();
+  try {
+    const uit = await hulp.haal(omgeving.basis, '/api/versie');
+    assert.equal(uit.status, 200, 'de versie hoort zonder inloggen op te vragen te zijn');
+    assert.match(String(uit.data.versie), /^\d+\.\d+\.\d+$/, 'de versie hoort er als 1.2.3 uit te zien');
+    assert.ok(uit.data.liedjes > 1000, 'het aantal liedjes hoort erbij te staan');
+  } finally {
+    await omgeving.stop();
+  }
+  const html = fs.readFileSync(path.join(wortel, 'public', 'index.html'), 'utf8');
+  assert.match(html, /id="kop-versie"/, 'de versie hoort in de kop van de app te staan');
+  assert.match(html, /\/api\/versie\?r=/, 'de pagina hoort de versie zelf op te halen');
+});
+
+test('de microfoon-uitleg dekt alle gevallen en wordt overal gebruikt', () => {
+  const html = fs.readFileSync(path.join(wortel, 'public', 'index.html'), 'utf8');
+  assert.match(html, /function microfoonUitleg/, 'er hoort een uitleg te zijn bij een microfoon die niet werkt');
+  for (const naam of ['NotAllowedError', 'NotFoundError', 'NotReadableError', 'isSecureContext']) {
+    assert.ok(html.includes(naam), 'de uitleg hoort ' + naam + ' te noemen');
+  }
+  assert.match(html, /Machtigingen of Site-instellingen/,
+    'de stappen om de microfoon aan te zetten horen erin te staan');
+  const gebruik = (html.match(/microfoonUitleg\(/g) || []).length;
+  assert.ok(gebruik >= 4, 'de stemmer, de ritme-trainer en het opnemen horen de uitleg te gebruiken (nu ' + gebruik + ')');
+});
+
+test('de bijwerker in de container staat klaar en raakt de gegevens niet aan', () => {
+  const script = path.join(wortel, 'scripts', 'bijwerken-in-de-app.sh');
+  assert.ok(fs.existsSync(script), 'de bijwerker hoort er te zijn');
+  assert.ok(fs.statSync(script).mode & 0o111, 'de bijwerker hoort uitvoerbaar te zijn');
+  const inhoud = fs.readFileSync(script, 'utf8');
+  assert.match(inhoud, /codeload\.github\.com/, 'de bijwerker hoort het archief van GitHub te halen');
+  assert.match(inhoud, /node --check/, 'de nieuwe bestanden horen eerst gecontroleerd te worden');
+  assert.match(inhoud, /DATA_DIR\/bijwerken-/, 'van de oude bestanden hoort een reservekopie te komen');
+  for (const naam of ['akkoordkast.db', 'media/', 'handleiding']) {
+    assert.ok(!new RegExp('rm -rf[^\\n]*\\$APP_DIR/' + naam).test(inhoud),
+      'de bijwerker mag ' + naam + ' niet weghalen');
+  }
+  const eenheid = fs.readFileSync(path.join(wortel, 'deploy', 'proxmox', 'provision-akkoordkast.sh'), 'utf8');
+  assert.match(eenheid, /Environment=UPDATE_SCRIPT=\$APP_DIR\/scripts\/bijwerken-in-de-app\.sh/,
+    'de dienst hoort de bijwerker te kennen');
+  assert.match(eenheid, /Restart=always/, 'de dienst hoort vanzelf opnieuw te starten na het bijwerken');
+});
+
+test('de app start zichzelf opnieuw na een bijwerking en de pagina wacht daarop', () => {
+  const server = fs.readFileSync(path.join(wortel, 'server.js'), 'utf8');
+  assert.match(server, /herstart: true/, 'de app hoort te melden dat hij opnieuw start');
+  const html = fs.readFileSync(path.join(wortel, 'public', 'index.html'), 'utf8');
+  assert.match(html, /De (nieuwe bestanden staan er\. )?app start opnieuw op/,
+    'de pagina hoort te vertellen dat de app opnieuw start');
+  assert.match(html, /data\.herstart/, 'de pagina hoort op de herstart te wachten in plaats van blind te verversen');
+});

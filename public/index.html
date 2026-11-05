@@ -826,6 +826,7 @@
     <span class="kop-meta">
       <span class="pilletje" id="kop-aantal">liedjes laden…</span>
       <span class="pilletje" id="kop-cast">cast: onbekend</span>
+      <span class="pilletje" id="kop-versie-pil">versie <b id="kop-versie">…</b></span>
     </span>
   </div>
   <div class="onderkop">
@@ -2203,8 +2204,31 @@ function controleerVersie() {
 function werkBij() {
   toonMelding('versie-melding', 'Bezig met bijwerken…');
   api('/api/update', { method: 'POST' }).then(function (data) {
-    toonMelding('versie-melding', 'Bijgewerkt. ' + (data.uitvoer || '').split('\n').slice(-3).join(' '), 'goed');
-    setTimeout(function () { location.reload(); }, 2500);
+    if (!data.herstart) {
+      toonMelding('versie-melding', 'Bijgewerkt. ' + (data.uitvoer || '').split('\n').slice(-3).join(' '), 'goed');
+      setTimeout(function () { location.reload(); }, 2500);
+      return;
+    }
+    // De dienst stopt en komt met de nieuwe versie terug; wachten tot hij antwoordt.
+    toonMelding('versie-melding', 'De nieuwe bestanden staan er. De app start opnieuw op…');
+    var pogingen = 0;
+    var wacht = function () {
+      pogingen += 1;
+      fetch('/api/versie?r=' + Date.now()).then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (d && d.versie) {
+            toonMelding('versie-melding', 'Klaar: de app draait nu versie ' + d.versie + '. De pagina wordt ververscht.', 'goed');
+            setTimeout(function () { location.reload(); }, 1800);
+            return;
+          }
+          throw new Error('nog niet');
+        })
+        .catch(function () {
+          if (pogingen > 40) { toonMelding('versie-melding', 'De app gaf nog geen antwoord. Ververs de pagina om te kijken of hij er weer is.', 'fout'); return; }
+          setTimeout(wacht, 1000);
+        });
+    };
+    setTimeout(wacht, 2500);
   }).catch(function (e) { toonMelding('versie-melding', e.message, 'fout'); laadVersie(); });
 }
 
@@ -2217,6 +2241,14 @@ laadWeken();
 koppelBeheerKaarten();
 koppelGegevensKaart();
 koppelOpnameKaart();
+
+// De versie in de kop, zodat je meteen ziet welke versie er draait.
+function laadKopVersie() {
+  fetch('/api/versie?r=' + Date.now()).then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) { if (d && d.versie) $('kop-versie').textContent = d.versie; })
+    .catch(function () { $('kop-versie').textContent = 'onbekend'; });
+}
+laadKopVersie();
 koppelOpruimKaart();
 tabUitAdres();
 
@@ -3219,7 +3251,8 @@ function startLuisteren() {
       tik();
     })
     .catch(function (e) {
-      toonMelding('trein-luister-melding', 'Geen toegang tot de microfoon: ' + e.message, 'fout');
+      toonMelding('trein-luister-melding', (e && e.name === 'NotAllowedError' ? microfoonUitleg(e) :
+        'Geen toegang tot de microfoon: ' + (e && e.message ? e.message : 'onbekende oorzaak')), 'fout');
     });
 }
 
@@ -6640,7 +6673,7 @@ function startStemmer() {
       $('stem-start').disabled = false;
       zetStemStand('Nog niet gestart');
       if (e && e.message === 'rekenwerk') return;
-      toonMelding('stem-melding', 'Geen toegang tot de microfoon: ' + e.message, 'fout');
+      toonMelding('stem-melding', microfoonUitleg(e), 'fout');
     });
 }
 
@@ -7250,6 +7283,32 @@ function opnTijd(seconden) {
   return m + ':' + (s < 10 ? '0' : '') + s;
 }
 
+// Waarom de microfoon niet werkt, in gewone taal, met de stappen die je zelf kunt doen. De browser
+// of de telefoon beslist; de app kan dat niet omzeilen, maar wel vertellen waar het aan ligt.
+function microfoonUitleg(e) {
+  var naam = (e && (e.name || '')) || '';
+  var tekst = (e && e.message) || '';
+  if (!window.isSecureContext) {
+    return 'De microfoon mag alleen op een beveiligd adres (https). Open de app met https:// in plaats van http://.';
+  }
+  if (naam === 'NotAllowedError' || naam === 'SecurityError' || /denied|toegang|permission/i.test(tekst)) {
+    return 'De browser heeft de microfoon geblokkeerd. Zo zet je hem aan: tik in de adresbalk op het slotje (of op het ' +
+      'tune-pictogram), kies Machtigingen of Site-instellingen en zet Microfoon op Toestaan. Op een Android-telefoon ' +
+      'ook: Instellingen, Apps, Chrome, Machtigingen, Microfoon. Ververs daarna de pagina en druk weer op Start.';
+  }
+  if (naam === 'NotFoundError' || naam === 'DevicesNotFoundError') {
+    return 'Er is geen microfoon gevonden. Sluit er een aan of zet de microfoon van je telefoon aan en probeer opnieuw.';
+  }
+  if (naam === 'NotReadableError' || naam === 'TrackStartError') {
+    return 'De microfoon is bezet: een ander programma of tabblad gebruikt hem. Sluit dat en probeer opnieuw.';
+  }
+  if (naam === 'OverconstrainedError' || naam === 'ConstraintNotSatisfiedError') {
+    return 'Deze microfoon kan niet met de gevraagde instellingen werken. Probeer een andere microfoon.';
+  }
+  return 'Geen toegang tot de microfoon' + (tekst ? ': ' + tekst : '') +
+    '. Controleer of de browser de microfoon mag gebruiken.';
+}
+
 function opnStart() {
   if (OPN.aan) return;
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -7295,8 +7354,7 @@ function opnStart() {
     $('opn-stand').textContent = 'Ik neem op';
     $('opn-stand').className = 'pilletje goed';
   }).catch(function (e) {
-    toonMelding('opn-melding', 'Geen toegang tot de microfoon: ' + e.message +
-      ' (werkt dit adres met https en heb je toegang gegeven?)', 'fout');
+    toonMelding('opn-melding', microfoonUitleg(e), 'fout');
   });
 }
 

@@ -3,6 +3,31 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.19.0] — 4 november 2026
+
+### Nieuw
+
+- **Bijwerken vanuit de app werkt nu.** De dienst kent `UPDATE_SCRIPT` (`scripts/bijwerken-in-de-app.sh`)
+  en dat script haalt het nieuwste archief van GitHub, controleert de nieuwe bestanden (`node --check`),
+  maakt een reservekopie van de oude in je gegevensmap en legt de nieuwe code op hun plek. Daarna stopt
+  de app en start systemd hem opnieuw op (`Restart=always`), zodat de nieuwe versie echt draait. De knop
+  *Bijwerken* in de kaart *Beheer en bijwerken* wacht tot de app er weer is en zegt dan welke versie er
+  draait. De database, de mediabibliotheek, je eigen liedjes, de bladmuziek en de handleiding blijven
+  staan; alleen code en pagina's worden vervangen. Bijwerken vanuit een oudere installatie (zoals een
+  versie van vóór deze) zet de dienstregel er zelf bij.
+- **De versie staat nu ook in de kop van de app** (naast de cast-regel), zodat je meteen ziet welke versie
+  er draait. Hij komt van het nieuwe, open adres `GET /api/versie` (versie, laatste aanpassing en het
+  aantal liedjes).
+
+### Gerepareerd
+
+- **Een geblokkeerde microfoon legt de app nu uit wat je moet doen** in plaats van de rauwe melding van de
+  browser ("Permission denied"). Bij *geen toegang* staat er welke stappen je zet: in de adresbalk op het
+  slotje of tune-pictogram, *Machtigingen* of *Site-instellingen*, microfoon op *Toestaan*; op Android ook
+  *Instellingen, Apps, Chrome, Machtigingen, Microfoon*. Er zijn eigen teksten voor: geen microfoon
+  gevonden, microfoon bezet door een ander programma, instellingen die deze microfoon niet kan, en een
+  adres dat geen https is. Dit geldt voor de stemmer, de ritme-trainer en het opnemen van jezelf.
+
 ## [1.18.1] — 4 november 2026
 
 ### De handleiding en de landingspagina gaan uit het openbare repo

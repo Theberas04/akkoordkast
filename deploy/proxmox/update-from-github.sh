@@ -112,6 +112,7 @@ FILES=(
   "song-data/oneill-liedjes.json"
   "song-data/oude-bundels.json"
   "scripts/cast-helper.py"
+  "scripts/bijwerken-in-de-app.sh"
 )
 
 RUNTIME=(
@@ -161,6 +162,7 @@ DATA=(
   "song-data/oneill-liedjes.json"
   "song-data/oude-bundels.json"
   "scripts/cast-helper.py"
+  "scripts/bijwerken-in-de-app.sh"
 )
 
 binnen_bash() { pct exec "$CTID" -- bash -c "$1"; }
@@ -220,6 +222,15 @@ if ! binnen_bash "test -x /usr/local/bin/yt-dlp"; then
   else
     echo "   let op: yt-dlp kon niet worden opgehaald; het omzetten van een link naar mp3 werkt dan niet."
   fi
+fi
+
+# Bijwerken vanuit de app aanzetten als het nog niet in de dienst staat (voor installaties die
+# van vóór deze versie zijn). De app start dit script als je in de app op Bijwerken drukt.
+pct exec "$CTID" -- chmod 755 "$APP_DIR/scripts/bijwerken-in-de-app.sh" 2>/dev/null || true
+if ! pct exec "$CTID" -- grep -q "UPDATE_SCRIPT" /etc/systemd/system/akkoordkast.service 2>/dev/null; then
+  pct exec "$CTID" -- sed -i "/^Environment=DATA_DIR=/i Environment=UPDATE_SCRIPT=$APP_DIR/scripts/bijwerken-in-de-app.sh" /etc/systemd/system/akkoordkast.service
+  pct exec "$CTID" -- systemctl daemon-reload
+  echo "Bijwerken vanuit de app is aangezet in de dienst."
 fi
 
 echo "== Dienst herstarten"

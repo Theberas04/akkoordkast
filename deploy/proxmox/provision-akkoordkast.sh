@@ -87,6 +87,7 @@ DATA=(
   "song-data/oneill-liedjes.json"
   "song-data/oude-bundels.json"
   "scripts/cast-helper.py"
+  "scripts/bijwerken-in-de-app.sh"
 )
 
 for f in "${RUNTIME[@]}" "${PAGINA[@]}" "${DATA[@]}"; do
@@ -131,7 +132,7 @@ echo "== Bestanden naar de container sturen"
 for f in "${RUNTIME[@]}"; do pct push "$CTID" "$SRC/$f" "$APP_DIR/$f" --perms 644; done
 for f in "${PAGINA[@]}"; do pct push "$CTID" "$SRC/$f" "$APP_DIR/$f" --perms 644; done
 for f in "${DATA[@]}"; do pct push "$CTID" "$SRC/$f" "$APP_DIR/$f" --perms 644; done
-binnen_bash "chmod 755 $APP_DIR/scripts/cast-helper.py && chown -R $GEBRUIKER:$GEBRUIKER $APP_DIR $DATA_DIR"
+binnen_bash "chmod 755 $APP_DIR/scripts/cast-helper.py $APP_DIR/scripts/bijwerken-in-de-app.sh && chown -R $GEBRUIKER:$GEBRUIKER $APP_DIR $DATA_DIR"
 
 echo "== Chromecast-hulp installeren (pychromecast in een eigen venv)"
 CAST_KLAAR=1
@@ -179,6 +180,8 @@ Environment=FFMPEG=/usr/bin/ffmpeg
 Environment=MUSIC_DIR=$MUZIEKMAP
 Environment=DOWNLOAD_DIR=$MUZIEKMAP/Gedownload
 Environment=YTDLP=/usr/local/bin/yt-dlp
+# Bijwerken vanuit de app: de app start dit script als je op Bijwerken drukt.
+Environment=UPDATE_SCRIPT=$APP_DIR/scripts/bijwerken-in-de-app.sh
 AmbientCapabilities=CAP_NET_BIND_SERVICE
 CapabilityBoundingSet=CAP_NET_BIND_SERVICE
 NoNewPrivileges=yes

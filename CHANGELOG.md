@@ -3,6 +3,22 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.36.0] — 5 november 2026
+
+### De microfoon-uitleg noemt ook de twee bovenliggende schakelaars
+
+Tom meldde dat de microfoon **ook in Chrome zelf** niet werkt. Dat sluit de app-schil uit en wijst naar de
+browser of het toestel zelf: staat de microfoon voor **Chrome** uit, of vraagt Chrome het niet meer (de
+site-instelling *Microfoon* op Blokkeren), dan krijgt geen enkele website ooit een vraag te zien — en
+daarom staat er ook geen microfoon in het rechtenoverzicht van de site.
+
+- De uitleg bij een geweigerde microfoon noemt nu die twee plekken: in Chrome bij *Instellingen,
+  Site-instellingen, Microfoon* de schakelaar weer aan of op Vragen, en in de telefoon bij *Instellingen,
+  Privacy en beveiliging, Machtigingsbeheer, Microfoon* of Chrome daar aan staat.
+- Dezelfde uitleg wijst meteen naar de snaartononen bij **Stemmen**, want die werken zonder microfoon.
+
+Zo hoeft dezelfde vraag niet nog eens heen en weer.
+
 ## [1.35.0] — 5 november 2026
 
 ### De app legt uit wat een Cloudflare-fout (1033 of 502) betekent

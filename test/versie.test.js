@@ -258,3 +258,13 @@ test('de app legt een Cloudflare-fout bij het bijwerken uit', () => {
   assert.match(html, /De app stopt zo en start opnieuw/, 'met de uitleg dat de app herstart');
   assert.match(html, /wacht dan tien tellen en ververs/, 'en wat je dan moet doen');
 });
+
+test('de microfoon-uitleg noemt ook Chrome zelf en de telefoon-instellingen', () => {
+  // "In Chrome zelf kan ik de microfoon ook niet gebruiken" wijst naar de bovenliggende schakelaars: de
+  // microfoon voor de Chrome-app, of de site-instelling van Chrome die op Blokkeren staat.
+  const html = fs.readFileSync(path.join(wortel, 'public', 'index.html'), 'utf8');
+  assert.match(html, /Site-instellingen, Microfoon/, 'de site-instelling van Chrome hoort erbij');
+  assert.match(html, /Machtigingsbeheer, Microfoon/, 'en de centrale plek in de telefoon');
+  assert.match(html, /in geen enkele site/, 'het moet duidelijk zijn dat dit de bovenliggende laag is');
+  assert.match(html, /snaartononen: die werken altijd/, 'met de uitweg ernaast');
+});

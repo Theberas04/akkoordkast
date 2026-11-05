@@ -99,3 +99,44 @@ test('de cast krijgt altijd een adres in het eigen netwerk, ook als de pagina va
   }
 });
 
+
+test('de app kan het geluid van een liedje klaarzetten voor een cast in elk netwerk', async () => {
+  // Voor het casten vanaf je eigen apparaat (als je ergens anders bent) moet de app een volledig adres
+  // geven: precies het adres waarmee de pagina de app heeft geopend, want daar kan een cast in welk
+  // netwerk dan ook bij.
+  const omgeving = await hulp.start();
+  try {
+    const poort = omgeving.app.server.address().port;
+
+    // De begeleiding die de app zelf maakt.
+    const begeleiding = await hulp.haal(omgeving.basis, '/api/cast/audio?liedje=1&bron=meespelen&tempo=90');
+    assert.equal(begeleiding.status, 200, JSON.stringify(begeleiding.data));
+    assert.match(String(begeleiding.data.url), /^http:\/\/127\.0\.0\.1:\d+\/api\/meespelen\/audio\?/,
+      'het adres hoort volledig te zijn: ' + begeleiding.data.url);
+    assert.ok(String(begeleiding.data.url).includes(':' + poort + '/'),
+      'met de poort waarop deze pagina de app bereikt: ' + begeleiding.data.url);
+    assert.ok(String(begeleiding.data.url).includes('liedje=1'), 'met het liedje erin: ' + begeleiding.data.url);
+    assert.ok(String(begeleiding.data.titel || '').length > 0, 'de titel hoort erbij te zitten');
+    assert.ok(String(begeleiding.data.toelichting || '').length > 0, 'de app hoort uit te leggen wat er speelt');
+
+    // En de gewone begeleiding (wat de app als standaard kiest) levert ook een volledig adres.
+    const gewoon = await hulp.haal(omgeving.basis, '/api/cast/audio?liedje=1');
+    assert.equal(gewoon.status, 200, JSON.stringify(gewoon.data));
+    assert.match(String(gewoon.data.url), /^http:\/\/127\.0\.0\.1:\d+\/api\//, 'ook dit adres hoort volledig te zijn: ' + gewoon.data.url);
+
+    // Een liedje dat niet bestaat hoort netjes te worden geweigerd.
+    const niets = await hulp.haal(omgeving.basis, '/api/cast/audio?liedje=99999999');
+    assert.equal(niets.status, 404);
+
+    // En de pagina hoort het casten vanaf het eigen apparaat echt te hebben.
+    const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+    assert.match(html, /cast-vanaf-dit/, 'de pagina hoort een knop te hebben om vanaf dit apparaat te casten');
+    assert.match(html, /cast_sender\.js/, 'de pagina hoort de cast-bibliotheek van de browser te gebruiken');
+    assert.match(html, /\/api\/cast\/audio/, 'en het geluid bij de app op te vragen');
+    assert.match(html, /DEFAULT_MEDIA_RECEIVER_APP_ID/, 'met de standaard-ontvanger van Chromecast');
+    assert.match(html, /netwerk waar je nu bent/, 'de pagina hoort uit te leggen waarom je dit gebruikt');
+    assert.match(html, /cast-bereik/, 'en de server mag ook in een ander netwerk zoeken');
+  } finally {
+    await omgeving.stop();
+  }
+});

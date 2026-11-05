@@ -1634,8 +1634,19 @@
       <h2>Chromecast</h2>
       <p class="melding">AkkoordKast stuurt de audio van het geopende liedje naar een Chromecast in je netwerk.
         De Chromecast haalt het geluid op bij deze server, dus het toestel moet dit adres kunnen bereiken.</p>
+      <div style="border-left:3px solid #2e7d32;padding-left:12px;margin:14px 0">
+        <p><b>Waar ben je?</b> De server zoekt alleen in het netwerk waar hij <b>zelf</b> staat (bij jou thuis).
+          Sta je ergens anders, gebruik dan de knop hieronder: dan zoekt <b>dit apparaat</b> — je telefoon of je
+          computer — naar de Chromecast in het netwerk waar je nu bent.</p>
+        <div class="rij">
+          <button class="knop" id="cast-vanaf-dit">Zoek en cast vanaf dit apparaat</button>
+        </div>
+        <div class="melding" id="cast-dit-melding" hidden></div>
+      </div>
+      <p class="melding">Of laat de server zoeken — dat werkt voor toestellen in het netwerk van de server:</p>
       <div class="rij">
         <button class="knop" id="cast-zoeken">Apparaten zoeken</button>
+        <input id="cast-bereik" type="text" placeholder="ander netwerk, bv. 192.168.2" style="max-width:170px">
         <input id="cast-handmatig" type="text" placeholder="of typ een IP-adres, bv. 192.168.1.100" style="flex:1;min-width:180px">
         <button class="knop zacht" id="cast-verbind-ip">Daar casten</button>
       </div>
@@ -4588,7 +4599,13 @@ function meespelTik() {
 // ------------------------------------------------------------------- casten ---
 function laadApparaten(stil) {
   if (!stil) toonMelding('cast-melding', 'Zoeken naar Chromecasts…', '');
-  api('/api/cast/apparaten').then(function (data) {
+  var bereikVeld = $('cast-bereik');
+  var bereik = bereikVeld ? String(bereikVeld.value || '').trim().replace(/\.$/, '') : '';
+  if (bereik && !/^\d{1,3}(\.\d{1,3}){0,2}$/.test(bereik)) {
+    toonMelding('cast-melding', 'Dat lijkt geen netwerk. Vul bijvoorbeeld 192.168.2 in.', 'fout');
+    return;
+  }
+  api('/api/cast/apparaten' + (bereik ? '?bereik=' + encodeURIComponent(bereik) : '')).then(function (data) {
     if (data.fout) { toonMelding('cast-melding', data.fout + (data.hint ? ' — ' + data.hint : ''), 'fout'); return; }
     staat.apparaten = data.apparaten || [];
     tekenApparaten();
@@ -5152,6 +5169,74 @@ function laadSpotifyStatus() {
     $('spotify-markt').value = r.markt || 'NL';
   }).catch(function () {});
 }
+// ------------------------------------------ casten vanaf dit apparaat ---
+// De server zoekt alleen in zijn eigen netwerk. Sta je ergens anders, dan zoekt en cast dit apparaat
+// zelf: dan vind je de Chromecast in het netwerk waar je nu bent. Het geluid haalt de cast op bij het
+// adres waarmee je de app hebt geopend - dat is overal bereikbaar, dus dit werkt ook van buiten.
+var castSdk = { gestart: false, klaar: false };
+
+function laadCastSdk() {
+  if (castSdk.gestart) return Promise.resolve(castSdk.klaar);
+  castSdk.gestart = true;
+  return new Promise(function (klaar) {
+    window.__onGCastApiAvailable = function (beschikbaar) {
+      if (!beschikbaar) { klaar(false); return; }
+      try {
+        cast.framework.CastContext.getInstance().setOptions({
+          receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+          autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+        });
+        castSdk.klaar = true;
+        klaar(true);
+      } catch (e) { klaar(false); }
+    };
+    var s = document.createElement('script');
+    s.src = 'https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1';
+    s.onerror = function () { klaar(false); };
+    document.head.appendChild(s);
+    setTimeout(function () { if (!castSdk.klaar) klaar(false); }, 15000);
+  });
+}
+
+function castVanafDitApparaat() {
+  var lied = staat.liedje;
+  if (!lied) { toonMelding('cast-dit-melding', 'Open eerst een liedje in het tabblad Liedjes.', 'fout'); return; }
+  toonMelding('cast-dit-melding', 'Casten voorbereiden\u2026', '');
+  laadCastSdk().then(function (ok) {
+    if (!ok) {
+      toonMelding('cast-dit-melding', 'Deze browser kan niet zelf casten. Dat werkt in Chrome op een computer ' +
+        'of op Android; gebruik anders het zoeken van de server hierboven.', 'fout');
+      return null;
+    }
+    var vraag = '/api/cast/audio?liedje=' + lied.id +
+      '&capo=' + encodeURIComponent(staat.capo == null ? '' : staat.capo) +
+      '&transpose=' + encodeURIComponent(staat.transpositie || 0);
+    return api(vraag).then(function (d) {
+      if (!d || d.fout || !d.url) throw new Error((d && d.fout) || 'De app kon het geluid van dit liedje niet klaarzetten.');
+      var context = cast.framework.CastContext.getInstance();
+      return context.requestSession().then(function () {
+        var sessie = context.getCurrentSession();
+        var media = new chrome.cast.media.MediaInfo(d.url, d.type || 'audio/mpeg');
+        media.metadata = new chrome.cast.media.GenericMediaMetadata();
+        media.metadata.title = d.titel || lied.titel;
+        media.metadata.artist = d.artiest || lied.artiest || '';
+        var verzoek = new chrome.cast.media.LoadRequest(media);
+        return sessie.loadMedia(verzoek).then(function () {
+          toonMelding('cast-dit-melding', 'Aan het casten: ' + (d.titel || lied.titel) + ' naar ' +
+            (sessie.getCastDevice().friendlyName || 'de Chromecast') + ' \u2014 ' + (d.toelichting || 'het geluid') +
+            '. De cast haalt het geluid op via ' + d.url.split('/api/')[0] + ', dus dat werkt ook als je ' +
+            'ergens anders bent.', 'goed');
+        });
+      });
+    });
+  }).catch(function (e) {
+    var tekst = String((e && e.message) || e);
+    if (tekst === 'cancel') { toonMelding('cast-dit-melding', 'Geen apparaat gekozen.', ''); return; }
+    toonMelding('cast-dit-melding', 'Casten lukte niet: ' + tekst, 'fout');
+  });
+}
+
+$('cast-vanaf-dit').addEventListener('click', castVanafDitApparaat);
 $('cast-zoeken').addEventListener('click', function () { laadApparaten(false); });
 laadSpotifyStatus();
 $('cast-verbind-ip').addEventListener('click', function () {

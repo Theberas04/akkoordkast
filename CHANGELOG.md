@@ -3,6 +3,36 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.25.0] — 4 november 2026
+
+### Casten naar het toestel op het netwerk waar je nú bent
+
+De klacht: *"ik vind alsnog alleen maar slaapkamer als chromecast in plaats van het apparaat wat er is op
+het netwerk waar ik nu ben"*. Dat klopt, en het is geen fout in het zoeken: **de server zoekt alleen in
+het netwerk waar hij zelf staat** (thuis). Een Chromecast in een ander netwerk kan hij niet zien, en ook
+niet bedienen — ook niet als je hem het IP-adres geeft.
+
+Daarom kan de app het nu ook **vanaf jouw eigen apparaat** doen:
+
+- Op het tabblad Casten staat bovenaan de vraag *"Waar ben je?"* met de knop **Zoek en cast vanaf dit
+  apparaat**. Die gebruikt de cast-bibliotheek van de browser zelf, dus je telefoon of computer zoekt in
+  **het netwerk waar jij nu bent** — precies het toestel dat je bedoelt.
+- Het geluid haalt de cast dan op bij **het adres waarmee je de app hebt geopend** (`location.origin`),
+  via het nieuwe `GET /api/cast/audio`. Dat adres is van buiten bereikbaar, dus dit werkt in welk netwerk
+  dan ook. Dat is het omgekeerde van de server-cast, die juist het adres *in* het eigen netwerk gebruikt —
+  beide hebben hun eigen juiste adres.
+- Welk geluid er gecast wordt is nu één keuze in de app (`castGeluid()`): je eigen opname als die er is,
+  anders de begeleiding die de app maakt. De server-cast en het casten vanaf je apparaat pakken dus
+  hetzelfde geluid, en de app vertelt erbij wat er speelt.
+- Kan de browser niet zelf casten (bijvoorbeeld Safari), dan zegt de app dat en wijst hij op het zoeken
+  van de server.
+- De server-zoektocht kan nu ook **een ander netwerk** krijgen (een invulvak `192.168.2` bijvoorbeeld),
+  voor als jouw netwerken aan elkaar geknoopt zijn.
+
+Bewijs: `test/cast.test.js` controleert dat `GET /api/cast/audio` een volledig adres teruggeeft met het
+adres waarmee de pagina de app bereikt, met het juiste pad, type en titel — en dat de pagina de knop, de
+cast-bibliotheek en de uitleg echt heeft.
+
 ## [1.24.0] — 4 november 2026
 
 ### Casten werkt nu ook als je de app ergens anders vandaan opent

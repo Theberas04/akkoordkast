@@ -39,7 +39,7 @@ const CAST_HELPER = process.env.CAST_HELPER
   : path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.24.0';
+const VERSIE = '1.25.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -2881,6 +2881,45 @@ function castBasis() {
   return 'http://' + eigen + (Number(poort) === 80 ? '' : ':' + poort);
 }
 
+// Welk geluid casten we voor dit liedje? Je eigen opname als die er is (bron 'opname'), anders de
+// begeleiding die de app zelf maakt. Alles wat de app maakt is binnen de app op te halen, dus een cast
+// in welk netwerk dan ook kan erbij.
+function castGeluid(lied, body) {
+  const soort = String(body.bron || '');
+  if (soort === 'opname' && lied.audio_bestand) {
+    return {
+      pad: `/media/audio/${lied.audio_bestand}`,
+      type: lied.audio_bestand.endsWith('.mp3') ? 'audio/mpeg' : 'audio/wav',
+      titel: lied.titel, artiest: lied.artiest,
+      toelichting: 'je eigen opname van dit liedje'
+    };
+  }
+  if (soort === 'meespelen') {
+    const params = new URLSearchParams({
+      liedje: String(lied.id),
+      capo: String(body.capo == null ? '' : body.capo),
+      transpose: String(body.transpose || 0),
+      tempo: String(body.tempo || lied.tempo || 84),
+      aftellen: body.aftellen === false ? '0' : '1',
+      klik: body.klik ? '1' : '0'
+    });
+    return {
+      pad: `/api/meespelen/audio?${params.toString()}`,
+      type: 'audio/wav', titel: lied.titel, artiest: lied.artiest,
+      toelichting: 'de begeleiding die de app maakt, met de akkoorden van dit liedje'
+    };
+  }
+  const resultaat = previewVoorLiedje(lied, new URLSearchParams({
+    capo: String(body.capo == null ? '' : body.capo),
+    transpose: String(body.transpose || 0)
+  }));
+  return {
+    pad: `/api/audio/preview?liedje=${lied.id}&capo=${body.capo == null ? '' : body.capo}&transpose=${body.transpose || 0}`,
+    type: resultaat.type || 'audio/mpeg', titel: lied.titel, artiest: lied.artiest,
+    toelichting: 'de begeleiding die de app maakt'
+  };
+}
+
 function castHelper(args, timeout) {
   if (!fs.existsSync(CAST_HELPER)) return { fout: 'cast-helper ontbreekt' };
   const uit = spawnSync(CAST_PYTHON, [CAST_HELPER].concat(args), {
@@ -4603,6 +4642,27 @@ async function verwerk(req, res) {
     json(res, 200, Object.assign({ apparaten: [], python: CAST_PYTHON, bereik }, uit));
     return;
   }
+  // Welk geluid hoort er bij dit liedje? Dezelfde keuze als bij casten: je eigen opname als die er is,
+  // anders de begeleiding die de app maakt. Geeft een pad binnen de app terug (nog geen volledig adres).
+  if (pad === '/api/cast/audio' && methode === 'GET') {
+    const gevraagd = vindLiedje(query.get('liedje'));
+    if (!gevraagd) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    const keuze = castGeluid(gevraagd, {
+      bron: query.get('bron') || '', capo: query.get('capo'), transpose: query.get('transpose'),
+      tempo: query.get('tempo'), aftellen: query.get('aftellen') !== '0', klik: query.get('klik') === '1'
+    });
+    if (!keuze.pad) { json(res, 400, { fout: 'Geen audio om te casten.' }); return; }
+    // Het volledige adres: precies het adres waarmee deze pagina de app heeft geopend. Dat is van
+    // buiten bereikbaar, dus een cast in welk netwerk dan ook kan het geluid ophalen.
+    const gastheer = req.headers.host || ('localhost:' + PORT);
+    const schema = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim() || 'http';
+    json(res, 200, {
+      url: schema + '://' + gastheer + keuze.pad,
+      pad: keuze.pad, type: keuze.type, titel: keuze.titel, artiest: keuze.artiest,
+      toelichting: keuze.toelichting
+    });
+    return;
+  }
   if (pad === '/api/cast/start' && methode === 'POST') {
     const body = await leesJsonBody(req);
     let mediaUrl = String(body.url || '');
@@ -4612,34 +4672,11 @@ async function verwerk(req, res) {
     if (!mediaUrl && body.liedje) {
       const lied = vindLiedje(body.liedje);
       if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
-      titel = lied.titel;
-      artiest = lied.artiest;
-      if (body.bron === 'opname' && lied.audio_bestand) {
-        mediaUrl = `/media/audio/${lied.audio_bestand}`;
-        type = lied.audio_bestand.endsWith('.mp3') ? 'audio/mpeg' : 'audio/wav';
-      } else if (body.bron === 'meespelen') {
-        const params = new URLSearchParams({
-          liedje: String(lied.id),
-          capo: String(body.capo == null ? '' : body.capo),
-          transpose: String(body.transpose || 0),
-          tempo: String(body.tempo || lied.tempo || 84),
-          aftellen: body.aftellen === false ? '0' : '1',
-          klik: body.klik ? '1' : '0'
-        });
-        const resultaat = maakMeespeelAudio(lied, params);
-        type = resultaat.type;
-        mediaUrl = `/api/meespelen/audio?${params.toString()}`;
-      } else {
-        const resultaat = previewVoorLiedje(lied, new URLSearchParams({
-          capo: String(body.capo == null ? '' : body.capo),
-          transpose: String(body.transpose || 0)
-        }));
-        mediaUrl = null; // hieronder omgezet naar een absolute URL
-        const bestand = path.basename(resultaat.bestand);
-        mediaUrl = `/api/audio/preview?liedje=${lied.id}&capo=${body.capo == null ? '' : body.capo}&transpose=${body.transpose || 0}`;
-        type = resultaat.type;
-        void bestand;
-      }
+      const keuze = castGeluid(lied, body);
+      mediaUrl = keuze.pad || '';
+      type = keuze.type || type;
+      titel = keuze.titel || titel;
+      artiest = keuze.artiest || artiest;
     }
     if (!mediaUrl) { json(res, 400, { fout: 'Geen audio om te casten.' }); return; }
 

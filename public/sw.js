@@ -1,7 +1,7 @@
 'use strict';
 // Service worker: alleen de app-schil cachen. /api/ en /media/ blijven altijd live,
 // zodat liedjes, audio en cast-status nooit uit een oude cache komen.
-const CACHE = 'akkoordkast-v62';
+const CACHE = 'akkoordkast-v63';
 const SCHIL = ['/', '/index.html', '/favicon.svg', '/manifest.webmanifest', '/icon-192.png', '/lib/lessen-uitgebreid.js', '/lib/stemmen.js', '/lib/ritme.js', '/lib/toonladders.js', '/lib/oefenplan.js'];
 
 self.addEventListener('install', e => {

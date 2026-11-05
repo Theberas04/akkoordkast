@@ -3,6 +3,24 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.33.0] — 5 november 2026
+
+### Een uitweg als de geinstalleerde app de microfoon niet mag aanvragen
+
+De klacht bleef, met een nieuwe schermafbeelding van **App-rechten** van AkkoordKast: onder *Toegestaan*
+staat alleen **Meldingen**, en onder *Niet toegestaan* staat **"Geen rechten geweigerd"**. Er is dus nooit
+iets geweigerd — de microfoon is **nooit gevraagd**. De geinstalleerde app kan hem op dit toestel blijkbaar
+niet aanvragen, en dan valt er in de app ook niets toe te staan.
+
+- In de stemmerkaart staat nu, als de app als app draait, de weg die wel werkt: **Open de app in Chrome**,
+  met het adres waarop de app draait (`location.origin` — het publieke adres staat bewust nergens in het
+  repo). In de browser vraagt Chrome de microfoon wel, en daar werkt de stemmer.
+- De uitleg bij een geblokkeerde microfoon in de app verwijst naar die knop in plaats van naar een
+  instellingenscherm waar de microfoon niet eens tussen staat.
+
+Bewijs: de proef in `test/versie.test.js` controleert dat de knop er is, dat het adres uit `location.origin`
+komt en dat het publieke adres niet in de pagina staat.
+
 ## [1.32.0] — 5 november 2026
 
 ### De microfoon van de geinstalleerde app: de uitleg noemt nu de juiste plek

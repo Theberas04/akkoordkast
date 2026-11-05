@@ -1122,6 +1122,9 @@
       </div>
       <p class="les-klein" style="margin:8px 0 0">Microfoon volgens je browser: <strong id="stem-rechten">onbekend</strong>
         <button class="knop zacht" id="stem-rechten-kijk" style="margin-left:8px">Opnieuw vragen</button></p>
+      <p class="les-klein" id="stem-in-chrome" style="margin:8px 0 0;display:none">
+        De app kan de microfoon van dit toestel niet aanvragen. In de browser zelf lukt het vaak wel:
+        <a class="knop zacht" id="stem-open-chrome" href="#" target="_blank" rel="noopener">Open de app in Chrome</a></p>
       <div class="stem-meter" id="stem-meter"><span class="stem-midden"></span><span class="stem-pen" id="stem-pen"></span></div>
       <div class="stem-schaal"><span>50 cent te laag</span><span>gestemd</span><span>50 cent te hoog</span></div>
       <div class="stem-uitslag" id="stem-uitslag">Druk op Start en sla één snaar aan.</div>
@@ -2263,6 +2266,16 @@ koppelGegevensKaart();
 koppelOpnameKaart();
 if ($('stem-rechten-kijk')) {
   $('stem-rechten-kijk').addEventListener('click', function () { kijkMicrofoonRechten(); });
+  // Draait de app als app, dan kan de microfoon daar op sommige toestellen niet aangevraagd worden;
+  // in de browser zelf lukt het wel. Daarom staat die weg klaar, met het adres waar de app op draait.
+  if (alsApp()) {
+    var weg = $('stem-in-chrome');
+    if (weg) {
+      weg.style.display = '';
+      var open = $('stem-open-chrome');
+      if (open) open.href = location.origin + '/';
+    }
+  }
 }
 kijkMicrofoonRechten();
 microfoonControle();
@@ -7522,9 +7535,8 @@ function microfoonUitleg(e) {
   if (naam === 'NotAllowedError' || naam === 'SecurityError' || /denied|toegang|permission/i.test(tekst)) {
     if (alsApp()) {
       return 'De microfoon staat uit voor deze app. Zo zet je hem aan: Instellingen, Apps, AkkoordKast, ' +
-        'Machtigingen, Microfoon, Toestaan. Staat AkkoordKast daar niet tussen, open de app dan in Chrome zelf ' +
-        '(niet vanaf het beginscherm): tik in de adresbalk op het slotje, kies Machtigingen en zet Microfoon op ' +
-        'Toestaan. Ververs daarna de pagina en druk weer op Start.';
+        'Machtigingen, Microfoon, Toestaan. Staat de microfoon daar niet tussen (dan is er nooit om gevraagd), ' +
+        'gebruik dan de knop Open de app in Chrome: daar vraagt de browser het wel, en daar werkt de stemmer.';
     }
     return 'De microfoon staat uit voor deze site. Zo zet je hem aan: tik in de adresbalk op het slotje (of op het ' +
       'tune-pictogram), kies Machtigingen of Site-instellingen en zet Microfoon op Toestaan. Op een Android-telefoon ' +

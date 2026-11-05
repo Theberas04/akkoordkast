@@ -223,3 +223,16 @@ test('de microfoon van de geinstalleerde app: de uitleg wijst naar de app, niet 
   // En de gewone-site-route blijft ook staan, met het wegvegen van de rechten.
   assert.ok(html.includes('Rechten resetten'), 'de route via het slotje en Rechten resetten hoort te blijven');
 });
+
+test('als de app de microfoon niet mag aanvragen, is er een weg naar de browser', () => {
+  // Schermafbeelding van App-rechten: alleen Meldingen toegestaan en "Geen rechten geweigerd" - de
+  // microfoon is nooit gevraagd. Dan moet de app zelf een uitweg bieden: hetzelfde adres in de browser.
+  const html = fs.readFileSync(path.join(wortel, 'public', 'index.html'), 'utf8');
+  assert.match(html, /id="stem-open-chrome"/, 'er hoort een knop naar de browser te zijn');
+  assert.match(html, /Open de app in Chrome/, 'met duidelijke tekst');
+  assert.match(html, /open\.href = location\.origin/, 'het adres hoort uit location.origin te komen');
+  assert.ok(html.includes('id="stem-in-chrome"'), 'de knop hoort een eigen vak te hebben');
+  assert.match(html, /if \(alsApp\(\)\) \{\n\s+var weg = \$\('stem-in-chrome'\)/, 'en alleen bij de app-modus');
+  // Het publieke adres van de app hoort niet in het repo te staan.
+  assert.ok(!html.includes('werdensmedia.net'), 'het adres van de app mag niet in de pagina staan');
+});

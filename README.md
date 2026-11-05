@@ -447,6 +447,10 @@ Daarnaast staat in hetzelfde tabblad:
   de server.
 - **Alle grepen** op één plek: klik op een greep en je hoort hem, en vink af wat je al kunt — met een
   voortgangsbalk en een knop die de grepen die je nog niet kent meteen in de akkoordentrainer zet.
+- **Op gehoor stemmen als de microfoon niet mag**: blokkeert je browser of toestel de microfoon
+  (dan verschijnt er ook geen vraag meer, en staat er in het rechtenoverzicht van de site geen microfoon
+  bij), dan werken die zes snaartononen altijd. Tik een snaar aan, laat de toon klinken en draai aan de
+  sleutel tot je gitaar hetzelfde klinkt. De app zegt er zelf bij waar je de blokkade kunt wissen.
 
 Alles wat klinkt maakt de pagina zelf met Web Audio — geen geluidsbestanden, geen internet, en het werkt
 dus ook in de app op je telefoon en offline.

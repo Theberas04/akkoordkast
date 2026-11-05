@@ -273,7 +273,7 @@ test('de regel bij de stemmer noemt bij een blokkade ook Chrome zelf', () => {
   // Chrome's machtiging kan goed staan terwijl Chrome zelf de microfoon voor alle sites dichtzet. De regel
   // die de browser toestand toont, hoort dan beide plekken te noemen.
   const html = fs.readFileSync(path.join(wortel, 'public', 'index.html'), 'utf8');
-  assert.match(html, /geblokkeerd — zet hem aan/, 'de regel hoort een blokkade zo te benoemen');
+  assert.match(html, /geblokkeerd voor dit adres/, 'de regel hoort een blokkade zo te benoemen');
   assert.match(html, /Instellingen, Site-instellingen, Microfoon/, 'en Chrome\'s eigen instelling te noemen');
   assert.match(html, /nog niet gevraagd/, 'en het verschil met niets gevraagd');
 });

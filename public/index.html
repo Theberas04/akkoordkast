@@ -6783,6 +6783,16 @@ function laadStemRekenwerk() {
 // Zit de app in een andere app? WhatsApp, Slack, Facebook, Instagram en de Google-app openen een pagina
 // in hun eigen venster, en daarin mag de microfoon vaak niet. Op een telefoon is dat de meest
 // voorkomende reden dat "de microfoon niet werkt" terwijl de app niets fout doet.
+// Draait de app als geinstalleerde app (vanaf het beginscherm)? Dan beheert Android de microfoon bij
+// de app zelf en niet bij Chrome: het scherm "Rechten" van de site laat dan geen microfoon zien.
+function alsApp() {
+  try {
+    if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+    if (window.matchMedia && window.matchMedia('(display-mode: fullscreen)').matches) return true;
+  } catch (e) { /* dan maar niet */ }
+  return navigator.standalone === true;
+}
+
 function inAndereApp() {
   var u = String(navigator.userAgent || '');
   if (/; wv\)/.test(u)) return true;
@@ -6797,6 +6807,7 @@ function microfoonControle() {
   regels.push('beveiligd adres: ' + (window.isSecureContext ? 'ja' : 'nee — gebruik https'));
   regels.push('microfoon in de browser: ' + (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? 'aanwezig' : 'niet aanwezig'));
   if (inAndereApp()) regels.push('andere app: ja — open de app in Chrome of Safari zelf, daar werkt de microfoon wel');
+  if (alsApp()) regels.push('je gebruikt de app als app — de microfoontoestemming hoort dan bij Instellingen, Apps, AkkoordKast, Machtigingen');
   if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
     uit.textContent = regels.join(' · ');
     return;
@@ -6804,6 +6815,12 @@ function microfoonControle() {
   uit.textContent = regels.join(' · ') + ' · microfoons zoeken…';
   navigator.mediaDevices.enumerateDevices().then(function (lijst) {
     var aantal = lijst.filter(function (d) { return d.kind === 'audioinput'; }).length;
+    if (aantal === 0) {
+      // Nul microfoons betekent bijna altijd: de toestemming staat uit, want een telefoon heeft er altijd een.
+      uit.textContent = regels.join(' · ') + ' · microfoons gevonden: 0 — de microfoon staat uit; zet hem aan via ' +
+        'Instellingen, Apps' + (alsApp() ? ', AkkoordKast' : ', Chrome') + ', Machtigingen, Microfoon, Toestaan.';
+      return;
+    }
     uit.textContent = regels.join(' · ') + ' · microfoons gevonden: ' + aantal;
   }).catch(function () {
     uit.textContent = regels.join(' · ') + ' · microfoons gevonden: niet op te vragen';
@@ -7503,9 +7520,16 @@ function microfoonUitleg(e) {
     return 'De microfoon mag alleen op een beveiligd adres (https). Open de app met https:// in plaats van http://.';
   }
   if (naam === 'NotAllowedError' || naam === 'SecurityError' || /denied|toegang|permission/i.test(tekst)) {
-    return 'De browser heeft de microfoon geblokkeerd. Zo zet je hem aan: tik in de adresbalk op het slotje (of op het ' +
+    if (alsApp()) {
+      return 'De microfoon staat uit voor deze app. Zo zet je hem aan: Instellingen, Apps, AkkoordKast, ' +
+        'Machtigingen, Microfoon, Toestaan. Staat AkkoordKast daar niet tussen, open de app dan in Chrome zelf ' +
+        '(niet vanaf het beginscherm): tik in de adresbalk op het slotje, kies Machtigingen en zet Microfoon op ' +
+        'Toestaan. Ververs daarna de pagina en druk weer op Start.';
+    }
+    return 'De microfoon staat uit voor deze site. Zo zet je hem aan: tik in de adresbalk op het slotje (of op het ' +
       'tune-pictogram), kies Machtigingen of Site-instellingen en zet Microfoon op Toestaan. Op een Android-telefoon ' +
-      'ook: Instellingen, Apps, Chrome, Machtigingen, Microfoon. Ververs daarna de pagina en druk weer op Start.';
+      'ook: Instellingen, Apps, Chrome, Machtigingen, Microfoon. Helpt dat niet, veeg dan de rechten van de site weg ' +
+      '(Rechten resetten) en druk opnieuw op Start: dan vraagt de browser het opnieuw. Ververs daarna de pagina.';
   }
   if (naam === 'NotFoundError' || naam === 'DevicesNotFoundError') {
     return 'Er is geen microfoon gevonden. Sluit er een aan of zet de microfoon van je telefoon aan en probeer opnieuw.';

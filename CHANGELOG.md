@@ -3,6 +3,29 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.32.0] — 5 november 2026
+
+### De microfoon van de geinstalleerde app: de uitleg noemt nu de juiste plek
+
+De klacht bleef: *"ik kan nog geen microfoon gebruiken"*, met een schermafbeelding van het scherm
+**Rechten** van de site. Daarop staat alleen **Meldingen**, met de regel *"Beheerd door AkkoordKast"* — en
+**geen microfoon**. Dat is de aanwijzing: de app draait als **geinstalleerde app** (het manifest zegt
+`display: standalone`). Dan beheert Android de microfoon bij de **app** en niet bij Chrome, en de
+rechtenpagina van de site laat hem dus niet zien. De uitleg in de app stuurde naar Chrome — de verkeerde plek.
+
+- `alsApp()` herkent of de app als app draait (standalone/fullscreen of `navigator.standalone`).
+- De uitleg bij een geblokkeerde microfoon noemt dan **eerst** de juiste route: *Instellingen, Apps,
+  AkkoordKast, Machtigingen, Microfoon, Toestaan* — met als terugval: open de app in Chrome zelf en zet
+  het daar aan via het slotje in de adresbalk.
+- In het controlepaneel staat nu *"je gebruikt de app als app — de microfoontoestemming hoort dan bij
+  Instellingen, Apps, AkkoordKast, Machtigingen"*, en bij **nul gevonden microfoons** volgt meteen de
+  concrete stap in plaats van alleen een getal.
+- Voor de gewone site noemt de uitleg er nu ook bij dat je de rechten kunt wegvegen (**Rechten
+  resetten**, zoals op de schermafbeelding) waarna de browser het opnieuw vraagt.
+
+Bewijs: de proef in `test/versie.test.js` controleert dat `alsApp()` bestaat, dat de uitleg de
+app-route noemt, en dat een telefoon met nul microfoons de stap te zien krijgt.
+
 ## [1.31.0] — 5 november 2026
 
 ### De microfoon op een telefoon: de app vertelt nu zelf waar het misgaat

@@ -199,3 +199,27 @@ test('de microfoon op een telefoon: controle, terugval en de andere-app-hint', (
   // 5. En de pagina haalt de controle bij het openen.
   assert.match(html, /kijkMicrofoonRechten\(\);\nmicrofoonControle\(\);/, 'de controle hoort meteen te lopen');
 });
+
+test('de microfoon van de geinstalleerde app: de uitleg wijst naar de app, niet naar Chrome', () => {
+  // De klacht met schermafbeelding: het scherm Rechten van de site toont geen microfoon, alleen meldingen,
+  // met "Beheerd door AkkoordKast". De app draait dus als geinstalleerde app; dan zit de microfoon bij de
+  // app zelf (Instellingen, Apps, AkkoordKast, Machtigingen) en niet bij Chrome.
+  const html = fs.readFileSync(path.join(wortel, 'public', 'index.html'), 'utf8');
+  const manifest = JSON.parse(fs.readFileSync(path.join(wortel, 'public', 'manifest.webmanifest'), 'utf8'));
+  assert.equal(manifest.display, 'standalone', 'de app hoort als app te draaien; daar gaat het hier om');
+
+  assert.match(html, /function alsApp/, 'de app hoort te herkennen dat hij als app draait');
+  assert.ok(html.includes("display-mode: standalone"), 'via de display-mode');
+  assert.ok(html.includes('navigator.standalone'), 'en via de iOS-variant');
+
+  // De uitleg noemt de app-route met de app-naam erbij.
+  assert.ok(/Instellingen, Apps, AkkoordKast,/.test(html),
+    'de uitleg hoort naar Instellingen, Apps, AkkoordKast te wijzen');
+  // En het controlepaneel zegt het ook.
+  assert.match(html, /je gebruikt de app als app/, 'het controlepaneel hoort de app-modus te melden');
+  // Bij nul microfoons volgt de concrete stap, niet alleen een getal.
+  assert.match(html, /microfoons gevonden: 0/, 'nul microfoons hoort apart behandeld te worden');
+  assert.match(html, /de microfoon staat uit; zet hem aan via/, 'met de stap erbij');
+  // En de gewone-site-route blijft ook staan, met het wegvegen van de rechten.
+  assert.ok(html.includes('Rechten resetten'), 'de route via het slotje en Rechten resetten hoort te blijven');
+});

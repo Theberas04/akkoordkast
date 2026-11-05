@@ -140,3 +140,86 @@ test('de app kan het geluid van een liedje klaarzetten voor een cast in elk netw
     await omgeving.stop();
   }
 });
+
+test('de cast speelt de muziek van het liedje als die er is', async () => {
+  // Dit was de klacht: "chromecast werkt nog niet". De app probeerde zelf begeleiding te maken en
+  // kreeg "geen bekende akkoorden om te spelen", terwijl er gewoon muziek bij het liedje stond. Nu
+  // cast de app die muziek - precies wat de speler ook doet.
+  const omgeving = await hulp.start();
+  try {
+    const baas = await hulp.alsBeheerder(omgeving.basis);
+    const maak = await baas.haal('/api/liedjes', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        titel: 'Liedje met muziek', artiest: 'Proefzanger',
+        chordpro: '{title: Liedje met muziek}\n\nregel een van de tekst'
+      })
+    });
+    assert.ok([200, 201].includes(maak.status), JSON.stringify(maak.data));
+    const id = maak.data.id;
+
+    // Een muziekbestand erbij, onder het GROTE nummer - zoals in de verzameling van de gebruiker.
+    const bestand = path.join(process.env.MEDIA_DIR, 'proef-cast.mp3');
+    fs.writeFileSync(bestand, Buffer.from('nagemaakte mp3'));
+    omgeving.app.db.prepare('INSERT INTO liedje_muziek (liedje_id, pad, titel, wanneer) VALUES (?,?,?,?)')
+      .run(Number(id), bestand, 'proef-cast.mp3', new Date().toISOString());
+
+    const r = await hulp.haal(omgeving.basis, '/api/cast/audio?liedje=' + id);
+    assert.equal(r.status, 200, JSON.stringify(r.data));
+    assert.ok(String(r.data.url).endsWith('/api/muziek/bestand?liedje=' + id),
+      'de muziek van het liedje hoort gecast te worden: ' + r.data.url);
+    assert.equal(r.data.type, 'audio/mpeg', 'met het juiste soort bestand');
+    assert.match(String(r.data.toelichting || ''), /muziek/i, 'de app hoort te zeggen dat het de muziek is');
+
+    // En de server-cast geeft dezelfde muziek door aan het toestel (met een nagemaakte hulp).
+    const os = require('os');
+    const wortel = fs.mkdtempSync(path.join(os.tmpdir(), 'ak-cast-'));
+    const nep = path.join(wortel, 'nep-cast.py');
+    fs.writeFileSync(nep, 'import json, sys\nprint(json.dumps({"fout": "", "apparaat": {"naam": "Proefcast"}, "argumenten": sys.argv[1:]}))\n');
+    process.env.CAST_HELPER = nep;
+    const omgeving2 = await hulp.start();
+    try {
+      const baas2 = await hulp.alsBeheerder(omgeving2.basis);
+      const maak2 = await baas2.haal('/api/liedjes', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ titel: 'Ook met muziek', artiest: 'Proefzanger', chordpro: '{title: Ook met muziek}\n\ntekst' })
+      });
+      const id2 = maak2.data.id;
+      const bestand2 = path.join(process.env.MEDIA_DIR, 'proef-cast2.mp3');
+      fs.writeFileSync(bestand2, Buffer.from('nagemaakte mp3'));
+      omgeving2.app.db.prepare('INSERT INTO liedje_muziek (liedje_id, pad, titel, wanneer) VALUES (?,?,?,?)')
+        .run(Number(id2), bestand2, 'proef-cast2.mp3', new Date().toISOString());
+      const gespeeld = await hulp.post(omgeving2.basis, '/api/cast/start', { apparaat: '192.168.1.100', liedje: id2 });
+      assert.equal(gespeeld.status, 200, JSON.stringify(gespeeld.data));
+      const adres = String((gespeeld.data.argumenten || [])[2] || '');
+      assert.ok(adres.includes('/api/muziek/bestand?liedje=' + id2),
+        'de cast hoort de muziek van het liedje te spelen: ' + adres);
+      assert.match(adres, /^http:\/\/192\.168\./, 'en wel via het eigen netwerk: ' + adres);
+    } finally {
+      delete process.env.CAST_HELPER;
+      await omgeving2.stop();
+    }
+  } finally {
+    await omgeving.stop();
+  }
+});
+
+test('zonder muziek en zonder akkoorden legt de app uit waarom casten niet gaat', async () => {
+  const omgeving = await hulp.start();
+  try {
+    const baas = await hulp.alsBeheerder(omgeving.basis);
+    const maak = await baas.haal('/api/liedjes', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ titel: 'Zonder alles', artiest: 'Proefzanger', chordpro: '{title: Zonder alles}\n\nalleen wat tekst' })
+    });
+    const r = await hulp.haal(omgeving.basis, '/api/cast/audio?liedje=' + maak.data.id);
+    assert.equal(r.status, 400, 'de app hoort dit netjes te weigeren: ' + JSON.stringify(r.data));
+    assert.ok(String(r.data.fout || '').length > 20, 'met een uitleg erbij: ' + JSON.stringify(r.data));
+    // De server-cast geeft dezelfde uitleg door in plaats van een rauwe fout.
+    const viaServer = await hulp.post(omgeving.basis, '/api/cast/start', { apparaat: '192.168.1.100', liedje: maak.data.id });
+    assert.equal(viaServer.status, 400);
+    assert.ok(String(viaServer.data.fout || '').length > 20, 'ook hier een uitleg: ' + JSON.stringify(viaServer.data));
+  } finally {
+    await omgeving.stop();
+  }
+});

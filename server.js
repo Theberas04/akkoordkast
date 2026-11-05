@@ -39,7 +39,7 @@ const CAST_HELPER = process.env.CAST_HELPER
   : path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.25.0';
+const VERSIE = '1.26.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -2886,6 +2886,8 @@ function castBasis() {
 // in welk netwerk dan ook kan erbij.
 function castGeluid(lied, body) {
   const soort = String(body.bron || '');
+
+  // Je eigen opname (wat je zelf hebt geüpload) gaat voor als je daar om vraagt.
   if (soort === 'opname' && lied.audio_bestand) {
     return {
       pad: `/media/audio/${lied.audio_bestand}`,
@@ -2894,6 +2896,24 @@ function castGeluid(lied, body) {
       toelichting: 'je eigen opname van dit liedje'
     };
   }
+
+  // Speelt er muziek bij dit liedje (een opgehaald nummer)? Dan casten we die muziek — precies wat de
+  // speler ook doet. Zonder deze stap probeerde de app zelf begeleiding te maken en kreeg je
+  // "geen bekende akkoorden om te spelen" terwijl de muziek er gewoon stond.
+  if (soort !== 'meespelen') {
+    const eigenMuziek = lied.eigen ? muziekVanEigenLiedje(Number(lied.id) - EIGEN_START) : null;
+    const muziek = (eigenMuziek && eigenMuziek.bestaat) ? eigenMuziek : muziekVanLiedje(lied.id);
+    if (muziek && muziek.bestaat) {
+      return {
+        pad: `/api/muziek/bestand?liedje=${lied.id}`,
+        type: muziekbestand.mimeVan(muziek.pad) || 'audio/mpeg',
+        titel: lied.titel, artiest: lied.artiest,
+        toelichting: 'de muziek die je bij dit liedje hebt'
+      };
+    }
+  }
+
+  // De begeleiding die de app zelf maakt (met de akkoorden van dit liedje).
   if (soort === 'meespelen') {
     const params = new URLSearchParams({
       liedje: String(lied.id),
@@ -2909,15 +2929,26 @@ function castGeluid(lied, body) {
       toelichting: 'de begeleiding die de app maakt, met de akkoorden van dit liedje'
     };
   }
-  const resultaat = previewVoorLiedje(lied, new URLSearchParams({
-    capo: String(body.capo == null ? '' : body.capo),
-    transpose: String(body.transpose || 0)
-  }));
-  return {
-    pad: `/api/audio/preview?liedje=${lied.id}&capo=${body.capo == null ? '' : body.capo}&transpose=${body.transpose || 0}`,
-    type: resultaat.type || 'audio/mpeg', titel: lied.titel, artiest: lied.artiest,
-    toelichting: 'de begeleiding die de app maakt'
-  };
+
+  // Niets anders over: dan maken we zelf begeleiding. Lukt dat niet (geen akkoorden), dan zeggen we dat
+  // netjes in plaats van met een rauwe fout te stoppen.
+  try {
+    const resultaat = previewVoorLiedje(lied, new URLSearchParams({
+      capo: String(body.capo == null ? '' : body.capo),
+      transpose: String(body.transpose || 0)
+    }));
+    return {
+      pad: `/api/audio/preview?liedje=${lied.id}&capo=${body.capo == null ? '' : body.capo}&transpose=${body.transpose || 0}`,
+      type: resultaat.type || 'audio/mpeg', titel: lied.titel, artiest: lied.artiest,
+      toelichting: 'de begeleiding die de app maakt'
+    };
+  } catch (e) {
+    return {
+      pad: '', type: '', titel: lied.titel, artiest: lied.artiest, toelichting: '',
+      fout: 'Bij dit liedje staat geen muziek en de app kan er ook geen begeleiding van maken (' +
+        e.message + '). Haal eerst de muziek op of zet de akkoorden erin.'
+    };
+  }
 }
 
 function castHelper(args, timeout) {
@@ -4651,7 +4682,10 @@ async function verwerk(req, res) {
       bron: query.get('bron') || '', capo: query.get('capo'), transpose: query.get('transpose'),
       tempo: query.get('tempo'), aftellen: query.get('aftellen') !== '0', klik: query.get('klik') === '1'
     });
-    if (!keuze.pad) { json(res, 400, { fout: 'Geen audio om te casten.' }); return; }
+    if (!keuze.pad) {
+      json(res, 400, { fout: keuze.fout || 'Geen audio om te casten.' });
+      return;
+    }
     // Het volledige adres: precies het adres waarmee deze pagina de app heeft geopend. Dat is van
     // buiten bereikbaar, dus een cast in welk netwerk dan ook kan het geluid ophalen.
     const gastheer = req.headers.host || ('localhost:' + PORT);
@@ -4669,16 +4703,18 @@ async function verwerk(req, res) {
     let titel = String(body.titel || 'AkkoordKast');
     let artiest = String(body.artiest || '');
     let type = String(body.type || 'audio/mpeg');
+    let keuzeFout = '';
     if (!mediaUrl && body.liedje) {
       const lied = vindLiedje(body.liedje);
       if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
       const keuze = castGeluid(lied, body);
+      keuzeFout = keuze.fout || '';
       mediaUrl = keuze.pad || '';
       type = keuze.type || type;
       titel = keuze.titel || titel;
       artiest = keuze.artiest || artiest;
     }
-    if (!mediaUrl) { json(res, 400, { fout: 'Geen audio om te casten.' }); return; }
+    if (!mediaUrl) { json(res, 400, { fout: keuzeFout || 'Geen audio om te casten.' }); return; }
 
     // Waar haalt de cast het geluid vandaan? Altijd bij deze machine in het eigen netwerk, en niet bij
     // het adres waarmee jij de app hebt openstaan. Dat laatste kan namelijk een adres van buiten zijn

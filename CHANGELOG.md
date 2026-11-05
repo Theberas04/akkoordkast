@@ -3,6 +3,32 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.26.0] — 4 november 2026
+
+### De cast speelt nu de muziek van het liedje (dáár zat "chromecast werkt nog niet")
+
+Nagekeken op de app van de gebruiker: de verbinding met de Chromecast was in orde (een statusvraag naar
+`192.168.1.100` lukte, het toestel antwoordt), maar het klaarzetten van het geluid mislukte:
+
+    GET /api/cast/audio?liedje=900145  ->  {"fout":"Geen bekende akkoorden om te spelen"}
+
+De app wilde **zelf begeleiding maken** — en dat kan alleen als de akkoorden van het liedje bekend zijn —
+terwijl de **muziek gewoon bij het liedje stond**. Bij liedjes die je hebt opgehaald (met muziek, zonder
+eigen akkoorden) ging casten dus altijd mis, bij de server-cast én bij het casten vanaf je eigen apparaat.
+
+- De cast speelt nu **de muziek die bij het liedje hoort**, precies hetzelfde bestand dat de speler ook
+  gebruikt (`/api/muziek/bestand?liedje=…`), met het juiste soort bestand erbij (`audio/mpeg`, `audio/wav`,
+  enzovoort) — dus ook het zoeken in de tijd werkt, want dat adres ondersteunt `Range`.
+- Je eigen opname gaat nog steeds voor als je daar om vraagt, en de begeleiding die de app zelf maakt blijft
+  bestaan (`bron: meespelen`).
+- Kan de app niets klaarzetten (geen muziek én geen akkoorden), dan **legt hij uit waarom** in plaats van met
+  een rauwe fout te stoppen: *"Bij dit liedje staat geen muziek en de app kan er ook geen begeleiding van
+  maken. Haal eerst de muziek op of zet de akkoorden erin."*
+
+Bewijs: `test/cast.test.js` heeft er twee proeven bij — een liedje met muziek moet via beide wegen de
+muziek-url krijgen (met het eigen netwerkadres voor de server-cast), en een liedje zonder muziek en zonder
+akkoorden moet een nette uitleg geven in plaats van een fout.
+
 ## [1.25.0] — 4 november 2026
 
 ### Casten naar het toestel op het netwerk waar je nú bent

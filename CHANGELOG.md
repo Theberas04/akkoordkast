@@ -3,6 +3,37 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.21.0] — 4 november 2026
+
+### De akkoordherkenning werkt nu ook bij echte opnames
+
+Tot nu toe gaf de analyse bij een gewone opname (met drums, zang en galm) overal **hetzelfde**
+akkoord — bij een Kensington-nummer bijvoorbeeld 122 maten lang "Am7". Daar kwam de klacht vandaan dat
+niet alle liedjes bladmuziek hadden: de herkenning kon de klank niet aan. Dat is nu anders:
+
+- **De klankkleur wordt schoner gemaakt.** Bij echte muziek zit er in elke frame wel wat energie op elke
+  toon, waardoor elk akkoord even goed lijkt te passen. De vloer gaat er nu af, zodat de pieken overblijven
+  (de tonen die echt klinken).
+- **Er wordt per tel beslist, niet per maat.** Een akkoord dat midden in de maat wisselt valt zo op, en één
+  vieze tel verdwijnt in de meerderheid van de maat.
+- **Het akkoord met de meeste tonen wint niet meer automatisch.** Er gaat juist vanaf als er klank buiten
+  het akkoord zit, de grondtoon in de bas weegt zwaarder mee, en een septiem moet echt klinken om te
+  winnen. Daardoor komt er een echte akkoordwisseling uit in plaats van één vierklank.
+- **Zekerheid is nu de marge** tussen het beste en het op een na beste akkoord (met een andere grondtoon),
+  in plaats van een ruwe score.
+- **Is het resultaat onbruikbaar, dan zegt de app dat.** Eén akkoord voor de hele opname of te weinig
+  zekerheid: dan blijft het voorstel staan en meldt de app *"In deze opname kon ik geen duidelijke
+  akkoordwisselingen vinden (drums en zang maken het lastig)"*. Bij een goede uitkomst staat er nu ook de
+  zekerheid en het aantal verschillende akkoorden bij.
+
+Ook de maatindeling kiest nu duidelijker voor vier tellen: drie alleen als dat aantoonbaar beter dekt,
+want in de praktijk won de wals te vaak bij popopnames.
+
+Gemeten op een echte opname van de gebruiker (Kensington — All Before You, 3,7 minuut): eerst 122× hetzelfde
+akkoord, nu negen verschillende in de toonaard C — de akkoordfamilie Am–F–C–G, 41% het meest voorkomend,
+gemiddelde zekerheid 65%. Twee proeven bewaken dit: een mengsel van gitaar met basdrum, snare en ruisvloer
+(minstens 60% van de maten goed) en gelijkmatige ruis (moet als onbruikbaar gelden).
+
 ## [1.20.0] — 4 november 2026
 
 ### Nieuw

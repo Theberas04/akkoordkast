@@ -36,7 +36,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.20.0';
+const VERSIE = '1.21.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -1699,17 +1699,41 @@ function opnameKandidaten() {
   return uit;
 }
 
-// De akkoorden uit de analyse vastleggen. Geeft de herkende akkoorden terug (leeg = niets herkend).
+// De akkoorden uit de analyse vastleggen. Geeft terug wat er gebeurd is, zodat de app het eerlijk
+// kan vertellen: de akkoorden, of de reden waarom het niets werd (dan blijft het voorstel staan).
 function zetOpnameAkkoorden(lied, uitslag) {
   const schoon = (uitslag.akkoordenPerMaat || []).filter(Boolean);
-  if (!schoon.length) return [];
+  if (!schoon.length) {
+    console.log('geen akkoorden uit de muziek bij liedje ' + lied.id + ': geen enkele maat kwam uit (' +
+      (uitslag.aantalMaten || 0) + ' maten, zekerheid ' + (uitslag.gemiddeldeZekerheid || 0) + ')');
+    return { akkoorden: [], reden: 'leeg', zekerheid: 0, maten: uitslag.aantalMaten || 0 };
+  }
+  if (uitslag.bruikbaar === false) {
+    console.log('geen akkoorden uit de muziek bij liedje ' + lied.id + ': onduidelijk (zekerheid ' +
+      (uitslag.gemiddeldeZekerheid || 0) + ', ' + (uitslag.aantalVerschillende || 0) + ' verschillende, ' +
+      (uitslag.aandeelMeest || 0) + ' aandeel meest)');
+    // Eén enkel akkoord voor de hele opname, of te weinig zekerheid: dan zeggen we dat liever dan
+    // dat we een schema opleveren dat nergens op slaat. Het voorstel blijft dan staan.
+    return {
+      akkoorden: [], reden: 'onduidelijk',
+      zekerheid: uitslag.gemiddeldeZekerheid || 0,
+      gevonden: schoon.length
+    };
+  }
   db.prepare('UPDATE liedjes SET akkoorden_per_maat = ?, toonsoort = ?, tempo = ?, maatsoort = ? WHERE id = ?')
     .run(JSON.stringify(uitslag.akkoordenPerMaat), uitslag.toonsoort || lied.toonsoort || '',
       Math.max(40, Math.min(200, parseInt(uitslag.tempo, 10) || lied.tempo || 84)),
       Math.max(2, Math.min(12, parseInt(uitslag.maatsoort, 10) || lied.maatsoort || 4)),
       Number(lied.id) - EIGEN_START);
   FILTERS.versie = (FILTERS.versie || 0) + 1;
-  return schoon;
+  return {
+    akkoorden: schoon,
+    zekerheid: uitslag.gemiddeldeZekerheid || 0,
+    toonsoort: uitslag.toonsoort || '',
+    tempo: uitslag.tempo || 0,
+    maatsoort: uitslag.maatsoort || 4,
+    aantalVerschillende: uitslag.aantalVerschillende || 0
+  };
 }
 
 // De ronde: één liedje per keer, met een kleine pauze ertussen, zodat de app bruikbaar blijft.
@@ -1734,7 +1758,7 @@ function startOpnameRonde() {
     let gelukt = false;
     try {
       const lied = vindLiedje(kand.id) || { id: kand.id };
-      gelukt = zetOpnameAkkoorden(lied, analyseerUpload(kand.pad, {})).length > 0;
+      gelukt = zetOpnameAkkoorden(lied, analyseerUpload(kand.pad, {})).akkoorden.length > 0;
     } catch (e) {
       OPNAME_RONDE.laatsteFout = kand.titel + ': ' + e.message;
     }
@@ -3603,25 +3627,29 @@ async function verwerk(req, res) {
       json(res, 500, { fout: 'De muziek kon niet worden gelezen: ' + e.message });
       return;
     }
-    const schoon = (uitslag.akkoordenPerMaat || []).filter(Boolean);
-    if (!schoon.length) {
-      json(res, 200, { ok: false, fout: 'In deze muziek kon ik geen akkoorden herkennen. Het voorstel blijft staan.' });
+    const uitkomst = zetOpnameAkkoorden(lied, uitslag);
+    if (!uitkomst.akkoorden.length) {
+      json(res, 200, {
+        ok: false,
+        reden: uitkomst.reden,
+        fout: uitkomst.reden === 'onduidelijk'
+          ? 'In deze opname kon ik geen duidelijke akkoordwisselingen vinden (drums en zang maken het ' +
+            'lastig). Het voorstel blijft staan; je kunt de akkoorden ook zelf intypen.'
+          : 'In deze muziek kon ik geen akkoorden herkennen. Het voorstel blijft staan.'
+      });
       return;
     }
-    db.prepare('UPDATE liedjes SET akkoorden_per_maat = ?, toonsoort = ?, tempo = ?, maatsoort = ? WHERE id = ?')
-      .run(JSON.stringify(uitslag.akkoordenPerMaat), uitslag.toonsoort || lied.toonsoort || '',
-        Math.max(40, Math.min(200, parseInt(uitslag.tempo, 10) || lied.tempo || 84)),
-        Math.max(2, Math.min(12, parseInt(uitslag.maatsoort, 10) || lied.maatsoort || 4)),
-        Number(lied.id) - EIGEN_START);
-    FILTERS.versie = (FILTERS.versie || 0) + 1;
-    console.log('akkoorden uit de muziek gehaald bij liedje ' + lied.id + ': ' + schoon.join(' '));
+    console.log('akkoorden uit de muziek gehaald bij liedje ' + lied.id + ': ' + uitkomst.akkoorden.join(' '));
     json(res, 200, {
       ok: true,
-      akkoorden: schoon,
-      toonsoort: uitslag.toonsoort || '',
-      tempo: uitslag.tempo || 0,
-      maatsoort: uitslag.maatsoort || 4,
-      bericht: 'De akkoorden zijn uit de muziek gehaald (' + schoon.length + ' maten). Controleer ze gerust en pas ze aan waar nodig.'
+      akkoorden: uitkomst.akkoorden,
+      toonsoort: uitkomst.toonsoort,
+      tempo: uitkomst.tempo,
+      maatsoort: uitkomst.maatsoort,
+      zekerheid: uitkomst.zekerheid,
+      bericht: 'De akkoorden zijn uit de muziek gehaald (' + uitkomst.akkoorden.length + ' maten, ' +
+        uitkomst.aantalVerschillende + ' verschillende akkoorden, zekerheid ' +
+        Math.round(uitkomst.zekerheid * 100) + '%). Controleer ze gerust en pas ze aan waar nodig.'
     });
     return;
   }

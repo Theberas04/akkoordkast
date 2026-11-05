@@ -119,3 +119,74 @@ test('de pagina heeft het uploadformulier en de meespeelknoppen', () => {
   assert.match(html, /mp3/);
   assert.match(html, /mp4/);
 });
+
+// ---------------------------------------------------------------------------
+// Echte muziek: gitaar met drums eronder, zoals een opname die je zelf binnenhaalt.
+// Dit is de proef waarop de herkenning echt moet werken: eerst gaf de analyse bij
+// zulke opnames overal hetzelfde akkoord.
+
+// Een mengsel van de gitaarakkoorden uit proefsignaal, met een basdrum (lage toon),
+// een snare (ruis) en een constante ruisvloer erdoorheen. Alles deterministisch, dus
+// elke keer dezelfde uitkomst.
+function mengsel(akkoorden, bpm, sr) {
+  const gitaar = proefsignaal.akkoordProef(akkoorden, bpm, sr);
+  const uit = Float32Array.from(gitaar);
+  const maat = 60 / bpm * 4;
+  const tel = maat / 4;
+  // bepaald ruisje, zodat de proef niet van toeval afhangt
+  let zaad = 12345;
+  const ruis = () => {
+    zaad = (zaad * 1103515245 + 12345) & 0x7fffffff;
+    return (zaad / 0x7fffffff) * 2 - 1;
+  };
+  // basdrum op elke tel, snare op de tweede en vierde
+  for (let m = 0; m < akkoorden.length; m++) {
+    for (let t = 0; t < 4; t++) {
+      const start = Math.round((m * maat + t * tel) * sr);
+      const duur = Math.round(0.12 * sr);
+      for (let i = 0; i < duur; i++) {
+        const p = start + i;
+        if (p >= uit.length) break;
+        const demping = Math.exp(-i / sr * 28);
+        uit[p] += Math.sin(2 * Math.PI * 55 * (i / sr)) * 0.5 * demping;         // basdrum
+        if (t % 2 === 1) uit[p] += ruis() * 0.16 * demping;                       // snare
+      }
+    }
+  }
+  // ruisvloer over alles heen: precies wat een echte opname lastig maakt
+  for (let i = 0; i < uit.length; i++) uit[i] += ruis() * 0.02;
+  return uit;
+}
+
+test('de analyse herkent akkoorden ook met drums en ruis erdoorheen', () => {
+  const reeks = ['C', 'G', 'Am', 'F'];
+  const samples = mengsel(reeks, 100, SR);
+  const uit = analyse.analyseer(samples, SR);
+  assert.equal(uit.bruikbaar, true, 'deze opname hoort bruikbaar te zijn, niet één akkoord: ' +
+    uit.akkoordenPerMaat.slice(0, 8).join(' '));
+  assert.ok(uit.aantalVerschillende >= 2, 'er horen meerdere akkoorden uit te komen: ' + uit.aantalVerschillende);
+  // hoeveel maten kloppen er? (een septiem erbij rekenen we goed)
+  const kaal = (n) => String(n || '').replace(/(maj7|m7|7)$/, '');
+  let goed = 0;
+  for (let i = 0; i < uit.akkoordenPerMaat.length; i++) {
+    if (kaal(uit.akkoordenPerMaat[i]) === reeks[i % 4]) goed++;
+  }
+  const deel = goed / Math.max(1, uit.akkoordenPerMaat.length);
+  assert.ok(deel >= 0.6, 'minstens 60% van de maten hoort te kloppen, nu ' +
+    Math.round(deel * 100) + '%: ' + uit.akkoordenPerMaat.slice(0, 12).join(' '));
+});
+
+test('bij een opname waarin niets te horen is, zegt de analyse dat het niet lukt', () => {
+  // Gelijkmatige ruis: overal evenveel klank, dus geen enkel akkoord past echt.
+  let zaad = 987654321;
+  const ruis = () => {
+    zaad = (zaad * 1103515245 + 12345) & 0x7fffffff;
+    return (zaad / 0x7fffffff) * 2 - 1;
+  };
+  const samples = new Float32Array(SR * 12);
+  for (let i = 0; i < samples.length; i++) samples[i] = ruis() * 0.3;
+  const uit = analyse.analyseer(samples, SR);
+  assert.equal(uit.bruikbaar, false, 'ruis hoort niet als bruikbare bladmuziek te gelden: ' +
+    uit.akkoordenPerMaat.slice(0, 8).join(' '));
+});
+

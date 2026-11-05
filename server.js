@@ -39,7 +39,7 @@ const CAST_HELPER = process.env.CAST_HELPER
   : path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.26.0';
+const VERSIE = '1.27.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -672,7 +672,7 @@ function weergave(lied, opties) {
     spotify: koppelingVan(lied.id),
     maatsoort: lied.maatsoort || 4,
     licentie: lied.licentie || '',
-    heeftMuziek: !!muziekVanLiedje(lied.id),
+    heeftMuziek: !!muziekVoorLiedje(lied),
     heeftVideo: !!videoVanLiedje(lied.id),
     beheer: !!o.beheer,
     beheerProfiel: !!o.beheerProfiel,
@@ -1224,7 +1224,7 @@ function eigenAudioUrl(lied) {
   if (lied.audio_bestand && lied.akkoordenPerMaat && lied.akkoordenPerMaat.length) {
     return `/media/audio/${lied.audio_bestand}`;
   }
-  const m = muziekVanLiedje(lied.id);
+  const m = muziekVoorLiedje(lied);
   if (m && m.bestaat) return `/api/muziek/bestand?liedje=${lied.id}`;
   return '';
 }
@@ -1579,6 +1579,32 @@ function bewaakOphaal(liedjeId) {
 // Een link ophalen als nieuwe muziek: het bestand wordt een eigen liedje in de bibliotheek, met de
 // muziek eraan. Zo kun je het meteen spelen en meespelen, zonder eerst een liedje te kiezen. De
 // bladmuziek staat er nog niet in — die vul je later aan met het tabblad Toevoegen.
+// Liedjes die uit een link zijn opgehaald kregen een melding in de tekst: "De bladmuziek staat er nog
+// niet in...". Zodra de akkoorden er later wel zijn (uit de opname gehaald) klopt die regel niet meer,
+// maar hij bleef staan - waardoor de app akkoorden toonde boven een tekst die zei dat er niets was.
+function isOphaalTekst(chordpro) {
+  const tekst = String(chordpro || '').toLowerCase();
+  return tekst.includes('opgehaald uit een link') || tekst.includes('bladmuziek staat er nog niet in');
+}
+
+function ophaalVervolg(metAkkoorden) {
+  if (metAkkoorden) {
+    return 'De akkoorden van dit nummer zijn uit de opname gehaald; ze lopen mee als je in het ' +
+      'speelscherm op Meespelen met de muziek drukt. Er zit geen liedtekst bij dit nummer, dus speel ' +
+      'op gehoor mee en pas de akkoorden gerust aan waar het beter kan.';
+  }
+  return 'De akkoorden konden niet uit deze opname worden gehaald (drums en zang maken dat lastig). ' +
+    'De muziek hoor je wel met Meespelen met de muziek. Zet de akkoorden er zelf bij als je ze weet.';
+}
+
+// De melding vervangen, met de kop ({title: ...}) erboven intact.
+function vervangOphaalTekst(chordpro, metAkkoorden) {
+  const regels = String(chordpro || '').split('\n');
+  const kop = [];
+  while (regels.length && /^\s*\{/.test(regels[0])) kop.push(regels.shift());
+  return kop.join('\n') + '\n\n' + ophaalVervolg(metAkkoorden);
+}
+
 function maakLiedjeVanDownload(bestand, titel, url) {
   const schoon = (waarde) => String(waarde || '').replace(/[{}]/g, '').replace(/\s+/g, ' ').trim();
   const uitBestand = path.basename(bestand, path.extname(bestand)).replace(/_+/g, ' ');
@@ -1750,6 +1776,11 @@ function zetOpnameAkkoorden(lied, uitslag) {
       zekerheid: uitslag.gemiddeldeZekerheid || 0,
       gevonden: schoon.length
     };
+  }
+  if (isOphaalTekst(lied.chordpro)) {
+    // De melding van het ophalen is niet meer waar: de akkoorden zijn er nu.
+    db.prepare('UPDATE liedjes SET chordpro = ? WHERE id = ?')
+      .run(vervangOphaalTekst(lied.chordpro, true), Number(lied.id) - EIGEN_START);
   }
   db.prepare('UPDATE liedjes SET akkoorden_per_maat = ?, toonsoort = ?, tempo = ?, maatsoort = ? WHERE id = ?')
     .run(JSON.stringify(uitslag.akkoordenPerMaat), uitslag.toonsoort || lied.toonsoort || '',
@@ -2319,6 +2350,17 @@ function muziekVanLiedje(liedjeId) {
 // terwijl de app het als 900145 laat zien; de muziekrij kan onder allebei bewaard zijn. Bij de
 // verzameling van de gebruiker staat hij onder het grote nummer. Daarom hier allebei proberen — maar
 // alleen hier: bij de meegeleverde liedjes betekent 900000+ iets heel anders, daar mag je niet omrekenen.
+// De muziek van een liedje: voor een eigen liedje kan de rij onder het kleine of het grote nummer
+// staan, voor een meegeleverd liedje is er maar één nummer.
+function muziekVoorLiedje(lied) {
+  if (!lied) return null;
+  if (lied.eigen) {
+    const eigen = muziekVanEigenLiedje(Number(lied.id) - EIGEN_START);
+    if (eigen) return eigen;
+  }
+  return muziekVanLiedje(lied.id);
+}
+
 function muziekVanEigenLiedje(rijId) {
   const nummer = Number(rijId) || 0;
   for (const sleutel of [EIGEN_START + nummer, nummer]) {
@@ -2470,7 +2512,7 @@ function videoBeeld(lied) {
 }
 
 function muziekBeeld(lied) {
-  const m = muziekVanLiedje(lied.id);
+  const m = muziekVoorLiedje(lied);
   return {
     pad: m ? m.pad : '',
     titel: m ? m.titel : '',
@@ -2902,7 +2944,7 @@ function castGeluid(lied, body) {
   // "geen bekende akkoorden om te spelen" terwijl de muziek er gewoon stond.
   if (soort !== 'meespelen') {
     const eigenMuziek = lied.eigen ? muziekVanEigenLiedje(Number(lied.id) - EIGEN_START) : null;
-    const muziek = (eigenMuziek && eigenMuziek.bestaat) ? eigenMuziek : muziekVanLiedje(lied.id);
+    const muziek = (eigenMuziek && eigenMuziek.bestaat) ? eigenMuziek : muziekVoorLiedje(lied);
     if (muziek && muziek.bestaat) {
       return {
         pad: `/api/muziek/bestand?liedje=${lied.id}`,
@@ -3865,7 +3907,7 @@ async function verwerk(req, res) {
     if (!isBeheerder(req)) { json(res, 403, { fout: 'Dit hoort bij het beheerdersprofiel (Admin). Kies dat profiel en probeer het opnieuw.' }); return; }
     const lied = vindLiedje(bm[1]);
     if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
-    const muziek = muziekVanLiedje(lied.id);
+    const muziek = muziekVoorLiedje(lied);
     if (!muziek || !muziek.bestaat) { json(res, 400, { fout: 'Bij dit liedje staat geen muziekbestand om uit te lezen.' }); return; }
     let uitslag;
     try {
@@ -4267,7 +4309,7 @@ async function verwerk(req, res) {
   if (pad === '/api/muziek/bestand' && methode === 'GET') {
     const lied = vindLiedje(query.get('liedje'));
     if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
-    const m = muziekVanLiedje(lied.id);
+    const m = muziekVoorLiedje(lied);
     if (!m) { json(res, 404, { fout: 'Aan dit liedje hangt nog geen muziekbestand.' }); return; }
     // Bij elk verzoek opnieuw controleren of het pad nog binnen een muziekmap valt: de
     // mappen kunnen intussen veranderd zijn, en dit is de plek waar een bestand de deur uit gaat.
@@ -4302,7 +4344,7 @@ async function verwerk(req, res) {
     // Een opgehaald nummer heeft muziek maar geen eigen opname-analyse. Dan spelen we de muziek zelf
     // (de akkoorden staan als voorstel in de liedkaart); een meelopend beeld zou op deze opname niet
     // kloppen, want die is niet op maat geanalyseerd.
-    const eigenMuziek = muziekVanLiedje(lied.id);
+    const eigenMuziek = muziekVoorLiedje(lied);
     const metOpnameAnalyse = !!(lied.audio_bestand && lied.akkoordenPerMaat && lied.akkoordenPerMaat.length);
     if (eigenMuziek && eigenMuziek.bestaat && !metOpnameAnalyse) {
       json(res, 200, {
@@ -4823,13 +4865,40 @@ if (require.main === module) {
 }
 
 module.exports = {
-  server, db, verstuur: verwerk,
+  server, db, verstuur: verwerk, herstelOphaalTeksten,
   wachterBeeld, wachterRonde, startWachter, scanRonde,
   weergave, lijstItem, zoekLiedjes, normaliseerLiedje, vindLiedje, eigenRij,
   maakPreview, previewVoorLiedje, castHelper, leesInstelling, zetInstelling,
   paden: { DATA_DIR, MEDIA_DIR, DB_PATH, CAST_HELPER, EIGEN_START, PORT }
 };
 
+// Een liedje dat uit een link is opgehaald heeft de melding "de bladmuziek staat er nog niet in" in de
+// tekst staan. Zodra er akkoorden zijn klopt dat niet meer. Dit zet het één keer recht, ook voor liedjes
+// die de akkoorden al eerder kregen (zoals de verzameling van de gebruiker).
+function herstelOphaalTeksten() {
+  const rijen = db.prepare('SELECT id, titel, chordpro, akkoorden_per_maat FROM liedjes').all();
+  let gedaan = 0;
+  for (const rij of rijen) {
+    if (!isOphaalTekst(rij.chordpro)) continue;
+    const perMaat = String(rij.akkoorden_per_maat || '').trim();
+    const metAkkoorden = !!perMaat && perMaat !== '[]' && perMaat !== 'null';
+    if (!metAkkoorden) {
+      // Zonder akkoorden: alleen als er muziek is, want anders is de melding nog het enige dat er staat.
+      const muziek = muziekVanEigenLiedje(rij.id);
+      if (!muziek || !muziek.bestaat) continue;
+    }
+    db.prepare('UPDATE liedjes SET chordpro = ? WHERE id = ?')
+      .run(vervangOphaalTekst(rij.chordpro, metAkkoorden), Number(rij.id));
+    gedaan += 1;
+  }
+  if (gedaan) {
+    FILTERS.versie = (FILTERS.versie || 0) + 1;
+    console.log('melding van het ophalen rechtgezet bij ' + gedaan + ' liedje(s)');
+  }
+  return gedaan;
+}
+
 // Zodra de app geladen is begint hij zelf met het aanvullen van bladmuziek — tenzij de beheerder het
 // heeft uitgezet, of de omgeving zegt dat het niet moet (zoals in de proeven).
 try { startOpnameAuto(); } catch (e) { console.log('zelf aanvullen kon niet starten: ' + e.message); }
+try { herstelOphaalTeksten(); } catch (e) { console.log('meldingen rechtzetten mislukte: ' + e.message); }

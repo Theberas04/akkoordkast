@@ -3,6 +3,31 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.27.0] — 4 november 2026
+
+### De melding "de bladmuziek staat er nog niet in" wordt nu opgeruimd als de akkoorden er wél zijn
+
+De klacht: bij veel Kensington-nummers staat nog *"Dit liedje is opgehaald uit een link. De bladmuziek
+staat er nog niet in, maar de muziek wel: druk in het speelscherm op Meespelen met de muziek en de
+akkoorden lopen mee."* terwijl het inmiddels wél werkt.
+
+Wat er aan de hand was: die melding wordt **bij het ophalen** in de liedtekst gezet. Toen de app later de
+akkoorden uit de opname haalde, kwamen die akkoorden er wel — maar de tekst bleef staan. Resultaat: echte
+akkoorden boven een tekst die zei dat er niets was. Op de app van de gebruiker ging het om 121 nummers.
+
+- Wanneer de app akkoorden uit een opname vastlegt, **herkent hij die melding** (`isOphaalTekst()`) en zet
+  er een kloppende tekst in plaats van: *"De akkoorden van dit nummer zijn uit de opname gehaald; ze lopen
+  mee als je op Meespelen met de muziek drukt."* De kop (`{title: …}`) blijft staan.
+- Lukt het niet om akkoorden te vinden, dan staat er nu eerlijk: *"De akkoorden konden niet uit deze opname
+  worden gehaald (drums en zang maken dat lastig). De muziek hoor je wel met Meespelen met de muziek."*
+- **Eenmalige opruiming bij het starten** (`herstelOphaalTeksten()`): liedjes die de melding nog hebben
+  terwijl de akkoorden er al zijn, worden meteen rechtgezet. Dat geldt dus ook voor de nummers die hun
+  akkoorden vóór deze versie kregen — de gebruiker hoeft niets opnieuw te doen, alleen bij te werken.
+
+Bewijs: de nieuwe proef in `test/bladmuziek.test.js` zet een liedje met de ophaal-melding neer, laat de app
+de akkoorden uit een echte opname halen, en controleert dat de melding daarna weg is en dat er staat dat de
+akkoorden uit de opname komen.
+
 ## [1.26.0] — 4 november 2026
 
 ### De cast speelt nu de muziek van het liedje (dáár zat "chromecast werkt nog niet")

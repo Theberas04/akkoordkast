@@ -111,3 +111,73 @@ test('de kaart noemt de herkomst van zelf ingevoerde akkoorden', () => {
     'de kaart hoort eerlijk te zeggen dat de app geen akkoorden van websites haalt');
   assert.match(html, /van websites op/);
 });
+
+test('de melding van het ophalen verdwijnt als de akkoorden er wel zijn', async () => {
+  // Liedjes die uit een link zijn opgehaald kregen de melding "de bladmuziek staat er nog niet in" in de
+  // tekst. Kwamen de akkoorden er later wel, dan bleef die melding staan - echte akkoorden boven een tekst
+  // die zei dat er niets was. Dat mag niet meer gebeuren.
+  const fs = require('fs');
+  const path = require('path');
+  const proefsignaal = require('./proefsignaal');
+  const omgeving = await hulp.start();
+  try {
+    const baas = await hulp.alsBeheerder(omgeving.basis);
+    const maak = await baas.haal('/api/liedjes', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        titel: 'Uit een link', artiest: 'Gedownload', genre: 'Gedownload',
+        chordpro: '{title: Uit een link}\n\nDit liedje is opgehaald uit een link. De bladmuziek staat er ' +
+          'nog niet in, maar de muziek wel: druk in het speelscherm op Meespelen met de muziek.'
+      })
+    });
+    assert.ok([200, 201].includes(maak.status), JSON.stringify(maak.data));
+    const id = maak.data.id;
+
+    const wav = proefsignaal.naarWav(proefsignaal.akkoordProef(['C', 'G', 'Am', 'F'], 84, 22050), 22050);
+    const bestand = path.join(process.env.MEDIA_DIR, 'uit-een-link.wav');
+    fs.writeFileSync(bestand, wav);
+    omgeving.app.db.prepare('INSERT INTO liedje_muziek (liedje_id, pad, titel, wanneer) VALUES (?,?,?,?)')
+      .run(Number(id) - omgeving.app.paden.EIGEN_START, bestand, 'Uit een link', new Date().toISOString());
+
+    const uit = await baas.post('/api/liedjes/' + id + '/bladmuziek', {});
+    assert.ok([200, 201].includes(uit.status), 'de akkoorden halen lukte niet: ' + JSON.stringify(uit.data));
+    assert.equal(uit.data.ok, true, JSON.stringify(uit.data));
+
+    const kaart = await baas.haal('/api/liedjes/' + id);
+    const tekst = String(kaart.data.chordpro || '');
+    assert.ok(!/staat er nog niet in/i.test(tekst), 'de melding hoort weg te zijn: ' + tekst);
+    assert.match(tekst, /uit de opname gehaald/i, 'er hoort te staan waar de akkoorden vandaan komen: ' + tekst);
+    assert.match(tekst, /^\s*\{title:/, 'de kop van het liedje hoort te blijven staan: ' + tekst);
+  } finally {
+    await omgeving.stop();
+  }
+});
+
+test('de melding wordt rechtgezet bij liedjes die de akkoorden al hadden', async () => {
+  // Nummers die hun akkoorden kregen vóór deze versie hebben de melding nog in de tekst staan. De app
+  // zet dat recht (herstelOphaalTeksten), zodat de gebruiker niets opnieuw hoeft te doen - alleen bijwerken.
+  const omgeving = await hulp.start();
+  try {
+    omgeving.app.db.prepare('INSERT INTO liedjes (titel, artiest, taal, genre, moeilijkheid, toonsoort, ' +
+      'tempo, strum, bron, youtube, notitie, chordpro, aangemaakt, akkoorden_per_maat, maatsoort) ' +
+      'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').run(
+      'Oud nummer', 'Gedownload', 'nl', 'Gedownload', 2, 'C', 90, '', 'Gedownload', '', '',
+      '{title: Oud nummer}\n\nDit liedje is opgehaald uit een link. De bladmuziek staat er nog niet in.',
+      new Date().toISOString(), JSON.stringify(['C', 'G', 'Am', 'F']), 4);
+
+    const gedaan = omgeving.app.herstelOphaalTeksten();
+    assert.ok(gedaan >= 1, 'de app hoort de melding recht te zetten, gedaan: ' + gedaan);
+
+    const rij = omgeving.app.db.prepare('SELECT chordpro FROM liedjes WHERE titel = ?').get('Oud nummer');
+    const tekst = String(rij.chordpro || '');
+    assert.ok(!/staat er nog niet in/i.test(tekst), 'de melding hoort rechtgezet te zijn: ' + tekst);
+    assert.match(tekst, /uit de opname gehaald/i, 'met de juiste uitleg: ' + tekst);
+    assert.match(tekst, /^\s*\{title:/, 'en de kop blijft staan: ' + tekst);
+
+    // En bij een tweede keer doen blijft het rustig: er is dan niets meer recht te zetten.
+    const nogeens = omgeving.app.herstelOphaalTeksten();
+    assert.equal(nogeens, 0, 'de tweede keer hoort er niets meer te doen te zijn: ' + nogeens);
+  } finally {
+    await omgeving.stop();
+  }
+});

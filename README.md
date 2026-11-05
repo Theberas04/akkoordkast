@@ -955,7 +955,11 @@ regel nagelopen, omdat een afgebroken quote in een single-quoted heredoc stil bl
 - **De dienst:** `akkoordkast.service`, draait als gewone gebruiker op poort 80 met
   `CAP_NET_BIND_SERVICE`. Extra instellingen, zoals `MUSIC_DIR`, horen in
   `/etc/systemd/system/akkoordkast.service.d/`.
-- **Bijwerken:** `deploy/proxmox/update-from-github.sh` op de host.
+- **Bijwerken:** `deploy/proxmox/update-from-github.sh` op de host, of **in de app zelf**: tabblad
+  *Toevoegen*, kaart *Beheer en bijwerken*, knop **Bijwerken**. De app haalt de nieuwe bestanden van
+  GitHub, controleert ze, maakt een reservekopie in je gegevensmap en start zichzelf opnieuw op. Database,
+  eigen liedjes, mediabibliotheek en handleiding blijven staan. Welke versie er draait staat in de
+  bovenbalk.
 - **Controleren:** `deploy/proxmox/check-akkoordkast.sh` (alleen-lezen, met per bevinding de
   letterlijke opdracht die het oplost).
 - **Logboek:** `pct exec 106 -- journalctl -u akkoordkast -n 50 --no-pager`.

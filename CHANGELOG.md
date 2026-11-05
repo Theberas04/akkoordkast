@@ -3,6 +3,20 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.38.0] — 5 november 2026
+
+### De regel noemt het adres waarop je zit, met de weg om de blokkade te wissen
+
+Bij Tom werkt de microfoon wel bij Google Translate maar niet bij zijn app: Chrome is dus in orde en de
+blokkade is een **bewaarde keuze per site**. Zulke keuzes zijn onzichtbaar in de app en staan in Chrome
+onder *Site-instellingen, Alle sites*.
+
+- De regel *Microfoon volgens je browser* noemt nu het adres waarop je zit (`location.hostname`, dus nooit
+  hard in het repo) en de weg eromheen: het slotje bij het adres, of *Chrome, Instellingen,
+  Site-instellingen, Alle sites, zoek dit adres, Gegevens wissen en rechten resetten*.
+- Zonder blokkade blijft er staan dat er nog niets gevraagd is op dat adres — dan hoort Start de vraag te
+  geven en zit het ergens anders.
+
 ## [1.37.0] — 5 november 2026
 
 ### De regel in de stemmerkaart noemt ook de blokkade in Chrome zelf

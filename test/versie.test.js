@@ -277,3 +277,13 @@ test('de regel bij de stemmer noemt bij een blokkade ook Chrome zelf', () => {
   assert.match(html, /Instellingen, Site-instellingen, Microfoon/, 'en Chrome\'s eigen instelling te noemen');
   assert.match(html, /nog niet gevraagd/, 'en het verschil met niets gevraagd');
 });
+
+test('de regel noemt het adres waarop je zit, zodat je de blokkade kunt terugvinden', () => {
+  // Een bewaarde blokkade per site is onzichtbaar in de app; de regel moet dus zeggen om welk adres het gaat
+  // en hoe je die keuze in Chrome wist.
+  const html = fs.readFileSync(path.join(wortel, 'public', 'index.html'), 'utf8');
+  assert.match(html, /location\.hostname/, 'het adres hoort uit location te komen, niet hard in de pagina');
+  assert.match(html, /Gegevens wissen en rechten resetten/, 'met de weg om de keuze te wissen');
+  assert.match(html, /geblokkeerd voor dit adres/, 'en dat een blokkade aan dit adres hangt');
+  assert.ok(!html.includes('werdensmedia.net'), 'het publieke adres mag niet in het repo staan');
+});

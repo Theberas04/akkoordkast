@@ -1,4 +1,7 @@
 'use strict';
+// In de proeven vult de app dit niet op de achtergrond aan: anders zou het werk van de proef
+// ermee in de war kunnen lopen. De proef die dit juist wél wil, zet het zelf aan.
+process.env.OPNAME_AUTO_UIT = '1';
 // Testhulp: start de app op een vrije poort met een tijdelijke database en mediabibliotheek.
 const fs = require('fs');
 const os = require('os');

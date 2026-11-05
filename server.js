@@ -33,10 +33,11 @@ const MEDIA_DIR = process.env.MEDIA_DIR || path.join(DATA_DIR, 'media');
 const DB_PATH = process.env.DB_PATH || path.join(DATA_DIR, 'akkoordkast.db');
 const CAST_PYTHON = process.env.CAST_PYTHON || 'python3';
 const FFMPEG = process.env.FFMPEG || 'ffmpeg';
+const { spawn: spawnKind } = require('child_process');
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.21.0';
+const VERSIE = '1.22.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -1378,6 +1379,34 @@ function analyseerUpload(bestandPad, opties) {
   }
 }
 
+// Dezelfde analyse, maar in een apart proces. Zo blijft de app zelf gewoon werken terwijl er op de
+// achtergrond een liedje wordt uitgezocht — het rekenen van een hele opname duurt namelijk lang.
+function analyseerUploadAsync(bestandPad, opties) {
+  const maatsoort = parseInt((opties || {}).maatsoort, 10) || 0;
+  return new Promise((oplossen, weigeren) => {
+    const kind = spawnKind(process.execPath,
+      [path.join(__dirname, 'scripts', 'analyseer-bestand.js'), bestandPad, String(maatsoort)],
+      { timeout: 300000 });
+    let uit = '';
+    let fout = '';
+    kind.stdout.on('data', (d) => { uit += d; });
+    kind.stderr.on('data', (d) => { fout += d; });
+    kind.on('error', (e) => weigeren(e));
+    kind.on('close', (code) => {
+      let antwoord = null;
+      const begin = uit.indexOf('{');
+      if (begin !== -1) { try { antwoord = JSON.parse(uit.slice(begin)); } catch (e) { antwoord = null; } }
+      if (antwoord && antwoord.uitslag) { oplossen(antwoord.uitslag); return; }
+      if (antwoord && antwoord.fout) { weigeren(new Error(antwoord.fout)); return; }
+      if (code !== 0) {
+        weigeren(new Error(String(fout || 'De akkoorden konden niet uit de muziek worden gehaald.').trim().slice(0, 200)));
+        return;
+      }
+      weigeren(new Error('De analyse gaf geen leesbaar antwoord.'));
+    });
+  });
+}
+
 function maakMp3Van(bestandPad, naam) {
   const mp3Pad = path.join(MEDIA_DIR, 'audio', naam);
   const omzetten = spawnSync(FFMPEG, ['-v', 'error', '-y', '-i', bestandPad, '-vn', '-codec:a', 'libmp3lame', '-b:a', '128k', mp3Pad], { timeout: 180000 });
@@ -1755,19 +1784,105 @@ function startOpnameRonde() {
     }
     const kand = kandidaten[i++];
     OPNAME_RONDE.nu = kand.titel;
-    let gelukt = false;
-    try {
-      const lied = vindLiedje(kand.id) || { id: kand.id };
-      gelukt = zetOpnameAkkoorden(lied, analyseerUpload(kand.pad, {})).akkoorden.length > 0;
-    } catch (e) {
+    const lied = vindLiedje(kand.id) || { id: kand.id };
+    analyseerUploadAsync(kand.pad, {}).then((uitslag) => {
+      if (zetOpnameAkkoorden(lied, uitslag).akkoorden.length > 0) OPNAME_RONDE.gelukt += 1;
+      else OPNAME_RONDE.mislukt += 1;
+    }).catch((e) => {
       OPNAME_RONDE.laatsteFout = kand.titel + ': ' + e.message;
-    }
-    OPNAME_RONDE.gedaan += 1;
-    if (gelukt) OPNAME_RONDE.gelukt += 1; else OPNAME_RONDE.mislukt += 1;
-    setTimeout(volgende, 40);
+      OPNAME_RONDE.mislukt += 1;
+    }).then(() => {
+      OPNAME_RONDE.gedaan += 1;
+      setTimeout(volgende, 40);
+    });
   };
   setTimeout(volgende, 20);
   return OPNAME_RONDE;
+}
+
+// --- De app vult het zelf aan, zonder dat je ergens op hoeft te klikken -----------------------
+// Op de achtergrond pakt hij één liedje per keer: kijken wat er nog geen akkoorden heeft, en daar de
+// akkoorden uit de muziek halen. Wat niet lukt wordt overgeslagen en niet eindeloos opnieuw geprobeerd.
+const OPNAME_AUTO = {
+  aan: leesInstelling('opname_auto', 'aan') !== 'uit' && process.env.OPNAME_AUTO_UIT !== '1',
+  loopt: false, geprobeerd: 0, gelukt: 0, laatste: '', laatsteReden: '',
+  mislukt: [], wachtrij: [], laatsteScan: 0,
+  perStart: Math.max(1, parseInt(process.env.OPNAME_AUTO_MAX || '150', 10) || 150),
+  wachttijd: Math.max(200, parseInt(process.env.OPNAME_AUTO_MS || '15000', 10) || 15000)
+};
+
+// De kandidaten uitzoeken kost even (het kijkt van elk liedje of het bestand er nog is), dus dat doen
+// we niet bij elk liedje opnieuw: één keer, en daarna alleen als de wachtrij leeg is.
+function opnameWachtrij() {
+  const nu = Date.now();
+  if (!OPNAME_AUTO.wachtrij.length || nu - OPNAME_AUTO.laatsteScan > 600000) {
+    OPNAME_AUTO.wachtrij = opnameKandidaten();
+    OPNAME_AUTO.laatsteScan = nu;
+  }
+  return OPNAME_AUTO.wachtrij.filter((k) => OPNAME_AUTO.mislukt.indexOf(k.id) === -1);
+}
+
+function opnameAutoStap() {
+  if (!OPNAME_AUTO.aan || OPNAME_AUTO.loopt || OPNAME_RONDE.loopt) return;
+  if (OPNAME_AUTO.geprobeerd >= OPNAME_AUTO.perStart) return;
+  let kandidaten = [];
+  try { kandidaten = opnameWachtrij(); } catch (e) { OPNAME_AUTO.laatsteReden = e.message; return; }
+  if (!kandidaten.length) { OPNAME_AUTO.laatste = ''; return; }
+  const kand = kandidaten[0];
+  OPNAME_AUTO.loopt = true;
+  OPNAME_AUTO.laatste = kand.titel;
+  const lied = vindLiedje(kand.id) || { id: kand.id };
+  analyseerUploadAsync(kand.pad, {}).then((uitslag) => {
+    const uitkomst = zetOpnameAkkoorden(lied, uitslag);
+    OPNAME_AUTO.geprobeerd += 1;
+    if (uitkomst.akkoorden.length) {
+      OPNAME_AUTO.gelukt += 1;
+      OPNAME_AUTO.laatsteReden = '';
+    } else {
+      OPNAME_AUTO.mislukt.push(kand.id);
+      OPNAME_AUTO.laatsteReden = uitkomst.reden === 'onduidelijk'
+        ? 'geen duidelijke akkoordwisselingen te vinden'
+        : 'geen akkoorden herkend';
+    }
+  }).catch((e) => {
+    OPNAME_AUTO.geprobeerd += 1;
+    OPNAME_AUTO.mislukt.push(kand.id);
+    OPNAME_AUTO.laatsteReden = String((e && e.message) || e).slice(0, 200);
+  }).then(() => {
+    OPNAME_AUTO.wachtrij = OPNAME_AUTO.wachtrij.filter((k) => k.id !== kand.id);
+    OPNAME_AUTO.loopt = false;
+  });
+}
+
+let opnameAutoKlok = null;
+function startOpnameAuto() {
+  if (opnameAutoKlok || !OPNAME_AUTO.aan) return;
+  opnameAutoKlok = setInterval(opnameAutoStap, OPNAME_AUTO.wachttijd);
+  // De klok houdt het programma niet zelf levend: zo stopt de app netjes als hij afgesloten wordt.
+  if (opnameAutoKlok.unref) opnameAutoKlok.unref();
+  const eerste = setTimeout(opnameAutoStap, Math.min(OPNAME_AUTO.wachttijd, 5000));
+  if (eerste.unref) eerste.unref();
+}
+function stopOpnameAuto() {
+  if (opnameAutoKlok) { clearInterval(opnameAutoKlok); opnameAutoKlok = null; }
+}
+
+// Staat ffmpeg (of een ander programma) op deze machine? De app zegt het liever dan dat hij zwijgt.
+let gereedschapGeheugen = { wanneer: 0, uit: {} };
+function heeftGereedschap(programma) {
+  const nu = Date.now();
+  if (nu - gereedschapGeheugen.wanneer < 60000 && programma in gereedschapGeheugen.uit) {
+    return gereedschapGeheugen.uit[programma];
+  }
+  let gevonden = false;
+  for (const vlag of ['-version', '--version']) {
+    try {
+      if (spawnSync(programma, [vlag], { timeout: 5000, stdio: 'ignore' }).status === 0) { gevonden = true; break; }
+    } catch (e) { /* niet gevonden */ }
+  }
+  gereedschapGeheugen.uit[programma] = gevonden;
+  gereedschapGeheugen.wanneer = nu;
+  return gevonden;
 }
 
 function eigenRijen() {
@@ -3607,6 +3722,37 @@ async function verwerk(req, res) {
     json(res, 200, { ok: true, gestart: ronde.loopt, totaal: ronde.totaal, ronde });
     return;
   }
+  // Wat de app zelf kan (staat ffmpeg op deze machine?) en hoe ver hij is met het zelf aanvullen van
+  // bladmuziek. Klein en onschuldig, dus ook zonder inloggen te lezen: dan kan iemand die de app
+  // beheert rustig kijken waar het op blijft hangen.
+  if (pad === '/api/gereedschap' && methode === 'GET') {
+    json(res, 200, {
+      ffmpeg: heeftGereedschap(FFMPEG),
+      ytdlp: heeftGereedschap(process.env.YTDLP || 'yt-dlp'),
+      opname: {
+        auto: OPNAME_AUTO.aan, loopt: OPNAME_AUTO.loopt || OPNAME_RONDE.loopt,
+        geprobeerd: OPNAME_AUTO.geprobeerd, gelukt: OPNAME_AUTO.gelukt,
+        overgeslagen: OPNAME_AUTO.mislukt.length,
+        laatste: OPNAME_AUTO.laatste, laatsteReden: OPNAME_AUTO.laatsteReden,
+        ronde: {
+          loopt: OPNAME_RONDE.loopt, totaal: OPNAME_RONDE.totaal, gedaan: OPNAME_RONDE.gedaan,
+          gelukt: OPNAME_RONDE.gelukt, mislukt: OPNAME_RONDE.mislukt, nu: OPNAME_RONDE.nu
+        }
+      }
+    });
+    return;
+  }
+  // Zelf aanvullen aan- of uitzetten (beheerder).
+  if (pad === '/api/opname-auto' && methode === 'POST') {
+    if (!isBeheerder(req)) { json(res, 403, { fout: 'Dit hoort bij het beheerdersprofiel (Admin). Kies dat profiel en log daar in.' }); return; }
+    let lichaam = {};
+    try { lichaam = await leesJsonBody(req); } catch (e) { lichaam = {}; }
+    OPNAME_AUTO.aan = !!(lichaam && lichaam.aan);
+    zetInstelling('opname_auto', OPNAME_AUTO.aan ? 'aan' : 'uit');
+    if (OPNAME_AUTO.aan) startOpnameAuto(); else stopOpnameAuto();
+    json(res, 200, { ok: true, aan: OPNAME_AUTO.aan });
+    return;
+  }
   if (pad === '/api/opname-stand' && methode === 'GET') {
     if (!isBeheerder(req)) { json(res, 403, { fout: 'Dit hoort bij het beheerdersprofiel (Admin). Kies dat profiel en log daar in.' }); return; }
     json(res, 200, OPNAME_RONDE);
@@ -4560,3 +4706,7 @@ module.exports = {
   maakPreview, previewVoorLiedje, castHelper, leesInstelling, zetInstelling,
   paden: { DATA_DIR, MEDIA_DIR, DB_PATH, CAST_HELPER, EIGEN_START, PORT }
 };
+
+// Zodra de app geladen is begint hij zelf met het aanvullen van bladmuziek — tenzij de beheerder het
+// heeft uitgezet, of de omgeving zegt dat het niet moet (zoals in de proeven).
+try { startOpnameAuto(); } catch (e) { console.log('zelf aanvullen kon niet starten: ' + e.message); }

@@ -3,6 +3,31 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.22.0] — 4 november 2026
+
+### De app vult je bladmuziek nu zelf aan, en zegt waar het op blijft hangen
+
+De verbeterde herkenning van 1.21.0 deed zijn werk, maar bij de gebruiker stonden de Kensington-nummers
+nog steeds op een voorstel: de ronde moest met de hand gestart worden en dat gebeurde niet. Dat is nu
+anders.
+
+- **Het gebeurt vanzelf.** Zodra de app draait pakt hij op de achtergrond één liedje per keer: kijken
+  wat er muziek heeft maar nog geen akkoorden, en daar de akkoorden uit de muziek halen. Je hoeft dus
+  nergens meer op te klikken. Wat niet lukt wordt overgeslagen in plaats van eindeloos opnieuw geprobeerd.
+- **Het rekenen gebeurt in een apart proces** (`scripts/analyseer-bestand.js`). Eerst gebeurde dat in de
+  app zelf, waardoor de app seconden tot een halve minuut kon stilvallen. Nu blijft de app gewoon bruikbaar
+  terwijl er op de achtergrond een liedje wordt uitgezocht. Dat geldt ook voor de ronde van de beheerder.
+- **Je kunt het zien en uitzetten.** Op de kaart *Bladmuziek uit de muziek halen* staat een vinkje
+  (zelf aanvullen aan/uit, bewaard in de instellingen) met daaronder hoe ver de app is: hoeveel liedjes
+  gedaan, hoeveel gelukt, hoeveel overgeslagen, en bij welke het niet lukte met de reden erbij.
+- **De app meldt ontbrekend gereedschap.** `GET /api/gereedschap` (klein, ook zonder inloggen) vertelt of
+  ffmpeg en yt-dlp op de machine staan. Ontbreekt ffmpeg, dan zegt de kaart: *zet het erop met
+  `sudo apt-get install -y ffmpeg`*. Zonder dat gereedschap kan er geen geluid uit een opname worden gehaald.
+- De schakelaar werkt met `POST /api/opname-auto` en hoort bij het beheerdersprofiel.
+
+Getest met een echte opname: de proef in `test/opnameauto.test.js` zet een liedje met muziek neer en
+wacht — zonder één knop in te drukken staan de akkoorden er binnen enkele seconden, met bron *opname*.
+
 ## [1.21.0] — 4 november 2026
 
 ### De akkoordherkenning werkt nu ook bij echte opnames

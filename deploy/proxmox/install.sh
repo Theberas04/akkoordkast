@@ -93,6 +93,7 @@ FILES=(
   "song-data/oude-bundels.json"
   "scripts/cast-helper.py"
   "scripts/bijwerken-in-de-app.sh"
+  "scripts/analyseer-bestand.js"
   "public/index.html"
   "public/favicon.svg"
   "public/manifest.webmanifest"

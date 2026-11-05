@@ -113,6 +113,7 @@ FILES=(
   "song-data/oude-bundels.json"
   "scripts/cast-helper.py"
   "scripts/bijwerken-in-de-app.sh"
+  "scripts/analyseer-bestand.js"
 )
 
 RUNTIME=(
@@ -163,6 +164,7 @@ DATA=(
   "song-data/oude-bundels.json"
   "scripts/cast-helper.py"
   "scripts/bijwerken-in-de-app.sh"
+  "scripts/analyseer-bestand.js"
 )
 
 binnen_bash() { pct exec "$CTID" -- bash -c "$1"; }

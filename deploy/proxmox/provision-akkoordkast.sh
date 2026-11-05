@@ -88,6 +88,7 @@ DATA=(
   "song-data/oude-bundels.json"
   "scripts/cast-helper.py"
   "scripts/bijwerken-in-de-app.sh"
+  "scripts/analyseer-bestand.js"
 )
 
 for f in "${RUNTIME[@]}" "${PAGINA[@]}" "${DATA[@]}"; do
@@ -132,7 +133,7 @@ echo "== Bestanden naar de container sturen"
 for f in "${RUNTIME[@]}"; do pct push "$CTID" "$SRC/$f" "$APP_DIR/$f" --perms 644; done
 for f in "${PAGINA[@]}"; do pct push "$CTID" "$SRC/$f" "$APP_DIR/$f" --perms 644; done
 for f in "${DATA[@]}"; do pct push "$CTID" "$SRC/$f" "$APP_DIR/$f" --perms 644; done
-binnen_bash "chmod 755 $APP_DIR/scripts/cast-helper.py $APP_DIR/scripts/bijwerken-in-de-app.sh && chown -R $GEBRUIKER:$GEBRUIKER $APP_DIR $DATA_DIR"
+binnen_bash "chmod 755 $APP_DIR/scripts/cast-helper.py $APP_DIR/scripts/bijwerken-in-de-app.sh $APP_DIR/scripts/analyseer-bestand.js && chown -R $GEBRUIKER:$GEBRUIKER $APP_DIR $DATA_DIR"
 
 echo "== Chromecast-hulp installeren (pychromecast in een eigen venv)"
 CAST_KLAAR=1

@@ -1328,6 +1328,10 @@
         <button class="knop zacht" id="opname-kijk">Kijk welke liedjes muziek hebben zonder akkoorden</button>
         <button class="knop" id="opname-begin" hidden>Begin</button>
       </div>
+      <div id="opname-auto-rij" style="margin-top:10px">
+        <label><input type="checkbox" id="opname-auto"> De app vult dit zelf aan op de achtergrond</label>
+        <div class="zacht" id="opname-auto-stand">Aan het kijken…</div>
+      </div>
       <div id="opname-melding"></div>
       <p class="meta">De akkoorden komen uit de opname zelf en zijn een benadering: controleer ze en pas ze aan
         waar nodig. De app haalt geen akkoorden van websites.</p>
@@ -4863,6 +4867,43 @@ function koppelOpnameKaart() {
       });
   }
 
+  // De app kan dit ook zelf doen. Laat zien of het aan staat, hoe ver hij is, en waar het op blijft
+  // hangen — dat scheelt zoeken als er iets niet lukt.
+  const vinkje = $('opname-auto');
+  if (vinkje) {
+    const kijkAuto = function () {
+      return fetch('/api/gereedschap', { headers: { 'x-akkoordkast': 'app' } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d) { $('opname-auto-stand').textContent = 'De app kon de stand niet ophalen.'; return; }
+          vinkje.checked = !!d.opname.auto;
+          const stukjes = [];
+          if (!d.ffmpeg) {
+            stukjes.push('Let op: ffmpeg staat niet op deze machine, dus er kan geen geluid worden ' +
+              'gelezen. Zet het erop met: sudo apt-get install -y ffmpeg');
+          }
+          if (d.opname.loopt) stukjes.push('Nu bezig: ' + (d.opname.laatste || d.opname.ronde.nu || 'een liedje'));
+          else if (d.opname.auto) stukjes.push('Staat aan');
+          else stukjes.push('Staat uit');
+          if (d.opname.geprobeerd) {
+            stukjes.push(d.opname.geprobeerd + ' liedje(s) gedaan, ' + d.opname.gelukt + ' gelukt' +
+              (d.opname.overgeslagen ? ', ' + d.opname.overgeslagen + ' overgeslagen' : ''));
+          }
+          if (d.opname.laatsteReden) stukjes.push('Laatste bleef staan: ' + d.opname.laatsteReden);
+          $('opname-auto-stand').textContent = stukjes.join(' \u00b7 ');
+        })
+        .catch(function () { $('opname-auto-stand').textContent = 'De app kon de stand niet ophalen.'; });
+    };
+    vinkje.addEventListener('change', function () {
+      fetch('/api/opname-auto', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-akkoordkast': 'app', 'x-profiel': String(actiefProfiel()) },
+        body: JSON.stringify({ aan: !!vinkje.checked })
+      }).then(function () { kijkAuto(); }).catch(function () {});
+    });
+    kijkAuto();
+    setInterval(kijkAuto, 10000);
+  }
   $('opname-kijk').addEventListener('click', kijk);
 
   $('opname-begin').addEventListener('click', function () {

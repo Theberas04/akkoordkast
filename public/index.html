@@ -4532,7 +4532,11 @@ function meespelLaad(l, spelen) {
     if (!spelen) {
       toonMelding('mees-melding', tl.heeftMelodie
         ? 'Dit liedje heeft een volledige melodie: druk op Meespelen en je ziet elke noot langskomen.'
-        : 'Dit liedje heeft alleen akkoorden: druk op Meespelen voor de maat, de slagen en de akkoordnoten.', '');
+        : (data.voorstel
+          ? 'Dit liedje had geen eigen akkoorden: de akkoorden hierboven zijn een voorstel. Druk op ' +
+            'Meespelen en de maat, de slagen en de noten lopen mee met de muziek. Het beeld kan iets ' +
+            'naast de opname lopen, want die is niet op maat geanalyseerd.'
+          : 'Dit liedje heeft alleen akkoorden: druk op Meespelen voor de maat, de slagen en de akkoordnoten.'), '');
       return;
     }
     if (SPOTIFY.controller && SPOTIFY.speelt) { try { SPOTIFY.controller.pause(); } catch (e) {} }

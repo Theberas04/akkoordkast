@@ -3,6 +3,26 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.43.0] — 5 november 2026
+
+### Meespelen met muziek uit je eigen map werkt nu ook zonder opname-analyse
+
+Bij *Smoorverliefd* (een opgehaald nummer met muziek erbij) deed de meespeelknop niets: geen NU, geen
+maten, geen meelopend bladmuziek. De app speelde alleen de muziek. Oorzaak: bij een liedje met muziek uit
+je map keek de app of er een **opname-analyse** was (`audio_bestand` + akkoorden per maat), en anders
+zette hij het beeld uit — ook als het liedje wél akkoorden had in zijn schema.
+
+- Het beeld loopt nu mee zodra er akkoorden zijn: uit de analyse van een opname, uit het schema van het
+  liedje of uit het voorstel dat de kaart erboven ook laat zien. Pas als er helemaal geen akkoorden
+  zijn, blijft het bij alleen muziek.
+- Bij een voorstel zegt de app het eerlijk: "Dit liedje had geen eigen akkoorden: de akkoorden hierboven
+  zijn een voorstel. Druk op Meespelen en de maat, de slagen en de noten lopen mee met de muziek. Het
+  beeld kan iets naast de opname lopen, want die is niet op maat geanalyseerd."
+- Het antwoord van `/api/meespelen` heeft daarvoor het veld `voorstel`.
+
+Nieuwe proeven erbij: een liedje met muziek uit de map krijgt een tijdlijn, en bij een liedje zonder
+eigen akkoorden loopt het beeld mee op het voorstel (met die melding erbij).
+
 ## [1.42.0] — 5 november 2026
 
 ### Dubbele nummers bekijken

@@ -39,7 +39,7 @@ const CAST_HELPER = process.env.CAST_HELPER
   : path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.42.0';
+const VERSIE = '1.43.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -4544,8 +4544,19 @@ async function verwerk(req, res) {
     // (de akkoorden staan als voorstel in de liedkaart); een meelopend beeld zou op deze opname niet
     // kloppen, want die is niet op maat geanalyseerd.
     const eigenMuziek = muziekVoorLiedje(lied);
-    const metOpnameAnalyse = !!(lied.audio_bestand && lied.akkoordenPerMaat && lied.akkoordenPerMaat.length);
-    if (eigenMuziek && eigenMuziek.bestaat && !metOpnameAnalyse) {
+    // Muziek uit je eigen map: het beeld loopt mee zodra er akkoorden zijn — uit de analyse van een
+    // opname, uit het schema van het liedje of uit het voorstel dat de kaart erboven ook laat zien.
+    // Pas als er helemaal geen akkoorden zijn, blijft het bij alleen muziek.
+    let voorstelModel = null;
+    try { voorstelModel = modelMetVoorstel(lied); } catch (e) { voorstelModel = null; }
+    // 'Eigen akkoorden' betekent: het liedje heeft ze zelf (in de tekst of uit de analyse van een
+    // opname). De akkoorden van het model kunnen ook van het voorstel komen, dus die tellen hier niet.
+    const heeftEigenAkkoorden = !!((lied.akkoordenPerMaat && lied.akkoordenPerMaat.length) ||
+      heeftAkkoordenInTekst(lied.chordpro));
+    const modelAkkoorden = (voorstelModel && voorstelModel.model && voorstelModel.model.akkoorden) || [];
+    const heeftAkkoorden = heeftEigenAkkoorden || modelAkkoorden.length > 0;
+    const voorstelAlleen = heeftAkkoorden && !heeftEigenAkkoorden;
+    if (eigenMuziek && eigenMuziek.bestaat && !heeftAkkoorden) {
       json(res, 200, {
         liedje: {
           id: lied.id,
@@ -4603,6 +4614,7 @@ async function verwerk(req, res) {
         eigenAudio: metOpname
       },
       tijdlijn: tijdlijn.tijdlijnVanPlan(plan),
+      voorstel: voorstelAlleen,
       audio: metOpname ? eigenAudioUrl(lied) : `/api/meespelen/audio?${meespeelQuery(query)}`,
       bron: metOpname
         ? ((lied.audio_bestand && lied.akkoordenPerMaat && lied.akkoordenPerMaat.length) ? 'opname' : 'muziek')

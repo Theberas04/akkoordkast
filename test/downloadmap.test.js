@@ -129,13 +129,16 @@ test('een liedje zonder akkoorden krijgt een voorstel en speelt mee', async () =
     }
     assert.ok(liedje, 'het opgehaalde nummer hoort een liedje met muziek te zijn');
 
-    // Dit nummer heeft een opname maar geen eigen analyse: Meespelen speelt de muziek zelf.
+    // Dit nummer heeft een opname maar geen eigen analyse. Het beeld loopt mee op het voorstel (het
+    // schema dat de kaart ook laat zien), en de app zegt er eerlijk bij dat het een voorstel is: die
+    // opname is niet op maat geanalyseerd, dus het beeld kan er iets naast lopen.
     const mees = await hulp.haal(omgeving.basis + `/api/meespelen?liedje=${liedje.id}&capo=0`);
     assert.equal(mees.status, 200, 'meespelen hoort te lukken: ' + JSON.stringify(mees.data));
-    assert.equal(mees.data.alleenMuziek, true, 'de opgehaalde muziek wordt gespeeld: ' + JSON.stringify(mees.data).slice(0, 240));
+    assert.ok(!mees.data.alleenMuziek, 'met een voorstel hoort het beeld mee te lopen: ' + JSON.stringify(mees.data).slice(0, 240));
+    assert.ok(mees.data.tijdlijn && (mees.data.tijdlijn.maten || []).length, 'er hoort een tijdlijn te zijn');
+    assert.equal(mees.data.voorstel, true, 'de app hoort te zeggen dat de akkoorden een voorstel zijn');
     assert.match(String(mees.data.audio || ''), /muziek\/bestand\?liedje=/,
       'de muziek van het liedje wordt gespeeld, kreeg: ' + JSON.stringify(mees.data.audio));
-    assert.match(String(mees.data.melding || ''), /akkoorden/i, 'de app legt uit waar de akkoorden staan');
 
     // De liedkaart vertelt dat de akkoorden een voorstel zijn, en geeft ze mee aan de app.
     const kaart = await baas.haal(`/api/liedjes/${liedje.id}`);

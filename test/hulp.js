@@ -40,11 +40,27 @@ function start() {
   });
 }
 
+// Een proefserver draait naast alle andere proefbestanden, dus onder volle belasting kan een enkel
+// verzoek blijven hangen; dan lijkt een proef te zakken terwijl er niets mis is. Daarom een korte
+// tijdslimiet, en bij een leesverzoek (GET) een paar keer opnieuw proberen. Een schrijfverzoek
+// (POST) nooit herhalen: dat zou de actie twee keer uitvoeren.
 async function haal(basis, pad, opties) {
-  const r = await fetch(basis + pad, opties);
-  const type = r.headers.get('content-type') || '';
-  const data = type.includes('json') ? await r.json() : await r.text();
-  return { status: r.status, data, type, headers: r.headers };
+  const methode = (opties && opties.method) || 'GET';
+  const magOpnieuw = methode === 'GET';
+  let laatsteFout = null;
+  for (let poging = 0; poging < (magOpnieuw ? 3 : 1); poging++) {
+    try {
+      const r = await fetch(basis + pad, Object.assign({ signal: AbortSignal.timeout(10000) }, opties));
+      const type = r.headers.get('content-type') || '';
+      const data = type.includes('json') ? await r.json() : await r.text();
+      return { status: r.status, data, type, headers: r.headers };
+    } catch (fout) {
+      laatsteFout = fout;
+      if (!magOpnieuw) throw fout;
+      await new Promise((r) => setTimeout(r, 150 * (poging + 1)));
+    }
+  }
+  throw laatsteFout;
 }
 
 const post = (basis, pad, lichaam) => haal(basis, pad, {

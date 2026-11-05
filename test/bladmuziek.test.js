@@ -146,8 +146,12 @@ test('de melding van het ophalen verdwijnt als de akkoorden er wel zijn', async 
     const kaart = await baas.haal('/api/liedjes/' + id);
     const tekst = String(kaart.data.chordpro || '');
     assert.ok(!/staat er nog niet in/i.test(tekst), 'de melding hoort weg te zijn: ' + tekst);
-    assert.match(tekst, /uit de opname gehaald/i, 'er hoort te staan waar de akkoorden vandaan komen: ' + tekst);
     assert.match(tekst, /^\s*\{title:/, 'de kop van het liedje hoort te blijven staan: ' + tekst);
+    // En er hoort echte bladmuziek te staan: de akkoorden per maat, niet een lap uitleg.
+    assert.match(tekst, /\|\[[A-G][^\]]*\]/, 'er hoort een akkoordenschema te staan: ' + tekst);
+    assert.ok(!/De akkoorden van dit nummer zijn uit de opname gehaald/.test(tekst),
+      'de lap uitleg hoort niet meer in het blad te staan: ' + tekst);
+    assert.match(tekst, /^\|\[[A-G]/m, 'de akkoorden horen per maat op een regel te staan: ' + tekst);
   } finally {
     await omgeving.stop();
   }
@@ -171,8 +175,11 @@ test('de melding wordt rechtgezet bij liedjes die de akkoorden al hadden', async
     const rij = omgeving.app.db.prepare('SELECT chordpro FROM liedjes WHERE titel = ?').get('Oud nummer');
     const tekst = String(rij.chordpro || '');
     assert.ok(!/staat er nog niet in/i.test(tekst), 'de melding hoort rechtgezet te zijn: ' + tekst);
-    assert.match(tekst, /uit de opname gehaald/i, 'met de juiste uitleg: ' + tekst);
     assert.match(tekst, /^\s*\{title:/, 'en de kop blijft staan: ' + tekst);
+    // De akkoorden die er al waren horen als schema in het blad te komen.
+    for (const akkoord of ['C', 'G', 'Am', 'F']) {
+      assert.ok(tekst.includes('[' + akkoord + ']'), 'het akkoord ' + akkoord + ' hoort in het schema te staan: ' + tekst);
+    }
 
     // En bij een tweede keer doen blijft het rustig: er is dan niets meer recht te zetten.
     const nogeens = omgeving.app.herstelOphaalTeksten();

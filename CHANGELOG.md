@@ -3,6 +3,31 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.30.0] — 4 november 2026
+
+### Bij het bladmuziek staat nu een akkoordenschema in plaats van een lap uitleg
+
+De klacht: bij de bladmuziek van (opgehaalde) nummers stond een **alinea uitleg** in plaats van bladmuziek:
+*"De akkoorden van dit nummer zijn uit de opname gehaald; ze lopen mee als je in het speelscherm op
+Meespelen met de muziek drukt. Er zit geen liedtekst bij dit nummer, dus speel op gehoor mee…"*.
+
+Dat was een fout van de vorige versie: 1.27.0 verving de melding van het ophalen door een **nieuwe lap
+tekst**, terwijl er een **akkoordblad** hoort te staan. Een nummer zonder liedtekst hoort zijn akkoorden te
+laten zien, niet uit te leggen waar ze vandaan komen.
+
+- `akkoordBlad()` maakt een echt akkoordenschema: **vier maten per regel**, elke maat met een maatstreep en
+  de akkoorden uit de opname (`|[C] |[G] |[Am] |[F]`), met `{title}`, `{key}` en `{tempo}` erboven en één
+  korte regel erbij: *"Akkoorden uit de opname - pas ze gerust aan waar het beter klinkt."*
+- Zijn er geen akkoorden te vinden, dan staat er één korte, eerlijke regel in plaats van een alinea.
+- `heeftEigenTekst()` zorgt dat dit **alleen** gebeurt bij liedjes zonder eigen liedtekst: een tekst die de
+  gebruiker zelf heeft ingevoerd blijft altijd staan.
+- De eenmalige opruiming bij het starten zet ook de nummers die de lap uitleg al hadden om naar een
+  akkoordenschema. Op de app van de gebruiker ging het om 118 nummers; bijwerken is genoeg.
+
+Bewijs: in `test/bladmuziek.test.js` controleert de proef bij het zelf-aanvullen dat er een akkoordenschema
+in het blad staat (`|[C]`) en dat de lap uitleg er niet meer in zit, en de opruimproef controleert dat de
+akkoorden die er al waren als schema terugkomen.
+
 ## [1.29.0] — 4 november 2026
 
 ### "Ik krijg de melding nog" — de pagina kwam uit de cache

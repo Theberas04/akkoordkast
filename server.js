@@ -39,7 +39,7 @@ const CAST_HELPER = process.env.CAST_HELPER
   : path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.29.0';
+const VERSIE = '1.30.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -1623,6 +1623,41 @@ function ophaalVervolg(metAkkoorden) {
     'De muziek hoor je wel met Meespelen met de muziek. Zet de akkoorden er zelf bij als je ze weet.';
 }
 
+// Staat er eigen liedtekst in dit liedje? De meldingen van de app tellen niet mee.
+function heeftEigenTekst(chordpro) {
+  if (isOphaalTekst(chordpro)) return false;
+  const romp = String(chordpro || '').split('\n').filter(r => !/^\s*\{/.test(r)).join(' ');
+  return /[A-Za-zÀ-ÿ]{3,}/.test(romp);
+}
+
+// De akkoorden uit de opname op een blad zetten: vier maten per regel, zoals een akkoordenschema.
+// Een nummer zonder liedtekst hoort dit te laten zien - geen lap uitleg.
+function akkoordBlad(lied, perMaat) {
+  const maten = (Array.isArray(perMaat) ? perMaat : []).map(m => String(m || '').trim());
+  const titel = String((lied && lied.titel) || 'Zonder titel').replace(/[\r\n{}]/g, ' ').trim();
+  const uit = ['{title: ' + titel + '}'];
+  if (lied && lied.toonsoort) uit.push('{key: ' + lied.toonsoort + '}');
+  const tempo = parseInt((lied && lied.tempo) || 0, 10);
+  if (tempo) uit.push('{tempo: ' + tempo + '}');
+  uit.push('');
+  if (maten.filter(Boolean).length) {
+    uit.push('{comment: Akkoorden uit de opname - pas ze gerust aan waar het beter klinkt.}');
+    uit.push('');
+    for (let i = 0; i < maten.length; i += 4) {
+      let regel = '';
+      for (const maat of maten.slice(i, i + 4)) {
+        if (!maat) continue;
+        for (const akkoord of maat.split(/\s+/).filter(Boolean)) regel += '|[' + akkoord + ']   ';
+        regel += ' ';
+      }
+      uit.push(regel.trim());
+    }
+  } else {
+    uit.push('{comment: De akkoorden konden niet uit deze opname worden gehaald.}');
+  }
+  return uit.join('\n') + '\n';
+}
+
 // De melding vervangen, met de kop ({title: ...}) erboven intact.
 function vervangOphaalTekst(chordpro, metAkkoorden) {
   const regels = String(chordpro || '').split('\n');
@@ -1803,10 +1838,13 @@ function zetOpnameAkkoorden(lied, uitslag) {
       gevonden: schoon.length
     };
   }
-  if (isOphaalTekst(lied.chordpro)) {
-    // De melding van het ophalen is niet meer waar: de akkoorden zijn er nu.
-    db.prepare('UPDATE liedjes SET chordpro = ? WHERE id = ?')
-      .run(vervangOphaalTekst(lied.chordpro, true), Number(lied.id) - EIGEN_START);
+  if (!heeftEigenTekst(lied.chordpro)) {
+    // Er is geen liedtekst: dan hoort er een akkoordblad te staan in plaats van een uitleg. Welke
+    // melding er ook stond (van het ophalen of van een eerdere versie), die gaat er nu uit.
+    db.prepare('UPDATE liedjes SET chordpro = ? WHERE id = ?').run(
+      akkoordBlad({ titel: lied.titel, toonsoort: uitslag.toonsoort || lied.toonsoort, tempo: lied.tempo },
+        uitslag.akkoordenPerMaat),
+      Number(lied.id) - EIGEN_START);
   }
   db.prepare('UPDATE liedjes SET akkoorden_per_maat = ?, toonsoort = ?, tempo = ?, maatsoort = ? WHERE id = ?')
     .run(JSON.stringify(uitslag.akkoordenPerMaat), uitslag.toonsoort || lied.toonsoort || '',
@@ -4900,24 +4938,27 @@ module.exports = {
 // tekst staan. Zodra er akkoorden zijn klopt dat niet meer. Dit zet het één keer recht, ook voor liedjes
 // die de akkoorden al eerder kregen (zoals de verzameling van de gebruiker).
 function herstelOphaalTeksten() {
-  const rijen = db.prepare('SELECT id, titel, chordpro, akkoorden_per_maat FROM liedjes').all();
+  const rijen = db.prepare('SELECT id, titel, toonsoort, tempo, chordpro, akkoorden_per_maat FROM liedjes').all();
   let gedaan = 0;
   for (const rij of rijen) {
-    if (!isOphaalTekst(rij.chordpro)) continue;
-    const perMaat = String(rij.akkoorden_per_maat || '').trim();
-    const metAkkoorden = !!perMaat && perMaat !== '[]' && perMaat !== 'null';
-    if (!metAkkoorden) {
-      // Zonder akkoorden: alleen als er muziek is, want anders is de melding nog het enige dat er staat.
+    const tekst = String(rij.chordpro || '');
+    // Alleen liedjes waar een melding van de app in staat (van het ophalen of van een eerdere versie).
+    // Zo blijft de eigen liedtekst van de gebruiker met rust.
+    const melding = isOphaalTekst(tekst) || /uit de opname gehaald|kon niet uit deze opname worden gehaald/.test(tekst);
+    if (!melding) continue;
+    let perMaat = [];
+    try { perMaat = JSON.parse(String(rij.akkoorden_per_maat || '[]')) || []; } catch (e) { perMaat = []; }
+    if (!Array.isArray(perMaat) || !perMaat.filter(Boolean).length) {
+      // Geen akkoorden: alleen opruimen als er muziek is, want anders is de melding nog het enige dat er staat.
       const muziek = muziekVanEigenLiedje(rij.id);
       if (!muziek || !muziek.bestaat) continue;
     }
-    db.prepare('UPDATE liedjes SET chordpro = ? WHERE id = ?')
-      .run(vervangOphaalTekst(rij.chordpro, metAkkoorden), Number(rij.id));
+    db.prepare('UPDATE liedjes SET chordpro = ? WHERE id = ?').run(akkoordBlad(rij, perMaat), Number(rij.id));
     gedaan += 1;
   }
   if (gedaan) {
     FILTERS.versie = (FILTERS.versie || 0) + 1;
-    console.log('melding van het ophalen rechtgezet bij ' + gedaan + ' liedje(s)');
+    console.log('bladmuziek rechtgezet bij ' + gedaan + ' liedje(s)');
   }
   return gedaan;
 }

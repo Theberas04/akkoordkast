@@ -3,6 +3,25 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.39.0] — 5 november 2026
+
+### De beheerder zet de handleiding in de app, zonder dat hij in het repo staat
+
+De handleiding hoort niet in het openbare repo (hij noemt het adres van de app), maar moest er wel in de
+app kunnen staan. Dat kon al uit de gegevensmap `DATA_DIR/handleiding` — alleen was er geen weg om hem
+daar te krijgen.
+
+- In de beheerkaart staat nu **Handleiding in de app**: kies het bestand `index.html` van de handleiding en
+  druk op **Plaatsen**. Hij komt in de gegevensmap te staan, dus elke bijwerking laat hem staan, en met
+  **Weggooien** haal je hem weer weg.
+- `POST /api/handleiding` neemt het bestand aan (ook als ruw bestand, niet alleen als base64), controleert
+  de naam streng (alleen `index.html` of `img/...`, nooit buiten de map) en weigert iets dat geen HTML is.
+- De plaatjes van de handleiding komen uit `docs/img` van het programma zelf, zodat er maar één bestand
+  geplaatst hoeft te worden. De pagina in het repo gebruikt nog steeds `img/...`.
+
+Nieuwe proef die het hele pad doorloopt: zonder beheerder geweigerd, plaatsen, serveren, plaatje erbij,
+`../` geweigerd, en weggooien.
+
 ## [1.38.0] — 5 november 2026
 
 ### De regel noemt het adres waarop je zit, met de weg om de blokkade te wissen

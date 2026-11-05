@@ -1589,6 +1589,19 @@
         ververs de pagina; blijft het, kijk dan op de machine of de app en de tunnelkoppeling allebei draaien.</div>
       <div class="code-klein" id="versie-commando"></div>
 
+      <h3 style="margin-top:16px">Handleiding in de app</h3>
+      <p class="les-klein" style="margin:0 0 10px">De handleiding staat bewust niet in het openbare repo, want hij noemt
+        het adres van de app. Kies hier het bestand <code>index.html</code> van de handleiding: de plaatjes komen uit de
+        app zelf, en de handleiding blijft staan bij elke bijwerking. Je leest hem daarna via de knop <strong>Handleiding
+        openen</strong> hierboven.</p>
+      <div class="rij">
+        <input type="file" id="hand-bestand" accept=".html,text/html" style="max-width:100%">
+        <button class="knop" id="hand-plaats">Plaatsen</button>
+        <button class="knop zacht" id="hand-weg">Weggooien</button>
+        <span class="pilletje" id="hand-stand">onbekend</span>
+      </div>
+      <div class="melding" id="hand-melding" hidden></div>
+
       <h3 style="margin-top:16px">Automatisch bijhouden</h3>
       <p class="les-klein" style="margin:0 0 10px">De app kan zelf af en toe in je muziekmap kijken en nieuwe
         bestanden omzetten, en zelf op GitHub kijken of er een nieuwe versie is. Dan hoef je er niet aan te denken.</p>
@@ -6850,6 +6863,65 @@ function microfoonControle() {
 }
 
 // Wat vindt de browser zelf van de microfoontoestemming? Dat scheelt zoeken als hij niet werkt.
+// De handleiding plaatsen. Hij zit niet in het repo (hij noemt het adres van de app), dus de beheerder
+// zet hem hier neer; de server bewaart hem in de gegevensmap, waar hij elke bijwerking overleeft.
+function kijkHandleiding() {
+  var plek = $('hand-stand');
+  if (!plek) return;
+  fetch('/api/handleiding', { headers: { 'x-akkoordkast': 'app' } })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      plek.textContent = d.aanwezig
+        ? 'er staat een handleiding (' + Math.round(d.bytes / 1024) + ' kB)'
+        : 'nog geen handleiding geplaatst';
+    })
+    .catch(function () { plek.textContent = 'onbekend'; });
+}
+
+if ($('hand-plaats')) {
+  $('hand-plaats').addEventListener('click', function () {
+    var veld = $('hand-bestand');
+    if (!veld || !veld.files || !veld.files.length) {
+      toonMelding('hand-melding', 'Kies eerst het bestand index.html van de handleiding.', 'fout');
+      return;
+    }
+    var bestand = veld.files[0];
+    if (bestand.size > 16 * 1024 * 1024) {
+      toonMelding('hand-melding', 'Dit bestand is groter dan 16 MB.', 'fout');
+      return;
+    }
+    toonMelding('hand-melding', 'Bezig met plaatsen…', '');
+    fetch('/api/handleiding', {
+      method: 'POST',
+      headers: {
+        'content-type': bestand.type || 'text/html',
+        'x-bestandsnaam': encodeURIComponent('index.html'),
+        'x-profiel': String(actiefProfiel()),
+        'x-akkoordkast': 'app'
+      },
+      body: bestand
+    }).then(function (r) {
+      return r.json().then(function (d) { if (!r.ok) throw new Error(d.fout || 'plaatsen mislukt'); return d; });
+    }).then(function () {
+      toonMelding('hand-melding', 'De handleiding staat in de app. Je leest hem via de knop Handleiding openen.', 'goed');
+      kijkHandleiding();
+    }).catch(function (e) { toonMelding('hand-melding', e.message, 'fout'); });
+  });
+  $('hand-weg').addEventListener('click', function () {
+    fetch('/api/handleiding', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' },
+      body: JSON.stringify({ weg: true })
+    }).then(function (r) { return r.json(); })
+      .then(function () {
+        toonMelding('hand-melding', 'De handleiding is weggehaald.', 'goed');
+        kijkHandleiding();
+      })
+      .catch(function () { toonMelding('hand-melding', 'Dat lukte niet.', 'fout'); });
+  });
+  kijkHandleiding();
+}
+
 function kijkMicrofoonRechten() {
   var plek = $('stem-rechten');
   if (!plek) return;

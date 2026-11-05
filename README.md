@@ -18,7 +18,7 @@ je dan pakt**, de greepdiagrammen, en een audiospeler met begeleiding van de akk
 Die begeleiding cast je naar een Chromecast in je netwerk.
 
 **Wat staat waar:** [rondleiding](#rondleiding-van-56-seconden) ·
-de handleiding in de app zelf (tabblad **Handleiding**) · [installeren op Proxmox](#installeren-op-je-proxmox-host) · [zelf draaien](#zelf-draaien-zonder-container) ·
+de handleiding in de app zelf (knop **Handleiding openen**) · [installeren op Proxmox](#installeren-op-je-proxmox-host) · [zelf draaien](#zelf-draaien-zonder-container) ·
 [wat zit erin](#wat-zit-erin) · [de liedjes](#de-liedjes) · [gitaar leren spelen](#gitaar-leren-spelen) ·
 [muziek erbij zoeken](#muziek-of-video-erbij-zoeken) · [een muziekmap in één keer](#een-hele-muziekmap-in-één-keer) ·
 [op een NAS of in Drive](#de-muziekmap-op-een-nas-of-in-google-drive) ·

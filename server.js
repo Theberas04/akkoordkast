@@ -39,7 +39,7 @@ const CAST_HELPER = process.env.CAST_HELPER
   : path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.38.0';
+const VERSIE = '1.39.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -318,6 +318,7 @@ function beheerNodig(pad, methode) {
   if (pad === '/api/mappen' || pad === '/api/mappen/weg') return true;
   if (pad === '/api/muziek' || pad === '/api/youtube') return true;
   if (pad === '/api/wachter') return true;
+  if (pad === '/api/handleiding') return true;
   if (/^\/api\/(upload|download|scan|backup|update|analyse|import)/.test(pad)) return true;
   if (/^\/api\/liedjes(\/|$)/.test(pad)) return true;
   if (/^\/api\/media\//.test(pad)) return true;
@@ -4318,6 +4319,76 @@ async function verwerk(req, res) {
   }
 
   // --- de muziek van een liedje: een bestand uit je eigen muziekmap ---
+  // De handleiding: hij zit niet in het repo, want hij noemt het adres van de app. Wie de app beheert
+  // zet hem hier neer, en hij blijft staan bij elke bijwerking (hij ligt in de gegevensmap).
+  if (pad === '/api/handleiding' && methode === 'GET') {
+    const eigen = path.join(DATA_DIR, 'handleiding', 'index.html');
+    let stat = null;
+    try { stat = fs.statSync(eigen); } catch (e) { stat = null; }
+    json(res, 200, {
+      aanwezig: !!(stat && stat.isFile()),
+      bytes: stat ? stat.size : 0,
+      moment: stat ? stat.mtime.toISOString() : ''
+    });
+    return;
+  }
+  if (pad === '/api/handleiding' && methode === 'POST') {
+    // Ruimere grens dan de gewone verzoeken: de pagina kan een paar megabyte zijn.
+    const ruw = await leesBody(req, 16 * 1024 * 1024);
+    const alsBestand = !/application\/json/i.test(req.headers['content-type'] || '');
+    let body = {};
+    if (!alsBestand) {
+      try { body = ruw.length ? JSON.parse(ruw.toString('utf8')) : {}; } catch (e) {
+        json(res, 400, { fout: 'Ongeldige JSON in het verzoek.' });
+        return;
+      }
+    }
+    const map = path.join(DATA_DIR, 'handleiding');
+    if (!alsBestand && body.weg) {
+      try { fs.rmSync(path.join(map, 'index.html')); } catch (e) { /* stond er al niet */ }
+      json(res, 200, { ok: true, aanwezig: false });
+      return;
+    }
+    const naam = (alsBestand
+      ? decodeURIComponent(String(req.headers['x-bestandsnaam'] || 'index.html'))
+      : String(body.naam || '')).trim().replace(/\\/g, '/');
+    // Alleen de pagina zelf of een plaatje daarbij; nooit buiten de map van de handleiding.
+    if (!/^index\.html$/.test(naam) && !/^img\/[a-z0-9._-]+$/i.test(naam)) {
+      json(res, 400, { fout: 'Alleen index.html of een plaatje in img/ kan geplaatst worden.' });
+      return;
+    }
+    let data;
+    if (alsBestand) {
+      data = ruw;
+    } else {
+      if (typeof body.inhoud !== 'string' || !body.inhoud) {
+        json(res, 400, { fout: 'Er zit geen inhoud bij het bestand.' });
+        return;
+      }
+      try { data = Buffer.from(body.inhoud, 'base64'); } catch (e) {
+        json(res, 400, { fout: 'Het bestand kon niet gelezen worden.' });
+        return;
+      }
+    }
+    if (!data.length) { json(res, 400, { fout: 'Het bestand is leeg.' }); return; }
+    if (!/\.html$/i.test(naam) && data.length > 6 * 1024 * 1024) {
+      json(res, 400, { fout: 'Dat plaatje is te groot (maximaal 6 MB).' });
+      return;
+    }
+    const doel = path.join(map, naam);
+    fs.mkdirSync(path.dirname(doel), { recursive: true });
+    if (naam.endsWith('index.html')) {
+      // Even controleren dat het echt een pagina is; anders staat er straks niets leesbaars.
+      const tekst = data.toString('utf8');
+      if (!/<html|<!doctype/i.test(tekst.slice(0, 4000))) {
+        json(res, 400, { fout: 'Dit lijkt geen HTML-pagina. Kies het bestand index.html uit de handleiding.' });
+        return;
+      }
+    }
+    fs.writeFileSync(doel, data);
+    json(res, 200, { ok: true, naam, bytes: data.length });
+    return;
+  }
   if (pad === '/api/muziek' && methode === 'GET') {
     const lied = vindLiedje(query.get('liedje'));
     if (!lied) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
@@ -4893,7 +4964,12 @@ async function verwerk(req, res) {
       const restant = rest.replace(/^handleiding\/?/, '') || 'index.html';
       const eigen = path.join(DATA_DIR, 'handleiding', restant);
       const uitRepo = path.join(__dirname, 'public', 'handleiding', restant);
-      const bestand = fs.existsSync(eigen) ? eigen : uitRepo;
+      // De plaatjes staan in docs/img van het programma zelf (die zijn openbaar en bevatten geen
+      // adressen); alleen de pagina zelf hoeft geplaatst te worden.
+      const uitBeeld = restant.startsWith('img/') && /^img\/[a-z0-9._-]+$/i.test(restant)
+        ? path.join(__dirname, 'docs', restant)
+        : path.join(__dirname, 'docs', 'img', '__niet-gevonden__');
+      const bestand = fs.existsSync(eigen) ? eigen : (fs.existsSync(uitRepo) ? uitRepo : uitBeeld);
       if (fs.existsSync(bestand) && fs.statSync(bestand).isFile()) {
         stuurBestand(req, res, bestand, MIME[path.extname(bestand).toLowerCase()] || MIME['.html'],
           { 'cache-control': 'no-cache' });

@@ -277,4 +277,12 @@ else
 fi
 
 binnen_bash "rm -rf $APP_DIR.bak $APP_DIR.stuk"
+
+# De app laat zien welke versie er draait (bovenbalk en bijwerkbericht). Een installatie uit een
+# archief heeft geen .git, dus leggen we de commit vast die we hierboven hebben geprikt.
+if [ -n "${COMMIT_VAST:-}" ]; then
+  binnen_bash "printf '%s\n' '$COMMIT_VAST' > '$DATA_DIR/commit.txt' 2>/dev/null || true"
+  echo "   versie vastgelegd voor de app (${COMMIT_VAST:0:7})"
+fi
+
 echo "AkkoordKast in container $CTID is bijgewerkt."

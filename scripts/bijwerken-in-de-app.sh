@@ -71,6 +71,20 @@ if [ -f "$APP_DIR/scripts/cast-helper.py" ]; then chmod 755 "$APP_DIR/scripts/ca
 # De handleiding staat in de gegevensmap; maak hem leesbaar voor de dienst.
 if [ -d "$DATA_DIR/handleiding" ]; then chmod -R u+rwX,go+rX "$DATA_DIR/handleiding" 2>/dev/null || true; fi
 
+# Welke commit is dit? De app laat het zien in de bovenbalk en bij het bijwerken. Dit archief heeft
+# geen .git, dus vragen we het aan GitHub; lukt dat niet, dan blijft de vorige waarde staan.
+COMMIT_NU="$(curl -fsSL --max-time 20 \
+  "https://github.com/$REPO_OWNER/$REPO_NAAM/commits/$BRANCH.atom" 2>/dev/null \
+  | sed -n 's/.*Grit::Commit\/\([0-9a-f]\{40\}\).*/\1/p' | head -1)"
+if [ -z "$COMMIT_NU" ]; then
+  COMMIT_NU="$(curl -fsSL --max-time 20 -H 'Accept: application/vnd.github+json' \
+    "https://api.github.com/repos/$REPO_OWNER/$REPO_NAAM/commits/$BRANCH" 2>/dev/null \
+    | sed -n 's/.*"sha" *: *"\([0-9a-f]\{40\}\)".*/\1/p' | head -1)"
+fi
+if [ -n "$COMMIT_NU" ]; then
+  printf '%s\n' "$COMMIT_NU" > "$DATA_DIR/commit.txt" 2>/dev/null || true
+fi
+
 VERSIE="$(grep -o "const VERSIE = '[^']*'" "$APP_DIR/server.js" | head -1 | cut -d"'" -f2)"
 echo "De nieuwe bestanden staan op hun plek (versie ${VERSIE:-onbekend})."
 echo "De app stopt nu en systemd start hem opnieuw op met de nieuwe versie."

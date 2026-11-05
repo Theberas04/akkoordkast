@@ -61,3 +61,38 @@ test('de app start zichzelf opnieuw na een bijwerking en de pagina wacht daarop'
     'de pagina hoort te vertellen dat de app opnieuw start');
   assert.match(html, /data\.herstart/, 'de pagina hoort op de herstart te wachten in plaats van blind te verversen');
 });
+
+test('de app weet welke commit hij draait, ook zonder git-map', async () => {
+  // Een installatie uit een archief heeft geen .git; de commit komt dan uit de gegevensmap (die het
+  // bijwerkscript vult) of uit de omgeving. Zonder dit stond er "Je draait de nieuwste versie ()".
+  const fs = require('fs');
+  const path = require('path');
+  const bewaard = { GIT_COMMIT: process.env.GIT_COMMIT, VERSIE_COMMIT: process.env.VERSIE_COMMIT };
+  const omgeving = await hulp.start();
+  try {
+    delete process.env.GIT_COMMIT;
+    delete process.env.VERSIE_COMMIT;
+    fs.writeFileSync(path.join(omgeving.app.paden.DATA_DIR, 'commit.txt'), 'ABCDEF0123456789abcdef0123456789abcdef01\n');
+
+    const uitBestand = await hulp.haal(omgeving.basis, '/api/versie');
+    assert.equal(uitBestand.status, 200, JSON.stringify(uitBestand.data));
+    assert.equal(uitBestand.data.commit, 'abcdef0', 'de commit uit de gegevensmap: ' + JSON.stringify(uitBestand.data));
+
+    // De omgeving gaat vóór het bestand, en ook daarvan de korte vorm.
+    process.env.GIT_COMMIT = '1234567890abcdef1234567890abcdef12345678';
+    const uitOmgeving = await hulp.haal(omgeving.basis, '/api/versie');
+    assert.equal(uitOmgeving.data.commit, '1234567', JSON.stringify(uitOmgeving.data));
+
+    // Onzin in het bestand levert geen halve commit op.
+    delete process.env.GIT_COMMIT;
+    fs.writeFileSync(path.join(omgeving.app.paden.DATA_DIR, 'commit.txt'), 'geen commit hier\n');
+    const onzin = omgeving.app.korteCommit ? omgeving.app.korteCommit() : null;
+    if (onzin !== null) {
+      assert.ok(!onzin || /^[0-9a-f]{7}$/.test(onzin), 'onzin hoort geen commit op te leveren: ' + onzin);
+    }
+  } finally {
+    if (bewaard.GIT_COMMIT) process.env.GIT_COMMIT = bewaard.GIT_COMMIT;
+    if (bewaard.VERSIE_COMMIT) process.env.VERSIE_COMMIT = bewaard.VERSIE_COMMIT;
+    await omgeving.stop();
+  }
+});

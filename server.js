@@ -39,7 +39,7 @@ const CAST_HELPER = process.env.CAST_HELPER
   : path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.27.0';
+const VERSIE = '1.28.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -463,9 +463,35 @@ function oefenstatistieken(profielId, dagen) {
 }
 
 // ------------------------------------------------------------------- versie ---
+// Is de versie op GitHub een andere dan die hier draait? De een kan een korte en de ander een lange
+// commit zijn; alleen als ze duidelijk verschillen zeggen we dat er iets nieuws is.
+function isNieuwereVersie(vanGitHub, vanHier) {
+  const a = String(vanGitHub || '').toLowerCase();
+  const b = String(vanHier || '').toLowerCase();
+  if (!a || !b) return false;      // niet weten = niets beweren
+  return !(a.startsWith(b) || b.startsWith(a));
+}
+
+// Welke versie draait hier? Een installatie uit een archief heeft geen .git, dus git alleen is niet
+// genoeg: het bijwerkscript laat de commit achter in de gegevensmap, en anders kan de omgeving het weten.
+// Zonder deze volgorde wist de app het niet en meldde hij "Je draait de nieuwste versie ()".
 function korteCommit() {
+  const kort = (waarde) => {
+    const schoon = String(waarde || '').trim().split(/\s+/)[0].replace(/[^0-9a-fA-F]/g, '').toLowerCase();
+    return schoon.length >= 7 ? schoon.slice(0, 7) : '';
+  };
+  const uitOmgeving = kort(process.env.GIT_COMMIT || process.env.VERSIE_COMMIT || '');
+  if (uitOmgeving) return uitOmgeving;
+  for (const bestand of [path.join(DATA_DIR, 'commit.txt'), path.join(__dirname, 'commit.txt')]) {
+    try {
+      if (fs.existsSync(bestand)) {
+        const uitBestand = kort(fs.readFileSync(bestand, 'utf8'));
+        if (uitBestand) return uitBestand;
+      }
+    } catch (e) { /* dan maar zonder */ }
+  }
   const r = spawnSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: __dirname, encoding: 'utf8', timeout: 5000 });
-  return r && r.status === 0 ? String(r.stdout || '').trim() : '';
+  return r && r.status === 0 ? kort(r.stdout) : '';
 }
 
 function updateMogelijk() {
@@ -2772,9 +2798,7 @@ async function wachterRonde(metVersie) {
       const laatste = await laatsteVersieOpGitHub();
       WACHTER.versieLaatste = new Date().toISOString();
       const hier = korteCommit();
-      WACHTER.versieNieuw = laatste && laatste.sha && hier && laatste.sha !== hier && !hier.startsWith(laatste.sha)
-        ? laatste.sha
-        : '';
+      WACHTER.versieNieuw = (laatste && laatste.sha && hier && isNieuwereVersie(laatste.sha, hier)) ? laatste.sha : '';
       zetInstelling('wacht_versie_laatste', WACHTER.versieLaatste);
       zetInstelling('wacht_versie_nieuw', WACHTER.versieNieuw);
     } catch (e) { /* geen internet? dan proberen we het later opnieuw */ }
@@ -3593,7 +3617,7 @@ async function verwerk(req, res) {
   if (pad === '/api/versie/controle' && methode === 'GET') {
     const laatste = await laatsteVersieOpGitHub();
     const hier = korteCommit();
-    const nieuwer = !!(laatste.sha && hier && laatste.sha !== hier && !hier.startsWith(laatste.sha));
+    const nieuwer = !!(laatste.sha && hier && isNieuwereVersie(laatste.sha, hier));
     json(res, 200, {
       hier: hier,
       laatste: laatste,

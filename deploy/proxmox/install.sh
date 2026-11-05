@@ -195,6 +195,11 @@ echo "== Container inrichten"
 zorg_voor deploy/proxmox/provision-akkoordkast.sh
 bash "$TARGET_DIR/deploy/proxmox/provision-akkoordkast.sh" "$CTID"
 
+# De app hoort te weten welke versie hij draait; een installatie uit een archief heeft geen .git.
+if [ -n "${COMMIT_VAST:-}" ]; then
+  pct exec "$CTID" -- bash -c "printf '%s\n' '$COMMIT_VAST' > ${DATA_DIR:-/var/lib/akkoordkast}/commit.txt 2>/dev/null || true" 2>/dev/null || true
+fi
+
 IP="$(pct exec "$CTID" -- bash -c "ip -4 -o addr show dev eth0 | awk '{print \$4}' | cut -d/ -f1" 2>/dev/null || true)"
 echo
 echo "=============================================================="

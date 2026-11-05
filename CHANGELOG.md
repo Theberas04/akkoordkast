@@ -3,6 +3,33 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.28.0] — 4 november 2026
+
+### "Je draait de nieuwste versie ()" — de lege haakjes zijn weg
+
+De klacht: de app meldde *"Je draait de nieuwste versie ()."* met niets tussen de haakjes.
+
+Wat er aan de hand was: de app vroeg zijn eigen versie op met `git rev-parse` in de app-map. Bij een
+installatie uit een **archief** (zoals de Proxmox-installer doet) is er geen `.git`, dus kwam er niets uit
+en bleven de haakjes leeg.
+
+- `korteCommit()` kijkt nu op vier plekken, in deze volgorde: de omgeving (`GIT_COMMIT`/`VERSIE_COMMIT`),
+  **`commit.txt` in de gegevensmap**, diezelfde naam in de app-map, en pas dan `git`. Van een lange commit
+  wordt de korte vorm gebruikt (7 tekens, kleine letters).
+- De **bijwerkscripts leggen de commit vast** die ze toch al ophalen: `update-from-github.sh` (vanaf de
+  host) en `bijwerken-in-de-app.sh` (de knop in de app) schrijven hem naar `$DATA_DIR/commit.txt`, en
+  `install.sh` doet het bij een verse installatie. De app leest het bestand per keer, dus een herstart is
+  niet nodig.
+- De pagina zet de commit er **alleen bij als hij hem kent**: *"Je draait de nieuwste versie (a3e0acb)."*
+  of anders *"Je draait de nieuwste versie."* Dat geldt ook voor het bericht dat er iets nieuws klaarstaat.
+- De bovenbalk laat de commit ook zien: **versie 1.28.0 · a3e0acb**.
+- En de vergelijking is niet meer zoek: kort en lang zijn nu verwisselbaar (`isNieuwereVersie()`), en als de
+  app zijn eigen commit niet weet, **beweert hij niets** in plaats van "er staat iets nieuws" te roepen.
+
+Bewijs: de nieuwe proef in `test/versie.test.js` zet een commit in `commit.txt`, controleert dat
+`/api/versie` hem als `abcdef0` teruggeeft, dat de omgeving vóór het bestand gaat, en dat onzin in het
+bestand geen halve commit oplevert.
+
 ## [1.27.0] — 4 november 2026
 
 ### De melding "de bladmuziek staat er nog niet in" wordt nu opgeruimd als de akkoorden er wél zijn

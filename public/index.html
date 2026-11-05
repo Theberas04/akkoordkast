@@ -2207,13 +2207,15 @@ function controleerVersie() {
   toonMelding('versie-melding', 'Even kijken wat er op GitHub staat…');
   api('/api/versie/controle').then(function (data) {
     if (data.laatste.fout) { toonMelding('versie-melding', data.laatste.fout, 'fout'); return; }
+    // De commit er alleen bij zetten als we hem kennen; anders stonden er lege haakjes.
+    var hier = data.hier ? ' (' + data.hier + ')' : '';
+    var daar = data.laatste.sha ? ' (' + data.laatste.sha.slice(0, 7) + ')' : '';
     if (data.nieuwer) {
-      toonMelding('versie-melding', 'Er staat iets nieuws klaar: "' + data.laatste.boodschap + '" (' +
-        data.laatste.sha + '). ' + (data.updateMogelijk
-          ? 'Druk op Bijwerken om het te halen.'
-          : 'Draai het commando hieronder op je host.'), 'goed');
+      toonMelding('versie-melding', 'Er staat iets nieuws klaar: "' + data.laatste.boodschap + '"' + daar + '. ' +
+        (data.updateMogelijk ? 'Druk op Bijwerken om het te halen.' : 'Draai het commando hieronder op je host.'),
+        'goed');
     } else {
-      toonMelding('versie-melding', 'Je draait de nieuwste versie (' + data.hier + ').', 'goed');
+      toonMelding('versie-melding', 'Je draait de nieuwste versie' + hier + '.', 'goed');
     }
   }).catch(function (e) { toonMelding('versie-melding', e.message, 'fout'); });
 }
@@ -2266,7 +2268,9 @@ kijkMicrofoonRechten();
 // De versie in de kop, zodat je meteen ziet welke versie er draait.
 function laadKopVersie() {
   fetch('/api/versie?r=' + Date.now()).then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (d) { if (d && d.versie) $('kop-versie').textContent = d.versie; })
+    .then(function (d) {
+      if (d && d.versie) $('kop-versie').textContent = d.versie + (d.commit ? ' \u00b7 ' + d.commit : '');
+    })
     .catch(function () { $('kop-versie').textContent = 'onbekend'; });
 }
 laadKopVersie();

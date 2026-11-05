@@ -248,3 +248,13 @@ test('stemmen zonder microfoon is zichtbaar als uitweg', () => {
   assert.match(html, /function tekenSnaren/, 'de snaartononen horen er te zijn');
   assert.match(html, /data-snaar/, 'met een knop per snaar');
 });
+
+test('de app legt een Cloudflare-fout bij het bijwerken uit', () => {
+  // Klacht: "ik krijg een 502 melding". De foutpagina was Cloudflare Tunnel error 1033: de tunnel kon de
+  // app even niet bereiken, meestal omdat de app net opnieuw opstartte na Bijwerken. Dat hoort er te staan.
+  const html = fs.readFileSync(path.join(wortel, 'public', 'index.html'), 'utf8');
+  assert.match(html, /Cloudflare 1033/, 'de kaart Beheer en bijwerken hoort 1033 te noemen');
+  assert.match(html, /1033 of 502/, 'de melding bij Bijwerken ook');
+  assert.match(html, /De app stopt zo en start opnieuw/, 'met de uitleg dat de app herstart');
+  assert.match(html, /wacht dan tien tellen en ververs/, 'en wat je dan moet doen');
+});

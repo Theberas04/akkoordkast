@@ -1583,7 +1583,10 @@
       <div class="melding" id="versie-melding" hidden></div>
       <div class="les-klein" style="margin-top:8px">Staat er iets nieuws op GitHub, dan meldt de app dat hier.
         Bijwerken zelf gebeurt op je Proxmox-host, want daar horen de rechten bij te zitten; de app kan het
-        wel doen als er op deze machine een update-script klaarstaat.</div>
+        wel doen als er op deze machine een update-script klaarstaat.
+        Zie je een <strong>Cloudflare 1033</strong> of <strong>502</strong> bij het adres, dan kon de tunnel naar deze
+        machine de app even niet bereiken — meestal omdat de app net opnieuw opstartte. Wacht tien tellen en
+        ververs de pagina; blijft het, kijk dan op de machine of de app en de tunnelkoppeling allebei draaien.</div>
       <div class="code-klein" id="versie-commando"></div>
 
       <h3 style="margin-top:16px">Automatisch bijhouden</h3>
@@ -2228,7 +2231,10 @@ function controleerVersie() {
 }
 
 function werkBij() {
-  toonMelding('versie-melding', 'Bezig met bijwerken…');
+  toonMelding('versie-melding',
+    'Bezig met bijwerken… De app stopt zo en start opnieuw. In die paar seconden is het adres even niet '
+    + 'bereikbaar: zie je dan een foutmelding van Cloudflare (1033 of 502), wacht dan tien tellen en ververs '
+    + 'de pagina. Er gaat niets verloren.');
   api('/api/update', { method: 'POST' }).then(function (data) {
     if (!data.herstart) {
       toonMelding('versie-melding', 'Bijgewerkt. ' + (data.uitvoer || '').split('\n').slice(-3).join(' '), 'goed');

@@ -3,6 +3,24 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.35.0] — 5 november 2026
+
+### De app legt uit wat een Cloudflare-fout (1033 of 502) betekent
+
+Klacht: "ik krijg een 502 melding". De app zelf was kerngezond (elk adres antwoordde in minder dan een
+seconde, met de app-marker), dus het lag niet aan de app maar aan de **tunnel** naar de machine: de
+foutpagina was *Cloudflare Tunnel error 1033* — de tunnelkoppeling kon de app op dat moment niet
+bereiken. Dat gebeurt precies in de paar seconden dat de app zichzelf opnieuw opstart, bijvoorbeeld na
+**Bijwerken**.
+
+- De melding bij **Bijwerken** zegt nu vooraf dat de app stopt en opnieuw start, dat het adres in die
+  seconden onbereikbaar is, en dat een Cloudflare-fout (1033 of 502) daarbij hoort: tien tellen wachten
+  en verversen. Er gaat niets verloren.
+- De kaart **Beheer en bijwerken** legt hetzelfde uit, met de stap als het aanhoudt (kijk of de app en de
+  tunnelkoppeling allebei draaien).
+
+Zo is een tunnelmelding geen raadsel meer op het moment dat hij verschijnt.
+
 ## [1.34.0] — 5 november 2026
 
 ### Stemmen zonder microfoon, zichtbaar in de app

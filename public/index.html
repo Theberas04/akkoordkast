@@ -1120,6 +1120,8 @@
         <button class="knop zacht" id="stem-stop" disabled>Stop</button>
         <span class="pilletje" id="stem-stand">Nog niet gestart</span>
       </div>
+      <p class="les-klein" style="margin:8px 0 0">Microfoon volgens je browser: <strong id="stem-rechten">onbekend</strong>
+        <button class="knop zacht" id="stem-rechten-kijk" style="margin-left:8px">Opnieuw vragen</button></p>
       <div class="stem-meter" id="stem-meter"><span class="stem-midden"></span><span class="stem-pen" id="stem-pen"></span></div>
       <div class="stem-schaal"><span>50 cent te laag</span><span>gestemd</span><span>50 cent te hoog</span></div>
       <div class="stem-uitslag" id="stem-uitslag">Druk op Start en sla één snaar aan.</div>
@@ -2241,6 +2243,10 @@ laadWeken();
 koppelBeheerKaarten();
 koppelGegevensKaart();
 koppelOpnameKaart();
+if ($('stem-rechten-kijk')) {
+  $('stem-rechten-kijk').addEventListener('click', function () { kijkMicrofoonRechten(); });
+}
+kijkMicrofoonRechten();
 
 // De versie in de kop, zodat je meteen ziet welke versie er draait.
 function laadKopVersie() {
@@ -4582,9 +4588,15 @@ function laadApparaten(stil) {
     if (data.fout) { toonMelding('cast-melding', data.fout + (data.hint ? ' — ' + data.hint : ''), 'fout'); return; }
     staat.apparaten = data.apparaten || [];
     tekenApparaten();
-    toonMelding('cast-melding', staat.apparaten.length
-      ? staat.apparaten.length + ' apparaat/apparaten gevonden.'
-      : 'Geen Chromecast gevonden. Zet het toestel aan, zorg dat het in hetzelfde netwerk zit, of typ hieronder het IP-adres.', staat.apparaten.length ? 'goed' : '');
+    if (staat.apparaten.length) {
+      var via = data.mdns ? '' : ' (gevonden met een netwerkscan in ' + (data.bereik || '?') + '.x)';
+      toonMelding('cast-melding', staat.apparaten.length + ' apparaat/apparaten gevonden' + via + '.', 'goed');
+    } else {
+      toonMelding('cast-melding', 'Geen Chromecast gevonden, ook niet met een netwerkscan in ' +
+        (data.bereik || '?') + '.x. Kijk of het toestel aan staat en in hetzelfde netwerk zit (dezelfde wifi, ' +
+        'geen gastnetwerk), of typ hieronder het IP-adres van je Chromecast en druk op Daar casten.' +
+        (data.hint ? ' ' + data.hint : ''), 'fout');
+    }
     $('kop-cast').textContent = 'cast: ' + (staat.apparaten.length || 'geen apparaat');
   }).catch(function (e) { toonMelding('cast-melding', e.message, 'fout'); });
 }
@@ -6633,6 +6645,21 @@ function laadStemRekenwerk() {
   });
 }
 
+// Wat vindt de browser zelf van de microfoontoestemming? Dat scheelt zoeken als hij niet werkt.
+function kijkMicrofoonRechten() {
+  var plek = $('stem-rechten');
+  if (!plek) return;
+  if (!navigator.permissions || !navigator.permissions.query) {
+    plek.textContent = 'je browser laat dit niet zien';
+    return;
+  }
+  navigator.permissions.query({ name: 'microphone' }).then(function (uitkomst) {
+    plek.textContent = uitkomst.state === 'granted' ? 'toegestaan'
+      : (uitkomst.state === 'denied' ? 'geweigerd — zet hem aan via het slotje in de adresbalk, of via Instellingen, Apps, Chrome, Machtigingen'
+        : 'nog niet gevraagd — druk op Start, dan vraagt de browser het');
+  }).catch(function () { plek.textContent = 'je browser laat dit niet zien'; });
+}
+
 function startStemmer() {
   if (STEMMER.aan) return;
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -6645,6 +6672,7 @@ function startStemmer() {
   }
   $('stem-start').disabled = true;
   toonMelding('stem-melding', 'Vraag om de microfoon…', '');
+  kijkMicrofoonRechten();
   laadStemRekenwerk()
     .catch(function () {
       toonMelding('stem-melding', 'Het rekenwerk van de stemmer kon niet geladen worden; ververs de pagina.', 'fout');

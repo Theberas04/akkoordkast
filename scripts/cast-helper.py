@@ -2,7 +2,8 @@
 """Chromecast-hulp voor AkkoordKast.
 
 Gebruik (alles levert één regel JSON op stdout):
-  cast-helper.py apparaten
+  cast-helper.py apparaten [bereik]     (bereik bijvoorbeeld 192.168.1)
+  cast-helper.py scan <bereik>          (alleen de netwerkscan, zonder mDNS)
   cast-helper.py speel <ip-of-uuid> <url> <titel> <artiest> <content-type> [poster-url]
   cast-helper.py stop <ip-of-uuid>
   cast-helper.py volume <ip-of-uuid> <0.0-1.0>
@@ -29,18 +30,97 @@ def fout(melding: str, **extra) -> NoReturn:
     sys.exit(0)
 
 
-def laad():
+PYCHROMECAST_HINT = ("Installeer het als root in de container: apt-get install -y python3-pip && "
+                     "python3 -m pip install --break-system-packages pychromecast")
+
+
+def laad(verplicht=True):
+    """pychromecast laden. Lukt dat niet, dan zeggen we dat — behalve als het niet nodig is.
+
+    De netwerkscan hieronder werkt zonder pychromecast, zodat de app in elk geval de toestellen
+    in het netwerk kan vinden en de gebruiker kan vertellen wat er nog ontbreekt.
+    """
     try:
         import pychromecast  # noqa: F401
     except Exception as e:  # ImportError of kapotte installatie
-        fout(
-            "pychromecast is niet geïnstalleerd: %s" % e,
-            hint="Installeer het als root in de container: apt-get install -y python3-pip && "
-                 "python3 -m pip install --break-system-packages pychromecast",
-        )
+        if verplicht:
+            fout("pychromecast is niet geïnstalleerd: %s" % e, hint=PYCHROMECAST_HINT)
+        return None
     import pychromecast
 
     return pychromecast
+
+
+def scan_netwerk(bereik, poort=8009, timeout=0.35, werkers=64):
+    """Loopt een /24 af en kijkt op welke adressen een Chromecast luistert (poort 8009).
+
+    Dit is de terugval als multicast (mDNS) niets oplevert — bijvoorbeeld in een container of op
+    een netwerk dat geen multicast doorlaat. Geen afhankelijkheden: alleen sockets.
+    """
+    import socket
+    from concurrent.futures import ThreadPoolExecutor
+
+    if not bereik or not re.match(r"^\d{1,3}(\.\d{1,3}){1,2}$", bereik):
+        return []
+
+    def probeer(nummer):
+        adres = "%s.%d" % (bereik, nummer)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(timeout)
+        try:
+            return adres if s.connect_ex((adres, poort)) == 0 else None
+        except Exception:
+            return None
+        finally:
+            s.close()
+
+    gevonden = []
+    with ThreadPoolExecutor(max_workers=werkers) as pool:
+        for adres in pool.map(probeer, range(1, 255)):
+            if adres:
+                gevonden.append(adres)
+    return gevonden
+
+
+def naam_van(adres, timeout=4.0):
+    """De vriendelijke naam van het toestel op dit adres (via de eureka-info van de Chromecast)."""
+    import urllib.request
+    try:
+        with urllib.request.urlopen(
+                "http://%s:8008/setup/eureka_info?options=detail" % adres, timeout=timeout) as antwoord:
+            gegevens = json.loads(antwoord.read().decode("utf-8", "replace"))
+        return gegevens.get("name") or ""
+    except Exception:
+        return ""
+
+
+def eigen_adressen():
+    """De eigen netwerkadressen, zodat we kunnen melden welk netwerk we hebben afgelopen.
+
+    Via een UDP-socket die alleen naar buiten 'kijkt' (er gaat geen pakket weg); dat werkt ook als
+    de hostnaam niet te herleiden is, wat in containers vaak het geval is.
+    """
+    import socket
+    uit_ = []
+    for doel in (("8.8.8.8", 80), ("1.1.1.1", 80)):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            s.connect(doel)
+            adres = s.getsockname()[0]
+            if adres and not adres.startswith("127.") and adres not in uit_:
+                uit_.append(adres)
+        except Exception:
+            pass
+        finally:
+            s.close()
+    return uit_
+
+
+def eigen_bereik():
+    """Het eigen /24, bijvoorbeeld 192.168.1 — zodat zoeken ook zonder argument werkt."""
+    for adres in eigen_adressen():
+        return ".".join(adres.split(".")[:3])
+    return ""
 
 
 def zoek(pychromecast, kies, timeout=8.0):
@@ -83,16 +163,64 @@ def omschrijf(cc):
 
 
 def commando_apparaten(pychromecast, args):
-    try:
-        apparaten, browser = pychromecast.get_listed_chromecasts(timeout=8.0)
-    except Exception as e:
-        fout("Zoeken naar Chromecasts mislukte: %s" % e)
-    lijst = [omschrijf(cc) for cc in apparaten]
-    try:
-        pychromecast.discovery.stop_discovery(browser)
-    except Exception:
-        pass
-    uit({"apparaten": lijst, "aantal": len(lijst)})
+    """Zoekt Chromecasts: eerst via mDNS, en lukt dat niet, dan via een scan van het netwerk."""
+    bereik = args[0] if args else eigen_bereik()
+    lijst = []
+    gestoord = []
+    if pychromecast is not None:
+        try:
+            apparaten, browser = pychromecast.get_listed_chromecasts(timeout=8.0)
+            lijst = [omschrijf(cc) for cc in apparaten]
+            try:
+                pychromecast.discovery.stop_discovery(browser)
+            except Exception:
+                pass
+        except Exception as e:
+            gestoord.append("mDNS: %s" % e)
+    mdns_aantal = len(lijst)
+
+    if not lijst and bereik:
+        for adres in scan_netwerk(bereik):
+            lijst.append({
+                "naam": naam_van(adres) or adres,
+                "ip": adres,
+                "poort": 8009,
+                "uuid": "",
+                "model": "",
+                "type": "",
+                "via": "netwerkscan",
+            })
+
+    antwoord = {
+        "apparaten": lijst,
+        "aantal": len(lijst),
+        "mdns": mdns_aantal,
+        "netwerkscan": len(lijst) - mdns_aantal,
+        "bereik": bereik,
+        "eigen": eigen_adressen(),
+        "pychromecast": pychromecast is not None,
+    }
+    if gestoord:
+        antwoord["gestoord"] = gestoord
+    if pychromecast is None:
+        antwoord["hint"] = PYCHROMECAST_HINT
+    uit(antwoord)
+
+
+def commando_scan(pychromecast, args):
+    """Alleen de netwerkscan, zonder mDNS. Handig om te kijken of een toestel bereikbaar is."""
+    bereik = args[0] if args else eigen_bereik()
+    if not bereik:
+        fout("Gebruik: scan <bereik>  (bijvoorbeeld 192.168.1)")
+    adressen = scan_netwerk(bereik)
+    uit({
+        "apparaten": [{"naam": naam_van(a) or a, "ip": a, "poort": 8009, "uuid": "", "model": "",
+                       "type": "", "via": "netwerkscan"} for a in adressen],
+        "aantal": len(adressen),
+        "bereik": bereik,
+        "eigen": eigen_adressen(),
+        "pychromecast": pychromecast is not None,
+    })
 
 
 def commando_speel(pychromecast, args):
@@ -171,6 +299,7 @@ def commando_status(pychromecast, args):
 
 COMMANDOS = {
     "apparaten": commando_apparaten,
+    "scan": commando_scan,
     "speel": commando_speel,
     "stop": commando_stop,
     "volume": commando_volume,
@@ -181,8 +310,10 @@ COMMANDOS = {
 def main():
     if len(sys.argv) < 2 or sys.argv[1] not in COMMANDOS:
         fout("Onbekend commando. Kies uit: " + ", ".join(sorted(COMMANDOS)))
-    pychromecast = laad()
-    COMMANDOS[sys.argv[1]](pychromecast, sys.argv[2:])
+    naam = sys.argv[1]
+    # De netwerkscan heeft pychromecast niet nodig; zo werkt zoeken ook als dat ontbreekt.
+    pychromecast = laad(verplicht=naam not in ("scan", "apparaten"))
+    COMMANDOS[naam](pychromecast, sys.argv[2:])
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@
 // AkkoordKast — gitaar-songbook met capo-advies, grepen, audio en Chromecast.
 // Eén Node-service: HTTP + node:sqlite + statische bestanden uit public/.
 const http = require('http');
+const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -35,7 +36,7 @@ const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.19.0';
+const VERSIE = '1.20.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -2696,6 +2697,21 @@ function herkenBestand(bestand) {
 }
 
 // ---------------------------------------------------------------------- cast ---
+// Het eigen netwerk (bijvoorbeeld 192.168.1), zodat de cast-hulp kan scannen als het zoeken via
+// multicast niets oplevert. Dat gebeurt in containers en op netwerken die geen multicast doorlaten.
+function eigenNetwerk() {
+  try {
+    for (const lijst of Object.values(os.networkInterfaces())) {
+      for (const a of lijst || []) {
+        if (a.family === 'IPv4' && !a.internal && /^\d+\.\d+\.\d+\.\d+$/.test(a.address)) {
+          return a.address.split('.').slice(0, 3).join('.');
+        }
+      }
+    }
+  } catch (e) { /* geen netwerk? dan laten we het bereik leeg */ }
+  return '';
+}
+
 function castHelper(args, timeout) {
   if (!fs.existsSync(CAST_HELPER)) return { fout: 'cast-helper ontbreekt' };
   const uit = spawnSync(CAST_PYTHON, [CAST_HELPER].concat(args), {
@@ -4375,8 +4391,11 @@ async function verwerk(req, res) {
 
   // --- casten ---
   if (pad === '/api/cast/apparaten' && methode === 'GET') {
-    const uit = castHelper(['apparaten'], 20000);
-    json(res, 200, Object.assign({ apparaten: [], python: CAST_PYTHON }, uit));
+    // Eerst via mDNS; vindt de hulp niets, dan loopt hij ook het eigen netwerk af (poort 8009).
+    // Dat duurt even, vandaar de ruime tijd hier.
+    const bereik = String(query.get('bereik') || eigenNetwerk() || '');
+    const uit = castHelper(bereik ? ['apparaten', bereik] : ['apparaten'], 60000);
+    json(res, 200, Object.assign({ apparaten: [], python: CAST_PYTHON, bereik }, uit));
     return;
   }
   if (pad === '/api/cast/start' && methode === 'POST') {

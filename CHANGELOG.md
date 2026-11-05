@@ -3,6 +3,26 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.20.0] — 4 november 2026
+
+### Nieuw
+
+- **Chromecast zoeken werkt nu ook zonder mDNS.** In een container of op een netwerk dat geen
+  multicast doorlaat, vond de app geen enkel toestel terwijl het er wel was. De cast-hulp loopt nu,
+  als het zoeken via mDNS niets oplevert, het eigen netwerk af: welk adres luistert op poort 8009.
+  Van elk gevonden adres haalt hij de naam op (`eureka_info`). De pagina zegt erbij hoe er gezocht is
+  ("gevonden met een netwerkscan in 192.168.1.x") en noemt dezelfde-wifi-valkuil; het IP-adres zelf
+  intypen blijft ook werken.
+- **De cast-hulp werkt zonder pychromecast.** Alleen het afspelen heeft pychromecast nodig; zoeken
+  niet. Ontbreekt het pakket, dan vindt de app de toestellen tóch en zegt erbij wat je moet
+  installeren (`python3 -m pip install --break-system-packages pychromecast`).
+- **Te zien wat je browser van de microfoon vindt**: naast *Nog niet gestart* staat nu
+  *Microfoon volgens je browser: toegestaan / geweigerd / nog niet gevraagd*, met een knop *Opnieuw
+  vragen*. Zo zie je meteen of de browser überhaupt om toestemming is gevraagd — als Chrome de
+  microfoon op systeemniveau weigert, staat er namelijk géén microfoon in het rechtenscherm van de
+  site (alleen Meldingen), en dat is precies waar het dan misgaat. Met de knop *Rechten resetten* in
+  datzelfde scherm vraagt Chrome het opnieuw.
+
 ## [1.19.0] — 4 november 2026
 
 ### Nieuw

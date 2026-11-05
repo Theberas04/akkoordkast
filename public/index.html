@@ -6858,9 +6858,14 @@ function kijkMicrofoonRechten() {
     return;
   }
   navigator.permissions.query({ name: 'microphone' }).then(function (uitkomst) {
+    // 'geweigerd' betekent dat er een beslissing bewaard is: dat kan de site zijn (slotje in de adresbalk),
+    // maar ook een blokkade in Chrome zelf. Staat de microfoon bij geen enkele site, dan zit het in Chrome:
+    // Instellingen, Site-instellingen, Microfoon. Daarom noemen we allebei de plekken.
     plek.textContent = uitkomst.state === 'granted' ? 'toegestaan'
-      : (uitkomst.state === 'denied' ? 'geweigerd — zet hem aan via het slotje in de adresbalk, of via Instellingen, Apps, Chrome, Machtigingen'
-        : 'nog niet gevraagd — druk op Start, dan vraagt de browser het');
+      : (uitkomst.state === 'denied'
+        ? 'geblokkeerd — zet hem aan via het slotje bij het adres (Machtigingen, Microfoon); lukt het bij geen ' +
+          'enkele site, zet dan in Chrome bij Instellingen, Site-instellingen, Microfoon de schakelaar op Vragen'
+        : 'nog niet gevraagd — druk op Start, dan hoort de browser het te vragen');
   }).catch(function () { plek.textContent = 'je browser laat dit niet zien'; });
 }
 

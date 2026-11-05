@@ -3,6 +3,18 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.37.0] — 5 november 2026
+
+### De regel in de stemmerkaart noemt ook de blokkade in Chrome zelf
+
+Chrome's Android-machtiging voor de microfoon staat bij Tom goed, dus een blokkade zit in Chrome zelf
+(de site-instelling *Microfoon*, die voor alle sites kan dichtstaan). De regel *Microfoon volgens je
+browser* zegt nu bij **geblokkeerd** allebei de plekken: het slotje bij het adres, en Chrome's
+*Instellingen, Site-instellingen, Microfoon*.
+
+Zo is in een oogopslag te zien of er een beslissing bewaard is (*geblokkeerd*) of dat er nog niets
+gevraagd is (*nog niet gevraagd*—dan hoort Start de vraag te geven).
+
 ## [1.36.0] — 5 november 2026
 
 ### De microfoon-uitleg noemt ook de twee bovenliggende schakelaars

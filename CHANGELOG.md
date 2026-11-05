@@ -3,6 +3,29 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.31.0] — 5 november 2026
+
+### De microfoon op een telefoon: de app vertelt nu zelf waar het misgaat
+
+De klacht: "ik kan hem via de website niet gebruiken" — de microfoon werkt niet op de telefoon.
+
+Eerst nagegaan of het aan de app ligt: in een browser met een **echte toon op de microfooningang**
+(110 Hz) zegt de stemmer netjes *"De A-snaar staat 7 cent te laag (110 Hz)"*. De microfoon, het rekenwerk
+en de weergave werken dus. Op een telefoon gaat het bijna altijd mis op drie plekken, en die zijn nu
+allemaal te zien en af te vangen.
+
+- **Controle in de stemmerkaart** (`microfoonControle()`), meteen bij het openen: *beveiligd adres ja/nee ·
+  microfoon in de browser aanwezig · andere app ja/nee · microfoons gevonden: 0/1/2*. Eén regel die zegt
+  waar het op vastloopt, in plaats van "het werkt niet".
+- **Andere app herkennen** (`inAndereApp()`): WhatsApp, Slack, Facebook, Instagram, de Google-app en een
+  Android-WebView laten de microfoon vaak niet toe. De app zegt dan: *"Je opent de app in een andere app;
+  open hem in Chrome of Safari zelf, daar werkt de microfoon wel."*
+- **Terugval bij de microfoonvraag** (`vraagMicrofoon()`): de stemmer, de akkoordentrainer en de
+  ritme-trainer vroegen alle drie de microfoon met de strenge instellingen (echo-onderdrukking uit enz.).
+  Sommige telefoons wijzen dat af met een fout; dan vraagt de app het nu zonder eisen opnieuw. Beter een
+  meting met ruis dan helemaal geen stemmer.
+- **De foutcode staat erbij** (bijvoorbeeld `NotAllowedError`), zodat te zien is wat de browser precies zei.
+
 ## [1.30.0] — 4 november 2026
 
 ### Bij het bladmuziek staat nu een akkoordenschema in plaats van een lap uitleg

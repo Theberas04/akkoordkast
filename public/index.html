@@ -1125,6 +1125,7 @@
       <div class="stem-meter" id="stem-meter"><span class="stem-midden"></span><span class="stem-pen" id="stem-pen"></span></div>
       <div class="stem-schaal"><span>50 cent te laag</span><span>gestemd</span><span>50 cent te hoog</span></div>
       <div class="stem-uitslag" id="stem-uitslag">Druk op Start en sla één snaar aan.</div>
+      <div class="les-klein" id="stem-controle" style="margin:8px 0 0 0;color:#94a3b8"></div>
       <div class="les-klein" id="stem-melding" style="margin-top:8px"></div>
     </div>
 
@@ -2264,6 +2265,7 @@ if ($('stem-rechten-kijk')) {
   $('stem-rechten-kijk').addEventListener('click', function () { kijkMicrofoonRechten(); });
 }
 kijkMicrofoonRechten();
+microfoonControle();
 
 // De versie in de kop, zodat je meteen ziet welke versie er draait.
 function laadKopVersie() {
@@ -3243,7 +3245,7 @@ function startLuisteren() {
   // akkoord herkennen, dus zorgen we dat ze er zijn voordat we gaan luisteren.
   laadLeerGrepen()
     .then(function () {
-      return navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+      return vraagMicrofoon();
     })
     .then(function (stream) {
       var knoppen = kiesAnalyserNode(stream);
@@ -6778,6 +6780,36 @@ function laadStemRekenwerk() {
   });
 }
 
+// Zit de app in een andere app? WhatsApp, Slack, Facebook, Instagram en de Google-app openen een pagina
+// in hun eigen venster, en daarin mag de microfoon vaak niet. Op een telefoon is dat de meest
+// voorkomende reden dat "de microfoon niet werkt" terwijl de app niets fout doet.
+function inAndereApp() {
+  var u = String(navigator.userAgent || '');
+  if (/; wv\)/.test(u)) return true;
+  return /(FBAN|FBAV|FB_IAB|Instagram|Line\/|SnapChat|Twitter|GSA\/|WebView|Slack)/i.test(u);
+}
+
+// Een korte controle: precies vertellen waarom de microfoon wel of niet werkt.
+function microfoonControle() {
+  var uit = document.getElementById('stem-controle');
+  if (!uit) return;
+  var regels = [];
+  regels.push('beveiligd adres: ' + (window.isSecureContext ? 'ja' : 'nee — gebruik https'));
+  regels.push('microfoon in de browser: ' + (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? 'aanwezig' : 'niet aanwezig'));
+  if (inAndereApp()) regels.push('andere app: ja — open de app in Chrome of Safari zelf, daar werkt de microfoon wel');
+  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+    uit.textContent = regels.join(' · ');
+    return;
+  }
+  uit.textContent = regels.join(' · ') + ' · microfoons zoeken…';
+  navigator.mediaDevices.enumerateDevices().then(function (lijst) {
+    var aantal = lijst.filter(function (d) { return d.kind === 'audioinput'; }).length;
+    uit.textContent = regels.join(' · ') + ' · microfoons gevonden: ' + aantal;
+  }).catch(function () {
+    uit.textContent = regels.join(' · ') + ' · microfoons gevonden: niet op te vragen';
+  });
+}
+
 // Wat vindt de browser zelf van de microfoontoestemming? Dat scheelt zoeken als hij niet werkt.
 function kijkMicrofoonRechten() {
   var plek = $('stem-rechten');
@@ -6793,6 +6825,19 @@ function kijkMicrofoonRechten() {
   }).catch(function () { plek.textContent = 'je browser laat dit niet zien'; });
 }
 
+// De microfoon vragen. Eerst zonder de hulpmiddelen van de telefoon (die vervormen de toon), maar
+// sommige toestellen wijzen die instellingen af. Dan vragen we het zonder eisen: beter een meting met
+// ruis dan helemaal geen stemmer, trainer of opname.
+function vraagMicrofoon() {
+  return navigator.mediaDevices.getUserMedia({
+    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+  }).catch(function (eerste) {
+    var naam = (eerste && eerste.name) || '';
+    if (naam === 'NotAllowedError' || naam === 'SecurityError' || naam === 'PermissionDeniedError') throw eerste;
+    return navigator.mediaDevices.getUserMedia({ audio: true });
+  });
+}
+
 function startStemmer() {
   if (STEMMER.aan) return;
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -6806,6 +6851,7 @@ function startStemmer() {
   $('stem-start').disabled = true;
   toonMelding('stem-melding', 'Vraag om de microfoon…', '');
   kijkMicrofoonRechten();
+  microfoonControle();
   laadStemRekenwerk()
     .catch(function () {
       toonMelding('stem-melding', 'Het rekenwerk van de stemmer kon niet geladen worden; ververs de pagina.', 'fout');
@@ -6813,7 +6859,7 @@ function startStemmer() {
       throw new Error('rekenwerk');
     })
     .then(function () {
-      return navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+      return vraagMicrofoon();
     })
     .then(function (stream) {
       STEMMER.stream = stream;
@@ -6834,7 +6880,11 @@ function startStemmer() {
       $('stem-start').disabled = false;
       zetStemStand('Nog niet gestart');
       if (e && e.message === 'rekenwerk') return;
-      toonMelding('stem-melding', microfoonUitleg(e), 'fout');
+      var code = (e && e.name) ? ' (foutcode: ' + e.name + ')' : '';
+      var extra = inAndereApp()
+        ? ' Je opent de app in een andere app; open hem in Chrome of Safari zelf, daar werkt de microfoon wel.'
+        : '';
+      toonMelding('stem-melding', microfoonUitleg(e) + extra + code, 'fout');
     });
 }
 
@@ -7021,7 +7071,7 @@ function startRt() {
   RT.maat = Number($('rt-maat').value) || 4;
   RT.tikAan = $('rt-tik').value === 'aan';
   toonMelding('rt-melding', '', '');
-  navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } })
+  vraagMicrofoon()
     .then(function (stream) {
       var knoppen = kiesAnalyserNode(stream);
       RT.aan = true;

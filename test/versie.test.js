@@ -165,3 +165,37 @@ test('de service worker haalt de pagina echt van de server, ook als de cache hem
   assert.equal(geen, 'niets', 'de liedjes horen niet door de service worker te gaan');
   assert.deepEqual(opgehaald, [], 'en dus ook niet uit een cache te komen');
 });
+
+test('de microfoon op een telefoon: controle, terugval en de andere-app-hint', () => {
+  // De klacht "ik kan de microfoon op mijn telefoon niet gebruiken": de app moet zelf kunnen vertellen
+  // waar het misgaat, en niet stuklopen op toestellen die de strenge microfooninstellingen afwijzen.
+  const html = fs.readFileSync(path.join(wortel, 'public', 'index.html'), 'utf8');
+
+  // 1. Een controlepaneel dat de drie echte oorzaken noemt.
+  assert.match(html, /id="stem-controle"/, 'er hoort een controlepaneel in de stemmerkaart te staan');
+  assert.match(html, /function microfoonControle/, 'de controle hoort een functie te zijn');
+  for (const stuk of ['beveiligd adres', 'microfoons gevonden']) {
+    assert.ok(html.includes(stuk), 'de controle hoort "' + stuk + '" te melden');
+  }
+
+  // 2. Een pagina in een andere app herkennen (WhatsApp, Slack, Facebook, WebView).
+  assert.match(html, /function inAndereApp/, 'andere apps horen herkend te worden');
+  for (const merk of ['FBAN', 'Instagram', 'GSA', 'WebView', 'Slack']) {
+    assert.ok(html.includes(merk), 'de herkenning hoort ' + merk + ' te dekken');
+  }
+  assert.match(html, /open hem in Chrome of Safari zelf/, 'en de app hoort te zeggen wat je dan moet doen');
+
+  // 3. Alle microfoonvragen lopen via de terugval: eerst zonder hulpmiddelen, dan zonder eisen.
+  assert.match(html, /function vraagMicrofoon/, 'er hoort één plek te zijn waar de microfoon gevraagd wordt');
+  assert.match(html, /getUserMedia\(\{ audio: true \}\)/, 'met een terugval zonder eisen');
+  const streng = (html.match(/getUserMedia\(\{\s*audio: \{ echoCancellation/g) || []).length;
+  assert.equal(streng, 1, 'de strenge vraag hoort alleen nog in vraagMicrofoon te staan (nu ' + streng + ')');
+  const viaFunctie = (html.match(/vraagMicrofoon\(\)/g) || []).length;
+  assert.ok(viaFunctie >= 4, 'stemmer, akkoordentrainer, ritme-trainer en de functie zelf (nu ' + viaFunctie + ')');
+
+  // 4. Bij een fout hoort de foutcode van de browser erbij te staan.
+  assert.match(html, /foutcode: ' \+ e\.name/, 'de foutcode hoort in de melding te staan');
+
+  // 5. En de pagina haalt de controle bij het openen.
+  assert.match(html, /kijkMicrofoonRechten\(\);\nmicrofoonControle\(\);/, 'de controle hoort meteen te lopen');
+});

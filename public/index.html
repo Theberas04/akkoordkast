@@ -5171,8 +5171,7 @@ function castLiedje(l, extra) {
     capo: l.capo,
     transpose: l.transpositie,
     titel: l.titel,
-    artiest: l.artiest,
-    basis: location.origin
+    artiest: l.artiest
   };
   if (extra) {
     lichaam.bron = gebruikOpname ? 'opname' : extra.bron;
@@ -5186,7 +5185,11 @@ function castLiedje(l, extra) {
     body: JSON.stringify(lichaam)
   }).then(function (r) {
     if (r.fout) throw new Error(r.fout);
-    toonMelding('cast-melding', 'Nu aan het casten: ' + l.titel + ' naar ' + (r.apparaat && r.apparaat.naam ? r.apparaat.naam : apparaat) + '.', 'goed');
+    toonMelding('cast-melding', 'Nu aan het casten: ' + l.titel + ' naar ' +
+      (r.apparaat && r.apparaat.naam ? r.apparaat.naam : apparaat) + '.' +
+      (r.basis ? ' Het geluid gaat via ' + r.basis + ' \u2014 dat is deze machine in je eigen netwerk, ' +
+        'dus het maakt niet uit waar je de app hebt openstaan. Lukt het toch niet, dan zit de cast in ' +
+        'een ander netwerk (bijvoorbeeld het gastennetwerk).' : ''), 'goed');
   }).catch(function (e) { toonMelding('cast-melding', e.message, 'fout'); });
 }
 $('cast-nu').addEventListener('click', function () {

@@ -34,10 +34,12 @@ const DB_PATH = process.env.DB_PATH || path.join(DATA_DIR, 'akkoordkast.db');
 const CAST_PYTHON = process.env.CAST_PYTHON || 'python3';
 const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 const { spawn: spawnKind } = require('child_process');
-const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
+const CAST_HELPER = process.env.CAST_HELPER
+  ? path.resolve(process.env.CAST_HELPER)
+  : path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.23.0';
+const VERSIE = '1.24.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -2868,6 +2870,17 @@ function eigenNetwerk() {
   return '';
 }
 
+// Het adres van deze machine in het eigen netwerk, met de poort waarop de app echt luistert. Dit is
+// het adres dat we de cast geven, zodat hij het geluid rechtstreeks bij de app kan ophalen.
+function castBasis() {
+  const eigen = eigenNetwerk();
+  if (!eigen) return null;
+  let poort = 0;
+  try { poort = (server && server.address() && server.address().port) || 0; } catch (e) { poort = 0; }
+  if (!poort) poort = Number(PORT) || 80;
+  return 'http://' + eigen + (Number(poort) === 80 ? '' : ':' + poort);
+}
+
 function castHelper(args, timeout) {
   if (!fs.existsSync(CAST_HELPER)) return { fout: 'cast-helper ontbreekt' };
   const uit = spawnSync(CAST_PYTHON, [CAST_HELPER].concat(args), {
@@ -4629,16 +4642,35 @@ async function verwerk(req, res) {
       }
     }
     if (!mediaUrl) { json(res, 400, { fout: 'Geen audio om te casten.' }); return; }
-    const host = req.headers.host || `localhost:${PORT}`;
-    const basis = (body.basis || `http://${host}`);
-    const absoluut = mediaUrl.startsWith('http') ? mediaUrl : basis.replace(/\/$/, '') + mediaUrl;
+
+    // Waar haalt de cast het geluid vandaan? Altijd bij deze machine in het eigen netwerk, en niet bij
+    // het adres waarmee jij de app hebt openstaan. Dat laatste kan namelijk een adres van buiten zijn
+    // (of van een ander netwerk) en dat kan de cast niet bereiken - dan mislukte het casten zodra je
+    // ergens anders was. Een zelf opgegeven adres in het eigen netwerk mag wel.
+    const lokaal = castBasis();
+    const gevraagd = String(body.basis || '').replace(/\/$/, '');
+    const inEigenNetwerk = /^https?:\/\/(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)/.test(gevraagd);
+    const basis = (gevraagd && inEigenNetwerk)
+      ? gevraagd
+      : (lokaal || `http://${req.headers.host || ('localhost:' + PORT)}`);
+
+    // Wat de pagina ook meestuurt: alleen het pad blijft over, want het geluid moet via het eigen
+    // netwerk opgehaald worden.
+    let paddeel = String(mediaUrl);
+    if (/^https?:\/\//i.test(paddeel)) {
+      try {
+        const alsAdres = new URL(paddeel);
+        paddeel = alsAdres.pathname + alsAdres.search;
+      } catch (e) { /* laat hem dan maar zoals hij is */ }
+    }
+    const absoluut = basis.replace(/\/$/, '') + paddeel;
     const poster = basis.replace(/\/$/, '') + '/icon-512.png';
     const uit = castHelper(['speel', String(body.apparaat || ''), absoluut, titel, artiest, type, poster], 30000);
     if (!uit.fout) {
       zetInstelling('cast_apparaat', String(body.apparaat || ''));
       zetInstelling('cast_naam', String(body.naam || ''));
     }
-    json(res, uit.fout ? 502 : 200, uit);
+    json(res, uit.fout ? 502 : 200, Object.assign({ basis }, uit));
     return;
   }
   if (pad === '/api/cast/stop' && methode === 'POST') {

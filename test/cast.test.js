@@ -45,3 +45,57 @@ test('de app geeft het eigen netwerk mee en de pagina meldt hoe er gezocht is', 
   assert.match(html, /stem-rechten/, 'de pagina hoort de microfoontoestemming van de browser te laten zien');
   assert.match(html, /navigator\.permissions\.query/, 'en die toestemming ook echt op te vragen');
 });
+
+test('de cast krijgt altijd een adres in het eigen netwerk, ook als de pagina van buiten komt', async () => {
+  // Een nagemaakte cast-hulp: hij schrijft op wat hij te horen kreeg. Zo testen we zonder een echt
+  // toestel aan te raken.
+  const os = require('os');
+  const wortel = fs.mkdtempSync(path.join(os.tmpdir(), 'ak-cast-'));
+  const nep = path.join(wortel, 'nep-cast.py');
+  fs.writeFileSync(nep, [
+    'import json, sys',
+    'print(json.dumps({"fout": "", "apparaat": {"naam": "Proefcast"}, "argumenten": sys.argv[1:]}))',
+    ''
+  ].join('\n'));
+  process.env.CAST_HELPER = nep;
+  process.env.CAST_PYTHON = process.env.CAST_PYTHON || 'python3';
+
+  const omgeving = await hulp.start();
+  try {
+    const poort = omgeving.app.server.address().port;
+
+    // De pagina doet alsof hij via een adres van buiten geopend is - precies de situatie waarin het
+    // casten bij de gebruiker misging.
+    const vanBuiten = await hulp.post(omgeving.basis, '/api/cast/start', {
+      apparaat: '192.168.1.100:8009',
+      url: '/api/muziek/bestand?liedje=1',
+      titel: 'Proefnummer',
+      basis: 'https://muziek-van-buiten.example'
+    });
+    assert.equal(vanBuiten.status, 200, JSON.stringify(vanBuiten.data));
+    const argumenten = vanBuiten.data.argumenten || [];   // [speel, apparaat, adres, titel, ...]
+    const gespeeld = String(argumenten[2] || '');
+    assert.match(gespeeld, /^http:\/\/192\.168\./, 'de cast hoort een adres in het eigen netwerk te krijgen: ' + gespeeld);
+    assert.ok(gespeeld.includes(':' + poort + '/'), 'met de poort waarop de app echt luistert: ' + gespeeld);
+    assert.ok(gespeeld.endsWith('/api/muziek/bestand?liedje=1'), 'met het juiste pad: ' + gespeeld);
+    assert.ok(!/muziek-van-buiten/.test(gespeeld), 'het adres van buiten hoort er niet in te zitten: ' + gespeeld);
+    assert.match(String(vanBuiten.data.basis || ''), /^http:\/\/192\.168\./,
+      'de app hoort te melden waarlangs de cast het ophaalt: ' + JSON.stringify(vanBuiten.data.basis));
+
+    // Een zelf opgegeven adres in het eigen netwerk mag wel gebruikt worden.
+    const eigenBasis = await hulp.post(omgeving.basis, '/api/cast/start', {
+      apparaat: '192.168.1.100:8009',
+      url: 'https://muziek-van-buiten.example/api/muziek/bestand?liedje=1',
+      titel: 'Proefnummer',
+      basis: 'http://192.168.1.100:9000'
+    });
+    assert.equal(eigenBasis.status, 200, JSON.stringify(eigenBasis.data));
+    const eigenUrl = String((eigenBasis.data.argumenten || [])[2] || '');
+    assert.ok(eigenUrl.startsWith('http://192.168.1.100:9000/api/muziek/bestand?liedje=1'),
+      'een eigen adres in het netwerk hoort gebruikt te worden, met alleen het pad van het liedje: ' + eigenUrl);
+  } finally {
+    delete process.env.CAST_HELPER;
+    await omgeving.stop();
+  }
+});
+

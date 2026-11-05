@@ -3,6 +3,32 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.24.0] — 4 november 2026
+
+### Casten werkt nu ook als je de app ergens anders vandaan opent
+
+De klacht: *"de chromecast werkt nog niet als ik ergens anders ben in het netwerk"*. De oorzaak zat in
+het adres dat de cast meekreeg:
+
+- De pagina stuurde `basis: location.origin` mee — het adres waarmee **jij** de app hebt openstaan. Thuis
+  is dat je eigen netwerk (`http://192.168.1.100:8080`) en dan haalt de cast het geluid prima op. Maar
+  open je de app van buiten (bijvoorbeeld via het adres van de app), dan kreeg de Chromecast **dat**
+  adres: een adres van buiten dat hij thuis niet kan ophalen. Vandaar dat het juist misging als je
+  ergens anders was.
+- De app bepaalt het adres nu **zelf** (`castBasis()`): het adres van de machine waarop de app draait in
+  het eigen netwerk, met de poort waarop de app echt luistert — dat is de poort die hij werkelijk gebruikt,
+  ook als hij op een andere poort gestart is. Dat is het adres dat de cast nodig heeft, want die staat in
+  hetzelfde netwerk.
+- Stuurt de pagina tóch een volledig adres mee, dan houdt de app alleen het pad over en zet dat op het
+  eigen adres. Een zelf opgegeven adres in het eigen netwerk (192.168.x, 10.x, 172.16-31.x) mag wel.
+- De app vertelt er nu bij **waarlangs** de cast het geluid ophaalt, zodat te zien is welk adres gebruikt
+  is. Werkt het dan nog niet, dan zit de cast in een ander netwerk (bijvoorbeeld het gastennetwerk) — ook
+  dat meldt de app.
+
+Bewijs: `test/cast.test.js` stuurt een liedje naar de cast met een **nagemaakt** hulp-programma en met een
+vraag alsof de pagina via een adres van buiten geopend is. De proef controleert dat de cast toch een adres
+in het eigen netwerk krijgt met de juiste poort en het juiste pad.
+
 ## [1.23.0] — 4 november 2026
 
 ### De app vindt de muziek nu ook als de rij onder een ander nummer bewaard is

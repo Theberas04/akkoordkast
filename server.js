@@ -37,7 +37,7 @@ const { spawn: spawnKind } = require('child_process');
 const CAST_HELPER = path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.22.0';
+const VERSIE = '1.23.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -1718,7 +1718,7 @@ function opnameKandidaten() {
     if (heeftAkkoordenInTekst(rij.chordpro)) continue;
     const perMaat = String(rij.akkoorden_per_maat || '').trim();
     if (perMaat && perMaat !== '[]' && perMaat !== 'null') continue;
-    const muziek = muziekVanLiedje(rij.id);
+    const muziek = muziekVanEigenLiedje(rij.id);
     if (!muziek || !muziek.bestaat) continue;
     uit.push({
       id: EIGEN_START + Number(rij.id), titel: String(rij.titel || ''),
@@ -2311,6 +2311,23 @@ function muziekVanLiedje(liedjeId) {
     bestaat = false;
   }
   return { pad, titel: String(rij.titel || ''), wanneer: String(rij.wanneer || ''), bestaat };
+}
+
+// De muziek van een EIGEN liedje. In de database staat zo'n liedje onder een klein nummer (145),
+// terwijl de app het als 900145 laat zien; de muziekrij kan onder allebei bewaard zijn. Bij de
+// verzameling van de gebruiker staat hij onder het grote nummer. Daarom hier allebei proberen — maar
+// alleen hier: bij de meegeleverde liedjes betekent 900000+ iets heel anders, daar mag je niet omrekenen.
+function muziekVanEigenLiedje(rijId) {
+  const nummer = Number(rijId) || 0;
+  for (const sleutel of [EIGEN_START + nummer, nummer]) {
+    const rij = db.prepare('SELECT pad, titel, wanneer FROM liedje_muziek WHERE liedje_id = ?').get(sleutel);
+    if (!rij || !rij.pad) continue;
+    const pad = String(rij.pad);
+    let bestaat = false;
+    try { bestaat = fs.statSync(pad).isFile(); } catch (e) { bestaat = false; }
+    return { pad, titel: String(rij.titel || ''), wanneer: String(rij.wanneer || ''), bestaat };
+  }
+  return null;
 }
 
 function zetLiedjeMuziek(liedjeId, pad, titel) {
@@ -3731,6 +3748,7 @@ async function verwerk(req, res) {
       ytdlp: heeftGereedschap(process.env.YTDLP || 'yt-dlp'),
       opname: {
         auto: OPNAME_AUTO.aan, loopt: OPNAME_AUTO.loopt || OPNAME_RONDE.loopt,
+        nogTeDoen: (function () { try { return opnameKandidaten().length; } catch (e) { return -1; } })(),
         geprobeerd: OPNAME_AUTO.geprobeerd, gelukt: OPNAME_AUTO.gelukt,
         overgeslagen: OPNAME_AUTO.mislukt.length,
         laatste: OPNAME_AUTO.laatste, laatsteReden: OPNAME_AUTO.laatsteReden,

@@ -3,6 +3,31 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.23.0] — 4 november 2026
+
+### De app vindt de muziek nu ook als de rij onder een ander nummer bewaard is
+
+De app vult sinds 1.22.0 zelf bladmuziek aan, maar bij de gebruiker gebeurde er niets: de kaart zei
+*"Er is niets te doen: elk liedje met muziek heeft al akkoorden"* en er werden 0 liedjes gedaan. De
+oorzaak zat in de nummers waaronder de muziek bewaard is:
+
+- In de **database** staat een eigen liedje onder een klein nummer (bijvoorbeeld `145`), terwijl de app
+  het aan de buitenkant als `900145` laat zien. Bij de verzameling van de gebruiker staat de muziekrij
+  onder dat **grote** nummer (`900145`), terwijl het liedje zelf onder `145` staat.
+- Het scherm zocht met het nummer dat bij de rij hoort en vond de muziek, maar het zoeken naar kandidaten
+  zocht met het kleine nummer en vond **niets** — waardoor de app dacht dat er niets te doen was.
+- Voor de **eigen** liedjes kijkt de app nu onder beide nummers: eerst `900000 + nummer`, dan het nummer
+  zelf (`muziekVanEigenLiedje()`). Dat gebeurt alleen daar en niet bij de meegeleverde liedjes: daar
+  betekent 900000+ iets heel anders, dus daar mag je niet omrekenen. (Die fout maakte ik eerst wel, en
+  een bestaande proef — `test/downloadmap.test.js` — wees hem meteen aan: een meegeleverd liedje kreeg
+  zo de muziek van een eigen liedje.)
+- De stand van het gereedschap (`GET /api/gereedschap`) zegt er nu ook bij hoeveel liedjes er nog te doen
+  zijn. Dat had deze fout meteen zichtbaar gemaakt.
+
+Bewijs: de nieuwe proef in `test/opnameauto.test.js` zet de muziekrij bewust onder het **grote** nummer —
+precies zoals in de verzameling van de gebruiker — en kijkt of de app het liedje dan tóch vindt en de
+akkoorden er zelf in zet.
+
 ## [1.22.0] — 4 november 2026
 
 ### De app vult je bladmuziek nu zelf aan, en zegt waar het op blijft hangen

@@ -39,7 +39,7 @@ const CAST_HELPER = process.env.CAST_HELPER
   : path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.41.0';
+const VERSIE = '1.42.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -2022,6 +2022,66 @@ function loopBestanden(map, diep, uit) {
   }
 }
 
+// Een titel op een vaste manier opschrijven, zodat 'Smoorverliefd' en 'smoorverliefd ' bij elkaar
+// horen: accenten eraf, kleine letters, leestekens weg, dubbele spaties weg.
+function normaliseerTitel(titel) {
+  return String(titel || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Dubbele nummers bekijken: alle liedjes met dezelfde titel, uit de hele verzameling (wat er al in zat
+// én je eigen liedjes). Er wordt hier niets weggehaald — de beheerder kijkt ernaar en beslist zelf.
+// Titels die niets zeggen ('(untitled)', 'zonder titel') horen niet in het overzicht: die liedjes
+// heten allemaal hetzelfde zonder dat ze iets met elkaar te maken hebben.
+const GEEN_TITEL = ['untitled', 'zonder titel', 'naamloos', 'onbekend', 'geen titel'];
+
+function dubbeleNummers() {
+  const metMuziek = new Set(db.prepare('SELECT liedje_id FROM liedje_muziek').all().map(r => Number(r.liedje_id)));
+  const groepen = new Map();
+  const doen = (l, isEigen) => {
+    const sleutel = normaliseerTitel(l.titel);
+    if (!sleutel || GEEN_TITEL.indexOf(sleutel) !== -1) return;
+    if (!groepen.has(sleutel)) groepen.set(sleutel, []);
+    // Rijen met muziek kunnen onder het grote nummer van een eigen liedje staan.
+    const muziek = isEigen
+      ? metMuziek.has(Number(l.id)) || metMuziek.has(Number(l.id) - EIGEN_START) || !!l.heeftMuziek
+      : metMuziek.has(Number(l.id)) || !!l.heeftMuziek;
+    groepen.get(sleutel).push({
+      id: l.id,
+      titel: String(l.titel || ''),
+      artiest: String(l.artiest || ''),
+      eigen: !!isEigen,
+      akkoorden: heeftAkkoordenInTekst(l.chordpro || ''),
+      muziek: !!muziek,
+      bron: isEigen ? 'eigen' : 'verzameling'
+    });
+  };
+  try { for (const l of bron.alle()) doen(l, false); } catch (e) { /* geen verzameling: dan alleen eigen */ }
+  for (const l of eigenRijen()) doen(l, true);
+
+  const uit = [];
+  groepen.forEach((liedjes, sleutel) => {
+    if (liedjes.length < 2) return;
+    uit.push({
+      sleutel,
+      titel: liedjes[0].titel,
+      aantal: liedjes.length,
+      liedjes: liedjes.slice(0, 12),
+      meer: Math.max(0, liedjes.length - 12)
+    });
+  });
+  uit.sort((a, b) => (b.aantal - a.aantal) || String(a.titel).localeCompare(String(b.titel), 'nl'));
+  return {
+    groepen: uit.slice(0, 300),
+    groepenTotaal: uit.length,
+    liedjesTotaal: uit.reduce((n, g) => n + g.aantal, 0)
+  };
+}
+
 function scanOpruimen() {
   const uit = {
     dubbelen: [], leeg: [], zonderMuziek: [], verborgen: [],
@@ -3580,6 +3640,12 @@ async function verwerk(req, res) {
 
   // --- back-up ---
   // Opruimen: eerst kijken wat er op te ruimen valt, dan pas opruimen.
+  // Dubbele nummers: alleen kijken, nooit weghalen. Alleen de beheerder ziet dit overzicht.
+  if (pad === '/api/dubbelen' && methode === 'GET') {
+    if (!eisBeheerder()) return;
+    json(res, 200, dubbeleNummers());
+    return;
+  }
   if (pad === '/api/opruimen' && methode === 'GET') {
     if (!eisBeheerder()) return;
     json(res, 200, scanOpruimen());

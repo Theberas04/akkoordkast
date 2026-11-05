@@ -3,6 +3,25 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.42.0] — 5 november 2026
+
+### Dubbele nummers bekijken
+
+Een overzicht van liedjes met dezelfde titel, voor de beheerder. Er wordt **niets** weggehaald: je ziet
+waar het om gaat en opent het liedje om het zelf te verwijderen als je dat wilt.
+
+- `GET /api/dubbelen` groepeert de hele verzameling (meegeleverd én eigen) op een genormaliseerde titel
+  (accenten, leestekens en hoofdletters maken niet uit), en laat per liedje zien waar het vandaan komt en
+  of er akkoorden en muziek bij zitten.
+- Titels die niets zeggen (`(untitled)`, `zonder titel`) blijven erbuiten: die liedjes heten allemaal
+  hetzelfde zonder iets met elkaar te maken te hebben.
+- In de kaart **Dubbele nummers** (tabblad Toevoegen, alleen voor de beheerder) staat de knop
+  **Dubbele nummers zoeken**, met per groep de liedjes en een knop **Openen**.
+- Alleen de beheerder komt erbij; zonder beheerderssessie weigert de app (403).
+
+Nieuwe proeven erbij; op een verzameling van 8701 liedjes vond de proef 623 dubbele titels (1387
+liedjes), en het overzicht is in Chromium op telefoonformaat nagekeken.
+
 ## [1.41.0] — 5 november 2026
 
 ### Een akkoordenschema leest als een schema

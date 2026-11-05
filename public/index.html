@@ -118,6 +118,9 @@
   .mees-volgende{color:var(--tekst2);font-size:.86rem}
   /* Het akkoordenschema: elke maat een vak met een maatstreep. Zo blijft het leesbaar op een smal
      scherm; de akkoorden plakten eerst aan elkaar omdat de maatstrepen op een eigen regel stonden. */
+  /* Een rij in het dubbelen-overzicht: de herkomst hoort onder de titel te lopen. */
+  .dubbel-rij{flex-wrap:wrap}
+  .dubbel-rij .meta{flex:1 1 100%;margin-top:2px}
   .schema{display:flex;flex-wrap:wrap;gap:6px 0;margin:8px 0}
   .schema .maat{flex:0 0 25%;min-width:78px;padding:3px 8px;border-left:2px solid var(--lijn);text-align:center;box-sizing:border-box}
   .schema .maat .ak{font-weight:800;color:var(--amber);font-size:1.02rem}
@@ -1370,6 +1373,21 @@
         </div>
       </div>
       <div class="melding" id="opruim-melding" hidden></div>
+    </div>
+
+    <div class="kaart" id="dubbelen-kaart">
+      <h2>Dubbele nummers</h2>
+      <p class="melding">Zoek liedjes met dezelfde titel, uit de hele verzameling (ook wat er al in zat) én
+        je eigen liedjes. Er wordt <strong>niets</strong> weggehaald: je ziet waar het om gaat, en met
+        <strong>Openen</strong> ga je naar het liedje om het zelf te verwijderen als je dat wilt.</p>
+      <div class="rij">
+        <button class="knop zacht" id="dubbel-kijk">Dubbele nummers zoeken</button>
+        <span class="pilletje" id="dubbel-stand">nog niet gezocht</span>
+      </div>
+      <div id="dubbel-uit" hidden style="margin-top:8px">
+        <div class="weg-lijst" id="dubbel-lijst"></div>
+      </div>
+      <div class="melding" id="dubbel-melding" hidden></div>
     </div>
 
     <div class="kaart" id="gegevens-kaart">
@@ -5042,6 +5060,52 @@ function koppelOpnameKaart() {
         };
         volg();
       });
+  });
+}
+
+// --- dubbele nummers bekijken ---
+// Alleen kijken: het overzicht laat zien welke liedjes dezelfde titel hebben, met per liedje waar het
+// vandaan komt. Weghalen doet de beheerder zelf, via het liedje.
+if ($('dubbel-kijk')) {
+  $('dubbel-kijk').addEventListener('click', function () {
+    toonMelding('dubbel-melding', 'Bezig met zoeken\u2026', '');
+    fetch('/api/dubbelen', { headers: { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' } })
+      .then(function (r) {
+        return r.json().then(function (d) { if (!r.ok) throw new Error(d.fout || 'zoeken mislukt'); return d; });
+      })
+      .then(function (d) {
+        var regels = [];
+        if (!d.groepen.length) {
+          regels.push('<div class="weg-rij"><span>Geen dubbele titels gevonden.</span></div>');
+        }
+        d.groepen.forEach(function (g) {
+          regels.push('<div class="weg-rij" style="display:block"><strong>' + esc(g.titel) + '</strong> ' +
+            '<span class="meta">' + g.aantal + '\u00d7 dezelfde titel</span></div>');
+          g.liedjes.forEach(function (l) {
+            var wat = [l.bron === 'eigen' ? 'eigen liedje' : 'uit de verzameling'];
+            if (l.artiest) wat.push(l.artiest);
+            if (l.akkoorden) wat.push('met akkoorden');
+            if (l.muziek) wat.push('met muziek');
+            regels.push('<div class="weg-rij dubbel-rij" style="margin-left:14px">' +
+              '<button class="knop mini zacht" data-open="' + l.id + '">Openen</button>' +
+              '<span>' + esc(l.titel) + '</span><span class="meta">' + esc(wat.join(' \u00b7 ')) + '</span></div>');
+          });
+          if (g.meer) {
+            regels.push('<div class="weg-rij" style="margin-left:14px"><span class="meta">en nog ' + g.meer +
+              ' met dezelfde titel</span></div>');
+          }
+        });
+        $('dubbel-lijst').innerHTML = regels.join('');
+        $('dubbel-uit').hidden = false;
+        $('dubbel-stand').textContent = d.groepenTotaal + ' titels dubbel \u00b7 ' + d.liedjesTotaal + ' liedjes';
+        toonMelding('dubbel-melding', d.groepenTotaal
+          ? 'Kijk ze na en verwijder zelf wat je dubbel vindt.'
+          : 'Geen dubbele titels gevonden.', 'goed');
+        Array.prototype.forEach.call($('dubbel-lijst').querySelectorAll('[data-open]'), function (b) {
+          b.addEventListener('click', function () { openLiedje(Number(b.getAttribute('data-open'))); });
+        });
+      })
+      .catch(function (e) { toonMelding('dubbel-melding', e.message, 'fout'); });
   });
 }
 

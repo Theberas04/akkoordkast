@@ -116,9 +116,15 @@
   .mees-noot{font-size:1.5rem;font-weight:700;color:#e2e8f0}
   .mees-noot .klein{font-size:.78rem;color:var(--tekst2);font-weight:500}
   .mees-volgende{color:var(--tekst2);font-size:.86rem}
+  /* Het akkoordenschema: elke maat een vak met een maatstreep. Zo blijft het leesbaar op een smal
+     scherm; de akkoorden plakten eerst aan elkaar omdat de maatstrepen op een eigen regel stonden. */
+  .schema{display:flex;flex-wrap:wrap;gap:6px 0;margin:8px 0}
+  .schema .maat{flex:0 0 25%;min-width:78px;padding:3px 8px;border-left:2px solid var(--lijn);text-align:center;box-sizing:border-box}
+  .schema .maat .ak{font-weight:800;color:var(--amber);font-size:1.02rem}
+  /* Het blad loopt mee met de muziek: de maat (of de regel) die nu klinkt licht op. */
+  .seg.nu{background:rgba(245,158,11,.14);border-radius:6px;outline:2px solid var(--amber);outline-offset:2px}
+  .schema .maat.nu{background:rgba(245,158,11,.16);border-radius:6px;outline:2px solid var(--amber);outline-offset:1px}
   /* Het blad loopt mee met de muziek: de regel die nu klinkt licht op. */
-  .seg.nu{background:rgba(245,158,11,.16);border-radius:6px;box-shadow:inset 0 0 0 1px rgba(245,158,11,.4)}
-  .seg.nu .ak{color:#ffd489}
   .mees-teller{display:flex;gap:6px;align-items:center;margin-left:auto}
   .mees-tel{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;line-height:1;
     background:#0d1526;border:1px solid var(--lijn);color:var(--tekst2);font-weight:700;font-size:.85rem}
@@ -3515,6 +3521,21 @@ function tekenSongtekst(model) {
       return;
     }
     if (r.soort === 'leeg') { uit += '<div class="leeg"></div>'; return; }
+    // Een regel met alleen akkoorden is het schema van een liedje zonder liedtekst: dat tekenen we
+    // als echte maten naast elkaar, met de maatstreep erin. De losse regel met maatstrepen eronder
+    // hoort daarbij en slaan we over, want die strepen staan dan al in het schema.
+    var alleenStrepen = r.segmenten.length > 0 && r.segmenten.every(function (s) {
+      return !s.akkoord && /^[|\s\u00a0]+$/.test(s.tekst === undefined ? '' : s.tekst);
+    });
+    if (alleenStrepen) return;
+    var alleenAkkoorden = r.segmenten.length > 1 && r.segmenten.every(function (s) { return !!s.akkoord; });
+    if (alleenAkkoorden) {
+      uit += '<div class="schema">' + r.segmenten.map(function (s) {
+        var merk = ' data-ak="' + (akNr++) + '"';
+        return '<span class="maat"' + merk + '><span class="ak">' + esc(s.akkoord) + '</span></span>';
+      }).join('') + '</div>';
+      return;
+    }
     var segs = r.segmenten.map(function (s) {
       var tekst = s.tekst === '' || s.tekst === undefined ? '\u00a0\u00a0' : s.tekst;
       var merk = s.akkoord ? ' data-ak="' + (akNr++) + '"' : '';
@@ -3537,9 +3558,9 @@ function zetBladOpMaat(iMaat) {
   if (nr === BLAD.laatste) return;
   // Het blad kan in verschillende houders staan (het liedblad, de meespeelkaart, het boek), dus
   // zoeken we het akkoord in de hele pagina: de markering hoort te staan waar het blad staat.
-  var oude = document.querySelectorAll('.seg.nu');
+  var oude = document.querySelectorAll('.nu[data-ak]');
   for (var j = 0; j < oude.length; j++) oude[j].classList.remove('nu');
-  var nu = document.querySelector('.seg[data-ak="' + nr + '"]');
+  var nu = document.querySelector('[data-ak="' + nr + '"]');
   if (!nu) return;
   nu.classList.add('nu');
   BLAD.laatste = nr;
@@ -3552,7 +3573,7 @@ function zetBladOpMaat(iMaat) {
 
 // Bij stoppen laat het blad zijn markering los.
 function laatBladLos() {
-  var oude = document.querySelectorAll('.seg.nu');
+  var oude = document.querySelectorAll('.nu[data-ak]');
   for (var j = 0; j < oude.length; j++) oude[j].classList.remove('nu');
   BLAD.laatste = -1;
 }

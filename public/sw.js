@@ -1,7 +1,7 @@
 'use strict';
 // Service worker: alleen de app-schil cachen. /api/ en /media/ blijven altijd live,
 // zodat liedjes, audio en cast-status nooit uit een oude cache komen.
-const CACHE = 'akkoordkast-v76';
+const CACHE = 'akkoordkast-v77';
 // Deze bestanden komen ALTIJD eerst van de server. Ze zijn klein, en zo zie je na een bijwerking meteen
 // de nieuwe versie in plaats van de oude uit de cache - dat kostte eerder een tweede keer laden, waardoor
 // een melding die al weg was toch bleef staan.

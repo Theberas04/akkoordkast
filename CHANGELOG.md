@@ -3,6 +3,22 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.41.0] — 5 november 2026
+
+### Een akkoordenschema leest als een schema
+
+Bij een liedje zonder liedtekst zette de app de akkoorden op een regel en de maatstrepen op de regel
+eronder. Op een smal scherm liepen de akkoorden daardoor in elkaar over (`Amaj7Amaj7Am7Am7`): je kon de
+maten niet meer lezen. Dat kwam zo bij *Smoorverliefd* binnen.
+
+- Een regel met alleen akkoorden wordt nu een **schema**: elke maat een eigen vak met de maatstreep
+  erin, vier maten per regel, en het loopt netjes om op een smal scherm.
+- De losse regel met maatstrepen eronder verdwijnt, want die strepen zitten dan al in het schema.
+- Een liedje **met** liedtekst blijft precies zoals het was: akkoorden boven de woorden.
+- De maat die klinkt licht ook in het schema op (het bladmuziek loopt mee met de muziek).
+
+Nieuwe proeven erbij; het schema nagekeken in Chromium op telefoonformaat.
+
 ## [1.40.0] — 5 november 2026
 
 ### Het bladmuziek loopt mee met de muziek

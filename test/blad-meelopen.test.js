@@ -28,7 +28,18 @@ test('het opgelichte akkoord is te zien en blijft in beeld', () => {
   assert.match(PAGINA, /\.seg\.nu\{/, 'de opmaak van het opgelichte akkoord hoort er te zijn');
   assert.match(PAGINA, /scrollIntoView/, 'het blad hoort mee te schuiven als het akkoord uit beeld loopt');
   // Zoeken in de hele pagina, want het blad staat in meer dan één houder (liedblad, meespeelkaart, boek).
-  assert.match(PAGINA, /document\.querySelector\('\.seg\[data-ak="/, 'het akkoord hoort in de hele pagina gezocht te worden');
+  assert.match(PAGINA, /document\.querySelector\('\[data-ak="/, 'het akkoord hoort in de hele pagina gezocht te worden');
+  assert.match(PAGINA, /\.schema \.maat\.nu\{/, 'een maat in het schema hoort ook op te lichten');
+});
+
+test('een liedje zonder liedtekst wordt een akkoordenschema met maatvakken', () => {
+  // De akkoorden plakten aan elkaar omdat de maatstrepen op een eigen regel stonden; nu is elke maat
+  // een vak met een maatstreep, en de losse strepenregel verdwijnt.
+  assert.match(PAGINA, /var alleenAkkoorden = /, 'de tekening hoort een regel met alleen akkoorden te herkennen');
+  assert.match(PAGINA, /var alleenStrepen = /, 'en een regel met alleen maatstrepen');
+  assert.match(PAGINA, /<div class="schema">/, 'die regel hoort als schema getekend te worden');
+  assert.match(PAGINA, /<span class="maat"/, 'met per maat een eigen vak');
+  assert.match(PAGINA, /if \(alleenStrepen\) return;/, 'de losse maatstrepenregel hoort te verdwijnen');
 });
 
 test('zonder tijdlijn of zonder akkoorden doet het niets', () => {

@@ -3,6 +3,21 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.34.0] — 5 november 2026
+
+### Stemmen zonder microfoon, zichtbaar in de app
+
+De microfoon van de geinstalleerde app blijft op dit toestel onbereikbaar (de rechtenlijst toont alleen
+Meldingen, en er is nooit om gevraagd). De app had al een weg die **altijd** werkt, maar die stond er
+niet als zodanig bij: in de kaart **Stemmen** kun je elke snaar aantikken en de toon laten klinken.
+
+- De kaart Stemmen zegt nu dat dit de weg is als de microfoon van je toestel niet mag: tik een snaar
+  aan, laat de toon klinken en draai aan de sleutel tot je gitaar hetzelfde klinkt. Geen microfoon, geen
+  toestemming, geen https nodig.
+- Mislukt de microfoon, dan verwijst de melding zelf ook naar die snaartononen.
+
+Zo kan een gitarist op elke telefoon stemmen, ook als de browser of het toestel de microfoon niet toestaat.
+
 ## [1.33.0] — 5 november 2026
 
 ### Een uitweg als de geinstalleerde app de microfoon niet mag aanvragen

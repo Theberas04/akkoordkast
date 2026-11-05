@@ -1109,6 +1109,9 @@
       <div class="stem-rij" id="stem-rij"></div>
       <p class="les-klein" style="margin:12px 0 0">Hoor je een zweving (een wiebelend geluid) als je de snaar ernaast aanslaat? Dan zit je nog niet gelijk.
         Zweeft het niet meer, dan klinken ze hetzelfde.</p>
+      <p class="les-klein" style="margin:10px 0 0"><strong>Werkt de microfoon van je toestel niet?</strong> Dan kun je altijd nog
+        hierboven op gehoor stemmen: tik een snaar aan, laat de toon klinken en draai aan de sleutel tot je gitaar precies hetzelfde klinkt.
+        Daar is geen microfoon en geen toestemming voor nodig.</p>
 
       <h3>Stemmer met de microfoon</h3>
       <p class="les-klein" style="margin:0 0 10px">Zet je gitaar bij de microfoon en druk op <strong>Start de stemmer</strong>.
@@ -6914,7 +6917,8 @@ function startStemmer() {
       var extra = inAndereApp()
         ? ' Je opent de app in een andere app; open hem in Chrome of Safari zelf, daar werkt de microfoon wel.'
         : '';
-      toonMelding('stem-melding', microfoonUitleg(e) + extra + code, 'fout');
+      toonMelding('stem-melding', microfoonUitleg(e) + extra + code +
+        ' Je kunt ook zonder microfoon stemmen: gebruik de snaartononen bij Stemmen hierboven.', 'fout');
     });
 }
 

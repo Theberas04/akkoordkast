@@ -236,3 +236,15 @@ test('als de app de microfoon niet mag aanvragen, is er een weg naar de browser'
   // Het publieke adres van de app hoort niet in het repo te staan.
   assert.ok(!html.includes('werdensmedia.net'), 'het adres van de app mag niet in de pagina staan');
 });
+
+test('stemmen zonder microfoon is zichtbaar als uitweg', () => {
+  // De microfoon van de geinstalleerde app is op sommige toestellen niet aan te vragen. De snaartononen
+  // in de kaart Stemmen werken altijd; dat hoort er dan ook te staan.
+  const html = fs.readFileSync(path.join(wortel, 'public', 'index.html'), 'utf8');
+  assert.match(html, /Werkt de microfoon van je toestel niet\?/, 'de kaart Stemmen hoort de uitweg te noemen');
+  assert.match(html, /op gehoor stemmen/, 'met uitleg hoe');
+  assert.match(html, /Je kunt ook zonder microfoon stemmen/, 'de melding bij een fout hoort er ook naar te wijzen');
+  // En de tonen zelf zijn er: zes snaren die een toon spelen.
+  assert.match(html, /function tekenSnaren/, 'de snaartononen horen er te zijn');
+  assert.match(html, /data-snaar/, 'met een knop per snaar');
+});

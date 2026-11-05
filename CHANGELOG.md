@@ -3,6 +3,27 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.29.0] — 4 november 2026
+
+### "Ik krijg de melding nog" — de pagina kwam uit de cache
+
+De klacht kwam nadat 1.27.0 en 1.28.0 allebei al op de server stonden. Wat bleek: de **app op de server was
+in orde** (1.28.0, de nieuwe teksten, van de 200 Kensington-nummers nul met de oude melding en 118 met de
+nieuwe uitleg), maar de **browser liet de oude pagina zien**.
+
+De service worker (`public/sw.js`) zocht de pagina eerst in zijn eigen cache en haalde hem pas op als hij er
+niet stond. Na een bijwerking kreeg je dus één keer de oude pagina — met de melding er nog in — en pas bij de
+tweede keer laden de nieuwe. Dat is precies het gevoel van "het is nog niet gerepareerd".
+
+- De app-schil (`/`, `/index.html` en de vijf lesbestanden in `/lib/`) is nu **netwerk-eerst**: altijd eerst
+  van de server, en alleen als er geen internet is valt hij terug op de cache. Gewone liedjes, audio en
+  `/api/` gingen al nooit door de cache.
+- De cache kreeg een nieuwe naam (`akkoordkast-v66`), zodat oude inhoud bij het starten wordt weggegooid.
+
+Bewijs: de nieuwe proef in `test/versie.test.js` laat de service worker **echt draaien** met een nep-cache
+waarin de oude pagina staat, en controleert dat hij de **server** vraagt in plaats van de cache. Een tweede
+proef controleert dat `/api/...` niet door de service worker gaat.
+
 ## [1.28.0] — 4 november 2026
 
 ### "Je draait de nieuwste versie ()" — de lege haakjes zijn weg

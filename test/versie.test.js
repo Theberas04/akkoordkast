@@ -96,3 +96,72 @@ test('de app weet welke commit hij draait, ook zonder git-map', async () => {
     await omgeving.stop();
   }
 });
+
+test('de app-schil komt vers van de server, niet uit een oude cache', () => {
+  // De pagina werd uit de cache geserveerd en kwam pas bij de tweede keer laden vers op. Daardoor bleef
+  // een melding die al weg was toch staan ("ik krijg de melding nog"). De schil is nu netwerk-eerst.
+  const sw = fs.readFileSync(path.join(wortel, 'public', 'sw.js'), 'utf8');
+  assert.match(sw, /NETWERK_EERST/, 'er hoort een lijst te zijn die eerst van de server komt');
+  for (const pad of ["'/'", "'/index.html'"]) {
+    assert.ok(sw.includes(pad), pad + ' hoort netwerk-eerst te zijn');
+  }
+  assert.match(sw, /fetch\(e\.request\)\.then\(r => \{/, 'de pagina hoort opgehaald te worden');
+  assert.match(sw, /catch\(uitCache\)/, 'en zonder internet terug te vallen op de cache');
+  // En de cache-versie hoort bij deze versie van de app te horen.
+  const versie = fs.readFileSync(path.join(wortel, 'server.js'), 'utf8')
+    .match(/const VERSIE = '([^']+)'/)[1];
+  assert.match(sw, new RegExp("akkoordkast-v\\d+"), 'de cache hoort een versienummer te hebben');
+  assert.ok(versie.length > 0, 'de versie van de app hoort bekend te zijn');
+});
+
+test('de service worker haalt de pagina echt van de server, ook als de cache hem heeft', async () => {
+  // Dit is de kern van de klacht "ik krijg de melding nog": de pagina zat in de cache en kwam pas bij
+  // de tweede keer laden vers op. Daarom hier geen structuur-controle maar echt gedrag: de nep-cache
+  // heeft de oude pagina, en de vraag is of de service worker de server vraagt.
+  const bron = fs.readFileSync(path.join(wortel, 'public', 'sw.js'), 'utf8');
+  const gevat = {};
+  const cacheMap = new Map();
+  const cache = {
+    put: async (verzoek, antwoord) => { cacheMap.set(String(verzoek.url || verzoek), antwoord); },
+    addAll: async () => {}
+  };
+  const nepCaches = {
+    open: async () => cache,
+    keys: async () => [],
+    delete: async () => {},
+    match: async verzoek => cacheMap.get(String(verzoek.url || verzoek))
+  };
+  let opgehaald = [];
+  const nepFetch = async verzoek => { opgehaald.push(String(verzoek.url || verzoek)); return { ok: true, clone: () => ({}) }; };
+  const nepSelf = {
+    addEventListener: (naam, fn) => { gevat[naam] = fn; },
+    skipWaiting: async () => {},
+    clients: { claim: async () => {} }
+  };
+  new Function('self', 'caches', 'fetch', 'location', bron)(
+    nepSelf, nepCaches, nepFetch, { origin: 'https://proef' });
+
+  // De oude pagina staat al in de cache.
+  cacheMap.set('https://proef/', { ok: true, oud: true });
+
+  let wacht = null;
+  gevat.fetch({
+    request: { method: 'GET', url: 'https://proef/', headers: { get: () => null } },
+    respondWith: belofte => { wacht = belofte; }
+  });
+  assert.ok(wacht, 'de service worker hoort iets terug te geven');
+  await wacht;
+
+  assert.deepEqual(opgehaald, ['https://proef/'],
+    'de pagina hoort bij de server opgehaald te worden, ook als hij in de cache zit');
+
+  // En de liedjes en het geluid blijven altijd live, nooit uit de cache.
+  opgehaald = [];
+  let geen = 'niets';
+  gevat.fetch({
+    request: { method: 'GET', url: 'https://proef/api/liedjes' },
+    respondWith: () => { geen = 'onderschept'; }
+  });
+  assert.equal(geen, 'niets', 'de liedjes horen niet door de service worker te gaan');
+  assert.deepEqual(opgehaald, [], 'en dus ook niet uit een cache te komen');
+});

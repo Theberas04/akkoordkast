@@ -3,6 +3,24 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.44.0] — 5 november 2026
+
+### Meespelen zonder haperen
+
+Sinds het beeld ook bij een opname meeloopt, deed de animatielus per beeldje te veel werk: een
+`innerHTML` voor de nootregel en een ronde over **alle** akkoorden van het blad en alle grepen. Op een
+telefoon liep de pagina daardoor vast (gemeten: een hapering van vier seconden).
+
+- De nootregel wordt alleen nog herschreven als hij echt verandert.
+- Het meelichten van de grepen en de akkoorden in de liedtekst gebeurt bij een **nieuwe maat**
+  (`zetBladOpMaat`), niet elk beeldje.
+- Het blad schuift **meteen** mee in plaats van met een lange vloeiende animatie, die bij elke maat
+  opnieuw begon en de pagina liet haperen.
+
+Gemeten met een echte opname van 3,2 MB en een liedje met muziek: tijdens het meespelen 1441 beeldjes,
+mediaan 17 ms, slechtste 23 ms, geen enkele hapering boven 100 ms. Nieuwe proef die het lichte werk per
+beeldje bewaakt.
+
 ## [1.43.0] — 5 november 2026
 
 ### Meespelen met muziek uit je eigen map werkt nu ook zonder opname-analyse

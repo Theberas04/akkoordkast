@@ -3549,14 +3549,14 @@ function tekenSongtekst(model) {
     var alleenAkkoorden = r.segmenten.length > 1 && r.segmenten.every(function (s) { return !!s.akkoord; });
     if (alleenAkkoorden) {
       uit += '<div class="schema">' + r.segmenten.map(function (s) {
-        var merk = ' data-ak="' + (akNr++) + '"';
+        var merk = ' data-ak="' + (akNr++) + '" data-klank="' + esc(s.akkoord) + '"';
         return '<span class="maat"' + merk + '><span class="ak">' + esc(s.akkoord) + '</span></span>';
       }).join('') + '</div>';
       return;
     }
     var segs = r.segmenten.map(function (s) {
       var tekst = s.tekst === '' || s.tekst === undefined ? '\u00a0\u00a0' : s.tekst;
-      var merk = s.akkoord ? ' data-ak="' + (akNr++) + '"' : '';
+      var merk = s.akkoord ? ' data-ak="' + (akNr++) + '" data-klank="' + esc(s.akkoord) + '"' : '';
       return '<span class="seg"' + merk + '><span class="ak">' + (s.akkoord ? esc(s.akkoord) : '\u00a0') + '</span>' +
              '<span class="tx">' + esc(tekst) + '</span></span>';
     }).join('');
@@ -3570,6 +3570,12 @@ function tekenSongtekst(model) {
 // dan schuift het blad mee. Zo zie je op het bladmuziek waar de muziek is.
 var BLAD = { akkoorden: 0, laatste: -1 };
 
+// Het akkoord dat bij een maatnummer op het blad hoort (voor het meelichten van de grepen).
+BLAD.akkoordVanMaat = function (nr) {
+  var vak = document.querySelector('[data-ak="' + nr + '"]');
+  return vak ? String(vak.getAttribute('data-klank') || '') : '';
+};
+
 function zetBladOpMaat(iMaat) {
   if (!BLAD.akkoorden || iMaat < 0) return;
   var nr = ((iMaat % BLAD.akkoorden) + BLAD.akkoorden) % BLAD.akkoorden;
@@ -3582,10 +3588,23 @@ function zetBladOpMaat(iMaat) {
   if (!nu) return;
   nu.classList.add('nu');
   BLAD.laatste = nr;
-  // Alleen schuiven als hij niet goed in beeld staat; anders danst het blad onder je handen.
+
+  // De grepen onder het blad en de akkoorden in de liedtekst lichten mee met het akkoord dat klinkt.
+  // Dit hangt alleen van het akkoord af, dus het hoort hier (een keer per maat) en niet in de
+  // animatielus.
+  var akkoord = BLAD.akkoordVanMaat ? BLAD.akkoordVanMaat(nr) : '';
+  Array.prototype.forEach.call(document.querySelectorAll('#spelen-inhoud .grepen figure'), function (f) {
+    f.classList.toggle('klinkt', !!akkoord && f.getAttribute('data-akkoord') === akkoord);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('#songtekst .seg .ak'), function (el) {
+    el.classList.toggle('klinkt', !!akkoord && el.textContent.trim() === akkoord);
+  });
+
+  // Alleen schuiven als hij niet goed in beeld staat, en meteen (niet vloeiend): een lange animatie bij
+  // elke maat laat de pagina haperen. Zit hij al in beeld, dan gebeurt er niets.
   var vak = nu.getBoundingClientRect();
   if (vak.top < 80 || vak.bottom > window.innerHeight - 16) {
-    try { nu.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) { nu.scrollIntoView(); }
+    try { nu.scrollIntoView({ block: 'nearest' }); } catch (e) { nu.scrollIntoView(); }
   }
 }
 
@@ -4678,19 +4697,20 @@ function meespelTik() {
     }
   }
   var snaarnamen = ['E', 'A', 'D', 'G', 'B', 'e'];
-  $('mees-noot').innerHTML = noot
+  // De nootregel alleen herschrijven als hij verandert. Elk beeldje opnieuw opmaken kost op een
+  // telefoon zoveel tijd dat de pagina erop vastloopt.
+  var nootHtml = noot
     ? '<b>' + esc(noot.naam) + '</b> <span class="klein">snaar ' + snaarnamen[noot.snaar] + ' \u00b7 fret ' + noot.fret +
       (tl.capo ? ' (capo ' + tl.capo + ')' : '') + (noot.onderCapo === false ? ' \u00b7 onder de capo niet te spelen' : '') +
       (tl.noten[iNoot + 1] ? ' \u00b7 straks ' + esc(tl.noten[iNoot + 1].naam) : '') + '</span>'
     : 'akkoorden';
+  if (nootHtml !== MEES.nootHtml) {
+    $('mees-noot').innerHTML = nootHtml;
+    MEES.nootHtml = nootHtml;
+  }
 
-  // de grepen en de bladmuziek lichten mee
-  Array.prototype.forEach.call(document.querySelectorAll('#spelen-inhoud .grepen figure'), function (f) {
-    f.classList.toggle('klinkt', f.getAttribute('data-akkoord') === maat.akkoord);
-  });
-  Array.prototype.forEach.call(document.querySelectorAll('#songtekst .seg .ak'), function (el) {
-    el.classList.toggle('klinkt', el.textContent.trim() === maat.akkoord);
-  });
+  // De grepen en de bladmuziek lichten mee met het akkoord dat klinkt. Dat gebeurt bij een nieuw
+  // akkoord (in zetBladOpMaat), niet elk beeldje: over alle akkoorden van het blad lopen is te duur.
 
   // de hals: nieuwe greep bij een nieuw akkoord, en de snaren die nu aanslaan
   if (MEES.halsAkkoord !== maat.akkoord) {

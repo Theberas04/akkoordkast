@@ -42,6 +42,37 @@ test('een liedje zonder liedtekst wordt een akkoordenschema met maatvakken', () 
   assert.match(PAGINA, /if \(alleenStrepen\) return;/, 'de losse maatstrepenregel hoort te verdwijnen');
 });
 
+// De tekst van één functie, door de accolades te tellen. Knippen op de volgende functie gaat mis:
+// tussen twee functies kan nog van alles staan.
+function functieTekst(bron, naam) {
+  const start = bron.indexOf('function ' + naam + '(');
+  if (start === -1) return '';
+  let diepte = 0;
+  let begonnen = false;
+  for (let i = start; i < bron.length; i++) {
+    if (bron[i] === '{') { diepte++; begonnen = true; }
+    else if (bron[i] === '}') { diepte--; if (begonnen && diepte === 0) return bron.slice(start, i + 1); }
+  }
+  return bron.slice(start);
+}
+
+test('de animatielus doet per beeldje zo weinig mogelijk werk', () => {
+  // Een innerHTML of een lus over alle akkoorden van het blad per beeldje laat de pagina op een
+  // telefoon vastlopen. De nootregel hoort alleen bij een echte verandering geschreven te worden, en
+  // het meelichten van grepen en liedtekst hoort bij een nieuwe maat te gebeuren (zetBladOpMaat).
+  const lus = functieTekst(PAGINA, 'meespelTik');
+  assert.match(lus, /if \(nootHtml !== MEES\.nootHtml\)/, 'de nootregel hoort alleen bij verandering geschreven te worden');
+  // De snaren op de hals mogen per beeldje oplichten (dat zijn er zes), maar een ronde over alle
+  // akkoorden van de liedtekst of alle grepen hoort hier niet.
+  assert.ok(lus.indexOf("document.querySelectorAll('#songtekst .seg .ak')") === -1,
+    'de liedtekst hoort niet in de lus te zitten');
+  assert.ok(lus.indexOf("document.querySelectorAll('#spelen-inhoud .grepen figure')") === -1,
+    'de grepen horen niet in de lus te zitten');
+  const functie = functieTekst(PAGINA, 'zetBladOpMaat');
+  assert.match(functie, /klinkt/, 'zetBladOpMaat hoort de grepen en de liedtekst te laten meelichten');
+  assert.ok(functie.indexOf("behavior: 'smooth'") === -1, 'schuiven hoort meteen te gaan, niet vloeiend');
+});
+
 test('zonder tijdlijn of zonder akkoorden doet het niets', () => {
   const functie = PAGINA.slice(PAGINA.indexOf('function zetBladOpMaat('));
   assert.match(functie.slice(0, 400), /if \(!BLAD\.akkoorden \|\| iMaat < 0\) return;/, 'zonder akkoorden of maat hoort hij niets te doen');

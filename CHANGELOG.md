@@ -3,6 +3,24 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.46.0] — 6 november 2026
+
+### Het blad vecht niet meer tegen de gebruiker
+
+Sinds het bladmuziek meeliep met de muziek schoof de pagina bij elke maat naar de maat die klinkt. Wie
+tijdens het meespelen naar onderen scrolde, werd telkens teruggetrokken naar het schema — de app leek
+terug te springen naar een vast punt.
+
+- Het volgen stopt **meteen** zodra je zelf scrolt: met het muiswiel, met je vinger, of met de pijltjes
+  en de pagina-toetsen.
+- In de meespeelkaart staat een vinkje **blad volgt**, dat de stand laat zien; zet je het weer aan, dan
+  springt het blad naar de maat die klinkt.
+- Staat het volgen uit, dan licht het akkoord nog steeds op — alleen de pagina blijft staan waar jij
+  hem hebt.
+
+Nieuwe proef (`test/blad-volgen.test.js`) plus een proef in de browser: na een echte scrollbeweging
+blijft de pagina 16 seconden lang op dezelfde plek staan terwijl de muziek doorspeelt.
+
 ## [1.45.0] — 5 november 2026
 
 ### Het akkoordenschema is nu ook bij opname-akkoorden een raster

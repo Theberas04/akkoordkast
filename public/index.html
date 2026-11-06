@@ -2840,6 +2840,7 @@ function tekenLiedje(l) {
         '<label class="mees-schakel">tempo <input id="mees-tempo" type="range" min="40" max="160" value="100" step="5"><span id="mees-tempo-waarde">100%</span></label>' +
         '<label class="mees-schakel"><input id="mees-aftellen" type="checkbox" checked> aftellen</label>' +
         '<label class="mees-schakel"><input id="mees-klik" type="checkbox"> klik mee</label>' +
+        '<label class="mees-schakel"><input id="mees-volgen" type="checkbox"' + (BLAD.volgen ? ' checked' : '') + '> blad volgt</label>' +
         '<button class="knop zacht" id="mees-cast">Cast de meespeelversie</button>' +
       '</div>' +
       '<audio id="mees-audio" preload="none"></audio>' +
@@ -3148,6 +3149,7 @@ function tekenLiedje(l) {
   $('mees-tempo').addEventListener('change', function () { if (staat.meespelen) meespelHerlaad(l); });
   $('mees-aftellen').addEventListener('change', function () { if (staat.meespelen) meespelHerlaad(l); });
   $('mees-klik').addEventListener('change', function () { if (staat.meespelen) meespelHerlaad(l); });
+  $('mees-volgen').addEventListener('change', function () { zetVolgen(this.checked); });
   $('mees-cast').addEventListener('click', function () {
     castLiedje(l, {
       bron: 'meespelen',
@@ -3573,7 +3575,34 @@ function tekenSongtekst(model) {
 
 // Het blad laten meelopen: het akkoord van de maat die nu klinkt licht op, en loopt het uit beeld,
 // dan schuift het blad mee. Zo zie je op het bladmuziek waar de muziek is.
-var BLAD = { akkoorden: 0, laatste: -1 };
+var BLAD = { akkoorden: 0, laatste: -1, volgen: true };
+
+// Het blad mag de pagina nooit terugtrekken naar het schema terwijl de gebruiker zelf aan het scrollen
+// is. Zodra hij zelf scrolt (met de muis, met de vinger of met het toetsenbord) stopt het volgen, en in
+// de meespeelkaart gaat het vinkje uit. Zet hij het weer aan, dan springt het blad naar de maat die
+// klinkt.
+function zetVolgen(aan) {
+  BLAD.volgen = !!aan;
+  var vak = document.getElementById('mees-volgen');
+  if (vak && vak.checked !== BLAD.volgen) vak.checked = BLAD.volgen;
+  // Bij het weer aanzetten moet hij ook echt terugspringen: de maat een keer opnieuw laten zetten
+  // (zetBladOpMaat slaat een tweede keer overslaan over als de maat gelijk is).
+  if (BLAD.volgen && BLAD.laatste >= 0) {
+    var maat = BLAD.laatste;
+    BLAD.laatste = -1;
+    zetBladOpMaat(maat);
+  }
+}
+
+function volgUitBijEigenScroll() {
+  var uit = function () { zetVolgen(false); };
+  ['wheel', 'touchmove', 'touchstart'].forEach(function (naam) {
+    document.addEventListener(naam, uit, { passive: true });
+  });
+  var toetsen = { ArrowUp: 1, ArrowDown: 1, PageUp: 1, PageDown: 1, Home: 1, End: 1, ' ': 1 };
+  document.addEventListener('keydown', function (e) { if (toetsen[e.key]) uit(); });
+}
+volgUitBijEigenScroll();
 
 // Het akkoord dat bij een maatnummer op het blad hoort (voor het meelichten van de grepen).
 BLAD.akkoordVanMaat = function (nr) {
@@ -3605,8 +3634,10 @@ function zetBladOpMaat(iMaat) {
     el.classList.toggle('klinkt', !!akkoord && el.textContent.trim() === akkoord);
   });
 
-  // Alleen schuiven als hij niet goed in beeld staat, en meteen (niet vloeiend): een lange animatie bij
-  // elke maat laat de pagina haperen. Zit hij al in beeld, dan gebeurt er niets.
+  // Alleen schuiven als het volgen aan staat, en meteen (niet vloeiend): een lange animatie bij elke maat
+  // laat de pagina haperen. Staat het volgen uit, dan licht het akkoord alleen op en blijft de pagina
+  // staan waar de gebruiker hem heeft.
+  if (!BLAD.volgen) return;
   var vak = nu.getBoundingClientRect();
   if (vak.top < 80 || vak.bottom > window.innerHeight - 16) {
     try { nu.scrollIntoView({ block: 'nearest' }); } catch (e) { nu.scrollIntoView(); }

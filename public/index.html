@@ -134,10 +134,12 @@
   .mees-tel .pijl{font-size:.72rem}
   .mees-tel.aan{background:var(--amber);color:#241a03;border-color:var(--amber)}
   .mees-beeld{position:relative;margin-top:8px}
-  .mees-aftel{position:absolute;inset:0;display:grid;place-items:center;background:rgba(11,17,32,.86);
-    border-radius:12px;z-index:3}
-  .mees-aftel div{font-size:3.4rem;font-weight:800;color:var(--amber);text-align:center}
-  .mees-aftel span{display:block;font-size:.8rem;color:var(--tekst2);letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+  .mees-aftel{position:absolute;top:8px;right:10px;display:flex;align-items:baseline;gap:8px;
+    background:rgba(11,17,32,.82);border:1px solid var(--amber);border-radius:999px;padding:3px 12px;
+    z-index:3;pointer-events:none}
+  .mees-aftel div{display:flex;align-items:baseline;gap:8px;color:var(--amber)}
+  .mees-aftel em{font-size:1.5rem;font-weight:800;font-style:normal;line-height:1.1}
+  .mees-aftel span{font-size:.72rem;color:var(--tekst2);letter-spacing:.1em;text-transform:uppercase;font-weight:600}
   .notenbalk{overflow-x:auto;background:#0d1526;border:1px solid var(--lijn);border-radius:12px;padding:6px}
   .notenbalk svg{display:block}
   .nb-lijn{stroke:#3b4a63;stroke-width:1}
@@ -4653,7 +4655,13 @@ function meespelTik() {
   zetBladOpMaat(iMaat);
   var noot = iNoot >= 0 ? tl.noten[iNoot] : null;
   var nootAan = !!(noot && t < noot.startSeconden + Math.max(0.15, noot.duurSeconden));
-  var inAftellen = tl.aftellen.aan && t < tl.aftellen.seconden;
+  // Het aftellen hoort alleen bij een nieuw begin, en nooit over een opname heen: staat er muziek of een
+  // eigen opname te spelen, dan begint die gewoon en hoort er geen aftelpaneel over het beeld te liggen.
+  // Staat het herhalen aan, dan springt de tijd steeds terug naar het beginpunt en zou het aftellen
+  // telkens opnieuw terugkomen.
+  var geluid = $('mees-audio');
+  var speeltOpname = !!(geluid && geluid.getAttribute('src'));
+  var inAftellen = tl.aftellen.aan && t < tl.aftellen.seconden && !speeltOpname && !(MEES.lus && MEES.lus.aan);
 
   // cursor en meetlat
   var cursor = $('mees-cursor');

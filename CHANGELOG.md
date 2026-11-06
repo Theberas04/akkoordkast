@@ -3,6 +3,33 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.48.0] — 6 november 2026
+
+### Geen aftellen over de muziek heen
+
+Bij **Meespelen met je opname** staat het aftellen aan, en dan lag dat paneel over de eerste seconden van
+de muziek — terwijl er niets af te tellen valt, want de opname begint gewoon. Zolang er een opname of
+muziek speelt blijft het aftellen nu weg; het hoort alleen bij het meespelen zonder opname, waar de app
+zelf de maat aangeeft.
+
+In de browser nagemeten met een opname die speelt en het aftellen aangezet: het paneel blijft uit, het
+beeld loopt mee (notenbalk 372 bij 146, hals 295 bij 72).
+
+## [1.47.0] — 6 november 2026
+
+### Het aftellen dekt niets meer af
+
+Het aftelvlak was een paneel over het hele meespeelbeeld, met een donkere laag eroverheen. Daardoor zag
+je tijdens het aftellen je notenbalk, hals en noten niet meer. Met **herhalen** aan kwam het bovendien
+bij elke ronde terug, want de tijd springt dan terug naar het beginpunt.
+
+- Het aftellen staat nu als een **klein hoedje** rechtsboven in het beeld (gemeten 125 bij 34 pixels in
+  een beeld van 372 bij 284), met een doorzichtige achtergrond. Het dekt de hals niet af.
+- Het houdt geen tik meer tegen (`pointer-events:none`).
+- Het aftellen hoort alleen bij een **nieuw begin** en komt niet terug bij herhalen.
+
+Nieuwe proef (`test/aftellen-klein.test.js`).
+
 ## [1.46.0] — 6 november 2026
 
 ### Het blad vecht niet meer tegen de gebruiker

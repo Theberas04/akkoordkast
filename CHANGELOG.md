@@ -3,6 +3,21 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.51.0] — 6 november 2026
+
+### De uploadknop stuurde geen profiel mee
+
+Dit is de echte oorzaak van "Dit hoort bij het beheerdersprofiel (Admin). Kies dat profiel en probeer het
+opnieuw." terwijl je als beheerder ingelogd was. De knop **Uploaden en akkoorden zoeken** deed zijn eigen
+aanvraag, zonder het profiel en zonder het app-merk mee te sturen. De server viel daardoor terug op een
+gewoon profiel en weigerde het uploaden — hoe goed je ook ingelogd was.
+
+- De upload stuurt nu het profiel én het app-merk mee.
+- Nagekeken bij **alle** aanvragen in de pagina: waar het profiel of het app-merk ontbrak is het
+  toegevoegd (upload, eigen bladmuziek, gereedschap, handleiding, liedjes-audio, meespelen).
+- Nieuwe proef (`test/aanvragen.test.js`) die hier voortaan over waakt: elke aanvraag aan de app moet
+  beide meesturen. Die proef had deze fout meteen aangewezen.
+
 ## [1.50.0] — 6 november 2026
 
 ### Ingelogd als beheerder, en toch niets kunnen toevoegen

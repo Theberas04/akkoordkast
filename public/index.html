@@ -3131,7 +3131,8 @@ function tekenLiedje(l) {
         headers: {
           'content-type': bestand.type || 'application/octet-stream',
           'x-bestandsnaam': encodeURIComponent(bestand.name || 'bladmuziek'),
-          'x-profiel': String(actiefProfiel())
+          'x-profiel': String(actiefProfiel()),
+          'x-akkoordkast': 'app'
         },
         body: bestand
       }).then(function (r) {
@@ -3146,7 +3147,7 @@ function tekenLiedje(l) {
     $('bladmuziek-weg').addEventListener('click', function () {
       if (!window.confirm('Je eigen bladmuziek van dit liedje weghalen?')) return;
       fetch('/api/liedjes/' + staat.liedje.id + '/eigen-blad', {
-        method: 'DELETE', headers: { 'x-profiel': String(actiefProfiel()) }
+        method: 'DELETE', headers: { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' }
       }).then(function (r) { return r.json(); }).then(function () { openLiedje(staat.liedje.id); });
     });
   }
@@ -3712,6 +3713,7 @@ function uploadOpname(l) {
   if (bestand.size > 40 * 1024 * 1024) { toonMelding('speler-melding', 'Dit bestand is groter dan 40 MB.', 'fout'); return; }
   toonMelding('speler-melding', 'Opname wordt verstuurd…', '');
   fetch('/api/liedjes/' + l.id + '/audio', {
+      headers: { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' },
     method: 'POST',
     headers: { 'content-type': bestand.type || 'audio/mpeg', 'x-bestandsnaam': bestand.name, 'x-audio-titel': bestand.name },
     body: bestand
@@ -3737,6 +3739,8 @@ function uploadMuziek() {
     method: 'POST',
     headers: {
       'content-type': bestand.type || 'audio/mpeg',
+      'x-profiel': String(actiefProfiel()),
+      'x-akkoordkast': 'app',
       'x-bestandsnaam': encodeURIComponent($('upload-titel').value.trim() || bestand.name)
     },
     body: bestand
@@ -4578,7 +4582,7 @@ function meespeelParams(l) {
 function meespelLaad(l, spelen) {
   var p = meespeelParams(l);
   if (spelen) toonMelding('mees-melding', 'De meespeelversie wordt gemaakt\u2026 dit duurt een paar seconden.', '');
-  fetch('/api/meespelen?' + p.toString()).then(function (r) {
+  fetch('/api/meespelen?' + p.toString(), { headers: { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' } }).then(function (r) {
     return r.json().then(function (d) { if (!r.ok) throw new Error(d.fout || 'maken mislukt'); return d; });
   }).then(function (data) {
     var tl = data.tijdlijn;
@@ -5102,7 +5106,7 @@ function koppelOpnameKaart() {
   const vinkje = $('opname-auto');
   if (vinkje) {
     const kijkAuto = function () {
-      return fetch('/api/gereedschap', { headers: { 'x-akkoordkast': 'app' } })
+      return fetch('/api/gereedschap', { headers: { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' } })
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (d) {
           if (!d) { $('opname-auto-stand').textContent = 'De app kon de stand niet ophalen.'; return; }
@@ -7086,7 +7090,7 @@ function microfoonControle() {
 function kijkHandleiding() {
   var plek = $('hand-stand');
   if (!plek) return;
-  fetch('/api/handleiding', { headers: { 'x-akkoordkast': 'app' } })
+  fetch('/api/handleiding', { headers: { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' } })
     .then(function (r) { return r.json(); })
     .then(function (d) {
       plek.textContent = d.aanwezig

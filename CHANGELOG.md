@@ -3,6 +3,21 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.49.0] — 6 november 2026
+
+### De echte oorzaak van het blijvende aftelvlak
+
+Het aftelvlak bleef **altijd** in beeld, ook als de app het wilde verbergen. Oorzaak: het element krijgt
+het attribuut `hidden`, maar een eigen opmaakregel (`display:flex`) wint van de browserregel voor
+`[hidden]`. Daardoor stond het paneel permanent over het meespeelbeeld — precies wat er te zien was.
+
+- De pagina heeft nu één algemene regel: `[hidden]{display:none !important}`. Elk vlak dat de app
+  verbergt, is ook echt weg (het aftelvlak, maar net zo goed de Stop-knop als er niets speelt).
+- In de browser nagemeten met een spelende opname en het aftellen aan: het paneel is `display:none`.
+
+Dit werkte ook door in de twee vorige versies: het aftelvlak is nu een klein hoedje én het verdwijnt
+wanneer het hoort.
+
 ## [1.48.0] — 6 november 2026
 
 ### Geen aftellen over de muziek heen

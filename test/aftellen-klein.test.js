@@ -34,6 +34,15 @@ test('over een opname of muziek heen komt er geen aftelpaneel', () => {
     'het aftellen hoort uit te blijven als er een opname speelt');
 });
 
+test('een element met hidden is ook echt verborgen', () => {
+  // De echte oorzaak van het blijvende aftelpaneel: een eigen display-regel (display:flex) op het element
+  // wint van de browserregel voor [hidden], waardoor het paneel altijd bleef staan.
+  assert.ok(PAGINA.indexOf('[hidden]{display:none !important}') !== -1,
+    'de pagina hoort een element met het hidden-attribuut echt te verbergen');
+  const aftel = PAGINA.slice(PAGINA.indexOf('.mees-aftel{'), PAGINA.indexOf('.mees-aftel span{'));
+  assert.match(aftel, /display:flex/, 'het aftelvlak hoort een klein hoekje te zijn');
+});
+
 test('de schakelaar aftellen bestaat nog en blijft werken', () => {
   assert.match(PAGINA, /id="mees-aftellen" type="checkbox"/);
   assert.match(PAGINA, /id="mees-aftel-nummer">4</, 'het cijfer hoort er nog te staan');

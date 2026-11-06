@@ -134,6 +134,9 @@
   .mees-tel .pijl{font-size:.72rem}
   .mees-tel.aan{background:var(--amber);color:#241a03;border-color:var(--amber)}
   .mees-beeld{position:relative;margin-top:8px}
+  /* Een element met het hidden-attribuut hoort echt weg te zijn. Zonder deze regel wint een
+     eigen display-regel (zoals display:flex hieronder) en blijft zo'n vlak altijd staan. */
+  [hidden]{display:none !important}
   .mees-aftel{position:absolute;top:8px;right:10px;display:flex;align-items:baseline;gap:8px;
     background:rgba(11,17,32,.82);border:1px solid var(--amber);border-radius:999px;padding:3px 12px;
     z-index:3;pointer-events:none}

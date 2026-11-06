@@ -2050,6 +2050,29 @@ $('filter-wis').addEventListener('click', function () {
   laadLiedjes(true);
 });
 // Van profiel wisselen: alles wat bij een profiel hoort verversen.
+// Twee tabbladen horen hetzelfde profiel te gebruiken. De opslag is gedeeld, het scherm niet: een
+// tabblad dat op de achtergrond stond, kan nog een oud profiel tonen terwijl de aanvragen al met het
+// nieuwe weggaan (of andersom). Bij het terugkomen en bij een wijziging in een ander tabblad lopen we
+// weer gelijk.
+function houdProfielGelijk() {
+  // Klopt het scherm nog met het profiel dat de aanvragen meegaan? Zo niet, dan is er in een ander
+  // tabblad iets veranderd en halen we de profielen opnieuw op. Dat gebeurt alleen als er echt een
+  // verschil is, dus niet bij elke tabwissel.
+  function gelijkTrekeen() {
+    var sel = $('profiel-kies');
+    if (!sel || String(sel.value) === String(actiefProfiel())) return;
+    laadProfielen().then(function () { beheerProfielWissel(); });
+  }
+  // In een ander tabblad is een ander profiel gekozen.
+  window.addEventListener('storage', function (e) {
+    if (!e || e.key !== PROFIEL_SLEUTEL) return;
+    laadProfielen().then(function () { wisselProfiel(actiefProfiel()); });
+  });
+  // Terug in dit tabblad.
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) gelijkTrekeen(); });
+  window.addEventListener('focus', gelijkTrekeen);
+}
+
 function wisselProfiel(id) {
   zetActiefProfiel(id);
   tekenProfielOpties();
@@ -2060,6 +2083,7 @@ function wisselProfiel(id) {
   if (staat.liedje) openLiedje(staat.liedje.id);
 }
 
+houdProfielGelijk();
 $('profiel-kies').addEventListener('change', function () {
   var gekozen = Number(this.value);
   var profiel = staat.profielen.filter(function (p) { return p.id === gekozen; })[0];
@@ -8483,7 +8507,7 @@ function beheerStuur(pad, lichaam, geluk) {
 }
 
 function laadProfielen() {
-  api('/api/profielen').then(function (data) {
+  return api('/api/profielen').then(function (data) {
     staat.profielen = data.profielen || [];
     var sel = $('profiel-kies');
     if (!sel) return;

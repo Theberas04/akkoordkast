@@ -3,6 +3,24 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.50.0] — 6 november 2026
+
+### Ingelogd als beheerder, en toch niets kunnen toevoegen
+
+De app bepaalt bij elke aanvraag welk profiel er meegaat uit de **opslag van de browser**, maar het
+profiel dat bovenaan te zien is komt uit dat **tabblad**. Werk je in twee tabbladen (of staat er nog een
+tabblad open van voor het bijwerken), dan liepen die uit elkaar: het scherm toonde Admin, terwijl de
+aanvragen met het oude profiel weggingen. De app weigerde dan terecht met "Dit hoort bij het
+beheerdersprofiel (Admin). Kies dat profiel en probeer het opnieuw."
+
+- Wisselt er in een ander tabblad van profiel, dan loopt dit tabblad mee (via de opslag).
+- Kom je terug in een tabblad dat achterliep, dan worden de profielen opnieuw opgehaald en klopt het
+  scherm weer met het profiel waarmee de aanvragen weggaan.
+- Er gebeurt alleen iets als er echt een verschil is.
+
+Nieuwe proef (`test/profiel-tabbladen.test.js`) en in de browser met twee tabbladen nagemeten: het
+achtergebleven tabblad herstelt zichzelf en loopt daarna mee.
+
 ## [1.49.0] — 6 november 2026
 
 ### De echte oorzaak van het blijvende aftelvlak

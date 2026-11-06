@@ -3,6 +3,25 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.45.0] — 5 november 2026
+
+### Het akkoordenschema is nu ook bij opname-akkoorden een raster
+
+Bij liedjes waarvan de akkoorden uit de opname komen staat er een maatstreep tussen de haken:
+`|[Am7] |[Dm7]`. De ontleder maakte van elke streep een **eigen segment**, en daardoor werd zo'n regel
+niet als schema herkend. Het liedje viel terug op het oude beeld: akkoorden aan elkaar geplakt met de
+strepen op een eigen regel eronder — precies wat het raster had moeten opruimen.
+
+- De herkenning telt nu alleen de segmenten met een **akkoord**, en kijkt of de rest enkel strepen is.
+- Het raster tekent over die akkoorddelen, met de maatstrepen tussen de vakken; de losse strepenregel
+  blijft weg.
+- De nummering van de akkoorden (voor het meelopen van het blad) blijft gelijk, want de strepen telden
+  nooit als akkoord mee.
+
+Nieuwe proef (`test/schema-streep.test.js`): de ontleding van `|[C] |[G] |[Am] |[F]` levert vier
+akkoorddelen op, en de pagina telt het raster daarover. In de browser getekend: één raster, vier vakjes,
+nul losse segmenten.
+
 ## [1.44.0] — 5 november 2026
 
 ### Meespelen zonder haperen

@@ -3542,13 +3542,18 @@ function tekenSongtekst(model) {
     // Een regel met alleen akkoorden is het schema van een liedje zonder liedtekst: dat tekenen we
     // als echte maten naast elkaar, met de maatstreep erin. De losse regel met maatstrepen eronder
     // hoort daarbij en slaan we over, want die strepen staan dan al in het schema.
-    var alleenStrepen = r.segmenten.length > 0 && r.segmenten.every(function (s) {
-      return !s.akkoord && /^[|\s\u00a0]+$/.test(s.tekst === undefined ? '' : s.tekst);
-    });
+    // Een maatstreep is geen eigen segment maar de scheiding tussen twee maten. Bij akkoorden die uit
+    // de opname komen staat de streep tussen de haken (|[Am7] |[Dm7]), en dan hoort het nog steeds een
+    // schema te zijn. Tel dus alleen de segmenten met een akkoord, en kijk of de rest enkel strepen is.
+    var akkoordDelen = r.segmenten.filter(function (s) { return !!s.akkoord; });
+    var streepDelen = r.segmenten.filter(function (s) { return !s.akkoord; });
+    var alleenStrepen = streepDelen.length > 0 && akkoordDelen.length === 0;
     if (alleenStrepen) return;
-    var alleenAkkoorden = r.segmenten.length > 1 && r.segmenten.every(function (s) { return !!s.akkoord; });
+    var alleenAkkoorden = akkoordDelen.length > 1 && streepDelen.every(function (s) {
+      return /^[|\s\u00a0]*$/.test(s.tekst === undefined ? '' : s.tekst);
+    });
     if (alleenAkkoorden) {
-      uit += '<div class="schema">' + r.segmenten.map(function (s) {
+      uit += '<div class="schema">' + akkoordDelen.map(function (s) {
         var merk = ' data-ak="' + (akNr++) + '" data-klank="' + esc(s.akkoord) + '"';
         return '<span class="maat"' + merk + '><span class="ak">' + esc(s.akkoord) + '</span></span>';
       }).join('') + '</div>';

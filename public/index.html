@@ -438,6 +438,19 @@
   .setlist-papier .ruimte{width:34%;border-bottom:1px solid #ddd}
   #optreden-balk{display:none}
   body.optreden #optreden-balk{display:flex}
+  /* De maat waar je met de pijltjes naartoe springt, licht even op. */
+  .even-op{outline:2px solid var(--amber);outline-offset:2px;border-radius:6px}
+  /* Tussen twee nummers van een optreden: scherm op zwart met de pauzeklok. */
+  #pauze-scherm{position:fixed;inset:0;background:#070b16;z-index:60;display:none;
+    flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:20px}
+  body.pauze #pauze-scherm{display:flex}
+  #pauze-scherm .pauze-groot{font-size:3rem;font-weight:600;color:var(--amber);font-variant-numeric:tabular-nums}
+  #toetsen-slot{position:fixed;inset:0;background:rgba(4,8,18,.82);z-index:70;display:flex;
+    align-items:center;justify-content:center;padding:18px}
+  #toetsen-slot .kaart{max-width:540px;width:100%}
+  #toetsen-slot dl{display:grid;grid-template-columns:auto 1fr;gap:7px 26px;margin:10px 0 0}
+  #toetsen-slot dt{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--amber2);white-space:nowrap}
+  #toetsen-slot dd{margin:0;color:var(--tekst2)}
   body.optreden .liedkop h2{font-size:1.9rem}
   #pauze-klok{font-variant-numeric:tabular-nums;letter-spacing:.04em}
 
@@ -844,6 +857,7 @@
       <span class="pilletje" id="kop-aantal">liedjes laden…</span>
       <span class="pilletje" id="kop-cast">cast: onbekend</span>
       <span class="pilletje" id="kop-versie-pil">versie <b id="kop-versie">…</b></span>
+      <span class="pilletje" id="scherm-aan" hidden></span>
     </span>
   </div>
   <div class="onderkop">
@@ -905,6 +919,7 @@
       <div class="rij" style="margin-top:8px">
         <button class="knop zacht" id="filter-toggle">Zoeken en filters</button>
         <button class="knop zacht" id="filter-wis">Filters wissen</button>
+        <button class="knop zacht" id="verras-knop" title="Een willekeurig liedje uit wat je nu gekozen hebt">Verras me</button>
         <button class="knop zacht" id="boek-printen" title="Alle liedjes van deze selectie als één document">Boek maken</button>
         <span class="pilletje" id="lijst-teller">…</span>
       </div>
@@ -1839,6 +1854,7 @@ function toonTab(naam) {
   });
   if (naam === 'casten') laadApparaten(true);
   if (naam === 'leren') laadLeren();
+  houdSchermAan(naam === 'spelen');
   window.scrollTo(0, 0);
 }
 
@@ -1883,6 +1899,7 @@ function tekenLiedjes() {
         '</div>' +
       '</div>' +
       '<div class="rij">' +
+        (l.aantekening ? '<span class="pilletje" title="Je hebt hier een aantekening bij">\u270e aantekening</span> ' : '') +
         '<button class="knop ster' + (l.favoriet ? ' aan' : '') + '" data-ster="' + l.id + '" ' +
           'title="' + (l.favoriet ? 'Uit mijn favorieten halen' : 'Bij mijn favorieten zetten') + '">' +
           (l.favoriet ? '★' : '☆') + '</button>' +
@@ -2043,6 +2060,7 @@ $('zoek').addEventListener('input', debounce(function () { laadLiedjes(true); },
 ['filter-taal', 'filter-genre', 'filter-artiest', 'filter-bijzonder', 'filter-label', 'filter-capo', 'filter-moeilijkheid'].forEach(function (id) {
   $(id).addEventListener('change', function () { laadLiedjes(true); });
 });
+$('verras-knop').addEventListener('click', function () { verrasLiedje(); });
 $('filter-wis').addEventListener('click', function () {
   $('zoek').value = ''; $('filter-taal').value = ''; $('filter-genre').value = ''; $('filter-artiest').value = '';
   $('filter-bijzonder').value = ''; $('filter-label').value = '';
@@ -2650,6 +2668,7 @@ function werkPauzeklok() {
   var seconden = Math.max(0, Math.floor((Date.now() - staat.optreden.pauzeStart) / 1000));
   var m = Math.floor(seconden / 60), sec = seconden % 60;
   klok.textContent = 'Pauze ' + m + ':' + (sec < 10 ? '0' : '') + sec;
+  werkPauzeGroot();
 }
 
 function werkOptredenBalk() {
@@ -2662,13 +2681,16 @@ function werkOptredenBalk() {
     '<button class="knop zacht" id="optreden-vorige"' + (staat.optreden.pos === 0 ? ' disabled' : '') + '>‹ vorige</button>' +
     '<button class="knop" id="optreden-volgende"' + (staat.optreden.pos >= ids.length - 1 ? ' disabled' : '') + '>volgende ›</button>' +
     '<button class="knop zacht" id="pauze-knop">Pauzeklok</button>' +
+    '<button class="knop zacht" id="optreden-pauze">Pauzescherm</button>' +
     '<span class="pilletje" id="pauze-klok">Pauzeklok</span>' +
     '<button class="knop zacht" id="optreden-printen">Setlist printen</button>' +
     '<button class="knop zacht" id="optreden-stop">Optreden stoppen</button>' +
-    '<span class="les-klein">PageDown of ↓ is volgende, PageUp of ↑ terug. Spatie blijft meescrollen.</span>';
+    '<span class="les-klein">PageDown of ↓ is volgende, PageUp of ↑ terug. Spatie start en stopt het ' +
+      'meespelen, <strong>z</strong> is het pauzescherm, <strong>?</strong> toont alle toetsen.</span>';
   if ($('optreden-vorige')) $('optreden-vorige').addEventListener('click', vorigeLiedje);
   if ($('optreden-volgende')) $('optreden-volgende').addEventListener('click', volgendeLiedje);
   if ($('pauze-knop')) $('pauze-knop').addEventListener('click', wisselPauzeklok);
+  if ($('optreden-pauze')) $('optreden-pauze').addEventListener('click', function () { zetPauzescherm(true); });
   if ($('optreden-printen')) $('optreden-printen').addEventListener('click', printSetlist);
   if ($('optreden-stop')) $('optreden-stop').addEventListener('click', stopOptreden);
   werkPauzeklok();
@@ -2731,6 +2753,7 @@ function openLiedje(id, opties) {
 
 function tekenLiedje(l) {
   if (MEES.loop || staat.meespelen) meespelStop();   // het oude liedje stopt met meespelen
+  MAAT_LAATSTE = null;                               // pijltjes beginnen weer bij de eerste maat
   $('spelen-leeg').hidden = true;
   var c = $('spelen-inhoud');
   c.hidden = false;
@@ -2786,7 +2809,7 @@ function tekenLiedje(l) {
         '<button class="knop zacht" id="scroll-sneller" title="Sneller">+</button>' +
         '<button class="knop zacht" id="scroll-terug">Halve pagina terug</button>' +
         '<button class="knop zacht" id="scroll-verder">Halve pagina verder</button>' +
-        '<span class="les-klein" id="scroll-hint">Spatie start en stopt, de pijltjes schuiven een halve pagina.</span>' +
+        '<span class="les-klein" id="scroll-hint">Toets <strong>s</strong> zet het meescrollen aan of uit; PageUp en PageDown gaan een halve pagina verder.</span>' +
       '</div>' +
 
       '<div class="rij speel-gereedschap podium-houd" id="metronoom-rij">' +
@@ -2828,6 +2851,18 @@ function tekenLiedje(l) {
 
       '<h3>Bladmuziek</h3>' +
       '<div class="songtekst" id="songtekst">' + tekenSongtekst(l.model) + '</div>' +
+      '<div class="kaart" id="aantekening-kaart">' +
+        '<h3>Mijn aantekening</h3>' +
+        '<p class="les-klein">Alleen voor jou, bij dit liedje: iets dat je zelf wilt onthouden, zoals ' +
+          '<em>tweede couplet rustig</em> of <em>capo 2 klinkt beter</em>.</p>' +
+        '<textarea id="aantekening-tekst" rows="2" maxlength="500" ' +
+          'placeholder="Iets dat je wilt onthouden bij dit liedje">' + esc(l.aantekening || '') + '</textarea>' +
+        '<div class="rij" style="margin-top:8px">' +
+          '<button class="knop" id="aantekening-bewaar">Aantekening bewaren</button>' +
+          '<button class="knop zacht" id="aantekening-wis">Wissen</button>' +
+          '<span class="pilletje" id="aantekening-stand" hidden></span>' +
+        '</div>' +
+      '</div>' +
       (l.tekst
         ? '<details class="woorden"><summary>De woorden' +
           (l.tekstVan ? ' van ' + esc(l.tekstVan.replace(/\s*\(\d+\)$/, '')) : '') + '</summary>' +
@@ -3026,6 +3061,11 @@ function tekenLiedje(l) {
   $('print-liedje').addEventListener('click', function () { window.print(); });
   toonFavorietKnop(l);
   $('speel-ster').addEventListener('click', function () { zetFavoriet(l.id, !l.favoriet); });
+  $('aantekening-bewaar').addEventListener('click', function () { bewaarAantekening(l.id); });
+  $('aantekening-wis').addEventListener('click', function () {
+    $('aantekening-tekst').value = '';
+    bewaarAantekening(l.id);
+  });
   if ($('speel-setlist')) {
     $('speel-setlist').addEventListener('click', function () { zetInSetlist(l.id, 'bij'); });
   }
@@ -3536,21 +3576,204 @@ function zetPodium(aan) {
   try { localStorage.setItem('akkoordkast-podium', aan ? '1' : ''); } catch (e) {}
 }
 
+// Het scherm van de telefoon mag niet uitvallen terwijl je speelt. Een verborgen tabblad laat de
+// vergrendeling vanzelf los; bij terugkomst vragen we hem opnieuw aan.
+var SCHERM_SLOT = null;
+function houdSchermAan(aan) {
+  var pil = $('scherm-aan');
+  var zetPil = function (tekst) {
+    if (!pil) return;
+    pil.textContent = tekst || '';
+    pil.hidden = !tekst;
+  };
+  if (!navigator.wakeLock) {
+    zetPil(aan ? 'scherm aan: niet ondersteund' : '');
+    return;
+  }
+  if (aan) {
+    if (SCHERM_SLOT) { zetPil('scherm blijft aan'); return; }
+    navigator.wakeLock.request('screen').then(function (slot) {
+      SCHERM_SLOT = slot;
+      slot.addEventListener('release', function () { SCHERM_SLOT = null; });
+      zetPil('scherm blijft aan');
+    }).catch(function () {
+      SCHERM_SLOT = null;
+      zetPil('scherm aan: niet gelukt');
+    });
+  } else if (SCHERM_SLOT) {
+    var slot = SCHERM_SLOT;
+    SCHERM_SLOT = null;
+    if (slot.release) slot.release().catch(function () {});
+    zetPil('');
+  }
+}
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden) { SCHERM_SLOT = null; return; }
+  if ($('paneel-spelen') && $('paneel-spelen').classList.contains('actief')) houdSchermAan(true);
+});
+
+// Je eigen aantekening bij een liedje bewaren.
+function bewaarAantekening(id) {
+  var veld = $('aantekening-tekst');
+  var stand = $('aantekening-stand');
+  var tekst = veld ? veld.value.trim() : '';
+  api('/api/aantekening', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ liedje: Number(id), tekst: tekst })
+  }).then(function (data) {
+    if (staat.liedje && staat.liedje.id === Number(id)) staat.liedje.aantekening = data.aantekening || '';
+    if (stand) { stand.textContent = tekst ? 'bewaard' : ''; stand.hidden = !tekst; }
+    laadLiedjes(true);
+  }).catch(function (e) { toonMelding('lijst-melding', e.message, 'fout'); });
+}
+
+// Spatie: meespelen starten en stoppen.
+function wisselMeespelen() {
+  var stop = $('mees-stop');
+  if (stop && !stop.hidden) { stop.click(); return; }
+  var start = $('mees-start');
+  if (start) start.click();
+}
+
+// Met de pijltjes naar de vorige of volgende maat op het blad. We onthouden waar je was, want een
+// maat die netjes in het midden staat is anders meteen weer "de volgende".
+var MAAT_LAATSTE = null;
+function naarMaat(richting) {
+  var maten = document.querySelectorAll('[data-ak]');
+  if (!maten.length) return;
+  var doel = null;
+  var huidig = MAAT_LAATSTE ? Array.prototype.indexOf.call(maten, MAAT_LAATSTE) : -1;
+  if (huidig >= 0) {
+    doel = maten[Math.min(maten.length - 1, Math.max(0, huidig + richting))];
+  } else {
+    var lijn = Math.round(window.innerHeight * 0.45);   // de leeslijn: iets boven het midden
+    for (var i = 0; i < maten.length; i++) {
+      var top = maten[i].getBoundingClientRect().top;
+      if (richting > 0 && top > lijn) { doel = maten[i]; break; }
+      if (richting < 0 && top < lijn - 4) doel = maten[i];
+    }
+    if (!doel) doel = richting > 0 ? maten[maten.length - 1] : maten[0];
+  }
+  MAAT_LAATSTE = doel;
+  doel.scrollIntoView({ block: 'center' });
+  doel.classList.add('even-op');
+  setTimeout(function () { doel.classList.remove('even-op'); }, 700);
+}
+
+// Verras me: een willekeurig liedje uit wat je nu gekozen hebt.
+function verrasLiedje() {
+  var p = lijstQuery();
+  var totaal = Number(staat.totaal || 0);
+  p.set('aantal', '1');
+  if (totaal > 1) p.set('vanaf', String(Math.floor(Math.random() * totaal)));
+  api('/api/liedjes?' + p.toString()).then(function (data) {
+    if (!data.liedjes || !data.liedjes.length) {
+      toonMelding('lijst-melding', 'Geen liedje gevonden om uit te kiezen.', 'fout');
+      return;
+    }
+    openLiedje(data.liedjes[Math.floor(Math.random() * data.liedjes.length)].id);
+  }).catch(function (e) { toonMelding('lijst-melding', e.message, 'fout'); });
+}
+
+// Tussen twee nummers van een optreden: het scherm op zwart.
+function zetPauzescherm(aan) {
+  var scherm = $('pauze-scherm');
+  if (!scherm) {
+    document.body.insertAdjacentHTML('beforeend',
+      '<div id="pauze-scherm">' +
+        '<div class="pauze-groot" id="pauze-groot">Pauze</div>' +
+        '<div class="pilletje" id="pauze-plek"></div>' +
+        '<div class="rij">' +
+          '<button class="knop" id="pauze-terug">Verder met het optreden</button>' +
+          '<button class="knop zacht" id="pauze-klok-aan">Pauzeklok aan of uit</button>' +
+        '</div>' +
+        '<p class="les-klein">Druk op <strong>z</strong> of op de knop om terug te gaan naar het blad.</p>' +
+      '</div>');
+    scherm = $('pauze-scherm');
+    $('pauze-terug').addEventListener('click', function () { zetPauzescherm(false); });
+    $('pauze-klok-aan').addEventListener('click', wisselPauzeklok);
+  }
+  document.body.classList.toggle('pauze', !!aan);
+  if (aan && !document.body.classList.contains('optreden')) {
+    toonMelding('mees-melding', 'Het pauzescherm hoort bij een optreden.', 'fout');
+  }
+  if (aan && staat.optreden && !staat.optreden.pauzeStart) wisselPauzeklok();
+  var plek = $('pauze-plek');
+  if (plek) {
+    var ids = (staat.setlist && staat.setlist.liedjes) || [];
+    plek.textContent = (staat.optreden && staat.optreden.aan)
+      ? ('na nummer ' + (staat.optreden.pos + 1) + ' van ' + ids.length)
+      : '';
+  }
+  werkPauzeGroot();
+}
+function werkPauzeGroot() {
+  var groot = $('pauze-groot');
+  if (!groot) return;
+  var klok = $('pauze-klok');
+  groot.textContent = (klok && klok.textContent && klok.textContent !== 'Pauzeklok') ? klok.textContent : 'Pauze';
+}
+
+// Welke toetsen er zijn, in één overzicht.
+function toonToetsen() {
+  var slot = $('toetsen-slot');
+  if (!slot) {
+    document.body.insertAdjacentHTML('beforeend',
+      '<div id="toetsen-slot" hidden><div class="kaart">' +
+        '<h3>Sneltoetsen</h3>' +
+        '<dl>' +
+          '<dt>spatie</dt><dd>meespelen starten en stoppen</dd>' +
+          '<dt>\u2190 \u2192</dt><dd>vorige of volgende maat op het blad</dd>' +
+          '<dt>PageDown / PageUp</dt><dd>een stuk verder of terug</dd>' +
+          '<dt>Shift + \u2193 / \u2191</dt><dd>ook een stuk verder of terug</dd>' +
+          '<dt>m</dt><dd>metronoom aan of uit</dd>' +
+          '<dt>s</dt><dd>meescrollen aan of uit</dd>' +
+          '<dt>f</dt><dd>bij mijn favorieten of eruit</dd>' +
+          '<dt>v</dt><dd>verras me: een willekeurig liedje</dd>' +
+          '<dt>p</dt><dd>podiummodus (groot beeld)</dd>' +
+          '<dt>z</dt><dd>pauzescherm tijdens een optreden</dd>' +
+          '<dt>?</dt><dd>dit overzicht</dd>' +
+          '<dt>Esc</dt><dd>sluiten</dd>' +
+        '</dl>' +
+        '<div class="rij" style="margin-top:12px"><button class="knop" id="toetsen-sluit">Sluiten</button></div>' +
+      '</div></div>');
+    slot = $('toetsen-slot');
+    slot.addEventListener('click', function (ev) { if (ev.target === slot) sluitToetsen(); });
+    $('toetsen-sluit').addEventListener('click', sluitToetsen);
+  }
+  slot.hidden = false;
+}
+function sluitToetsen() { var slot = $('toetsen-slot'); if (slot) slot.hidden = true; }
+
+// Sneltoetsen. Spatie start en stopt het meespelen (dat is wat je tijdens het spelen wilt);
+// door het blad gaan doet PageDown/PageUp of Shift met de pijltjes, of de pijltjes alleen
+// voor maat voor maat.
 document.addEventListener('keydown', function (ev) {
   var vak = ev.target || {};
   if (vak.tagName === 'INPUT' || vak.tagName === 'SELECT' || vak.tagName === 'TEXTAREA') return;
   var opSpelen = $('paneel-spelen') && $('paneel-spelen').classList.contains('actief');
+  if (ev.key === 'Escape' && $('toetsen-slot') && !$('toetsen-slot').hidden) { sluitToetsen(); return; }
+  if (ev.key === 'Escape' && document.body.classList.contains('pauze')) { zetPauzescherm(false); return; }
   if (ev.key === 'Escape' && document.body.classList.contains('optreden')) { stopOptreden(); return; }
   if (ev.key === 'Escape' && document.body.classList.contains('podium')) { zetPodium(false); return; }
   if (!opSpelen) return;
-  if (ev.key === ' ') { ev.preventDefault(); wisselScroll(); return; }
+  if (ev.key === '?') { ev.preventDefault(); toonToetsen(); return; }
+  if (ev.key === ' ') { ev.preventDefault(); wisselMeespelen(); return; }
   // In optredenmodus ga je met PageDown en de pijltjes naar het volgende liedje.
   if (staat.optreden && staat.optreden.aan) {
     if (ev.key === 'PageDown' || ev.key === 'ArrowDown' || ev.key === 'ArrowRight') { ev.preventDefault(); volgendeLiedje(); return; }
     if (ev.key === 'PageUp' || ev.key === 'ArrowUp' || ev.key === 'ArrowLeft') { ev.preventDefault(); vorigeLiedje(); return; }
+    if (ev.key === 'z' || ev.key === 'Z') { ev.preventDefault(); zetPauzescherm(!document.body.classList.contains('pauze')); return; }
   }
+  if (ev.key === 'ArrowRight' && !ev.shiftKey) { ev.preventDefault(); naarMaat(1); return; }
+  if (ev.key === 'ArrowLeft' && !ev.shiftKey) { ev.preventDefault(); naarMaat(-1); return; }
   if (ev.key === 'PageDown' || ev.key === 'ArrowDown' && ev.shiftKey) { ev.preventDefault(); scrollStap(1); return; }
   if (ev.key === 'PageUp' || ev.key === 'ArrowUp' && ev.shiftKey) { ev.preventDefault(); scrollStap(-1); return; }
+  if (ev.key === 'm' || ev.key === 'M') { var mk = $('metronoom-knop'); if (mk) mk.click(); return; }
+  if ((ev.key === 's' || ev.key === 'S') && $('scroll-knop')) { $('scroll-knop').click(); return; }
+  if (ev.key === 'f' || ev.key === 'F') { var sk = $('speel-ster'); if (sk) sk.click(); return; }
+  if (ev.key === 'v' || ev.key === 'V') { verrasLiedje(); return; }
   if (ev.key === 'p' || ev.key === 'P') { zetPodium(!document.body.classList.contains('podium')); }
 });
 

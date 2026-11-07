@@ -39,7 +39,7 @@ const CAST_HELPER = process.env.CAST_HELPER
   : path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.52.0';
+const VERSIE = '1.53.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -119,6 +119,15 @@ db.exec(`
     profiel_id INTEGER NOT NULL,
     liedje_id INTEGER NOT NULL,
     aangeemaakt TEXT NOT NULL DEFAULT '',
+    PRIMARY KEY (profiel_id, liedje_id)
+  );
+  -- Wat jij zelf bij een liedje schrijft ("tweede couplet rustig", "capo 2 klinkt beter").
+  -- Hoort bij het profiel, niet bij het liedje: het liedje zelf blijft voor iedereen gelijk.
+  CREATE TABLE IF NOT EXISTS aantekeningen (
+    profiel_id INTEGER NOT NULL,
+    liedje_id INTEGER NOT NULL,
+    tekst TEXT NOT NULL DEFAULT '',
+    gewijzigd TEXT NOT NULL DEFAULT '',
     PRIMARY KEY (profiel_id, liedje_id)
   );
   CREATE TABLE IF NOT EXISTS labels (
@@ -404,7 +413,11 @@ function persoonlijk(profielId) {
   for (const rij of db.prepare('SELECT liedje_id, moment, aantal FROM gespeeld WHERE profiel_id = ?').all(profielId)) {
     gespeeld[Number(rij.liedje_id)] = { moment: rij.moment, aantal: Number(rij.aantal) };
   }
-  return { favorieten, labels, perLiedje, gespeeld };
+  const aantekeningen = {};
+  for (const rij of db.prepare('SELECT liedje_id, tekst FROM aantekeningen WHERE profiel_id = ?').all(profielId)) {
+    if (rij.tekst) aantekeningen[Number(rij.liedje_id)] = rij.tekst;
+  }
+  return { favorieten, labels, perLiedje, gespeeld, aantekeningen };
 }
 
 // De oefensessies van dit profiel: per dag de tijd en de wissels, plus een reeks
@@ -785,7 +798,7 @@ function verwijderEigenLiedje(liedjeId) {
   if (rij.audio_bestand) {
     try { fs.unlinkSync(path.join(MEDIA_DIR, 'audio', rij.audio_bestand)); } catch (e) {}
   }
-  for (const tabel of ['liedje_muziek', 'liedje_youtube', 'liedje_filters', 'liedje_labels', 'favorieten', 'gespeeld']) {
+  for (const tabel of ['liedje_muziek', 'liedje_youtube', 'liedje_filters', 'liedje_labels', 'favorieten', 'gespeeld', 'aantekeningen']) {
     db.prepare(`DELETE FROM ${tabel} WHERE liedje_id = ?`).run(id);
   }
   db.prepare('DELETE FROM setlist_liedjes WHERE liedje_id = ?').run(id);
@@ -847,7 +860,8 @@ function lijstItem(lied) {
     // wanneer is het voor het laatst gespeeld?
     favoriet: !!lied.favoriet,
     labels: lied.labels || [],
-    gespeeld: lied.gespeeld || ''
+    gespeeld: lied.gespeeld || '',
+    aantekening: lied.aantekening || ''
   };
 }
 
@@ -856,6 +870,7 @@ function lijstItem(lied) {
 function metPersoonlijk(lied, persoon) {
   return Object.assign({}, lied, {
     favoriet: persoon.favorieten.includes(lied.id),
+    aantekening: persoon.aantekeningen[lied.id] || '',
     labels: (persoon.perLiedje[lied.id] || []).map(id => {
       const label = persoon.labels.find(l => l.id === id);
       return label ? label.naam : '';
@@ -2776,6 +2791,7 @@ function maakBackup() {
     liedjes: db.prepare('SELECT * FROM liedjes').all(),
     profielen: db.prepare('SELECT * FROM profielen').all(),
     favorieten: db.prepare('SELECT * FROM favorieten').all(),
+    aantekeningen: db.prepare('SELECT * FROM aantekeningen').all(),
     labels: db.prepare('SELECT * FROM labels').all(),
     liedje_labels: db.prepare('SELECT * FROM liedje_labels').all(),
     gespeeld: db.prepare('SELECT * FROM gespeeld').all(),
@@ -3453,7 +3469,7 @@ async function verwerk(req, res) {
       return;
     }
     // het laatste profiel kan niet weg { json(res, 400, { fout: 'Het laatste profiel kun je niet verwijderen.' }); return; }
-    for (const tabel of ['favorieten', 'liedje_labels', 'labels', 'gespeeld', 'oefensessies']) {
+    for (const tabel of ['favorieten', 'liedje_labels', 'labels', 'gespeeld', 'oefensessies', 'aantekeningen']) {
       db.prepare(`DELETE FROM ${tabel} WHERE profiel_id = ?`).run(id);
     }
     db.prepare('DELETE FROM profielen WHERE id = ?').run(id);
@@ -3490,6 +3506,24 @@ async function verwerk(req, res) {
       db.prepare('DELETE FROM favorieten WHERE profiel_id = ? AND liedje_id = ?').run(profielId, nummer);
     }
     json(res, 200, { ok: true, favoriet: aan, liedje: nummer });
+    return;
+  }
+
+  // --- je eigen aantekening bij een liedje (per profiel) ---
+  if (pad === '/api/aantekening' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    const profielId = profielVan(req, query);
+    if (!vindLiedje(body.liedje)) { json(res, 404, { fout: 'Liedje niet gevonden' }); return; }
+    const nummer = Number(body.liedje);
+    const tekst = String(body.tekst === undefined ? '' : body.tekst).trim().slice(0, 500);
+    if (tekst) {
+      db.prepare('INSERT INTO aantekeningen (profiel_id, liedje_id, tekst, gewijzigd) VALUES (?, ?, ?, ?) ' +
+        'ON CONFLICT(profiel_id, liedje_id) DO UPDATE SET tekst = excluded.tekst, gewijzigd = excluded.gewijzigd')
+        .run(profielId, nummer, tekst, new Date().toISOString());
+    } else {
+      db.prepare('DELETE FROM aantekeningen WHERE profiel_id = ? AND liedje_id = ?').run(profielId, nummer);
+    }
+    json(res, 200, { ok: true, liedje: nummer, aantekening: tekst });
     return;
   }
 
@@ -4085,6 +4119,7 @@ async function verwerk(req, res) {
     });
     const nummer = Number(m[1]);
     antwoord.favoriet = persoon.favorieten.includes(nummer);
+    antwoord.aantekening = persoon.aantekeningen[nummer] || '';
     antwoord.labels = (persoon.perLiedje[nummer] || []).map(id => {
       const label = persoon.labels.find(l => l.id === id);
       return label ? { id: label.id, naam: label.naam } : null;

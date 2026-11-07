@@ -3,6 +3,26 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.53.0] — 7 november 2026
+
+### Zes dingen die het spelen prettiger maken
+
+- **Het scherm blijft aan** zolang je in het tabblad **Spelen** staat, dus je blad valt niet weg
+  terwijl je speelt. In de kop staat een pilletje dat het laat zien.
+- **Sneltoetsen**: **spatie** start en stopt het meespelen, **← →** gaan maat voor maat door het
+  blad, **m** is de metronoom, **s** het meescrollen, **f** het sterretje, **v** verrast je met een
+  willekeurig liedje, **p** is de podiummodus, **z** het pauzescherm en **?** toont het hele
+  overzicht. Door het blad gaan gaat verder met **PageDown**/**PageUp** of **Shift** met de pijltjes.
+- **Verras me**: een knop in de liedlijst die een willekeurig liedje opent uit wat je nu gekozen hebt
+  (je filters en je favorieten doen mee).
+- **Mijn aantekening**: bij elk liedje een eigen regel die je zelf bewaart, per profiel — dus los van
+  het liedje en van andere profielen. In de lijst zie je er een ✎ bij.
+- **Pauzescherm** in een optreden: met **z** gaat het scherm op zwart met de pauzeklok en hoever je
+  bent; met **z** of **Esc** ga je terug.
+- De balk van het optreden vertelt de nieuwe toetsen.
+
+Nieuwe proef (`test/aantekening.test.js`).
+
 ## [1.52.0] — 7 november 2026
 
 ### Alleen Nederlandstalige liedjes

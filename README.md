@@ -54,7 +54,9 @@ de handleiding in de app zelf (knop **Handleiding openen**) · [installeren op P
 | ![muziekmap](docs/img/muziekmap-klaar.png) | **Een hele muziekmap in één keer** — geef een map op deze machine op en elk nummer erin wordt een eigen liedje met akkoordschema, tempo en toonsoort. |
 | ![leren](docs/img/leren-cursus.png) | **Gitaar leren spelen** — honderdtien lessen in acht delen, van "hoe houd ik hem vast" tot een oefenplan dat je volhoudt, met per les een oefening in de app en je voortgang bewaard op je toestel. |
 | ![akkoordentrainer](docs/img/leren-trainer.png) | **Akkoordentrainer** — metronoom, een set akkoorden naar keuze en het volgende akkoord alvast in beeld, want daar gaat het bij leren wisselen om. |
-| ![podium](docs/img/podium.png) | **Podiummodus en meescrollen** — alleen het liedje op het scherm, groot en rustig, terwijl de pagina zelf meeschuift op jouw tempo; met spatie start en stop je het schuiven en met de pijltjes ga je een halve pagina verder. |
+| ![podium](docs/img/podium.png) | **Podiummodus en meescrollen** — alleen het liedje op het scherm, groot en rustig, terwijl de pagina zelf meeschuift op jouw tempo (toets **s**); met PageUp en PageDown ga je een halve pagina verder. |
+| ![sneltoetsen](docs/img/sneltoetsen.png) | **Sneltoetsen en een scherm dat aan blijft** — spatie start en stopt het meespelen, ← en → gaan maat voor maat door het blad, m is de metronoom, v verrast je met een willekeurig liedje en ? toont het hele overzicht; zolang je in het tabblad Spelen staat valt het scherm van je toestel niet uit. |
+| ![mijn aantekening](docs/img/mijn-aantekening.png) | **Mijn aantekening** — bij elk liedje een eigen regel die je zelf bewaart, per profiel: *tweede couplet rustig*, *capo 2 klinkt beter*. In de liedlijst zie je er een ✎ bij. |
 | ![mijn lijstjes](docs/img/mijn-lijstjes.png) | **Profielen, favorieten en labels** — elk gezinslid heeft eigen favorieten, eigen labels (bruiloft, kroeg, kerk) en een eigen speelgeschiedenis; filter met één klik op je eigen lijstje. |
 | ![oefenen](docs/img/oefenen.png) | **Vertragen en een stukje herhalen** — zet het liedje op 60% zodat het rustig blijft klinken (de tonen blijven even hoog), zet met A en B een lus over juist die twee maten en speel ze tot ze zitten. |
 | ![meeluisteren](docs/img/microfoon.png) | **De app luistert mee** — met de microfoon hoort de app welk akkoord je pakt en zegt of dat het akkoord is dat in beeld staat. Alles in de browser, er wordt niets opgenomen of verstuurd. |
@@ -690,9 +692,11 @@ op `developer.spotify.com/dashboard`). Die sleutels blijven in de database van d
 ## Spelen op het podium
 
 Voor het echte werk — repetitie of optreden — zit er een **podiummodus** in. Eén klik en het menu, de kop en alle
-uitleg verdwijnen; de bladmuziek staat op anderhalve regelafstand en de grepen worden groter. Met **meescrollen**
-schuift de pagina zelf door terwijl je speelt: de snelheid stel je in en blijft per toestel bewaard, spatie start en
-stopt, PageUp en PageDown schuiven een halve pagina. Escape (of de p) brengt je terug in de gewone weergave.
+uitleg verdwijnen; de bladmuziek staat op anderhalve regelafstand en de grepen worden groter. Met **meescrollen** (toets **s**)
+schuift de pagina zelf door terwijl je speelt: de snelheid stel je in en blijft per toestel bewaard. PageUp en
+PageDown schuiven een halve pagina, **←** en **→** gaan maat voor maat, **spatie** start en stopt het meespelen en
+**m** zet de metronoom aan. Escape (of de **p**) brengt je terug in de gewone weergave, en met **?** zie je alle
+toetsen bij elkaar.
 
 En wil je een **liedjesboek** meenemen naar de repetitie, dan maakt de app van je huidige selectie (tot veertig
 liedjes) één document: een titelblad, een inhoudsopgave en elk liedje op een eigen pagina met de grepen en de

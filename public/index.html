@@ -944,6 +944,7 @@
         <select id="setlist-kies"></select>
         <button class="knop" id="setlist-openen" title="Speel de setlist achter elkaar door, groot beeld">Optreden starten</button>
         <button class="knop zacht" id="setlist-printen" title="De setlist als vel om naast je neer te leggen">Setlist printen</button>
+        <button class="knop zacht" id="setlist-delen" title="Maak een link waarmee iemand anders deze setlist kan lezen">Delen</button>
         <button class="knop zacht" id="setlist-overgangen" title="Hoe kom je van het ene liedje in het andere?">Overgangen</button>
         <button class="knop zacht" id="setlist-verwijder">Verwijderen</button>
         <span class="pilletje" id="setlist-teller"></span>
@@ -955,6 +956,7 @@
       </div>
       <div id="setlist-inhoud"></div>
       <div id="setlist-overgangen-lijst" class="scan-lijst" style="margin-top:8px"></div>
+      <div class="rij" id="setlist-deel" hidden></div>
       <div class="melding" id="setlist-melding" hidden></div>
     </div>
   </section>
@@ -2723,6 +2725,39 @@ function werkOptredenBalk() {
   werkPauzeklok();
 }
 
+// Een setlist delen: de app maakt een link die alleen die setlist laat zien, zonder de app
+// eromheen. Wie de link heeft, mag die ene setlist lezen.
+function deelSetlist() {
+  if (!staat.setlist || !staat.setlist.id) {
+    toonMelding('setlist-melding', 'Kies eerst een setlist.', 'fout');
+    return;
+  }
+  api('/api/delen', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ setlist: staat.setlist.id })
+  }).then(function (data) {
+    var vak = $('setlist-deel');
+    if (!vak) return;
+    vak.hidden = false;
+    vak.innerHTML =
+      '<span class="les-klein">De link staat klaar:</span>' +
+      '<input id="setlist-deel-link" type="text" readonly value="' + esc(data.url) + '" style="flex:1;min-width:240px">' +
+      '<button class="knop zacht" id="setlist-deel-kopieer">Kopieer</button>' +
+      '<span class="les-klein">Wie deze link heeft, ziet alleen deze setlist. Let op: bij een eigen liedje met ' +
+      'tekst of akkoorden van iemand anders mag je die niet zomaar openbaar delen.</span>';
+    $('setlist-deel-kopieer').addEventListener('click', function () {
+      var veld = $('setlist-deel-link');
+      if (!veld) return;
+      veld.select();
+      try { document.execCommand('copy'); } catch (e) { /* dan maar zelf kopieren */ }
+      if (navigator.clipboard) navigator.clipboard.writeText(veld.value).catch(function () {});
+      toonMelding('setlist-melding', 'De link is gekopieerd.', 'goed');
+    });
+    toonMelding('setlist-melding', 'De deellink is gemaakt.', 'goed');
+  }).catch(function (e) { toonMelding('setlist-melding', e.message, 'fout'); });
+}
+
 // De setlist als vel papier: om naast je neer te leggen of in de map te doen.
 function printSetlist() {
   if (!staat.setlist.id) { toonMelding('setlist-melding', 'Kies eerst een setlist.', 'fout'); return; }
@@ -2760,6 +2795,7 @@ $('setlist-kies').addEventListener('change', function () {
 $('setlist-nieuw').addEventListener('click', nieuweSetlist);
 $('setlist-naam').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') nieuweSetlist(); });
 $('setlist-openen').addEventListener('click', startOptreden);
+$('setlist-delen').addEventListener('click', deelSetlist);
 $('setlist-overgangen').addEventListener('click', laadSetlistOvergangen);
 $('setlist-printen').addEventListener('click', printSetlist);
 $('setlist-verwijder').addEventListener('click', verwijderSetlist);

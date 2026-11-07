@@ -97,6 +97,7 @@ FILES=(
   "lib/analyse.js"
   "lib/spotify.js"
   "public/index.html"
+  "public/delen.html"
   "public/favicon.svg"
   "public/manifest.webmanifest"
   "public/sw.js"
@@ -142,6 +143,7 @@ RUNTIME=(
 )
 PAGINA=(
   "public/index.html"
+  "public/delen.html"
   "public/favicon.svg"
   "public/manifest.webmanifest"
   "public/sw.js"

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Setlist · AkkoordKast</title>
+<style>
+  :root{
+    --bg:#0b1120; --pane:#16223c; --pane2:#1c2b4a; --tekst:#e8eefc; --tekst2:#9fb0d0;
+    --lijn:#25365c; --amber:#f5a524; --amber2:#ffc75a;
+  }
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--tekst);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+  header{padding:18px 16px 12px;border-bottom:1px solid var(--lijn);background:linear-gradient(180deg,#101a2f,#0b1120)}
+  h1{margin:0;font-size:1.5rem}
+  .onder{color:var(--tekst2);font-size:.85rem;margin-top:4px}
+  main{max-width:900px;margin:0 auto;padding:16px}
+  .lied{background:var(--pane);border:1px solid var(--lijn);border-radius:14px;padding:14px 16px;margin:0 0 14px}
+  .lied h2{margin:0 0 2px;font-size:1.15rem}
+  .lied .artiest{color:var(--tekst2);font-size:.86rem}
+  .kop{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .pilletjes{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .pilletje{background:var(--pane2);border:1px solid var(--lijn);color:var(--tekst2);
+    border-radius:999px;padding:2px 9px;font-size:.76rem}
+  .blad{margin-top:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.95rem;line-height:1.5}
+  .regel{margin:0 0 6px;white-space:pre-wrap}
+  .seg{display:inline-block;vertical-align:bottom}
+  .seg .ak{display:block;color:var(--amber);font-weight:600;font-size:.82rem;min-height:1.05em}
+  .seg .tx{white-space:pre}
+  .label{color:var(--amber2);font-weight:600;margin:10px 0 4px}
+  .kader{background:var(--pane);border:1px solid var(--lijn);border-radius:14px;padding:16px}
+  .knop{background:var(--amber);color:#231400;border:0;border-radius:10px;
+    padding:9px 14px;font-size:.95rem;font-weight:600;cursor:pointer}
+  .knop.zacht{background:var(--pane2);color:var(--tekst);border:1px solid var(--lijn)}
+  .rij{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  footer{max-width:900px;margin:0 auto;padding:8px 16px 40px;color:var(--tekst2);font-size:.8rem}
+  @media print{
+    html,body{background:#fff;color:#000}
+    header{background:#fff;border-bottom:1px solid #999}
+    .lied,.kader{border:1px solid #bbb;background:#fff;break-inside:avoid}
+    .pilletje{background:#f2f2f2;color:#333;border-color:#ccc}
+    .seg .ak{color:#8a4b00}
+    .label{color:#8a4b00}
+    .knop,.rij{display:none}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="naam">Setlist</h1>
+  <div class="onder" id="onder">Bezig met laden…</div>
+</header>
+<main>
+  <div id="inhoud"><div class="kader">Even geduld — de setlist wordt opgehaald.</div></div>
+  <div class="rij">
+    <button class="knop" id="printen">Printen of bewaren als PDF</button>
+  </div>
+</main>
+<footer>
+  Deze setlist is met je gedeeld via <strong>AkkoordKast</strong>. Alleen deze setlist is te zien;
+  de app zelf en de muziek erachter horen er niet bij.
+</footer>
+
+<script>
+(function () {
+  'use strict';
+  var token = (location.pathname.match(/^\/d\/([a-f0-9]{6,40})$/) || [])[1] || '';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  // Wat er in de app een akkoordenregel is, is hier een rij van akkoord-plus-lettergreep.
+  function tekenRegel(r) {
+    if (r.soort === 'leeg') return '<div class="regel">&nbsp;</div>';
+    if (r.soort === 'label') return '<div class="label">' + esc(r.label || '') + '</div>';
+    var delen = r.segmenten || [];
+    if (!delen.length) return '<div class="regel">&nbsp;</div>';
+    var uit = '';
+    for (var i = 0; i < delen.length; i++) {
+      var seg = delen[i];
+      var tekst = seg.tekst === '' || seg.tekst === undefined ? '\u00a0\u00a0' : seg.tekst;
+      uit += '<span class="seg"><span class="ak">' + (seg.akkoord ? esc(seg.akkoord) : '\u00a0') + '</span>' +
+        '<span class="tx">' + esc(tekst) + '</span></span>';
+    }
+    return '<div class="regel">' + uit + '</div>';
+  }
+
+  function tekenLiedje(l, nummer) {
+    var pillen = [];
+    if (l.toonsoort) pillen.push('<span class="pilletje">toonaard ' + esc(l.toonsoort) + '</span>');
+    if (l.capoTekst) pillen.push('<span class="pilletje">' + esc(l.capoTekst) + '</span>');
+    if (l.tempo) pillen.push('<span class="pilletje">' + esc(l.tempo) + ' bpm</span>');
+    return '<section class="lied">' +
+      '<div class="kop"><div><h2>' + nummer + '. ' + esc(l.titel) + '</h2>' +
+        (l.artiest ? '<div class="artiest">' + esc(l.artiest) + '</div>' : '') + '</div></div>' +
+      (pillen.length ? '<div class="pilletjes">' + pillen.join('') + '</div>' : '') +
+      '<div class="blad">' + (l.regels || []).map(tekenRegel).join('') + '</div>' +
+      '</section>';
+  }
+
+  document.getElementById('printen').addEventListener('click', function () { window.print(); });
+
+  if (!token) {
+    document.getElementById('inhoud').innerHTML = '<div class="kader">Deze link klopt niet.</div>';
+    document.getElementById('onder').textContent = '';
+    return;
+  }
+
+  fetch('/api/delen/' + token).then(function (r) {
+    return r.json().catch(function () { return {}; }).then(function (data) {
+      if (!r.ok) throw new Error(data.fout || 'Deze deellink werkt niet meer.');
+      return data;
+    });
+  }).then(function (data) {
+    document.getElementById('naam').textContent = data.naam || 'Setlist';
+    document.getElementById('onder').textContent = data.aantal + (data.aantal === 1 ? ' liedje' : ' liedjes') +
+      ' · gedeeld op ' + String(data.gemaakt || '').slice(0, 10);
+    document.getElementById('inhoud').innerHTML = (data.liedjes || []).map(function (l, i) {
+      return tekenLiedje(l, i + 1);
+    }).join('') || '<div class="kader">Deze setlist is leeg.</div>';
+  }).catch(function (e) {
+    document.getElementById('inhoud').innerHTML = '<div class="kader">' + esc(e.message) + '</div>';
+    document.getElementById('onder').textContent = '';
+  });
+})();
+</script>
+</body>
+</html>

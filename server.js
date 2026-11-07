@@ -39,7 +39,7 @@ const CAST_HELPER = process.env.CAST_HELPER
   : path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.54.0';
+const VERSIE = '1.55.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -162,6 +162,15 @@ db.exec(`
 `);
 
 db.exec(`
+  -- Een deellink: een setlist die je iemand anders kunt geven zonder de app zelf open te zetten.
+  -- De link is een teken van willekeurige tekens; wie hem heeft, mag die ene setlist lezen.
+  CREATE TABLE IF NOT EXISTS deellinks (
+    token TEXT PRIMARY KEY,
+    setlist_id INTEGER NOT NULL,
+    profiel_id INTEGER NOT NULL,
+    naam TEXT NOT NULL DEFAULT '',
+    gemaakt TEXT NOT NULL DEFAULT ''
+  );
   CREATE TABLE IF NOT EXISTS setlists (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     profiel_id INTEGER NOT NULL,
@@ -3230,6 +3239,19 @@ async function verwerk(req, res) {
     return;
   }
 
+  // --- de openbare pagina achter een deellink ---
+  const deelPagina = pad.match(/^\/d\/([a-f0-9]{6,40})$/);
+  if (deelPagina && methode === 'GET') {
+    const link = db.prepare('SELECT token FROM deellinks WHERE token = ?').get(deelPagina[1]);
+    if (!link) {
+      res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8', 'x-akkoordkast': 'app' });
+      res.end('Deze deellink werkt niet meer.');
+      return;
+    }
+    stuurBestand(req, res, path.join(__dirname, 'public', 'delen.html'), MIME['.html'], { 'cache-control': 'no-cache' });
+    return;
+  }
+
   if (pad === '/' || pad === '/index.html') {
     stuurBestand(req, res, path.join(__dirname, 'public', 'index.html'), MIME['.html'], { 'cache-control': 'no-cache' });
     return;
@@ -3469,7 +3491,7 @@ async function verwerk(req, res) {
       return;
     }
     // het laatste profiel kan niet weg { json(res, 400, { fout: 'Het laatste profiel kun je niet verwijderen.' }); return; }
-    for (const tabel of ['favorieten', 'liedje_labels', 'labels', 'gespeeld', 'oefensessies', 'aantekeningen']) {
+    for (const tabel of ['favorieten', 'liedje_labels', 'labels', 'gespeeld', 'oefensessies', 'aantekeningen', 'deellinks']) {
       db.prepare(`DELETE FROM ${tabel} WHERE profiel_id = ?`).run(id);
     }
     db.prepare('DELETE FROM profielen WHERE id = ?').run(id);
@@ -3848,6 +3870,74 @@ async function verwerk(req, res) {
     json(res, 201, { ok: true, setlist: setlistBeeld(setlistVan(profielId, id)), setlists: setlistsVan(profielId) });
     return;
   }
+  // --- een setlist delen met iemand anders ---
+  if (pad === '/api/delen' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    const profielId = profielVan(req, query);
+    const setlist = setlistVan(profielId, body.setlist);
+    if (!setlist) { json(res, 404, { fout: 'Setlist niet gevonden' }); return; }
+    const aantal = (setlist.liedjes || []).length;
+    if (!aantal) { json(res, 400, { fout: 'Deze setlist is nog leeg. Zet er eerst liedjes in.' }); return; }
+    const token = crypto.randomBytes(9).toString('hex');
+    db.prepare('INSERT INTO deellinks (token, setlist_id, profiel_id, naam, gemaakt) VALUES (?, ?, ?, ?, ?)')
+      .run(token, Number(setlist.id), profielId, setlist.naam, new Date().toISOString());
+    const gastheer = String((req.headers && req.headers.host) || '').trim();
+    json(res, 201, { ok: true, token: token, url: 'https://' + gastheer + '/d/' + token, naam: setlist.naam, liedjes: aantal });
+    return;
+  }
+  if (pad === '/api/delen' && methode === 'GET') {
+    const profielId = profielVan(req, query);
+    json(res, 200, {
+      links: db.prepare('SELECT token, setlist_id, naam, gemaakt FROM deellinks WHERE profiel_id = ? ORDER BY gemaakt DESC')
+        .all(profielId).map(r => ({ token: r.token, setlist: Number(r.setlist_id), naam: r.naam, gemaakt: r.gemaakt }))
+    });
+    return;
+  }
+  if (pad === '/api/delen' && methode === 'DELETE') {
+    const body = await leesJsonBody(req);
+    const profielId = profielVan(req, query);
+    const token = String(body.token || '').trim();
+    const rij = db.prepare('SELECT token FROM deellinks WHERE token = ? AND profiel_id = ?').get(token, profielId);
+    if (!rij) { json(res, 404, { fout: 'Deze deellink bestaat niet (meer).' }); return; }
+    db.prepare('DELETE FROM deellinks WHERE token = ?').run(token);
+    json(res, 200, { ok: true, ingetrokken: token });
+    return;
+  }
+
+  // Wat er achter een deellink zit. Dit is het enige wat zonder profiel te lezen is: de naam van
+  // de setlist en per liedje de titel, de toonsoort, de capo en het akkoordenblad. Geen muziek,
+  // geen geschiedenis, geen andere liedjes.
+  const deelMatch = pad.match(/^\/api\/delen\/([a-f0-9]{6,40})$/);
+  if (deelMatch && methode === 'GET') {
+    const link = db.prepare('SELECT * FROM deellinks WHERE token = ?').get(deelMatch[1]);
+    if (!link) { json(res, 404, { fout: 'Deze deellink werkt niet meer.' }); return; }
+    const setlist = setlistVan(Number(link.profiel_id), Number(link.setlist_id));
+    if (!setlist) { json(res, 404, { fout: 'Deze deellink werkt niet meer.' }); return; }
+    const liedjes = [];
+    for (const id of (setlist.liedjes || [])) {
+      const lied = vindLiedje(id);
+      if (!lied) continue;
+      const beeld = weergave(lied, { transpose: null, capoStand: 'auto', volledig: true, beheer: false, beheerProfiel: false });
+      const advies = beeld.advies || {};
+      const capo = Number(advies.capo || 0);
+      liedjes.push({
+        titel: beeld.titel,
+        artiest: beeld.artiest,
+        toonsoort: beeld.model && beeld.model.meta ? (beeld.model.meta.toonsoort || '') : '',
+        tempo: beeld.model && beeld.model.meta ? (beeld.model.meta.tempo || '') : '',
+        capo: capo,
+        capoTekst: capo === 0 ? 'Zonder capo' : ('Capo ' + capo + (advies.vormToonsoort ? ' \u00b7 ' + advies.vormToonsoort : '')),
+        regels: (beeld.model.regels || []).map(r => ({
+          soort: r.soort,
+          label: r.label || '',
+          segmenten: (r.segmenten || []).map(seg => ({ akkoord: seg.akkoord || '', tekst: seg.tekst === undefined ? '' : seg.tekst }))
+        }))
+      });
+    }
+    json(res, 200, { naam: setlist.naam, gemaakt: link.gemaakt, aantal: liedjes.length, liedjes });
+    return;
+  }
+
   const setlistMatch = pad.match(/^\/api\/setlists\/(\d+)$/);
   if (setlistMatch && methode === 'GET') {
     const profielId = profielVan(req, query);

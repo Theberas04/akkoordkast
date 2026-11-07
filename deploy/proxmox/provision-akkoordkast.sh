@@ -70,6 +70,7 @@ RUNTIME=(
 )
 PAGINA=(
   "public/index.html"
+  "public/delen.html"
   "public/favicon.svg"
   "public/manifest.webmanifest"
   "public/sw.js"

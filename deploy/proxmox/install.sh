@@ -91,6 +91,7 @@ FILES=(
   "scripts/bijwerken-in-de-app.sh"
   "scripts/analyseer-bestand.js"
   "public/index.html"
+  "public/delen.html"
   "public/favicon.svg"
   "public/manifest.webmanifest"
   "public/sw.js"

@@ -3,6 +3,24 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.55.0] — 7 november 2026
+
+### Een setlist delen
+
+In de kaart **Setlists en optreden** staat een knop **Delen**. Die maakt een link waarmee iemand
+anders alleen die ene setlist kan lezen: de titels, de toonaard, de capo en de akkoorden boven de
+tekst, in dezelfde opmaak als in de app en met een printfine erbij.
+
+- De link is een teken van willekeurige letters en cijfers (`/d/<teken>`). Wie hem heeft, mag alleen
+  die setlist lezen; de app zelf, je andere liedjes, je geschiedenis en je muziek blijven buiten beeld.
+- De setlist staat op een eigen, lichte pagina (`public/delen.html`) die op zichzelf werkt: geen
+  inlog, geen profiel, en met een knop om te printen of als PDF te bewaren.
+- Een lege setlist kan niet gedeeld worden, en een link kun je weer intrekken (POST en DELETE op
+  `/api/delen`).
+- Een deellink verdwijnt mee als je het profiel opruimt.
+
+Nieuwe proef (`test/delen.test.js`).
+
 ## [1.54.0] — 7 november 2026
 
 ### Noten lezen

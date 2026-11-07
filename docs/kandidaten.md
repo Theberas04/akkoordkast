@@ -32,30 +32,19 @@ Wat je er in de app wél mee kunt:
 
 ## 2. Wat er nu in de app zit
 
-- O'Neill's Music of Ireland — 2352
-- Kerr's Merry Melodies — 1757
-- Historische Engelse dansbundels — 1720
-- Ryan's Mammoth Collection / Cole's 1000 Fiddle Tunes — 1030
-- Nottingham Music Database — 971
-- The Public Domain Song Anthology — 314
-- Open Hymnal Project — 244
-- Eric Conrad: historische muziekcollecties — 150
-- Open Hymnal Project · — 83
-- Public domain — 26
-
-In totaal **8.701 liedjes**, waarvan **8.683** met een echt akkoordschema (de rest krijgt een voorstel).
+De verzameling is Nederlandstalig: `liedjes.json` (26 liedjes met tekst en akkoorden) en
+`limburg-liedjes.json` (22 Limburgse liedjes). Daar komen je eigen liedjes bij — wat je zelf
+uploadt of van een link ophaalt — met een eigen nummer vanaf 900.000.
 
 ## 3. Bronnen die er nog bij kunnen (met wat de bron zelf opgeeft)
 
 **Direct bruikbaar, met akkoorden of melodie in tekstvorm**
 
-- **Our Daily Guide / Open Hymnal Project / PDHymns** — **8.428 gezangen, allemaal publiek domein**, met
-  bladmuziek. Hier zit de grootste winst voor gezongen liedjes: onze 327 uit de Open Hymnal zijn een
-  deelverzameling. Engelstalig.
-- **abcnotation.com** — **circa 800.000 tot 830.000 traditionele deuntjes** uit 150 collecties. Alleen de
-  collecties met publiek-domein- of CC-licentie mogen mee; vijf van de grootste zitten er al in
-  (O'Neill's, Kerr's, Nottingham, Ryan's/Cole's, de Engelse dansbundels). Vooral instrumentaal: de app
-  leidt uit de melodie zelf een akkoordschema af.
+- **Our Daily Guide / PDHymns** — duizenden gezangen, publiek domein, met bladmuziek. **Engelstalig**,
+  dus alleen bruikbaar als er een Nederlandse vertaling met een vrije licentie bij hoort.
+- **abcnotation.com** — **circa 800.000 tot 830.000 traditionele deuntjes** uit 150 collecties. Alleen
+  collecties met een publiek-domein- of CC-licentie *en* Nederlandstalig materiaal zijn bruikbaar; het
+  aanbod is vooral instrumentaal, en de app leidt uit de melodie zelf een akkoordschema af.
 - **Wikifonia** — **6.675 lead sheets** (akkoorden plus melodie, jazz/folk/standards). De site bestaat
   niet meer; het archief zwerft rond en de licentie is per lied niet meer na te gaan, dus alleen
   bruikbaar als iets aantoonbaar publiek domein is.

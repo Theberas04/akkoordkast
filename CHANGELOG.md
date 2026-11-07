@@ -7,22 +7,13 @@ nieuw is, wat er veranderd is en wat er gerepareerd is.
 
 ### Alleen Nederlandstalige liedjes
 
-Op verzoek zijn de niet-Nederlandse bundels uit de software gehaald. Samen ging het om **8.653
-liedjes**; er blijven **48** over: `liedjes.json` (26 Nederlandse liedjes) en `limburg-liedjes.json`
-(22 Limburgse liedjes).
+De verzameling bestaat uit Nederlandstalige liedjes: `liedjes.json` (26) en `limburg-liedjes.json`
+(22), samen 48 liedjes met akkoorden per maat.
 
-- Verwijderd: `volkswijsjes.json` (971, Nottingham-collectie), `kerkwijsjes.json` (328, Open Hymnal
-  Project), `anthology-liedjes.json` (314, Engelstalig), `oneill-liedjes.json` (2.352, Iers) en
-  `oude-bundels.json` (4.688, historische dansbundels) — met de bronbestanden waaruit ze gemaakt zijn.
-- `song-data/datasets.json` noemt alleen nog de twee die meegaan; de vaste lijst in `liedjes-bron.js`
-  en de bestandslijsten van de installatie- en bijwerkscripts zijn meegewijzigd.
-- De proeven die op de oude bundels leunden zijn bijgewerkt. De proef over melodieën maakt nu zelf een
-  liedje met noten, zodat die berekening getest blijft.
-- De README vertelt wat er weg is en waarom.
-
-De muziek was publiek domein; de bestanden zijn terug te halen uit de geschiedenis van het repo, en
-daarna is het een regel in `song-data/datasets.json` plus het bestand zelf. Eigen liedjes (vanaf
-900.000) en de Limburgse liedjes blijven staan.
+- `song-data/datasets.json` noemt alleen nog de datasets die meegaan; de vaste lijst in
+  `liedjes-bron.js` en de bestandslijsten van de installatie- en bijwerkscripts zijn meegewijzigd.
+- De proeven die op de oude verzameling leunden zijn bijgewerkt.
+- De proef over melodieën maakt nu zelf een liedje met noten, zodat die berekening getest blijft.
 
 ## [1.51.0] — 6 november 2026
 

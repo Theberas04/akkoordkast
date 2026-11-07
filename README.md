@@ -300,14 +300,6 @@ MIT is; bronnen met "niet-commercieel", "geen afgeleiden" of share-alike vallen 
 Models verbiedt. De 26 liedjes met tekst en de Limburgse liedjes zijn publiek domein; de bronvermelding
 staat per liedje in de dataset.
 
-**Wat er niet meer in zit en waarom.** Tot versie 1.51.0 zaten er ook niet-Nederlandse bundels in:
-de Nottingham-collectie (971 volkswijsjes), het Open Hymnal Project (328 kerkwijsjes), The Public
-Domain Song Anthology (314 Engelstalige liedjes), O'Neill's *Music of Ireland* (2.352 Ierse wijsjes) en
-historische dansbundels als Kerr's *Merry Melodies* en Ryan's *Mammoth Collection* (4.688 wijsjes) —
-samen **8.653 liedjes**. Die zijn er op verzoek uit gehaald: dit is een **Nederlandstalig** songbook.
-De muziek was publiek domein, dus de bestanden zijn zo terug te halen (uit de geschiedenis van dit
-repo); daarna is het een regel in `song-data/datasets.json` plus het bestand zelf.
-
 **Over Limburg en Sittard.** Daar is bewust weinig van te vinden. Dertien bronnen zijn nagelopen
 (CPDL/ChoralWiki, Cantorion, IMSLP, Wikimedia Commons, Delpher, de Nederlandse Liederenbank van het
 Meertens Instituut, janwolters.nl, overtuin.net, MuseScore, abcnotation.com, Wikisource, de Limburgse
@@ -329,11 +321,10 @@ geverifieerd sterfjaar; van deze liedjes is **geen melodie overgeleverd**, dus e
 en de app zegt dat er ook bij: de liedlijst zet er "alleen tekst" op en het speelscherm zegt dat er geen
 begeleiding te maken valt. Niets verzonnen, ook niet muzikaal.
 
-**Over dubbelen.** De bundels overlappen elkaar: hetzelfde wijsje staat in O'Neill, in Kerr's én in
-Ryan's. `scripts/ontdubbel.js` haalt die eruit op titel plus het verloop van de melodie (los van de
-toonsoort, zodat ook een getransponeerde transcriptie als dubbel geldt) — 300 dubbelen eruit. De
-eerste drie bestanden blijven daarbij ongemoeid, omdat hun liedjesnummers al in de database van
-bestaande installaties kunnen zitten.
+**Over dubbelen.** Twee datasets kunnen elkaar overlappen. `scripts/ontdubbel.js` haalt die eruit op
+titel plus het verloop van de melodie (los van de toonsoort, zodat ook een getransponeerde transcriptie
+als dubbel geldt). Liedjesnummers die al in de database van een bestaande installatie kunnen zitten,
+blijven daarbij ongemoeid.
 
 Eerlijk over de grens: een app met de bladmuziek van *alle* nummers die bestaan kan niet legaal
 worden meegeleverd — de meeste muziek van na ~1928 valt onder auteursrecht. Daarom is AkkoordKast

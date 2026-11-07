@@ -3,8 +3,8 @@
 // Zet ABC-bestanden om naar een liedjes-dataset voor AkkoordKast.
 //
 // Gebruik:
-//   node scripts/abc-naar-liedjes.js --bron song-data/hymnen/raw --uit song-data/kerkwijsjes.json \
-//        --genre "Kerkwijsje" --bron-naam "Open Hymnal Project" --licentie "Publiek domein" [--max 300]
+//   node scripts/abc-naar-liedjes.js --bron <map met abc-bestanden> --uit <uitvoerbestand> \
+//        --genre "Volkswijsje" --bron-naam "<naam van de bron>" --licentie "<licentie>" [--max 300]
 //
 // De omzetter leest de melodie uit de eerste stem en haalt de akkoorden uit de
 // akkoordsymbolen ("C") als die er zijn, of anders uit de begeleidende stemmen
@@ -487,7 +487,7 @@ function main() {
   const meerdere = args.includes('--meerdere');
   const opties = {
     genre: optie('genre', 'Kerkwijsje'),
-    bronNaam: optie('bron-naam', 'Open Hymnal Project'),
+    bronNaam: optie('bron-naam', ''),
     licentie: optie('licentie', 'Publiek domein'),
     strum: optie('strum', 'D DU UDU')
   };
@@ -498,8 +498,7 @@ function main() {
   const fouten = {};
   const gezien = new Set();
   let zonderDiagram = 0;
-  // Een ABC-bestand kan meerdere wijsjes bevatten (bundels zoals Kerr's Merry
-  // Melodies en Ryan's Mammoth Collection): met --meerdere splitsen we die op
+  // Een ABC-bestand kan meerdere wijsjes bevatten: met --meerdere splitsen we die op
   // elke X:-regel, anders zou alleen het eerste wijsje van een bundel meetellen.
   const taken = [];
   for (const bestand of bestanden) {

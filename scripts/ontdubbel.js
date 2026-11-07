@@ -1,24 +1,8 @@
 'use strict';
 // Zoekt dubbelen over ALLE liedjes-datasets en haalt ze eruit.
 //
-// Waarom: de bundels overlappen elkaar. Hetzelfde Ierse wijsje staat in O'Neill's
-// Music of Ireland, in Kerr's Merry Melodies én in Ryan's Mammoth Collection. Zonder
-// deze stap zou een zoekopdracht op "The Rights of Man" vier identieke treffers geven.
-//
-// Werkwijze: de datasets worden in de volgorde van song-data/datasets.json gelezen
-// (die volgorde is ook de prioriteit: het eerste bestand wint). Van elk liedje maken
-// we een vingerafdruk van de titel plus het verloop van de melodie in hele en halve
-// toonafstanden — dat verloop is onafhankelijk van de toonsoort, zodat twee
-// transcripties van dezelfde wijs in een andere toonsoort alsnog als dubbel gelden.
-// Wat later komt en dezelfde vingerafdruk heeft, valt af.
-//
-// Gebruik:
-//   node scripts/ontdubbel.js                     -> alleen tellen (droogloop)
-//   node scripts/ontdubbel.js --doen              -> de datasets ook echt opschonen
-const fs = require('fs');
-const path = require('path');
-
-const WORTEL = path.resolve(__dirname, '..');
+// Waarom: datasets kunnen elkaar overlappen, bijvoorbeeld als dezelfde tekst uit twee
+// bronnen komt. Zonder deze stap staat zo'n liedje twee keer in de verzameling.
 const DATASETS = path.join(WORTEL, 'song-data', 'datasets.json');
 
 // Deze datasets blijven ongemoeid: hun liedjesnummers zitten al in de database van

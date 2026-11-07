@@ -891,7 +891,7 @@ function zoekLiedjes(query, profielId, opties) {
   if (taal) uit = uit.filter(l => String(filterVan(l, 'taal') || '').toLowerCase() === taal);
   if (genre) uit = uit.filter(l => String(filterVan(l, 'genre') || '').toLowerCase() === genre);
   // op artiest zoeken we met een gedeeltelijke overeenkomst: in de grote bundels
-  // staat de verzameling als "artiest" ("Kerr's Merry Melodies (Glasgow, 1870-1880)")
+    // staat de verzameling als "artiest"
   if (artiest) uit = uit.filter(l => (l.artiest || '').toLowerCase().includes(artiest));
   if (eigenFilter === '1') uit = uit.filter(l => l.eigen);
   if (eigenFilter === '0') uit = uit.filter(l => !l.eigen);

@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 'use strict';
-// Zet de MusicXML-bestanden van The Public Domain Song Anthology om naar een
-// liedjes-dataset voor AkkoordKast.
+// Zet MusicXML-bestanden om naar een liedjes-dataset voor AkkoordKast.
 //
 // Gebruik:
 //   node scripts/musicxml-naar-liedjes.js
-//      [--bron song-data/anthology/raw] [--uit song-data/anthology-liedjes.json]
+//      [--bron <map met xml-bestanden>] [--uit <uitvoerbestand>]
 //
 // Elk bestand heeft een <work-title>, een of meer <creator>, per maat <harmony>
 // (akkoorden) en in de noten <lyric> (de liedtekst). De melodie is de gezongen
@@ -435,7 +434,7 @@ function main() {
   const uitPad = optie('uit', 'song-data/anthology-liedjes.json');
   const opties = {
     genre: 'Liedje',
-    bronNaam: 'The Public Domain Song Anthology',
+    bronNaam: optie('bron-naam', ''),
     licentie: 'CC0 1.0 (publieke-domein-toewijding, Aperio Press)',
     strum: 'D DU UDU',
     tempo: 84

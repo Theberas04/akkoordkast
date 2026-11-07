@@ -202,8 +202,10 @@ test('de meegeleverde liedjes-dataset is compleet en houdt zich aan de whitelist
 });
 
 test('elk liedje met een melodie heeft per maat een speelbaar akkoord en nette noten', () => {
+  // De meegeleverde liedjes zijn Nederlandstalige liedjes met akkoorden; de bundels met melodieën
+  // (Iers, Engels, Schots) zijn er op verzoek uit gehaald. Zit er nog wel een melodie bij, dan moet
+  // die aan dezelfde eisen voldoen — vandaar de controle zonder minimumaantal.
   const metMelodie = bron.alle().filter(l => l.noten.length);
-  assert.ok(metMelodie.length >= 100, 'te weinig liedjes met melodie: ' + metMelodie.length);
   for (const lied of metMelodie) {
     const laatste = lied.noten[lied.noten.length - 1];
     const maten = Math.ceil((laatste.start + laatste.duur) / lied.maatsoort - 1e-6);
@@ -224,8 +226,16 @@ test('elk liedje met een melodie heeft per maat een speelbaar akkoord en nette n
 });
 
 test('de tijdlijn van een liedje met melodie past bij de maten en de noten', () => {
-  const lied = bron.alle().find(l => l.noten.length && l.noten.length > 12);
-  assert.ok(lied, 'geen liedje met melodie gevonden');
+  // Er zit geen liedje met melodie meer in de verzameling, dus maken we er hier zelf een: vier maten
+  // met zestien noten. Zo blijft de tijdlijnberekening voor melodieën getest.
+  const lied = {
+    titel: 'Proefwijsje', tempo: 100, maatsoort: 4, strum: 'D DU UDU',
+    akkoordenPerMaat: ['C', 'G', 'Am', 'F'], noten: []
+  };
+  for (let i = 0; i < 16; i++) {
+    lied.noten.push({ start: i * 0.5, duur: 0.5, midi: 60 + (i % 5), naam: 'C', snaar: 1, fret: 1 + (i % 4) });
+  }
+  assert.ok(lied.noten.length > 12);
   const plan = tijdlijn.maakPlan({
     akkoorden: lied.akkoordenPerMaat,
     rondes: 1,

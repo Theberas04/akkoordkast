@@ -9,7 +9,7 @@
 ![Node 22](https://img.shields.io/badge/Node.js-22%20(node%3Asqlite)-3c873a)
 ![geen npm-afhankelijkheden](https://img.shields.io/badge/dependencies-geen-34d399)
 ![taal](https://img.shields.io/badge/taal-Nederlands-60a5fa)
-![liedjes](https://img.shields.io/badge/liedjes-8701-f5a524)
+![liedjes](https://img.shields.io/badge/liedjes-48-f5a524)
 ![bronnen](https://img.shields.io/badge/bronnen-publiek%20domein-34d399)
 
 Je opent AkkoordKast op je telefoon of laptop, zoekt een liedje en ziet meteen:
@@ -281,20 +281,15 @@ meestal wat je zoekt.
 
 ## De liedjes
 
-Meegeleverd: **8.680 liedjes**, allemaal met akkoorden per maat en (waar de bron dat heeft) de melodie,
-verdeeld over zes bestanden met eigen id-bereiken. Welke bestanden meegaan staat in
+Meegeleverd: **48 liedjes**, allemaal Nederlandstalig, met akkoorden per maat en (waar de bron dat
+heeft) de melodie. Welke bestanden meegaan staat in
 [`song-data/datasets.json`](song-data/datasets.json); een test controleert dat die lijst, de bestanden
 op schijf en de installatiescripts hetzelfde zeggen.
 
 | Bestand | Aantal | Wat | Id's |
 | --- | --- | --- | --- |
-| [`song-data/liedjes.json`](song-data/liedjes.json) | 27 | met tekst en akkoorden: Nederlandse kinder- en Sinterklaasliedjes, kerstliedjes, het Wilhelmus, het **Limburgs volkslied**, Engelstalige en Afrikaanse traditionals, plus instrumentale stukken met tab | 1–27 |
-| [`song-data/volkswijsjes.json`](song-data/volkswijsjes.json) | 971 | melodieën uit de Nottingham-collectie (jigs, reels, waltzes, morris, Playford), instrumentaal, akkoorden uit de bron | 100.000+ |
-| [`song-data/kerkwijsjes.json`](song-data/kerkwijsjes.json) | 328 | kerkwijsjes uit het Open Hymnal Project, instrumentaal, akkoorden uit de vierstemmige zetting | 200.000+ |
-| [`song-data/anthology-liedjes.json`](song-data/anthology-liedjes.json) | 314 | liedjes **met tekst** uit The Public Domain Song Anthology (CC0), Engelstalig, akkoorden uit de harmonisatie, noten uit de zangstem | 500.000+ |
-| [`song-data/oneill-liedjes.json`](song-data/oneill-liedjes.json) | 2.352 | Ierse wijsjes uit O'Neill's *Music of Ireland* en *Dance Music of Ireland* (1903): jigs, reels, hornpipes, airs | 300.000+ |
-| [`song-data/limburg-liedjes.json`](song-data/limburg-liedjes.json) | 22 | Limburg: het volkslied en drie liedjes van de Sittardse troubadour **Jo Erens** (tekst én muziek, sinds 1 januari dit jaar rechtenvrij) met akkoordschema, plus **achttien publiek-domein liedteksten** uit Maastricht (Mestreechs dialect, uit de bloemlezing van Endepols, 1943) en Belgisch-Limburg (Lambrechts) — van die achttien is geen melodie overgeleverd, dus die staan er als tekst zonder akkoorden | 600.000+ |
-| [`song-data/oude-bundels.json`](song-data/oude-bundels.json) | 4.688 | historische dansbundels: Kerr's *Merry Melodies*, Ryan's *Mammoth Collection* / Cole's *1000 Fiddle Tunes*, en achttiende-eeuwse Engelse manuscripten | 400.000+ |
+| [`song-data/liedjes.json`](song-data/liedjes.json) | 26 | met tekst en akkoorden: Nederlandse kinder- en Sinterklaasliedjes, kerstliedjes, het Wilhelmus, het **Limburgs volkslied**, plus instrumentale stukken met tab | 1–26 |
+| [`song-data/limburg-liedjes.json`](song-data/limburg-liedjes.json) | 22 | Limburg: het volkslied en drie liedjes van de Sittardse troubadour **Jo Erens** (tekst én muziek, rechtenvrij) met akkoordschema, plus **achttien publiek-domein liedteksten** uit Maastricht (Mestreechs dialect, uit de bloemlezing van Endepols, 1943) en Belgisch-Limburg (Lambrechts) — van die achttien is geen melodie overgeleverd, dus die staan er als tekst zonder akkoorden | 600.000+ |
 
 Elk liedje houdt de toonsoort die de bron aangeeft; waar een akkoord geen greep heeft zoekt de
 app de dichtstbijzijnde toonsoort waarin alles speelbaar is, en verder lost het capo-advies het op.
@@ -302,24 +297,16 @@ app de dichtstbijzijnde toonsoort waarin alles speelbaar is, en verder lost het 
 **Over de licenties.** Er komt niets in de app zonder een licentie die publiek domein, CC0, CC-BY of
 MIT is; bronnen met "niet-commercieel", "geen afgeleiden" of share-alike vallen af, en The Session
 (thesession.org, ~10.000 Ierse tunes) valt af omdat de licentie daarvan gebruik met Large Language
-Models verbiedt. Per groep:
+Models verbiedt. De 26 liedjes met tekst en de Limburgse liedjes zijn publiek domein; de bronvermelding
+staat per liedje in de dataset.
 
-- **De 26 liedjes met tekst** zijn publiek domein.
-- **De volkswijsjes** komen uit een collectie zonder expliciete licentieverklaring op de bronpagina —
-  negentiende-eeuwse traditionals, maar zonder licentie-grant; daarom staan ze in een **apart bestand**
-  dat je met één regel kunt weglaten. De kerkwijsjes komen uit het Open Hymnal Project, dat zijn
-  publiek-domeinstatus in elk bestand zelf verklaart.
-- **The Public Domain Song Anthology** (David Berger en Chuck Israels, Aperio Press) is CC0 1.0.
-- **O'Neill (1903)** is publiek domein; de ABC-transcripties eisen **naamsvermelding van de
-  transcribers** (folkies/oneill-project, 1997-2000) — die staat per liedje in de dataset.
-- **De oude bundels**: de achttiende-eeuwse Engelse manuscripten komen van Gubbledenut/ABC TuneBooks
-  (CC0 1.0), de historische collecties van Eric Conrad (MIT), en Kerr's en Ryan's Mammoth Collection
-  zijn getranscribeerd door **John Chambers** (JC's Online Music Books), die ze publiek domein en vrij
-  te kopiëren verklaart.
-
-De bronvermelding en de letterlijke licentieverklaringen staan per bron in de manifesten onder
-`song-data/` (bijvoorbeeld `oneill/manifest-oneill.json` en `anthology/manifest-anthology.json`),
-plus per liedje in de dataset zelf.
+**Wat er niet meer in zit en waarom.** Tot versie 1.51.0 zaten er ook niet-Nederlandse bundels in:
+de Nottingham-collectie (971 volkswijsjes), het Open Hymnal Project (328 kerkwijsjes), The Public
+Domain Song Anthology (314 Engelstalige liedjes), O'Neill's *Music of Ireland* (2.352 Ierse wijsjes) en
+historische dansbundels als Kerr's *Merry Melodies* en Ryan's *Mammoth Collection* (4.688 wijsjes) —
+samen **8.653 liedjes**. Die zijn er op verzoek uit gehaald: dit is een **Nederlandstalig** songbook.
+De muziek was publiek domein, dus de bestanden zijn zo terug te halen (uit de geschiedenis van dit
+repo); daarna is het een regel in `song-data/datasets.json` plus het bestand zelf.
 
 **Over Limburg en Sittard.** Daar is bewust weinig van te vinden. Dertien bronnen zijn nagelopen
 (CPDL/ChoralWiki, Cantorion, IMSLP, Wikimedia Commons, Delpher, de Nederlandse Liederenbank van het

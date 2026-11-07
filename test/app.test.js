@@ -555,25 +555,27 @@ test('de artiestenlijst geeft namen met hun aantal liedjes', async () => {
     assert.ok(lijst[i - 1].aantal >= lijst[i].aantal, 'de lijst is niet gesorteerd');
   }
   assert.ok(!lijst.some(a => !a.naam.trim()), 'lege artiestennaam in de lijst');
-  assert.ok(lijst.some(a => a.aantal >= 100), 'de grote bundels horen bovenaan te staan');
+  // De verzameling is Nederlandstalig en klein; de grootste artiest is 'Traditioneel'. Er hoeft dus
+  // geen artiest met honderd liedjes meer in te zitten, maar sorteren en tellen moet nog kloppen.
+  assert.ok(lijst.some(a => a.aantal >= 5), 'de grootste artiesten horen bovenaan te staan');
 });
 
 test('het liedjesfilter werkt op artiest, ook gedeeltelijk', async () => {
   const alles = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=1');
   const totaalAlles = alles.data.totaal;
 
-  const vol = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=200&artiest=' + encodeURIComponent("Kerr's Merry Melodies"));
+  const vol = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=200&artiest=Traditioneel');
   assert.equal(vol.status, 200);
-  assert.ok(vol.data.totaal > 100, 'te weinig treffers op de bundelnaam: ' + vol.data.totaal);
+  assert.ok(vol.data.totaal > 5, 'te weinig treffers op de artiest: ' + vol.data.totaal);
   assert.ok(vol.data.totaal < totaalAlles, 'het filter laat alles door');
-  for (const l of vol.data.liedjes) assert.match(l.artiest, /Kerr's Merry Melodies/);
+  for (const l of vol.data.liedjes) assert.match(l.artiest, /Traditioneel/);
 
   // een stukje van de naam is genoeg
-  const stuk = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=5&artiest=O%27Neill');
-  assert.ok(stuk.data.totaal > 1000, 'gedeeltelijk zoeken werkt niet: ' + stuk.data.totaal);
+  const stuk = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=5&artiest=Lambrechts');
+  assert.ok(stuk.data.totaal > 1, 'gedeeltelijk zoeken werkt niet: ' + stuk.data.totaal);
 
   // en het filter is te combineren met een genre
-  const combi = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=5&artiest=O%27Neill&genre=Danswijsje');
+  const combi = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=5&artiest=Lambrechts&genre=Volkslied');
   assert.ok(combi.data.totaal >= 0 && combi.data.totaal <= stuk.data.totaal, 'de combinatie klopt niet');
 
   const niets = await haal(omgeving.basis, '/api/liedjes?compact=1&aantal=5&artiest=bestaatnietecht');

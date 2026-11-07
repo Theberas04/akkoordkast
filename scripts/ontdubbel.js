@@ -25,7 +25,7 @@ const DATASETS = path.join(WORTEL, 'song-data', 'datasets.json');
 // bestaande installaties (eigen opnames, Spotify-koppelingen, imports), en een regel
 // uit het midden halen zou al die nummers opschuiven. Ze tellen wel mee als
 // referentie: wat nieuws is én al in een van deze bestanden staat, valt af.
-const VAST = ['liedjes.json', 'volkswijsjes.json', 'kerkwijsjes.json'];
+const VAST = ['liedjes.json', 'limburg-liedjes.json'];
 
 function leesJSON(pad) {
   return JSON.parse(fs.readFileSync(pad, 'utf8'));

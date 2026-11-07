@@ -3,9 +3,8 @@
 //
 // Elk databestand heeft zijn eigen id-bereik, zodat een liedje altijd hetzelfde
 // nummer houdt ook als er later liedjes aan een ander bestand worden toegevoegd:
-//   liedjes.json      1.   eigen Nederlandse liedjes
-//   volkswijsjes.json 100.000+  traditionele volkswijsjes (met melodie)
-//   kerkwijsjes.json  200.000+  kerkwijsjes (met melodie)
+//   liedjes.json            1.  Nederlandse liedjes
+//   limburg-liedjes.json  600.000+  Limburgse liedjes met tekst
 // Eigen liedjes van de gebruiker beginnen bij 900.000.
 const fs = require('fs');
 const path = require('path');
@@ -21,8 +20,7 @@ const grepen = require('./lib/grepen');
 // datasetbestanden dekt en dat de installatiescripts ze allemaal meenemen.
 const VAST = [
   { bestand: path.join(__dirname, 'song-data', 'liedjes.json'), vanaf: 1 },
-  { bestand: path.join(__dirname, 'song-data', 'volkswijsjes.json'), vanaf: 100000 },
-  { bestand: path.join(__dirname, 'song-data', 'kerkwijsjes.json'), vanaf: 200000 }
+  { bestand: path.join(__dirname, 'song-data', 'limburg-liedjes.json'), vanaf: 600000 }
 ];
 
 function leesIndex() {

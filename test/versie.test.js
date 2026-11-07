@@ -14,7 +14,7 @@ test('de versie is op te vragen en de pagina zet hem in de kop', async () => {
     const uit = await hulp.haal(omgeving.basis, '/api/versie');
     assert.equal(uit.status, 200, 'de versie hoort zonder inloggen op te vragen te zijn');
     assert.match(String(uit.data.versie), /^\d+\.\d+\.\d+$/, 'de versie hoort er als 1.2.3 uit te zien');
-    assert.ok(uit.data.liedjes > 1000, 'het aantal liedjes hoort erbij te staan');
+    assert.ok(uit.data.liedjes > 10, 'het aantal liedjes hoort erbij te staan');
   } finally {
     await omgeving.stop();
   }

@@ -79,13 +79,8 @@ PAGINA=(
 )
 DATA=(
   "song-data/liedjes.json"
-  "song-data/volkswijsjes.json"
-  "song-data/kerkwijsjes.json"
   "song-data/datasets.json"
   "song-data/limburg-liedjes.json"
-  "song-data/anthology-liedjes.json"
-  "song-data/oneill-liedjes.json"
-  "song-data/oude-bundels.json"
   "scripts/cast-helper.py"
   "scripts/bijwerken-in-de-app.sh"
   "scripts/analyseer-bestand.js"

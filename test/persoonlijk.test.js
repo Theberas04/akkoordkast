@@ -212,7 +212,7 @@ test('de app vertelt welke versie er draait en hoe je bijwerkt', async () => {
   const versie = await baas.haal('/api/versie');
   assert.equal(versie.status, 200);
   assert.ok(versie.data.versie, 'de versie ontbreekt');
-  assert.ok(versie.data.liedjes > 1000, 'het aantal liedjes ontbreekt');
+  assert.ok(versie.data.liedjes > 10, 'het aantal liedjes ontbreekt');
   assert.ok(versie.data.gestart, 'het startmoment ontbreekt');
   assert.equal(versie.data.updateMogelijk, false, 'zonder update-script hoort bijwerken niet te kunnen');
   assert.match(versie.data.updateCommando, /update-from-github\.sh/);

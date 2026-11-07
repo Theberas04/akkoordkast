@@ -1,13 +1,13 @@
 'use strict';
 // Service worker: alleen de app-schil cachen. /api/ en /media/ blijven altijd live,
 // zodat liedjes, audio en cast-status nooit uit een oude cache komen.
-const CACHE = 'akkoordkast-v89';
+const CACHE = 'akkoordkast-v90';
 // Deze bestanden komen ALTIJD eerst van de server. Ze zijn klein, en zo zie je na een bijwerking meteen
 // de nieuwe versie in plaats van de oude uit de cache - dat kostte eerder een tweede keer laden, waardoor
 // een melding die al weg was toch bleef staan.
 const NETWERK_EERST = ['/', '/index.html', '/lib/lessen-uitgebreid.js', '/lib/stemmen.js', '/lib/ritme.js',
-  '/lib/toonladders.js', '/lib/oefenplan.js'];
-const SCHIL = ['/', '/index.html', '/favicon.svg', '/manifest.webmanifest', '/icon-192.png', '/lib/lessen-uitgebreid.js', '/lib/stemmen.js', '/lib/ritme.js', '/lib/toonladders.js', '/lib/oefenplan.js'];
+  '/lib/toonladders.js', '/lib/noten.js', '/lib/oefenplan.js'];
+const SCHIL = ['/', '/index.html', '/favicon.svg', '/manifest.webmanifest', '/icon-192.png', '/lib/lessen-uitgebreid.js', '/lib/stemmen.js', '/lib/ritme.js', '/lib/toonladders.js', '/lib/noten.js', '/lib/oefenplan.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SCHIL)).then(() => self.skipWaiting()));

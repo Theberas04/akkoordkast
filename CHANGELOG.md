@@ -3,6 +3,20 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.54.0] — 7 november 2026
+
+### Noten lezen
+
+In het tabblad **Leren** staat een nieuw gereedschap: **Noten lezen**. Je ziet één noot op de
+notenbalk en zegt hoe hij heet (C, D, E, F, G, A of B). Daarna zie je waar die noot op de hals zit,
+zodat de balk en je gitaar aan elkaar vast gaan zitten.
+
+- Alleen de stamtonen en alleen de eerste positie: precies wat je bij een liedje nodig hebt.
+- De balk is dezelfde als bij het meespelen (de onderste lijn is de E), dus wat je hier leert, lees
+  je daar terug.
+- Er staat bij hoe je het noemt: "Dat is de C4 — de B-snaar, vak 1", met de plaats op de hals erbij.
+- Het rekent in `lib/noten.js`, met een eigen proef (`test/noten-lezen.test.js`).
+
 ## [1.53.0] — 7 november 2026
 
 ### Zes dingen die het spelen prettiger maken

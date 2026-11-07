@@ -448,6 +448,16 @@
   #toetsen-slot{position:fixed;inset:0;background:rgba(4,8,18,.82);z-index:70;display:flex;
     align-items:center;justify-content:center;padding:18px}
   #toetsen-slot .kaart{max-width:540px;width:100%}
+  /* Noten lezen: één noot op de balk, groot genoeg om te lezen. */
+  .noten-balk{background:var(--pane2);border:1px solid var(--lijn);border-radius:12px;padding:6px 0;
+    margin:10px 0;display:flex;justify-content:center;overflow-x:auto}
+  .noten-balk svg{display:block}
+  .noten-balk .nb-stok{stroke:var(--tekst);stroke-width:1.6}
+  #noten-antwoorden{justify-content:center}
+  #noten-antwoorden .knop{min-width:66px;font-size:1.05rem;justify-content:center}
+  #noten-hals{justify-content:center}
+  .noten-goed{color:var(--groen)}
+  .noten-fout{color:var(--rood)}
   #toetsen-slot dl{display:grid;grid-template-columns:auto 1fr;gap:7px 26px;margin:10px 0 0}
   #toetsen-slot dt{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--amber2);white-space:nowrap}
   #toetsen-slot dd{margin:0;color:var(--tekst2)}
@@ -1295,6 +1305,22 @@
       <div class="les-klein" id="ladder-melding"></div>
     </div>
 
+    <div class="kaart" id="noten-kaart">
+      <h2>Noten lezen</h2>
+      <p class="les-klein" style="margin:0 0 12px">Je ziet één noot op de notenbalk en zegt hoe hij heet. Daarna
+        zie je waar hij op de hals zit, zodat de balk en je gitaar aan elkaar vast gaan zitten. Alleen de stamtonen
+        (C, D, E, F, G, A, B) en alleen de eerste positie. Onthoud: de <strong>onderste lijn</strong> van de balk is
+        de <strong>E</strong>, en elke lijn of ruimte hoger is de volgende noot.</p>
+      <div class="rij">
+        <button class="knop" id="noten-nieuw">Nieuwe vraag</button>
+        <span class="pilletje" id="noten-score">0 goed van 0</span>
+        <span class="les-klein" id="noten-melding"></span>
+      </div>
+      <div class="noten-balk" id="noten-balk"></div>
+      <div class="rij" id="noten-antwoorden"></div>
+      <div class="rij" id="noten-hals"></div>
+    </div>
+
     <div class="kaart" id="grepen-kaart">
       <div class="leren-kop">
         <div>
@@ -1800,6 +1826,7 @@
 <script src="/lib/toonladders.js"></script>
 <script src="/lib/oefenplan.js"></script>
 <script src="/lib/lessen-uitgebreid.js"></script>
+<script src="/lib/noten.js"></script>
 <script>
 'use strict';
 var staat = {
@@ -3746,6 +3773,79 @@ function toonToetsen() {
 }
 function sluitToetsen() { var slot = $('toetsen-slot'); if (slot) slot.hidden = true; }
 
+// ------------------------------------------------------------- noten lezen ---
+// Welke noot staat er op de balk? Dezelfde balk als bij het meespelen: de onderste lijn is de E,
+// en de app schrijft de noten zoals ze klinken.
+var NOTEN = { vraag: null, goed: 0, gehad: 0, geantwoord: false, gestart: false };
+
+function startNotenLezen() {
+  if (NOTEN.gestart) return;
+  NOTEN.gestart = true;
+  if ($('noten-nieuw')) $('noten-nieuw').addEventListener('click', nieuweNootVraag);
+  nieuweNootVraag();
+}
+
+function nieuweNootVraag() {
+  var reken = window.notenRekenen;
+  if (!reken || !$('noten-balk')) return;
+  NOTEN.vraag = reken.maakVragen(1)[0] || null;
+  NOTEN.geantwoord = false;
+  if (!NOTEN.vraag) return;
+  tekenNootVraag();
+}
+
+// Eén noot op de notenbalk, zonder de naam erbij: dat is juist de vraag.
+function tekenNootBalk(midi) {
+  var x = 92;
+  var y = nbY(midi);
+  var svg = '<svg width="184" height="150" viewBox="0 0 184 150" role="img" aria-label="een noot op de notenbalk">';
+  for (var l = 0; l < 5; l++) {
+    var ly = 26 + l * 2 * NB_HALF;
+    svg += '<line class="nb-lijn" x1="12" y1="' + ly + '" x2="172" y2="' + ly + '"/>';
+  }
+  svg += nbLedgers(y, x);
+  svg += '<ellipse class="nb-noot" cx="' + x + '" cy="' + y + '" rx="6.6" ry="4.8" ' +
+    'transform="rotate(-18 ' + x + ' ' + y + ')"/>';
+  svg += '<line class="nb-stok" x1="' + (x + 6) + '" y1="' + y + '" x2="' + (x + 6) + '" y2="' + (y - 32) + '"/>';
+  svg += '</svg>';
+  return svg;
+}
+
+function tekenNootVraag() {
+  var reken = window.notenRekenen;
+  var plaats = NOTEN.vraag;
+  $('noten-balk').innerHTML = tekenNootBalk(plaats.midi);
+  $('noten-antwoorden').innerHTML = reken.antwoordNamen(plaats.midi).map(function (n) {
+    return '<button class="knop zacht" data-noot-antwoord="' + esc(n) + '">' + esc(n) + '</button>';
+  }).join('');
+  Array.prototype.forEach.call($('noten-antwoorden').querySelectorAll('[data-noot-antwoord]'), function (knop) {
+    knop.addEventListener('click', function () { antwoordNoot(knop.getAttribute('data-noot-antwoord')); });
+  });
+  $('noten-hals').innerHTML = '';
+  $('noten-melding').textContent = '';
+  $('noten-score').textContent = NOTEN.goed + ' goed van ' + NOTEN.gehad;
+}
+
+function antwoordNoot(antwoord) {
+  var reken = window.notenRekenen;
+  if (!NOTEN.vraag || NOTEN.geantwoord || !reken) return;
+  NOTEN.geantwoord = true;
+  NOTEN.gehad++;
+  var goed = reken.isGoed(NOTEN.vraag.midi, antwoord);
+  if (goed) NOTEN.goed++;
+  var melding = $('noten-melding');
+  melding.className = 'les-klein ' + (goed ? 'noten-goed' : 'noten-fout');
+  melding.textContent = (goed ? 'Goed. ' : 'Niet goed, het is de ' + reken.naam(NOTEN.vraag.midi) + '. ') +
+    reken.uitleg(NOTEN.vraag);
+  var frets = [-1, -1, -1, -1, -1, -1];
+  frets[NOTEN.vraag.snaar] = NOTEN.vraag.vak;
+  $('noten-hals').innerHTML = tekenHals({ frets: frets, vingers: [] }, 0, 'hier zit hij');
+  $('noten-score').textContent = NOTEN.goed + ' goed van ' + NOTEN.gehad;
+  Array.prototype.forEach.call($('noten-antwoorden').querySelectorAll('[data-noot-antwoord]'), function (k) {
+    if (k.getAttribute('data-noot-antwoord') === reken.naam(NOTEN.vraag.midi)) k.className = 'knop';
+  });
+}
+
 // Sneltoetsen. Spatie start en stopt het meespelen (dat is wat je tijdens het spelen wilt);
 // door het blad gaan doet PageDown/PageUp of Shift met de pijltjes, of de pijltjes alleen
 // voor maat voor maat.
@@ -4672,7 +4772,7 @@ function tekenTab(tl) {
 }
 
 // De hals met de greep van het akkoord dat nu klinkt.
-function tekenHals(info, capo) {
+function tekenHals(info, capo, onderschrift) {
   if (!info || !info.frets || !info.frets.length) return '<p class="melding">Geen greep bekend voor dit akkoord.</p>';
   var frets = info.frets;
   var vingers = info.vingers || [];
@@ -4708,7 +4808,7 @@ function tekenHals(info, capo) {
     svg += '<rect x="' + (x0 - 4) + '" y="' + (y0 - 16) + '" width="' + (5 * snaarAfstand + 8) + '" height="7" rx="3.5" fill="#f59e0b"/>';
     svg += '<text class="hs-capo" x="' + (x0 + 5 * snaarAfstand + 9) + '" y="' + (y0 - 10) + '">capo ' + capo + '</text>';
   }
-  svg += '<text class="hs-open" x="' + (x0 + 2.5 * snaarAfstand) + '" y="' + (y0 + 5 * fretHoogte + 17) + '" text-anchor="middle">grepen onder de capo</text>';
+  svg += '<text class="hs-open" x="' + (x0 + 2.5 * snaarAfstand) + '" y="' + (y0 + 5 * fretHoogte + 17) + '" text-anchor="middle">' + esc(onderschrift || 'grepen onder de capo') + '</text>';
   svg += '</svg>';
   return svg;
 }
@@ -8777,6 +8877,7 @@ function laadLabels() {
 
 function laadLeren() {
   laadOefencijfers();
+  startNotenLezen();
   if (lerenGeladen) { toonLeerVoortgang(); return; }
   lerenGeladen = true;
   tekenLessen();

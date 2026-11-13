@@ -192,6 +192,7 @@ Het toevoeggereedschap zit in een **eigen profiel** (`Admin`), niet in je gewone
 | Muziek of video uploaden, een map laten omzetten | beheerder, in het profiel Admin |
 | Downloaden als mp3 (link plakken; als nieuwe muziek of bij een bestaand liedje) | beheerder, in het profiel Admin |
 | Een hele artiest of afspeellijst ophalen (elk nummer wordt een eigen liedje) | beheerder, in het profiel Admin |
+| Hoeveel ruimte er nog is, wat het meest inneemt en oude reservekopieën opruimen (blok **Schijf**) | beheerder, in het profiel Admin |
 | Muziekmappen toevoegen of weghalen, eigen liedjes bewerken, opnamen uploaden | beheerder |
 | Liedjes uit de app halen (eigen liedjes echt, meegeleverde verbergen) | beheerder |
 | Filters beheren: talen en genres toevoegen, weghalen en liedjes eraan koppelen | beheerder |

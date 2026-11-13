@@ -23,6 +23,7 @@ const spotify = require('./lib/spotify');
 const muziekbestand = require('./lib/muziekbestand');
 const youtube = require('./lib/youtube');
 const downloader = require('./lib/downloader');
+const schijf = require('./lib/schijf');
 const beheer = require('./lib/beheer');
 const theorie = require('./lib/theorie');
 const bron = require('./liedjes-bron');
@@ -39,7 +40,7 @@ const CAST_HELPER = process.env.CAST_HELPER
   : path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.55.0';
+const VERSIE = '1.56.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -3396,6 +3397,47 @@ async function verwerk(req, res) {
     });
     return;
   }
+  // Hoe vol zit de schijf? Met de reservekopieën van het bijwerken erbij en de grootste mappen,
+  // zodat je weet waar de ruimte naartoe is.
+  if (pad === '/api/beheer/schijf' && methode === 'GET') {
+    if (!eisBeheerder()) return;
+    const ruimte = schijf.vrijeRuimte(DATA_DIR);
+    const kopieen = schijf.reservekopieen(DATA_DIR);
+    let grootste = [];
+    try {
+      grootste = fs.readdirSync(DATA_DIR, { withFileTypes: true })
+        .filter(d => d.isDirectory() && d.name !== schijf.VOORVOEGSEL.slice(0, -1))
+        .map(d => ({ naam: d.name, bytes: schijf.mapGrootte(path.join(DATA_DIR, d.name)) }))
+        .sort((a, b) => b.bytes - a.bytes)
+        .slice(0, 8);
+    } catch (e) { grootste = []; }
+    json(res, 200, {
+      vrij: ruimte ? ruimte.vrij : null,
+      totaal: ruimte ? ruimte.totaal : null,
+      vrijTekst: schijf.leesbaar(ruimte && ruimte.vrij),
+      totaalTekst: schijf.leesbaar(ruimte && ruimte.totaal),
+      map: DATA_DIR,
+      reservekopieen: kopieen.map(k => ({ naam: k.naam, nieuwste: k.nieuwste, bytes: k.bytes, tekst: schijf.leesbaar(k.bytes), wanneer: k.wanneer })),
+      grootste: grootste.map(g => ({ naam: g.naam, bytes: g.bytes, tekst: schijf.leesbaar(g.bytes) })),
+    });
+    return;
+  }
+
+  // De oude reservekopieën opruimen. De nieuwste blijft staan, zodat een mislukte bijwerking
+  // altijd terug te draaien is.
+  if (pad === '/api/beheer/schijf/opruimen' && methode === 'POST') {
+    if (!eisBeheerder()) return;
+    const uitkomst = schijf.ruimReserveOp(DATA_DIR);
+    const ruimte = schijf.vrijeRuimte(DATA_DIR);
+    json(res, 200, {
+      verwijderd: uitkomst.verwijderd,
+      bewaard: uitkomst.bewaard,
+      vrijgemaaktTekst: schijf.leesbaar(uitkomst.vrijgemaakt),
+      vrijTekst: schijf.leesbaar(ruimte && ruimte.vrij),
+    });
+    return;
+  }
+
   if (pad === '/api/beheer/wachtwoord' && methode === 'POST') {
     const body = await leesJsonBody(req);
     const nieuw = String(body.wachtwoord || '');

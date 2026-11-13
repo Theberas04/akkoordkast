@@ -3,6 +3,16 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.56.0] — 13 november 2026
+
+### Schijf: je ziet hoeveel ruimte er is, en ruimt oude kopieën op
+
+- In **Beheer en bijwerken** staat een blok **Schijf**: hoeveel ruimte er nog is, welke mappen in de
+  gegevens van de app het meest innemen, en welke reservekopieën het bijwerken heeft achtergelaten.
+  Met één knop ruim je de oude op; de nieuwste blijft altijd bewaard.
+- Zit de schijf vol, dan zegt de app dat in gewoon Nederlands, met hoeveel ruimte er nog is en waar
+  je het kunt opruimen — in plaats van "No space left on device".
+
 ## [1.55.0] — 7 november 2026
 
 ### Een setlist delen

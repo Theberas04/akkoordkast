@@ -8542,6 +8542,47 @@ function beheerVraag() {
   }).catch(function () { return BEHEER; });
 }
 
+function laadSchijf() {
+  var houder = $('schijf-kaart');
+  if (!houder) return;
+  api('/api/beheer/schijf').then(function (d) {
+    if (!d || d.fout) {
+      houder.innerHTML = '<div class="meta">De schijfgegevens konden niet gelezen worden.</div>';
+      return;
+    }
+    var uit = '<div class="rij"><span class="chip">Schijf</span>' +
+      '<span class="meta">' + (d.vrijTekst || '?') + ' vrij van ' + (d.totaalTekst || '?') + '</span></div>';
+    if (d.grootste && d.grootste.length) {
+      uit += '<div class="meta">Grootste mappen in de gegevens van de app:</div><ul class="lijst-klein">' +
+        d.grootste.map(function (g) { return '<li>' + g.naam + ' — ' + g.tekst + '</li>'; }).join('') + '</ul>';
+    }
+    var kopieen = d.reservekopieen || [];
+    if (kopieen.length) {
+      uit += '<div class="meta">Reservekopieën van het bijwerken: ' + kopieen.length + ' (' +
+        kopieen.map(function (k) { return k.tekst; }).join(', ') + '). De nieuwste blijft altijd bewaard.</div>';
+      if (kopieen.length > 1) {
+        uit += '<div class="rij"><button class="knop zacht" id="schijf-opruimen">Oude reservekopieën opruimen</button></div>';
+      }
+    } else {
+      uit += '<div class="meta">Er staan geen reservekopieën van het bijwerken.</div>';
+    }
+    uit += '<div class="melding" id="schijf-melding" hidden></div>';
+    houder.innerHTML = uit;
+    if ($('schijf-opruimen')) {
+      $('schijf-opruimen').addEventListener('click', function () {
+        api('/api/beheer/schijf/opruimen', { method: 'POST' }).then(function (u) {
+          var tekst = (u && u.verwijderd && u.verwijderd.length)
+            ? u.verwijderd.length + ' oude kopie' + (u.verwijderd.length === 1 ? '' : 'en') + ' opgeruimd, ' + u.vrijgemaaktTekst + ' vrijgemaakt.'
+            : 'Er was niets om op te ruimen.';
+          if (u && u.vrijTekst) tekst += ' Nu ' + u.vrijTekst + ' vrij.';
+          toonMelding('schijf-melding', tekst, 'goed');
+          laadSchijf();
+        });
+      });
+    }
+  });
+}
+
 function tekenBeheer() {
   var houder = $('beheer-inhoud');
   var paneel = $('paneel-toevoegen');
@@ -8552,7 +8593,8 @@ function tekenBeheer() {
       '<div class="rij"><span class="chip">ingelogd als beheerder</span></div>' +
       '<div class="rij"><button class="knop zacht" id="beheer-uit">Uitloggen</button>' +
       '<button class="knop zacht" id="beheer-wijzig">Wachtwoord wijzigen</button></div>' +
-      '<div id="beheer-extra"></div>';
+      '<div id="beheer-extra"></div>' +
+      '<div id="schijf-kaart"></div>';
     $('beheer-uit').addEventListener('click', function () {
       api('/api/beheer/uitloggen', { method: 'POST' }).then(function () {
         toonMelding('beheer-melding', 'Je bent uitgelogd; het beheerdersprofiel zit weer op slot.', 'goed');
@@ -8576,6 +8618,7 @@ function tekenBeheer() {
     });
     laadWegLijst();
     laadFilterBeheer();
+    laadSchijf();
     return;
   }
   if (!BEHEER.ingesteld) {

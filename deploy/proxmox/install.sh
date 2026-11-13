@@ -72,6 +72,7 @@ FILES=(
   "lib/ritme.js"
   "lib/toonladders.js"
   "lib/noten.js"
+  "lib/schijf.js"
   "lib/oefenplan.js"
   "lib/voorstel.js"
   "lib/lessen-uitgebreid.js"

@@ -138,8 +138,9 @@ test('de service worker haalt de pagina echt van de server, ook als de cache hem
     skipWaiting: async () => {},
     clients: { claim: async () => {} }
   };
-  new Function('self', 'caches', 'fetch', 'location', bron)(
-    nepSelf, nepCaches, nepFetch, { origin: 'https://proef' });
+  const offline = require('../lib/offline');
+  new Function('self', 'caches', 'fetch', 'location', 'offlineRekenen', 'importScripts', bron)(
+    nepSelf, nepCaches, nepFetch, { origin: 'https://proef' }, offline, () => {});
 
   // De oude pagina staat al in de cache.
   cacheMap.set('https://proef/', { ok: true, oud: true });

@@ -3,6 +3,30 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.58.0] — 15 november 2026
+
+### Setlists offline klaarzetten
+
+- Op de setlistkaart staat **Offline klaarzetten**: dit toestel bewaart dan alles wat de setlist
+  nodig heeft — de liedkaarten, de begeleiding (de app maakt die per liedje), de meespeelgegevens,
+  je eigen bladmuziek en, als je wilt, je eigen muziek- en opnamebestanden. Daarna speelt de setlist
+  door zonder internet: in de kop staat alleen nog "geen verbinding" en verder gaat alles gewoon
+  (teksten, grepen, meescrollen, metronoom, begeleiding).
+- **Offline bijwerken** ververst de bewaarde versie (nieuwe liedjes of bladmuziek komen mee; adressen
+  die nergens meer bij horen worden opgeruimd) en **Offline wissen** haalt de voorraad van dit
+  toestel. De setlist zelf blijft gewoon bestaan.
+- De voorraad woont in een eigen opslaglaag van de app (`akkoordkast-offline`) en overleeft een
+  bijwerking van de app. De service worker kiest per adres: muziek en beelden eerst uit de voorraad,
+  kleine gegevens eerst vers van de server (en anders uit de voorraad). Een vraag die er net anders
+  uitziet (andere transpositie of capo) vindt de bewaarde versie tóch.
+- Het klaarzetten gaat stap voor stap met voortgang ("bezig: 5 van 17 onderdelen"); de begeleiding
+  maken kan per liedje een paar seconden duren. Stoppen kan altijd en pakt later gewoon weer verder.
+- Klein onderweg: zonder verbinding zegt de liedjeslijst nu rustig "geen verbinding" in plaats van
+  een Engelse foutmelding.
+
+Nieuwe proef: `test/offline.test.js`; de volledige route (klaarzetten → wifi uit → doorspelen) is in
+een demo doorgemeten, inclusief het afspelen van de begeleiding zonder netwerk.
+
 ## [1.57.0] — 15 november 2026
 
 ### Cloudopslag koppelen vanuit de app

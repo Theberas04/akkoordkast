@@ -73,6 +73,7 @@ de handleiding in de app zelf (knop **Handleiding openen**) · [installeren op P
 | ![tekst](docs/img/liedjestekst-bij-opname.png) | **De liedjestekst erbij** — lijkt de bestandsnaam op een liedje uit de bibliotheek, dan krijg je de tekst van dat liedje erbij te lezen, met de akkoorden uit jouw opname erboven. |
 | ![downloadbestemming](docs/img/akkoordkast-downloadbestemming-nov-2026.png) | **Waar downloads worden bewaard** — kies als beheerder een lokale map, je NAS of een vooraf gemounte Drive/OneDrive-map; de keuze blijft staan en geldt alleen voor nieuwe downloads. |
 | ![cloudkoppeling](docs/img/akkoordkast-cloudkoppeling-gekoppeld-nov-2026.png) | **Cloudopslag koppelen** — hang je Google Drive of OneDrive in één keer aan de app: sleutel plakken, map kiezen, koppelen; de app houdt de verbinding in de gaten (valt hij weg, dan komt hij terug) en zet hem met één klik als muziekmap of downloadbestemming. |
+| ![offline setlist](docs/img/akkoordkast-offline-setlist-nov-2026.png) | **Setlist offline klaarzetten** — neem je setlist mee naar een podium zonder wifi: teksten, grepen, bladmuziek en de begeleiding worden op het toestel bewaard en spelen gewoon door als er geen verbinding meer is. |
 
 ## Rondleiding door de app
 
@@ -187,6 +188,8 @@ in plaats van wav. Geen npm-afhankelijkheden.
   langs.
 - **Setlists en een optredenmodus.** Zet liedjes in een vaste volgorde en speel ze achter elkaar
   door: groot beeld, alleen het liedje van nu, met de knoppen om verder te gaan en een pauzeklok.
+- **Een setlist offline klaarzetten.** Voor een podium zonder wifi bewaart het toestel de liedjes,
+  de begeleiding en je bladmuziek van één setlist; daarna speelt alles gewoon door zonder verbinding.
 - **Gehoor-trainer.** De app speelt een akkoord en jij zegt welk het is; of ze speelt er twee en
   jij zegt of het tweede hoger of lager klinkt. Je hoeft niets te zien.
 - **PWA.** Installeerbaar op je telefoon, met de app-schil in de cache maar liedjes, audio en
@@ -764,6 +767,23 @@ de akkoorden en een lege kolom voor je eigen notities.
 
 ![Setlist op papier](docs/img/setlist-print.png)
 
+### Zet je setlist offline klaar
+
+Op een podium is de wifi vaak slecht. Met **Offline klaarzetten** op de setlistkaart bewaart dít
+toestel alles wat de setlist nodig heeft: de liedkaarten met de grepen, de begeleiding, de
+meespeelgegevens en je eigen bladmuziek. Daarna speelt de setlist gewoon door zonder verbinding —
+in de kop zie je dan *geen verbinding* staan, en verder merk je er niets van.
+
+- **Offline bijwerken** haalt de laatste versie op (nieuwe liedjes of bladmuziek komen mee, adressen
+  die nergens meer bij horen gaan weg) en **Offline wissen** haalt de voorraad van dit toestel — de
+  setlist zelf blijft bestaan.
+- De schakelaar ernaast bepaalt of **je eigen muziek- en opnamebestanden** ook mee gaan; die kunnen
+  groot zijn. Zonder die schakelaar gaan de teksten, grepen, bladmuziek en de begeleiding mee.
+- Het klaarzetten gebeurt per toestel en toont de voortgang; de begeleiding maken kan per liedje een
+  paar seconden duren. Stoppen kan altijd — wat al binnen is blijft bewaard.
+
+![Setlist offline klaar](docs/img/akkoordkast-offline-setlist-nov-2026.png)
+
 ## Meespelen met de muziek van het liedje
 
 De begeleiding die de app zelf maakt, is een gitaarsynthesizer: tokkels van de akkoordenreeks
@@ -942,13 +962,15 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 | Muziektheorie | `lib/theorie.js` (transponeren en toonsoort-spelling), `lib/capo.js` (advies), `lib/grepen.js` (grepen en SVG-diagrammen) |
 | Bladmuziek | `lib/chordpro.js` parseert ChordPro naar een renderbaar model |
 | Audio | `lib/gitaar.js` synthetiseert tokkels naar WAV; `ffmpeg` zet dat om naar mp3 en die wordt gecachet |
+| Offline | `lib/offline.js` bepaalt welke adressen een klaargezette setlist nodig heeft (en hoe een vraag die nét anders is de bewaarde versie vindt); `public/sw.js` levert die voorraad uit als er geen verbinding is |
 | Casten | `scripts/cast-helper.py` met pychromecast, door de server aangeroepen; de pagina praat nooit rechtstreeks met de Chromecast |
 
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 350 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
-                                    # setlists, akkoordenboek, de wachter, de cloudkoppeling en de deploy-scripts
+node --test test/*.test.js          # 361 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+                                    # setlists, de offline-setlist, akkoordenboek, de wachter, de cloudkoppeling
+                                    # en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL
 ```

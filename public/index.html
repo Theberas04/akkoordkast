@@ -982,18 +982,26 @@
         <button class="knop zacht" id="setlist-printen" title="De setlist als vel om naast je neer te leggen">Setlist printen</button>
         <button class="knop zacht" id="setlist-delen" title="Maak een link waarmee iemand anders deze setlist kan lezen">Delen</button>
         <button class="knop zacht" id="setlist-overgangen" title="Hoe kom je van het ene liedje in het andere?">Overgangen</button>
+        <button class="knop zacht" id="setlist-offline" title="Bewaar deze setlist op dit toestel, zodat hij ook zonder wifi speelt">Offline klaarzetten</button>
+        <button class="knop zacht" id="setlist-offline-wis" hidden title="Haal de bewaarde versie van dit toestel">Offline wissen</button>
         <button class="knop zacht" id="setlist-verwijder">Verwijderen</button>
         <span class="pilletje" id="setlist-teller"></span>
+        <span class="pilletje" id="setlist-offline-status" hidden></span>
       </div>
       <div class="rij" style="margin-top:8px">
         <input id="setlist-naam" type="text" placeholder="Naam voor een nieuwe setlist (bv. Kroeg vrijdag)" autocomplete="off">
         <button class="knop zacht" id="setlist-nieuw">Nieuwe setlist</button>
         <span class="les-klein"><span id="setlist-hint">Zet liedjes erin met <strong>+ setlist</strong> in de lijst of in het spelscherm.</span></span>
+        <div class="les-klein" style="margin-top:6px">
+          <label class="mees-schakel"><input id="setlist-offline-eigen" type="checkbox" checked> eigen muziek- en opnamebestanden meenemen</label>
+          · op een <strong>podium zonder wifi</strong> speelt deze setlist door: teksten, grepen, bladmuziek en de begeleiding worden op dit toestel bewaard.
+        </div>
       </div>
       <div id="setlist-inhoud"></div>
       <div id="setlist-overgangen-lijst" class="scan-lijst" style="margin-top:8px"></div>
       <div class="rij" id="setlist-deel" hidden></div>
       <div class="melding" id="setlist-melding" hidden></div>
+      <div class="melding" id="setlist-offline-melding" hidden></div>
     </div>
   </section>
 
@@ -1943,6 +1951,7 @@
 <script src="/lib/oefenplan.js"></script>
 <script src="/lib/lessen-uitgebreid.js"></script>
 <script src="/lib/noten.js"></script>
+<script src="/lib/offline.js"></script>
 <script>
 'use strict';
 var staat = {
@@ -2151,7 +2160,19 @@ function laadLiedjes(ververs) {
     // De artiestenlijst hoort mee te veranderen als je iets toevoegt (nieuw liedje, download).
     if (ververs) laadArtiesten();
     toonMelding('lijst-melding', '', '');
-  }).catch(function (e) { toonMelding('lijst-melding', e.message, 'fout'); });
+  }).catch(function (e) {
+    // Zonder verbinding is dit geen fout maar de bedoeling: klaargezette setlists spelen gewoon.
+    // navigator.onLine blijkt na een herlading niet te vertrouwen (hij zegt dan weer 'online'
+    // terwijl elk verzoek mislukt), dus kijken we ook naar de fout zelf.
+    var geenVerbinding = (window.navigator && navigator.onLine === false) ||
+      (e && (e.name === 'TypeError' || /fetch|network/i.test(e.message || '')));
+    if (geenVerbinding) {
+      $('kop-aantal').textContent = 'geen verbinding';
+      toonMelding('lijst-melding', 'Je bent offline. Een setlist die je offline klaarzette, speelt gewoon door.', '');
+    } else {
+      toonMelding('lijst-melding', e.message, 'fout');
+    }
+  });
 }
 // De taalcodes zijn kort (nl, en, li); in de keuzelijst en op de kaartjes staat
 // de leesbare naam, zodat er "Limburgs (4)" staat in plaats van "li (4)".
@@ -2632,6 +2653,7 @@ function laadSetlistInhoud(id) {
 function tekenSetlist(s) {
   staat.setlist = { id: s.id, naam: s.naam, liedjes: s.liedjes.map(function (l) { return l.id; }) };
   $('setlist-teller').textContent = s.aantal + (s.aantal === 1 ? ' liedje' : ' liedjes') + ' in "' + s.naam + '"';
+  offlineStatus(s.id);
   if (!s.liedjes.length) {
     $('setlist-inhoud').innerHTML = '<div class="les-klein">Deze setlist is nog leeg. Zet liedjes erin met <strong>+ setlist</strong>.</div>';
     return;
@@ -2750,6 +2772,192 @@ function verwijderSetlist() {
     laadSetlists(0);
     toonMelding('setlist-melding', 'Setlist "' + naam + '" verwijderd.', 'goed');
   }).catch(function (e) { toonMelding('setlist-melding', e.message, 'fout'); });
+}
+
+// ------------------------------------------------------- offline-setlist ---
+// Een setlist op dit toestel klaarzetten voor een podium zonder wifi: de liedkaarten, de
+// bladmuziek en de begeleiding gaan in een eigen voorraad (Cache Storage); de service worker
+// deelt die straks uit. Welke adressen, groottes en terugvalregels daarbij horen staat in
+// lib/offline.js — hier gebeurt alleen het ophalen en bewaren.
+var OFFLINE_SETLIST = { bezig: false, stop: false };
+
+function offlineKoppen() {
+  return { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' };
+}
+
+function offlineStatus(id) {
+  var vak = $('setlist-offline-status');
+  var wis = $('setlist-offline-wis');
+  var knop = $('setlist-offline');
+  if (!vak) return;
+  var m = (id && window.localStorage) ? offlineRekenen.leesMeta(window.localStorage, id) : null;
+  if (m && id) {
+    vak.hidden = false;
+    vak.textContent = 'offline · ' + m.aantal + (m.aantal === 1 ? ' liedje' : ' liedjes') + ' · ' + offlineRekenen.grootteTekst(m.bytes);
+    var wanneer = '';
+    try { wanneer = new Date(m.moment).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }); } catch (e) { wanneer = ''; }
+    vak.title = 'Klaargezet op dit toestel' + (wanneer ? ' op ' + wanneer : '');
+    if (wis) wis.hidden = false;
+    if (knop && !OFFLINE_SETLIST.bezig) knop.textContent = 'Offline bijwerken';
+  } else {
+    vak.hidden = true;
+    if (wis) wis.hidden = true;
+    if (knop && !OFFLINE_SETLIST.bezig) knop.textContent = 'Offline klaarzetten';
+  }
+}
+
+function zetOfflineSetlistKlaar() {
+  if (OFFLINE_SETLIST.bezig) {
+    OFFLINE_SETLIST.stop = true;
+    toonMelding('setlist-offline-melding', 'Stoppen na wat al binnen is…', '');
+    return;
+  }
+  if (!window.caches) {
+    toonMelding('setlist-offline-melding', 'Deze browser kan geen setlist offline bewaren. Open de app via https of op localhost.', 'fout');
+    return;
+  }
+  var id = staat.setlist && staat.setlist.id;
+  if (!id) { toonMelding('setlist-offline-melding', 'Open eerst een setlist.', 'fout'); return; }
+  var metEigen = $('setlist-offline-eigen') ? $('setlist-offline-eigen').checked : false;
+  OFFLINE_SETLIST.bezig = true;
+  OFFLINE_SETLIST.stop = false;
+  $('setlist-offline').textContent = 'Bezig… (tik om te stoppen)';
+  toonMelding('setlist-offline-melding', 'Bezig: de setlist wordt op dit toestel bewaard. De begeleiding maken kan per liedje een paar seconden duren.', '');
+  var bytes = 0;
+  var mislukt = [];
+  var cache = null;
+
+  var bewaar = function (url) {
+    return fetch(url, { headers: offlineKoppen() }).then(function (r) {
+      if (!r.ok) throw new Error('status ' + r.status);
+      var maat = Number(r.headers.get('content-length')) || 0;
+      var kloon = r.clone();
+      return cache.put(url, kloon).then(function () {
+        bytes += maat;
+        if (!maat) {
+          return r.blob().then(function (b) { bytes += b.size; });
+        }
+      });
+    }).catch(function () { mislukt.push(url); });
+  };
+
+  caches.open(offlineRekenen.CACHE).then(function (c) {
+    cache = c;
+    return fetch('/api/setlists/' + id, { headers: { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' } });
+  }).then(function (r) {
+    if (!r.ok) throw new Error('De setlist kon niet gelezen worden.');
+    var kloon = r.clone();
+    return r.json().then(function (d) {
+      return cache.put('/api/setlists/' + id, kloon).then(function () { return d; });
+    });
+  }).then(function (beeld) {
+    // Eerst alle liedkaarten: die vertellen welke begeleiding, bladmuziek en muziek erbij horen.
+    var rijen = (beeld && beeld.liedjes) || [];
+    var liedkaarten = [];
+    var keten = Promise.resolve();
+    rijen.forEach(function (rij, i) {
+      keten = keten.then(function () {
+        if (OFFLINE_SETLIST.stop) return;
+        toonMelding('setlist-offline-melding', 'Bezig: lied ' + (i + 1) + ' van ' + rijen.length + ' ophalen…', '');
+        var url = offlineRekenen.liedjeUrl(rij.id);
+        return fetch(url, { headers: offlineKoppen() }).then(function (r) {
+          if (!r.ok) throw new Error('status ' + r.status);
+          var kloon = r.clone();
+          return r.json().then(function (d) {
+            return cache.put(url, kloon).then(function () { liedkaarten.push(d); });
+          });
+        }).catch(function () { mislukt.push('lied ' + rij.id); });
+      });
+    });
+    keten = keten.then(function () {
+      // Daarna alle adressen: begeleiding, bladmuziek, meespelen — en je eigen muziek als je wilt.
+      // De profielenlijst, de setlistenlijst en het overgangenadvies horen er ook bij, zodat de
+      // kaart en het optreden offline precies zo werken als gewoon.
+      var urls = ['/api/versie', '/api/profielen', '/api/setlists', '/api/setlists/' + id, '/api/setlists/' + id + '/overgangen'];
+      liedkaarten.forEach(function (lied) {
+        offlineRekenen.urlsVoorLiedje(lied, { eigen: metEigen }).forEach(function (u) {
+          if (urls.indexOf(u) < 0) urls.push(u);
+        });
+      });
+      var klaar = 0;
+      var keten2 = Promise.resolve();
+      urls.forEach(function (u) {
+        keten2 = keten2.then(function () {
+          if (OFFLINE_SETLIST.stop) return;
+          klaar += 1;
+          var wat = u.indexOf('/api/audio/preview') === 0 ? 'de begeleiding'
+            : u.indexOf('/api/meespelen/audio') === 0 ? 'de meespeelversie'
+            : (u.indexOf('/api/muziek') === 0 || u.indexOf('/media/') === 0) ? 'je muziek'
+            : 'de gegevens';
+          toonMelding('setlist-offline-melding', 'Bezig: ' + klaar + ' van ' + urls.length + ' onderdelen (' + wat + ').', '');
+          return bewaar(u);
+        });
+      });
+      return keten2.then(function () {
+        return { urls: urls, aantal: rijen.length, naam: (beeld && beeld.naam) || '' };
+      });
+    });
+    return keten;
+  }).then(function (uit) {
+    var urls = (uit && uit.urls) || [];
+    var oud = offlineRekenen.leesMeta(window.localStorage, id);
+    offlineRekenen.bewaarMeta(window.localStorage, {
+      id: id,
+      naam: (uit && uit.naam) || '',
+      aantal: (uit && uit.aantal) || 0,
+      bytes: bytes,
+      urls: urls,
+      moment: new Date().toISOString()
+    });
+    // Adressen van een eerdere keer die nu nergens meer bij horen: opruimen.
+    var weg = [];
+    if (oud && oud.urls) {
+      var overal = {};
+      offlineRekenen.leesAlleMetas(window.localStorage).forEach(function (m) {
+        (m.urls || []).forEach(function (u) { overal[u] = true; });
+      });
+      weg = oud.urls.filter(function (u) { return !overal[u]; });
+    }
+    var keten3 = Promise.resolve();
+    weg.forEach(function (u) { keten3 = keten3.then(function () { return cache.delete(u).catch(function () {}); }); });
+    return keten3;
+  }).then(function () {
+    OFFLINE_SETLIST.bezig = false;
+    if (OFFLINE_SETLIST.stop) {
+      toonMelding('setlist-offline-melding', 'Gestopt. Wat al binnen was, blijft bewaard — zet de setlist gerust nog eens klaar om hem af te maken.', '');
+    } else if (mislukt.length) {
+      toonMelding('setlist-offline-melding', 'Bijna klaar: ' + mislukt.length + ' onderdelen konden niet meegenomen worden. Zet de setlist nog eens klaar om het recht te zetten.', 'fout');
+    } else {
+      var m2 = offlineRekenen.leesMeta(window.localStorage, id);
+      var aantal = m2 ? m2.aantal : 0;
+      toonMelding('setlist-offline-melding', 'Klaar: deze setlist speelt nu ook zonder wifi — ' + aantal + (aantal === 1 ? ' liedje' : ' liedjes') + ', ' + offlineRekenen.grootteTekst(bytes) + ' op dit toestel.', 'goed');
+    }
+    offlineStatus(id);
+  }).catch(function (e) {
+    OFFLINE_SETLIST.bezig = false;
+    toonMelding('setlist-offline-melding', e.message || 'Er ging iets mis.', 'fout');
+    offlineStatus(id);
+  });
+}
+
+function wisOfflineSetlist() {
+  var id = staat.setlist && staat.setlist.id;
+  if (!id || !window.caches) return;
+  var m = offlineRekenen.leesMeta(window.localStorage, id);
+  if (!m) return;
+  if (!window.confirm('De bewaarde versie van "' + m.naam + '" van dit toestel halen?')) return;
+  caches.open(offlineRekenen.CACHE).then(function (cache) {
+    var alles = offlineRekenen.leesAlleMetas(window.localStorage);
+    var weg = offlineRekenen.opruimUrls(alles, id);
+    var keten = Promise.resolve();
+    weg.forEach(function (u) { keten = keten.then(function () { return cache.delete(u).catch(function () {}); }); });
+    return keten.then(function () { offlineRekenen.wisMeta(window.localStorage, id); });
+  }).then(function () {
+    offlineStatus(id);
+    toonMelding('setlist-offline-melding', 'De bewaarde versie is van dit toestel gehaald.', 'goed');
+  }).catch(function (e) {
+    toonMelding('setlist-offline-melding', e.message || 'Er ging iets mis.', 'fout');
+  });
 }
 
 // ------------------------------------------------------------- optreden ---
@@ -2913,6 +3121,8 @@ $('setlist-delen').addEventListener('click', deelSetlist);
 $('setlist-overgangen').addEventListener('click', laadSetlistOvergangen);
 $('setlist-printen').addEventListener('click', printSetlist);
 $('setlist-verwijder').addEventListener('click', verwijderSetlist);
+$('setlist-offline').addEventListener('click', zetOfflineSetlistKlaar);
+$('setlist-offline-wis').addEventListener('click', wisOfflineSetlist);
 
 // ---------------------------------------------------- liedje openen/spelen ---
 function openLiedje(id, opties) {

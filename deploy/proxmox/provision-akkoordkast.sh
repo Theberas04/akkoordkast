@@ -57,6 +57,7 @@ RUNTIME=(
   "lib/noten.js"
   "lib/schijf.js"
   "lib/oefenplan.js"
+  "lib/offline.js"
   "lib/voorstel.js"
   "lib/lessen-uitgebreid.js"
   "lib/overgangen.js"

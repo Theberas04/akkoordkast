@@ -40,7 +40,7 @@ const CAST_HELPER = process.env.CAST_HELPER
   : path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.67.0';
+const VERSIE = '1.68.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -208,6 +208,19 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS verborgen_liedjes (
     liedje_id INTEGER PRIMARY KEY,
     sinds TEXT NOT NULL DEFAULT ''
+  );
+
+  -- Verzoekjes: liedjes waar iemand om vraagt (van een ander profiel, of van iemand die even
+  -- meekeek). De beheerder ziet ze in de app en vinkt ze af of gooit ze weg.
+  CREATE TABLE IF NOT EXISTS verzoeken (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    profiel_id INTEGER NOT NULL,
+    naam TEXT NOT NULL DEFAULT '',
+    liedje_id INTEGER NOT NULL,
+    bericht TEXT NOT NULL DEFAULT '',
+    gemaakt TEXT NOT NULL,
+    gedaan INTEGER NOT NULL DEFAULT 0,
+    gedaan_op TEXT NOT NULL DEFAULT ''
   );
 `);
 
@@ -995,6 +1008,30 @@ function setlistsVan(profielId) {
       gemaakt: r.gemaakt,
       aantal: db.prepare('SELECT COUNT(*) AS n FROM setlist_liedjes WHERE setlist_id = ?').get(r.id).n
     }));
+}
+
+// De verzoekjes: wat er gevraagd is, wie het vroeg en of het al gedaan is. Open verzoeken eerst,
+// daarbinnen het nieuwste bovenaan; afgedane verzoekjes blijven nog even staan zodat je ziet wat er
+// net gebeurd is. De titel komt uit de liedjesbron (niet uit de databank: de meegeleverde liedjes
+// staan in bestanden) en is dus altijd actueel.
+function verzoekenLijst() {
+  return db.prepare(`SELECT v.id, v.profiel_id, v.naam, v.liedje_id, v.bericht, v.gemaakt, v.gedaan, v.gedaan_op
+    FROM verzoeken v
+    ORDER BY v.gedaan ASC, v.id DESC LIMIT 60`).all()
+    .map(r => {
+      const lied = vindLiedje(r.liedje_id);
+      return {
+        id: Number(r.id),
+        profiel: Number(r.profiel_id),
+        naam: String(r.naam || ''),
+        liedje: Number(r.liedje_id),
+        titel: lied ? String(lied.titel || '') : '',
+        bericht: String(r.bericht || ''),
+        gemaakt: String(r.gemaakt || ''),
+        gedaan: !!r.gedaan,
+        gedaanOp: String(r.gedaan_op || '')
+      };
+    });
 }
 
 // Wat de app van een setlist nodig heeft: de liedjes met toonsoort, capo, tempo en
@@ -4591,6 +4628,52 @@ async function verwerk(req, res) {
     if (!rij) { json(res, 404, { fout: 'Deze deellink bestaat niet (meer).' }); return; }
     db.prepare('DELETE FROM deellinks WHERE token = ?').run(token);
     json(res, 200, { ok: true, ingetrokken: token });
+    return;
+  }
+
+  // --- verzoekjes: liedjes waar iemand om vraagt (voor het optreden) ---
+  // Ieder profiel mag een verzoekje doen; de beheerder ziet de lijst en ruimt op. Een verzoekje
+  // bewaart alleen de liedje-id en wie het vroeg — geen muziek, geen geschiedenis.
+  if (pad === '/api/verzoek' && methode === 'POST') {
+    const profielId = profielVan(req, query);
+    const body = await leesJsonBody(req);
+    const liedjeId = Number(body.liedje || 0);
+    const lied = liedjeId ? vindLiedje(liedjeId) : null;
+    if (!lied) { json(res, 404, { fout: 'Dat liedje bestaat niet (meer).' }); return; }
+    const bericht = String(body.bericht || '').trim().slice(0, 200);
+    const naam = String((db.prepare('SELECT naam FROM profielen WHERE id = ?').get(profielId) || {}).naam || '').slice(0, 60);
+    const moment = new Date().toISOString();
+    // Vraagt hetzelfde profiel hetzelfde liedje nog een keer? Dan is het één verzoekje, met het
+    // nieuwste bericht en moment — geen dubbele regels in de lijst.
+    const bestaand = db.prepare('SELECT id FROM verzoeken WHERE profiel_id = ? AND liedje_id = ? AND gedaan = 0').get(profielId, liedjeId);
+    if (bestaand) {
+      db.prepare('UPDATE verzoeken SET bericht = ?, gemaakt = ? WHERE id = ?').run(bericht, moment, bestaand.id);
+    } else {
+      db.prepare('INSERT INTO verzoeken (profiel_id, naam, liedje_id, bericht, gemaakt) VALUES (?, ?, ?, ?, ?)')
+        .run(profielId, naam, liedjeId, bericht, moment);
+    }
+    // De lijst blijft behapbaar: boven de tweehonderd verzoekjes vallen de oudste af.
+    db.prepare('DELETE FROM verzoeken WHERE id NOT IN (SELECT id FROM verzoeken ORDER BY id DESC LIMIT 200)').run();
+    json(res, 201, { ok: true, verzoeken: verzoekenLijst() });
+    return;
+  }
+  if (pad === '/api/verzoeken' && methode === 'GET') {
+    json(res, 200, { verzoeken: verzoekenLijst() });
+    return;
+  }
+  if (pad === '/api/verzoeken/afvinken' && methode === 'POST') {
+    if (!isBeheerder(req)) { json(res, 403, { fout: 'Alleen de beheerder ruimt verzoekjes op.' }); return; }
+    const body = await leesJsonBody(req);
+    const id = Number(body.id || 0);
+    const actie = String(body.actie || 'gedaan') === 'weg' ? 'weg' : 'gedaan';
+    const rij = db.prepare('SELECT id FROM verzoeken WHERE id = ?').get(id);
+    if (!rij) { json(res, 404, { fout: 'Dat verzoekje bestaat niet (meer).' }); return; }
+    if (actie === 'weg') {
+      db.prepare('DELETE FROM verzoeken WHERE id = ?').run(id);
+    } else {
+      db.prepare('UPDATE verzoeken SET gedaan = 1, gedaan_op = ? WHERE id = ?').run(new Date().toISOString(), id);
+    }
+    json(res, 200, { ok: true, verzoeken: verzoekenLijst() });
     return;
   }
 

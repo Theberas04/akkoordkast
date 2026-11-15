@@ -918,6 +918,12 @@
     body::before{display:none}
     .kaart{background:#fff!important;border-color:#ddd;box-shadow:none}
   }
+  /* verzoekjes (de kaart bij de beheerder) */
+  .verzoek-regel{border:1px solid var(--lijn);border-radius:var(--r-klein);padding:9px 11px;margin:8px 0;background:var(--pane2)}
+  .verzoek-regel.klaar{opacity:.55}
+  .verzoek-regel .verzoek-titel{font-weight:700}
+  .verzoek-regel .verzoek-van{color:var(--tekst2);font-size:.78rem}
+  .verzoek-regel .verzoek-bericht{margin:6px 0 0;font-size:.85rem;color:var(--tekst2)}
   /* ==================== lichte weergave ====================
      De app is van huis uit donker: rustig 's avonds en op een podium. Maar buiten in de zon is een
      licht scherm veel beter leesbaar. Deze regels zetten alles om zodra <html> de klasse 'licht'
@@ -1663,6 +1669,17 @@
       <div class="meta" id="beheer-uitleg">Muziek toevoegen, een link omzetten naar mp3 maken, een
         muziekmap laten omzetten, eigen liedjes bewerken, de back-up en de bijwerking: dat hoort
         bij de beheerder. Zoeken, spelen en leren kan iedereen.</div>
+    </div>
+    <div class="kaart" id="verzoek-kaart">
+      <h2>Verzoekjes <span class="pilletje" id="verzoek-teller" hidden></span></h2>
+      <p class="meta">Liedjes waar iemand om vroeg — uit een ander profiel, of van iemand die even
+        meekeek. Iemand vraagt er eentje aan met de knop <strong>Verzoek</strong> bij het liedje;
+        hier zie je ze staan en vink je ze af als ze gedaan zijn.</p>
+      <div class="rij" style="margin:8px 0">
+        <button class="knop zacht" id="verzoek-ververs" title="Opnieuw kijken of er nieuwe verzoekjes zijn">Verversen</button>
+      </div>
+      <div id="verzoek-lijst"></div>
+      <div class="melding" id="verzoek-melding" hidden></div>
     </div>
     <div class="kaart" id="liedjes-weg-kaart">
       <h2>Liedjes weghalen</h2>
@@ -3529,6 +3546,7 @@ function tekenLiedje(l) {
         '<div class="rij">' +
           '<button class="knop ster" id="speel-ster">☆ favoriet</button>' +
           '<button class="knop zacht" id="speel-setlist" title="In de actieve setlist zetten">+ setlist</button>' +
+          '<button class="knop zacht" id="speel-verzoek" title="Vraag de beheerder om dit liedje te spelen">Verzoek</button>' +
           '<button class="knop zacht" id="podium-knop" title="Groot en rustig beeld om van te spelen">Podiummodus</button>' +
           '<button class="knop zacht" id="print-liedje">Printen</button>' +
           (l.eigen ? '<button class="knop zacht" id="verwijder-liedje">Verwijderen</button>'
@@ -3828,6 +3846,9 @@ function tekenLiedje(l) {
   });
   if ($('speel-setlist')) {
     $('speel-setlist').addEventListener('click', function () { zetInSetlist(l.id, 'bij'); });
+  }
+  if ($('speel-verzoek')) {
+    $('speel-verzoek').addEventListener('click', function () { verzoekVersturen(l.id, $('speel-verzoek')); });
   }
   werkOptredenBalk();
   if (staat.optreden && staat.optreden.aan) {
@@ -9892,6 +9913,120 @@ $('jukebox-audio').addEventListener('ended', function () {
   if (JB.aan && !JB.bezig) jukeboxStartItem(JB.index + 1);
 });
 $('jukebox-audio').addEventListener('timeupdate', jukeboxTik);
+
+// ------------------------------------------------------------- verzoeken ---
+// Verzoekjes: een liedje waar iemand om vraagt, voor de beheerder. Ieder profiel kan er een doen —
+// de knop staat bij het liedje zelf — en de beheerder ziet ze boven in het tabblad Toevoegen. De
+// verzoekjes horen bij het liedboek en niet bij een toestel: vraagt iemand het op haar telefoon,
+// dan staat het meteen op de jouwe.
+function verzoekToen(moment) {
+  var t = Date.parse(moment || '');
+  if (!t) return '';
+  var minuten = Math.floor((Date.now() - t) / 60000);
+  if (minuten < 1) return 'net';
+  if (minuten < 60) return minuten + ' min geleden';
+  var uren = Math.floor(minuten / 60);
+  if (uren < 24) return uren + ' uur geleden';
+  var dagen = Math.floor(uren / 24);
+  return dagen === 1 ? 'gisteren' : dagen + ' dagen geleden';
+}
+
+function tekenVerzoeken(lijst) {
+  var houder = $('verzoek-lijst');
+  if (!houder) return;
+  lijst = lijst || [];
+  var open = lijst.filter(function (v) { return !v.gedaan; });
+  var teller = $('verzoek-teller');
+  if (teller) {
+    teller.hidden = open.length === 0;
+    teller.textContent = open.length === 1 ? '1 open' : open.length + ' open';
+  }
+  if (!lijst.length) {
+    houder.innerHTML = '<div class="meta">Er zijn nog geen verzoekjes. Iemand vraagt er eentje aan met de knop <strong>Verzoek</strong> bij een liedje.</div>';
+    return;
+  }
+  houder.innerHTML = lijst.map(function (v) {
+    return '<div class="verzoek-regel' + (v.gedaan ? ' klaar' : '') + '" data-verzoek="' + v.id + '" data-verzoek-liedje="' + v.liedje + '">' +
+      '<div class="rij" style="justify-content:space-between">' +
+        '<span><span class="verzoek-titel">' + esc(v.titel || ('Liedje ' + v.liedje)) + '</span> ' +
+        '<span class="verzoek-van">van ' + esc(v.naam || 'onbekend') + ' · ' + verzoekToen(v.gemaakt) + (v.gedaan ? ' · gedaan' : '') + '</span></span>' +
+        '<span class="rij" style="gap:6px">' +
+          '<button class="knop zacht" data-verzoek-doe="open" data-verzoek-id="' + v.id + '">Open</button>' +
+          (v.gedaan ? '' : '<button class="knop goed" data-verzoek-doe="gedaan" data-verzoek-id="' + v.id + '">Klaar</button>') +
+          '<button class="knop zacht" data-verzoek-doe="weg" data-verzoek-id="' + v.id + '" title="Dit verzoekje weggooien">\u2715</button>' +
+        '</span>' +
+      '</div>' +
+      (v.bericht ? '<p class="verzoek-bericht">' + esc(v.bericht) + '</p>' : '') +
+    '</div>';
+  }).join('');
+}
+
+function laadVerzoeken(stil) {
+  return fetch('/api/verzoeken', {
+    headers: { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' }
+  }).then(function (r) {
+    return r.json().catch(function () { return {}; }).then(function (d) {
+      if (!r.ok) throw new Error(d.fout || ('Fout ' + r.status));
+      return d;
+    });
+  }).then(function (d) {
+    tekenVerzoeken(d.verzoeken || []);
+    return d;
+  }).catch(function (e) {
+    if (!stil) toonMelding('verzoek-melding', e.message, 'fout');
+  });
+}
+
+function verzoekVersturen(liedjeId, knop) {
+  fetch('/api/verzoek', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' },
+    body: JSON.stringify({ liedje: liedjeId })
+  }).then(function (r) {
+    return r.json().catch(function () { return {}; }).then(function (d) {
+      if (!r.ok) throw new Error(d.fout || ('Fout ' + r.status));
+      return d;
+    });
+  }).then(function () {
+    toonMelding('speler-melding', 'Je verzoekje staat bij de beheerder — die ziet het vanzelf bij de verzoekjes.', 'goed');
+    if (knop) {
+      knop.textContent = 'Verzocht \u2713';
+      knop.disabled = true;
+      setTimeout(function () { knop.textContent = 'Verzoek'; knop.disabled = false; }, 4000);
+    }
+  }).catch(function (e) { toonMelding('speler-melding', e.message, 'fout'); });
+}
+
+function verzoekAfvinken(id, actie) {
+  fetch('/api/verzoeken/afvinken', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' },
+    body: JSON.stringify({ id: id, actie: actie })
+  }).then(function (r) {
+    return r.json().catch(function () { return {}; }).then(function (d) {
+      if (!r.ok) throw new Error(d.fout || ('Fout ' + r.status));
+      return d;
+    });
+  }).then(function (d) {
+    tekenVerzoeken(d.verzoeken || []);
+    if (actie === 'gedaan') toonMelding('verzoek-melding', 'Afgevinkt. Hij blijft nog even staan zodat je ziet wat je deed.', 'goed');
+  }).catch(function (e) { toonMelding('verzoek-melding', e.message, 'fout'); });
+}
+
+$('verzoek-lijst').addEventListener('click', function (e) {
+  var knop = e.target.closest ? e.target.closest('button[data-verzoek-doe]') : null;
+  if (!knop) return;
+  var doe = knop.getAttribute('data-verzoek-doe');
+  if (doe === 'open') {
+    var regel = knop.closest('.verzoek-regel');
+    var liedjeId = regel ? Number(regel.getAttribute('data-verzoek-liedje') || 0) : 0;
+    if (liedjeId) openLiedje(liedjeId);
+    return;
+  }
+  verzoekAfvinken(Number(knop.getAttribute('data-verzoek-id')), doe);
+});
+$('verzoek-ververs').addEventListener('click', function () { laadVerzoeken(); });
+laadVerzoeken(true);
 
 // ----------------------------------------------------------------- showplan ---
 // Hoe lang duurt het optreden? Van de liedjes van de gekozen setlist maakt de app een tijdlijn: per

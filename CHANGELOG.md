@@ -3,6 +3,20 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.68.0] — 15 november 2026
+
+### Verzoekjes
+
+- Naast *+ setlist* staat bij het liedje nu de knop **Verzoek**: iemand met een eigen profiel vraagt
+  daarmee om een nummer. De knop laat meteen *Verzocht ✓* zien; vraagt hetzelfde profiel hetzelfde
+  liedje nog eens, dan blijft het één verzoekje (met het nieuwste bericht).
+- De beheerder ziet alle verzoekjes in het tabblad **Toevoegen**, in de kaart **Verzoekjes** — met
+  de titel, wie erom vroeg en hoe lang het geleden is, plus een teller met het aantal open
+  verzoekjes. **Open** springt naar het liedje, **Klaar** vinkt af, **✕** gooit weg.
+- De verzoekjes horen bij het liedboek, niet bij een toestel: een verzoekje van de telefoon van je
+  partner staat meteen op de jouwe. De lijst blijft behapbaar (boven de tweehonderd vallen de
+  oudste af).
+
 ## [1.67.0] — 15 november 2026
 
 ### Lichte of donkere weergave

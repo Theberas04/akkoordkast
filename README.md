@@ -68,6 +68,7 @@ de handleiding in de app zelf (knop **Handleiding openen**) · [installeren op P
 | ![gehoor](docs/img/gehoor-trainer.png) | **Gehoor-trainer** — de app speelt een akkoord en jij zegt welk het is, of je hoort twee akkoorden en zegt of het tweede hoger of lager klonk. |
 | ![nazingen](docs/img/akkoordkast-nazingen-nov-2026.png) | **Nazingen & naspelen** — de app speelt een kort motiefje voor en jij speelt of zingt het na; de microfoon vertelt per noot wat goed ging. |
 | ![opnemen met begeleiding](docs/img/akkoordkast-opnemen-begeleiding-klaar-nov-2026.png) | **Opnemen mét begeleiding** — neem jezelf op terwijl de begeleiding speelt: je stem en de begeleiding komen via de mengtafel samen in één opname op je toestel. |
+| ![jukebox](docs/img/akkoordkast-jukebox-nov-2026.png) | **Jukebox** — zet je favorieten of wat er nu in de lijst staat achter elkaar aan; de app maakt van elk liedje de begeleiding en speelt ze na elkaar, met vorige/volgende en een voortgangsbalk. |
 | ![akkoordenboek](docs/img/akkoordenboek.png) | **Akkoordenboek** — van elk akkoord alle posities over de hals, met het vaknummer en een uitleg, en een knop om er een grepenkaart van te printen. |
 | ![wachter](docs/img/wachter.png) | **Automatisch bijhouden** — de app kijkt zelf in je muziekmap en naar nieuwe versies op GitHub, en schrijft op wat er gedaan is. |
 | ![beheer](docs/img/beheer.png) | **Beheer en bijwerken** — welke versie er draait, of er iets nieuws klaarstaat op GitHub, en in één klik bijwerken als deze machine daarop is ingericht. |
@@ -207,6 +208,9 @@ in plaats van wav. Geen npm-afhankelijkheden.
 - **Opnemen mét begeleiding.** Open een liedje en druk op één knop: de begeleiding speelt en je stem
   (of gitaar) komt er in dezelfde opname bij. Hij stopt vanzelf als de begeleiding klaar is, en
   terugluisteren, bewaren of weggooien blijft op dit toestel.
+- **Jukebox.** Zet een rij liedjes achter elkaar aan — je favorieten of wat er nu in de lijst staat —
+  en de app speelt van elk de begeleiding, met vorige/volgende en een voortgangsbalk. Liedjes waar
+  geen begeleiding van te maken is worden overgeslagen; de app zegt het erbij.
 - **PWA.** Installeerbaar op je telefoon, met de app-schil in de cache maar liedjes, audio en
   cast-status altijd live.
 
@@ -1018,10 +1022,10 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 396 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+node --test test/*.test.js          # 399 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
                                     # setlists, de offline-setlist en het liedboek offline, de slimme
-                                    # oefensessie, nazingen, opnemen met begeleiding, akkoordenboek,
-                                    # de wachter, de cloudkoppelingen en de deploy-scripts
+                                    # oefensessie, nazingen, opnemen met begeleiding, de jukebox,
+                                    # akkoordenboek, de wachter, de cloudkoppelingen en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL
 ```

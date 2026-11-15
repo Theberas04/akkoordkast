@@ -3,6 +3,20 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.64.0] — 15 november 2026
+
+### Jukebox
+
+- Nieuwe kaart **Jukebox** in het tabblad Liedjes: zet een rij liedjes achter elkaar aan. Kies
+  **mijn favorieten** of **wat er nu in de lijst staat** en druk op **Start** — de app maakt van elk
+  liedje de begeleiding en speelt ze na elkaar. Met **Vorige** en **Volgende**, een voortgangsbalk met
+  de tijd, en **Open het blad** voor het liedje dat speelt.
+- Het volgende liedje wordt alvast gemaakt terwijl de huidige speelt, zodat er weinig stilte tussen
+  twee liedjes valt. Alleen het huidige en het volgende blijven in het geheugen staan.
+- Liedjes waar de app geen begeleiding van kan maken (geen bekende akkoorden om te spelen) worden
+  overgeslagen; aan het eind zegt de app hoeveel dat er waren. De jukebox speelt alleen met
+  verbinding — de begeleiding komt van de server.
+
 ## [1.63.0] — 15 november 2026
 
 ### Opnemen mét begeleiding

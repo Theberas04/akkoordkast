@@ -752,9 +752,11 @@ test('jezelf opnemen en terugluisteren: opnemen, terugluisteren, bewaren of wegg
   assert.match(html, /URL\.revokeObjectURL\(OPN\.url\)/);
   assert.match(html, /\$\('opn-start'\)\.addEventListener\('click', opnStart\)/);
   assert.match(html, /\$\('opn-weg'\)\.addEventListener\('click', opnWeg\)/);
-  // De opname blijft in het toestel: in het opneemgedeelte gaat niets naar de server.
+  // De opname blijft in het toestel: in het opneemgedeelte gaat niets naar de server. (De delen
+  // eronder — het nazingen en de jukebox — mogen wél iets ophalen, maar versturen geen opname.)
   const begin = html.indexOf('// ---------------------------------------------------- jezelf opnemen');
-  const eind = html.indexOf('// ---------------------------------------------------------------- laden');
+  const eind = html.indexOf('// ------------------------------------------------------------------ jukebox ---');
+  assert.ok(eind > begin, 'de grenzen van het opneemgedeelte horen te kloppen');
   const opnBlok = html.slice(begin, eind);
   assert.ok(opnBlok.length > 1000, 'het opneemgedeelte hoort er te zijn');
   assert.ok(!/api\(/.test(opnBlok), 'een opname hoort niet naar de server te gaan');

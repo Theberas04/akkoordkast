@@ -1010,6 +1010,35 @@
       <div class="melding" id="setlist-melding" hidden></div>
       <div class="melding" id="setlist-offline-melding" hidden></div>
     </div>
+    <div class="kaart" id="jukebox-kaart">
+      <h3>Jukebox</h3>
+      <p class="les-klein" style="margin:0 0 10px">Zet een rij liedjes achter elkaar aan: de app maakt van
+        elk liedje de begeleiding en speelt ze na elkaar — handig om rustig door te luisteren of mee te
+        spelen zonder telkens te klikken. Van liedjes zonder akkoorden is geen begeleiding te maken; die
+        worden overgeslagen.</p>
+      <div class="rij">
+        <label for="jukebox-bron">Speel</label>
+        <select id="jukebox-bron">
+          <option value="favoriet">mijn favorieten</option>
+          <option value="lijst">wat er nu in de lijst staat</option>
+        </select>
+        <button class="knop goed" id="jukebox-start">▶ Start</button>
+        <button class="knop rood" id="jukebox-stop" disabled>■ Stop</button>
+        <button class="knop zacht" id="jukebox-vorige" disabled title="Vorige liedje">⏮ Vorige</button>
+        <button class="knop zacht" id="jukebox-volgende" disabled title="Volgende liedje">⏭ Volgende</button>
+        <span class="pilletje" id="jukebox-stand">stil</span>
+      </div>
+      <div id="jukebox-nu" hidden>
+        <div class="meta" id="jukebox-nu-titel" style="margin-top:8px"></div>
+        <div class="voortgang-balk" style="margin-top:6px"><span id="jukebox-balk"></span></div>
+        <div class="rij" style="margin-top:6px">
+          <span class="meta" id="jukebox-tijd">0:00</span>
+          <button class="knop zacht" id="jukebox-open">Open het blad</button>
+        </div>
+      </div>
+      <audio id="jukebox-audio" preload="none" hidden></audio>
+      <div class="melding" id="jukebox-melding" hidden></div>
+    </div>
     <div class="kaart" id="boek-offline-kaart">
       <h3>Heel het liedboek offline</h3>
       <p class="les-klein" style="margin:0 0 10px">Zet in één keer <strong>alle liedjes</strong> op dit toestel —
@@ -9530,6 +9559,189 @@ function opnbWeg() {
   if (tijd) tijd.textContent = '0:00';
   toonMelding('opnb-melding', 'Opname weggegooid.', '');
 }
+
+// ------------------------------------------------------------------ jukebox ---
+// Luisteren naar een rij liedjes achter elkaar. Van elk liedje maakt de server de begeleiding; die
+// wordt hier na elkaar afgespeeld. Het volgende liedje wordt alvast gemaakt terwijl de huidige
+// speelt, zodat er tussen twee liedjes weinig stilte valt. Liedjes zonder akkoorden worden
+// overgeslagen (daar valt geen begeleiding van te maken). De rij speelt alleen met verbinding:
+// de begeleiding komt van de server.
+var JB = { aan: false, wachtrij: [], index: -1, cache: {}, lopend: {}, bezig: false, overgeslagen: 0 };
+
+function jukeboxKnoppen() {
+  $('jukebox-start').disabled = JB.aan;
+  $('jukebox-stop').disabled = !JB.aan;
+  $('jukebox-vorige').disabled = !JB.aan || JB.index <= 0;
+  $('jukebox-volgende').disabled = !JB.aan || JB.index >= JB.wachtrij.length - 1;
+  $('jukebox-open').disabled = !JB.aan || JB.index < 0;
+}
+
+function jukeboxBegeleiding(id) {
+  if (JB.cache[id]) return Promise.resolve(JB.cache[id]);
+  if (JB.lopend[id]) return JB.lopend[id];
+  var p = fetch('/api/audio/preview?liedje=' + encodeURIComponent(id), {
+    headers: { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' }
+  }).then(function (r) {
+    if (!r.ok) {
+      var fout = new Error('de server maakte geen begeleiding (code ' + r.status + ')');
+      fout.zonderAkkoorden = (r.status === 400 || r.status === 404);
+      throw fout;
+    }
+    return r.blob();
+  }).then(function (blob) {
+    // Intussen gestopt? Dan deze begeleiding niet meer bewaren — anders blijft er na het stoppen
+    // toch nog iets in het geheugen hangen.
+    if (!JB.aan) throw new Error('gestopt');
+    var bewaard = { url: URL.createObjectURL(blob) };
+    JB.cache[id] = bewaard;
+    return bewaard;
+  });
+  JB.lopend[id] = p.then(function (v) { delete JB.lopend[id]; return v; },
+    function (e) { delete JB.lopend[id]; throw e; });
+  return JB.lopend[id];
+}
+
+// Alleen het huidige en het volgende liedje blijven in het geheugen staan; de rest gaat vrij.
+function jukeboxSnoei(huidig, volgend) {
+  Object.keys(JB.cache).forEach(function (sleutel) {
+    if (String(sleutel) === String(huidig) || (volgend && String(sleutel) === String(volgend))) return;
+    try { URL.revokeObjectURL(JB.cache[sleutel].url); } catch (e) {}
+    delete JB.cache[sleutel];
+  });
+}
+
+function jukeboxStartItem(n) {
+  if (!JB.aan) return;
+  if (n >= JB.wachtrij.length) { jukeboxEinde(); return; }
+  if (n < 0) n = 0;
+  JB.index = n;
+  JB.bezig = true;
+  var it = JB.wachtrij[n];
+  $('jukebox-stand').textContent = 'bezig…';
+  $('jukebox-nu-titel').textContent = (n + 1) + ' van ' + JB.wachtrij.length + ' · ' + it.titel +
+    (it.artiest ? ' — ' + it.artiest : '');
+  jukeboxKnoppen();
+  jukeboxBegeleiding(it.id).then(function (c) {
+    if (!JB.aan || JB.index !== n) return;      // intussen gestopt of doorgeklikt
+    JB.bezig = false;
+    var a = $('jukebox-audio');
+    a.src = c.url;
+    a.currentTime = 0;
+    a.play().catch(function () {});
+    $('jukebox-stand').textContent = 'speelt';
+    toonMelding('jukebox-melding', '', '');   // de 'wachtrij wordt klaargezet'-melding mag weg
+    var volgend = JB.wachtrij[n + 1];
+    if (volgend) jukeboxBegeleiding(volgend.id).catch(function () {});   // vast vooruitwerken
+    jukeboxSnoei(it.id, volgend && volgend.id);
+  }).catch(function (e) {
+    if (!JB.aan || JB.index !== n) return;
+    if (e && e.zonderAkkoorden) {
+      // Geen akkoorden bekend: geen begeleiding mogelijk, dus netjes overslaan.
+      JB.overgeslagen++;
+      jukeboxStartItem(n + 1);
+      return;
+    }
+    toonMelding('jukebox-melding', 'De begeleiding van dit liedje lukte niet (' + it.titel + '): ' + e.message, 'fout');
+    jukeboxStop();
+  });
+}
+
+function jukeboxStart() {
+  if (JB.aan) return;
+  var bron = $('jukebox-bron').value === 'lijst' ? 'lijst' : 'favoriet';
+  toonMelding('jukebox-melding', 'De wachtrij wordt klaargezet…', '');
+  var klaar = bron === 'lijst'
+    ? Promise.resolve((staat.liedjes || []).map(function (l) {
+        return { id: l.id, titel: l.titel, artiest: l.artiest };
+      }))
+    : api('/api/liedjes?favoriet=1&aantal=200').then(function (data) {
+        return (data.liedjes || []).map(function (l) {
+          return { id: l.id, titel: l.titel, artiest: l.artiest };
+        });
+      });
+  klaar.then(function (rij) {
+    if (!rij.length) {
+      toonMelding('jukebox-melding', bron === 'lijst'
+        ? 'Er staat nu niets in de lijst om te spelen.'
+        : 'Je hebt nog geen favorieten. Zet een hartje bij de liedjes die je mooi vindt en probeer het opnieuw.', '');
+      return;
+    }
+    JB.wachtrij = rij;
+    JB.index = -1;
+    JB.overgeslagen = 0;
+    JB.cache = {};
+    JB.lopend = {};
+    JB.aan = true;
+    $('jukebox-nu').hidden = false;
+    $('jukebox-stand').className = 'pilletje goed';
+    jukeboxKnoppen();
+    jukeboxStartItem(0);
+  }).catch(function (e) {
+    toonMelding('jukebox-melding', e.message, 'fout');
+  });
+}
+
+function jukeboxEinde() {
+  var aantal = JB.wachtrij.length;
+  var over = JB.overgeslagen;
+  jukeboxStop(true);
+  var extra = over ? ' ' + over + ' liedje' + (over === 1 ? '' : 's') + ' overgeslagen (geen akkoorden).' : '';
+  toonMelding('jukebox-melding', 'Dat was de hele rij — ' + aantal + ' liedjes.' + extra, 'goed');
+}
+
+function jukeboxStop(stil) {
+  if (!JB.aan) return;
+  var over = JB.overgeslagen;
+  JB.aan = false;
+  JB.bezig = false;
+  var a = $('jukebox-audio');
+  try { a.pause(); a.removeAttribute('src'); } catch (e) {}
+  Object.keys(JB.cache).forEach(function (sleutel) {
+    try { URL.revokeObjectURL(JB.cache[sleutel].url); } catch (e) {}
+    delete JB.cache[sleutel];
+  });
+  JB.lopend = {};
+  JB.index = -1;
+  JB.wachtrij = [];
+  JB.overgeslagen = 0;
+  $('jukebox-nu').hidden = true;
+  $('jukebox-balk').style.width = '0%';
+  $('jukebox-tijd').textContent = '0:00';
+  $('jukebox-stand').textContent = 'stil';
+  $('jukebox-stand').className = 'pilletje';
+  jukeboxKnoppen();
+  if (!stil) {
+    var extra = over ? ' ' + over + ' liedje' + (over === 1 ? '' : 's') + ' overgeslagen (geen akkoorden).' : '';
+    toonMelding('jukebox-melding', 'Gestopt.' + extra, '');
+  }
+}
+
+function jukeboxVorige() { if (JB.aan && JB.index > 0) jukeboxStartItem(JB.index - 1); }
+function jukeboxVolgende() { if (JB.aan) jukeboxStartItem(JB.index + 1); }
+
+function jukeboxOpenBlad() {
+  var it = JB.wachtrij[JB.index];
+  if (it) openLiedje(it.id);
+}
+
+function jukeboxTik() {
+  var a = $('jukebox-audio');
+  if (!JB.aan || !a) return;
+  var duur = a.duration || 0;
+  var deel = duur ? Math.max(0, Math.min(100, Math.round(a.currentTime / duur * 100))) : 0;
+  $('jukebox-balk').style.width = deel + '%';
+  $('jukebox-tijd').textContent = opnTijd(a.currentTime) + ' / ' + (duur ? opnTijd(duur) : '…');
+}
+
+$('jukebox-start').addEventListener('click', jukeboxStart);
+$('jukebox-stop').addEventListener('click', function () { jukeboxStop(false); });
+$('jukebox-vorige').addEventListener('click', jukeboxVorige);
+$('jukebox-volgende').addEventListener('click', jukeboxVolgende);
+$('jukebox-open').addEventListener('click', jukeboxOpenBlad);
+$('jukebox-audio').addEventListener('ended', function () {
+  if (JB.aan && !JB.bezig) jukeboxStartItem(JB.index + 1);
+});
+$('jukebox-audio').addEventListener('timeupdate', jukeboxTik);
 
 // ---------------------------------------------------------------- laden ---
 var lerenGeladen = false;

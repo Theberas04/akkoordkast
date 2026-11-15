@@ -3,6 +3,17 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.56.1] — 15 november 2026
+
+### Kies waar nieuwe downloads worden opgeslagen
+
+- In **Downloaden als mp3** kan Admin een beschikbare lokale map, NAS-koppeling of vooraf gemounte Google Drive/OneDrive via rclone kiezen.
+- De keuze blijft na een herstart staan. Bestaande muziek wordt niet verplaatst.
+- Als een expliciet gekozen map wegvalt of niet schrijfbaar is, stopt een nieuwe download met een duidelijke melding; hij valt niet stilzwijgend terug op lokale opslag.
+- Het menu regelt geen OAuth of mount: NAS- en cloudmappen moeten vooraf in de LXC zijn gekoppeld en schrijfbaar zijn.
+- Het blok staat ook netjes op een telefoon: de keuzelijst, de knop en de statusregel blijven binnen het scherm, en een lange melding met een serverpad breekt af in plaats van de pagina breder te maken.
+- Bij het sluiten van het beheerdersslot worden de wachtwoordvelden nu meteen leeggemaakt.
+
 ## [1.56.0] — 13 november 2026
 
 ### Schijf: je ziet hoeveel ruimte er is, en ruimt oude kopieën op

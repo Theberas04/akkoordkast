@@ -40,7 +40,7 @@ const CAST_HELPER = process.env.CAST_HELPER
   : path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.56.0';
+const VERSIE = '1.56.1';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -337,6 +337,7 @@ function beheerNodig(pad, methode) {
   if (pad === '/api/mappen' || pad === '/api/mappen/weg') return true;
   if (pad === '/api/muziek' || pad === '/api/youtube') return true;
   if (pad === '/api/wachter') return true;
+  if (pad === '/api/downloadbestemmingen') return true;
   if (pad === '/api/handleiding') return true;
   if (/^\/api\/(upload|download|scan|backup|update|analyse|import)/.test(pad)) return true;
   if (/^\/api\/liedjes(\/|$)/.test(pad)) return true;
@@ -1510,22 +1511,119 @@ function scanRonde(mapPad, limiet) {
   };
 }
 
-// De wachter: kijkt op de achtergrond of er nieuwe muziek in de map staat en of er
-// een nieuwe versie van de app is. Alles wordt bewaard in de instellingen, zodat de
-// kaart in de app kan laten zien wat er gebeurd is — ook na een herstart.
 // De map die de app zelf voorstelt: met MUSIC_DIR in de omgeving (bijvoorbeeld een
 // NAS- of Drive-koppeling) hoef je dat pad niet elke keer in te typen.
 const STANDAARD_MUZIEKMAP = String(process.env.MUSIC_DIR || '').trim();
+const NOOD_DIR = path.join(DATA_DIR, 'gedownload');
+const DOWNLOAD_DIR_ENV = String(process.env.DOWNLOAD_DIR || '').trim();
+const DOWNLOAD_BESTEMMINGEN_SLEUTEL = 'download_bestemmingen';
+const DOWNLOAD_BESTEMMING_ACTIEF_SLEUTEL = 'download_bestemming_actief';
+const DOWNLOAD_SOORTEN = ['lokaal', 'nas', 'google-drive', 'onedrive'];
+const MAX_DOWNLOAD_BESTEMMINGEN = 12;
 
-// Waar een opgehaald mp3-bestand komt te staan. Bij voorkeur in de muziekmap zelf, in een
-// eigen ondermap, zodat de app het meteen kan vinden en afspelen. Is er geen muziekmap
-// bekend, dan komt het in de map met de gegevens van de app.
-const DOWNLOAD_DIR_GEVRAAGD = path.resolve(String(process.env.DOWNLOAD_DIR || '').trim() ||
-  (STANDAARD_MUZIEKMAP ? path.join(STANDAARD_MUZIEKMAP, 'Gedownload') : path.join(DATA_DIR, 'gedownload')));
+// Zoek het diepste koppelpunt dat een pad bevat. Google Drive en OneDrive via rclone zijn FUSE-mounts;
+// een gewone map onder /tmp mag dus nooit voor een werkende cloudkoppeling doorgaan.
+function mountpuntVoor(pad, gegevens) {
+  const absoluut = path.resolve(String(pad || ''));
+  let tekst = gegevens;
+  if (tekst === undefined) {
+    try { tekst = fs.readFileSync('/proc/self/mountinfo', 'utf8'); } catch (e) { tekst = ''; }
+  }
+  const uitpakken = waarde => String(waarde || '').replace(/\\(040|011|012|134)/g, (heel, code) => ({
+    '040': ' ', '011': '\t', '012': '\n', '134': '\\'
+  }[code] || heel));
+  let diepste = null;
+  for (const regel of String(tekst || '').split(/\r?\n/)) {
+    const scheiding = regel.indexOf(' - ');
+    if (scheiding < 0) continue;
+    const links = regel.slice(0, scheiding).trim().split(/\s+/);
+    const rechts = regel.slice(scheiding + 3).trim().split(/\s+/);
+    const koppelpunt = uitpakken(links[4]);
+    const soort = String(rechts[0] || '');
+    if (!koppelpunt) continue;
+    const binnen = absoluut === koppelpunt || koppelpunt === path.parse(absoluut).root ||
+      absoluut.startsWith(koppelpunt + path.sep);
+    if (binnen && (!diepste || koppelpunt.length > diepste.pad.length)) {
+      diepste = { pad: koppelpunt, type: soort, bron: uitpakken(rechts[1] || '') };
+    }
+  }
+  return diepste;
+}
 
-// Kan er in deze map geschreven worden? Een NAS-koppeling wil nog weleens verdwijnen (storing,
-// herstart, rechten) en dan is de bovenliggende map er niet meer; zonder deze proef klapte de app
-// er met een rauwe foutmelding uit zodra iemand muziek wilde ophalen.
+function leesEigenDownloadBestemmingen() {
+  let lijst = [];
+  try { lijst = JSON.parse(leesInstelling(DOWNLOAD_BESTEMMINGEN_SLEUTEL, '[]')); } catch (e) { lijst = []; }
+  if (!Array.isArray(lijst)) return [];
+  return lijst.slice(0, MAX_DOWNLOAD_BESTEMMINGEN).filter(x => x &&
+    /^extra-[a-f0-9]{16}$/.test(String(x.id || '')) &&
+    DOWNLOAD_SOORTEN.includes(String(x.type || '')) &&
+    String(x.naam || '').trim() && path.isAbsolute(String(x.pad || ''))
+  ).map(x => ({
+    id: String(x.id), naam: String(x.naam).trim().slice(0, 40),
+    type: String(x.type), pad: path.resolve(String(x.pad))
+  }));
+}
+
+function downloadBestemmingen() {
+  const lijst = [{ id: 'lokaal', naam: 'Lokale opslag van AkkoordKast', type: 'lokaal', pad: NOOD_DIR, ingebouwd: true }];
+  const voegToe = doel => {
+    if (!doel || !doel.pad) return;
+    const pad = path.resolve(doel.pad);
+    if (lijst.some(x => x.pad === pad || x.id === doel.id)) return;
+    lijst.push(Object.assign({}, doel, { pad }));
+  };
+  if (STANDAARD_MUZIEKMAP) {
+    voegToe({ id: 'muziekmap', naam: 'Muziekmap (NAS of gekoppelde cloud)', type: 'muziekmap',
+      pad: path.join(STANDAARD_MUZIEKMAP, 'Gedownload'), ingebouwd: true });
+  }
+  if (DOWNLOAD_DIR_ENV) {
+    voegToe({ id: 'server', naam: 'Door de server ingestelde map', type: 'muziekmap',
+      pad: DOWNLOAD_DIR_ENV, ingebouwd: true });
+  }
+  for (const doel of leesEigenDownloadBestemmingen()) voegToe(doel);
+  return lijst;
+}
+
+function standaardDownloadBestemming(lijst) {
+  const gevraagd = DOWNLOAD_DIR_ENV
+    ? path.resolve(DOWNLOAD_DIR_ENV)
+    : (STANDAARD_MUZIEKMAP ? path.resolve(path.join(STANDAARD_MUZIEKMAP, 'Gedownload')) : NOOD_DIR);
+  return lijst.find(x => x.pad === gevraagd) || lijst[0];
+}
+
+function downloadBestemmingFout(doel, schrijfproef) {
+  if (!doel) return 'Kies eerst een downloadbestemming.';
+  let pad;
+  try { pad = fs.realpathSync(path.resolve(doel.pad)); }
+  catch (e) { return 'De map bestaat niet of is niet bereikbaar.'; }
+  const wortel = path.parse(pad).root;
+  if (pad === wortel) return 'Kies een downloadmap, niet de hoofdmap van de schijf.';
+  if (doel.type === 'google-drive' || doel.type === 'onedrive') {
+    const mount = mountpuntVoor(pad);
+    if (!mount || mount.pad === wortel || !/(fuse|rclone)/i.test(mount.type)) {
+      return 'Geen actieve rclone-koppeling gevonden. Koppel de cloudmap eerst in de LXC.';
+    }
+  } else if (doel.type === 'nas' || doel.type === 'muziekmap') {
+    const mount = mountpuntVoor(pad);
+    const pseudo = /^(proc|sysfs|tmpfs|devtmpfs|overlay|squashfs|cgroup2?|mqueue|securityfs|tracefs|configfs|debugfs|autofs|ramfs)$/i;
+    if (!mount || mount.pad === wortel || pseudo.test(mount.type)) {
+      return 'Dit pad staat niet op een actieve opslagkoppeling (NAS of rclone).';
+    }
+  }
+  let proef = '';
+  try {
+    if (!fs.statSync(pad).isDirectory()) return 'Het gekozen pad is geen map.';
+    fs.accessSync(pad, fs.constants.R_OK | fs.constants.W_OK | fs.constants.X_OK);
+    if (schrijfproef) proef = fs.mkdtempSync(path.join(pad, '.akkoordkast-schrijfproef-'));
+    return '';
+  } catch (e) {
+    return 'AkkoordKast kan niet in deze map schrijven (' + (e && e.code ? e.code : 'mapfout') + ').';
+  } finally {
+    if (proef) { try { fs.rmSync(proef, { recursive: true, force: true }); } catch (e) {} }
+  }
+}
+
+// De oude automatische terugval blijft gelden zolang de beheerder nog geen eigen keuze heeft gemaakt.
 function mapSchrijfFout(pad) {
   try {
     fs.mkdirSync(pad, { recursive: true });
@@ -1538,30 +1636,50 @@ function mapSchrijfFout(pad) {
   }
 }
 
-// Is de gevraagde map onbruikbaar, dan halen we de muziek op in de eigen map van de app. Zo blijft
-// de app werken, en de app zegt er zelf bij waar de muziek dan terechtkomt.
-var DOWNLOAD_TERUGVAL = null;
-const DOWNLOAD_DIR = (function () {
-  const fout = mapSchrijfFout(DOWNLOAD_DIR_GEVRAAGD);
-  if (!fout) return DOWNLOAD_DIR_GEVRAAGD;
-  const nood = path.join(DATA_DIR, 'gedownload');
-  if (nood !== DOWNLOAD_DIR_GEVRAAGD && !mapSchrijfFout(nood)) {
-    console.warn('LET OP: de map ' + DOWNLOAD_DIR_GEVRAAGD + ' is niet bereikbaar (' + fout +
-      '). Nieuwe muziek komt in ' + nood + ' terecht. Koppel de NAS opnieuw met deploy/proxmox/nas-koppelen.sh.');
-    DOWNLOAD_TERUGVAL = { gevraagd: DOWNLOAD_DIR_GEVRAAGD, map: nood, fout };
-    return nood;
+let DOWNLOAD_DIR_GEVRAAGD = '';
+let DOWNLOAD_DIR = '';
+let DOWNLOAD_TERUGVAL = null;
+let DOWNLOAD_BESTEMMING_EXPLICIET = false;
+let ACTIEVE_DOWNLOAD_BESTEMMING_ID = '';
+let OPHAAL = null;
+
+function actieveDownloadBestemming() {
+  const lijst = downloadBestemmingen();
+  const gevonden = lijst.find(x => x.id === ACTIEVE_DOWNLOAD_BESTEMMING_ID);
+  if (gevonden) return gevonden;
+  return DOWNLOAD_BESTEMMING_EXPLICIET ? null : standaardDownloadBestemming(lijst);
+}
+
+function stelDownloaderIn(doel, legacyTerugval) {
+  DOWNLOAD_DIR_GEVRAAGD = path.resolve(doel.pad);
+  DOWNLOAD_DIR = DOWNLOAD_DIR_GEVRAAGD;
+  DOWNLOAD_TERUGVAL = null;
+  let noodmap = '';
+  if (legacyTerugval) {
+    const fout = mapSchrijfFout(DOWNLOAD_DIR_GEVRAAGD);
+    if (!fout) {
+      noodmap = NOOD_DIR;
+    } else if (NOOD_DIR !== DOWNLOAD_DIR_GEVRAAGD && !mapSchrijfFout(NOOD_DIR)) {
+      console.warn('LET OP: de map ' + DOWNLOAD_DIR_GEVRAAGD + ' is niet bereikbaar (' + fout +
+        '). Nieuwe muziek komt in ' + NOOD_DIR + ' terecht.');
+      DOWNLOAD_TERUGVAL = { gevraagd: DOWNLOAD_DIR_GEVRAAGD, map: NOOD_DIR, fout };
+      DOWNLOAD_DIR = NOOD_DIR;
+      noodmap = NOOD_DIR;
+    }
   }
-  return DOWNLOAD_DIR_GEVRAAGD;
-})();
+  OPHAAL = downloader.maakDownloader({ map: DOWNLOAD_DIR, noodmap, ytdlp: process.env.YTDLP || 'yt-dlp' });
+}
 
-const NOOD_DIR = path.join(DATA_DIR, 'gedownload');
-const OPHAAL = downloader.maakDownloader({
-  map: DOWNLOAD_DIR, noodmap: NOOD_DIR, ytdlp: process.env.YTDLP || 'yt-dlp'
-});
+const DOWNLOAD_DOELEN_BIJ_START = downloadBestemmingen();
+const BEWAARDE_DOWNLOAD_BESTEMMING = String(leesInstelling(DOWNLOAD_BESTEMMING_ACTIEF_SLEUTEL, '') || '');
+const BEWAARDE_DOWNLOAD_BESTEMMING_DOEL = DOWNLOAD_DOELEN_BIJ_START.find(x => x.id === BEWAARDE_DOWNLOAD_BESTEMMING);
+const BEGIN_DOWNLOAD_BESTEMMING = BEWAARDE_DOWNLOAD_BESTEMMING_DOEL ||
+  standaardDownloadBestemming(DOWNLOAD_DOELEN_BIJ_START);
+ACTIEVE_DOWNLOAD_BESTEMMING_ID = BEWAARDE_DOWNLOAD_BESTEMMING && !BEWAARDE_DOWNLOAD_BESTEMMING_DOEL
+  ? BEWAARDE_DOWNLOAD_BESTEMMING : BEGIN_DOWNLOAD_BESTEMMING.id;
+DOWNLOAD_BESTEMMING_EXPLICIET = !!BEWAARDE_DOWNLOAD_BESTEMMING;
+stelDownloaderIn(BEGIN_DOWNLOAD_BESTEMMING, !DOWNLOAD_BESTEMMING_EXPLICIET);
 
-// Waar het ophalen op dit moment terechtkomt. De downloader kiest bij elke keer opnieuw: lukt de
-// gewone map niet meer (bijvoorbeeld omdat de NAS-koppeling tijdens het draaien wegvalt), dan gaat
-// het door in de eigen map van de app.
 function ophaalMap() {
   try {
     return OPHAAL && OPHAAL.gebruikteMap ? OPHAAL.gebruikteMap() : DOWNLOAD_DIR;
@@ -1570,22 +1688,48 @@ function ophaalMap() {
   }
 }
 
-// Alle mappen waar een opgehaald bestand mag staan (de gewone en de eigen map van de app), zodat een
-// bestand dat in de eigen map terechtkwam niet als 'onveilig pad' wordt geweigerd.
 function downloadMappen() {
   const lijst = [DOWNLOAD_DIR, ophaalMap()];
   return lijst.filter((m, i) => m && lijst.indexOf(m) === i);
 }
 
-// Het beeld dat de app laat zien: waar komt nieuwe muziek terecht, en is dat de gevraagde map?
 function downloadStand() {
+  const doel = actieveDownloadBestemming();
+  if (!doel) {
+    return {
+      id: ACTIEVE_DOWNLOAD_BESTEMMING_ID, naam: 'Onbekende bestemming', type: '', pad: '',
+      map: '', gevraagd: '', terugval: false, fout: '', bestemmingBeschikbaar: false,
+      bestemmingFout: 'De opgeslagen downloadbestemming staat niet meer in de keuzelijst. Kies een nieuwe bestemming.'
+    };
+  }
   const nu = ophaalMap();
+  const doelFout = downloadBestemmingFout(doel, false);
   return {
-    map: nu,
-    gevraagd: DOWNLOAD_DIR_GEVRAAGD,
-    terugval: nu !== DOWNLOAD_DIR_GEVRAAGD,
-    fout: DOWNLOAD_TERUGVAL ? DOWNLOAD_TERUGVAL.fout : ''
+    id: doel.id, naam: doel.naam, type: doel.type, pad: doel.pad,
+    map: nu, gevraagd: doel.pad, terugval: nu !== doel.pad,
+    fout: DOWNLOAD_TERUGVAL ? DOWNLOAD_TERUGVAL.fout : '',
+    bestemmingBeschikbaar: !doelFout, bestemmingFout: doelFout
   };
+}
+
+function downloadBestemmingenBeeld() {
+  const lijst = downloadBestemmingen().map(doel => {
+    const fout = downloadBestemmingFout(doel, false);
+    return Object.assign({}, doel, { beschikbaar: !fout, fout });
+  });
+  return { bestemmingen: lijst, actief: ACTIEVE_DOWNLOAD_BESTEMMING_ID, download: downloadStand() };
+}
+
+function startDownload(link, opties) {
+  if (DOWNLOAD_BESTEMMING_EXPLICIET) {
+    const doel = actieveDownloadBestemming();
+    if (!doel) {
+      return { ok: false, fout: 'De opgeslagen downloadbestemming ontbreekt in de keuzelijst. Kies eerst een nieuwe bestemming.' };
+    }
+    const fout = downloadBestemmingFout(doel, true);
+    if (fout) return { ok: false, fout: 'De gekozen bestemming ' + doel.naam + ' is niet beschikbaar: ' + fout };
+  }
+  return OPHAAL.start(link, opties);
 }
 
 // Zorg dat het beheerdersprofiel bestaat zodra de app start, zodat het in de profielenlijst staat.
@@ -3502,6 +3646,98 @@ async function verwerk(req, res) {
     return;
   }
 
+  if (pad === '/api/downloadbestemmingen' && methode === 'GET') {
+    if (!(isBeheerder(req) && isBeheerProfiel(req, query))) {
+      json(res, 403, { fout: 'Alleen Admin kan downloadbestemmingen bekijken.' });
+      return;
+    }
+    json(res, 200, downloadBestemmingenBeeld());
+    return;
+  }
+  if (pad === '/api/downloadbestemmingen' && methode === 'POST') {
+    const body = await leesJsonBody(req);
+    const actie = String(body.actie || '');
+    let eigen = leesEigenDownloadBestemmingen();
+
+    if (actie === 'toevoegen') {
+      const naam = String(body.naam || '').trim();
+      const type = String(body.type || '');
+      const ruwePad = String(body.pad || '').trim();
+      if (!naam || naam.length > 40 || /[\u0000-\u001f\u007f]/.test(naam)) {
+        json(res, 400, { fout: 'Geef de bestemming een naam van hoogstens 40 tekens.' });
+        return;
+      }
+      if (!DOWNLOAD_SOORTEN.includes(type)) {
+        json(res, 400, { fout: 'Kies Lokaal, NAS, Google Drive of OneDrive.' });
+        return;
+      }
+      if (!path.isAbsolute(ruwePad) || ruwePad.length > 1024) {
+        json(res, 400, { fout: 'Vul het volledige pad naar een bestaande map in.' });
+        return;
+      }
+      let pad;
+      try { pad = fs.realpathSync(path.resolve(ruwePad)); }
+      catch (e) { json(res, 400, { fout: 'Die map bestaat nog niet of is niet bereikbaar.' }); return; }
+      if (pad === path.parse(pad).root) {
+        json(res, 400, { fout: 'Kies een downloadmap, niet de hoofdmap van de schijf.' });
+        return;
+      }
+      if (eigen.length >= MAX_DOWNLOAD_BESTEMMINGEN) {
+        json(res, 400, { fout: 'Je kunt hoogstens ' + MAX_DOWNLOAD_BESTEMMINGEN + ' eigen downloadmappen bewaren.' });
+        return;
+      }
+      const bestaand = downloadBestemmingen();
+      if (bestaand.some(x => x.pad === pad || x.naam.toLowerCase() === naam.toLowerCase())) {
+        json(res, 409, { fout: 'Die naam of map staat al in de keuzelijst.' });
+        return;
+      }
+      const doel = { id: 'extra-' + crypto.randomBytes(8).toString('hex'), naam, type, pad };
+      const fout = downloadBestemmingFout(doel, true);
+      if (fout) { json(res, 400, { fout }); return; }
+      eigen.push(doel);
+      zetInstelling(DOWNLOAD_BESTEMMINGEN_SLEUTEL, JSON.stringify(eigen));
+      json(res, 201, Object.assign({ ok: true }, downloadBestemmingenBeeld()));
+      return;
+    }
+
+    if (actie === 'selecteer') {
+      if (OPHAAL.standVan().status === 'bezig') {
+        json(res, 409, { fout: 'Wacht tot de download klaar is voordat je de bestemming wijzigt.' });
+        return;
+      }
+      const id = String(body.id || '');
+      const doel = downloadBestemmingen().find(x => x.id === id);
+      if (!doel) { json(res, 404, { fout: 'Die downloadbestemming staat niet in de keuzelijst.' }); return; }
+      const fout = downloadBestemmingFout(doel, true);
+      if (fout) { json(res, 400, { fout }); return; }
+      ACTIEVE_DOWNLOAD_BESTEMMING_ID = doel.id;
+      DOWNLOAD_BESTEMMING_EXPLICIET = true;
+      zetInstelling(DOWNLOAD_BESTEMMING_ACTIEF_SLEUTEL, doel.id);
+      stelDownloaderIn(doel, false);
+      json(res, 200, Object.assign({ ok: true }, downloadBestemmingenBeeld()));
+      return;
+    }
+
+    if (actie === 'verwijderen') {
+      const id = String(body.id || '');
+      if (id === ACTIEVE_DOWNLOAD_BESTEMMING_ID) {
+        json(res, 409, { fout: 'Kies eerst een andere downloadbestemming voordat je deze map verwijdert.' });
+        return;
+      }
+      if (!eigen.some(x => x.id === id)) {
+        json(res, 404, { fout: 'Alleen een zelf toegevoegde map kan worden verwijderd.' });
+        return;
+      }
+      eigen = eigen.filter(x => x.id !== id);
+      zetInstelling(DOWNLOAD_BESTEMMINGEN_SLEUTEL, JSON.stringify(eigen));
+      json(res, 200, Object.assign({ ok: true }, downloadBestemmingenBeeld()));
+      return;
+    }
+
+    json(res, 400, { fout: 'Onbekende actie voor de downloadbestemmingen.' });
+    return;
+  }
+
   if (pad === '/api/profielen' && methode === 'POST') {
     const body = await leesJsonBody(req);
     const naam = String(body.naam || '').trim().slice(0, 40);
@@ -4483,7 +4719,7 @@ async function verwerk(req, res) {
       ophaalReeksFouten = 0;
       ophaalNieuweLiedje = 0;
       ophaalNieuweFout = '';
-      const begonnen = OPHAAL.start(body.url, { reeks: true, max });
+      const begonnen = startDownload(body.url, { reeks: true, max });
       if (!begonnen.ok) { json(res, 400, { fout: begonnen.fout }); return; }
       ophaalLiedje = 0;
       bewaakReeks();
@@ -4497,7 +4733,7 @@ async function verwerk(req, res) {
       ophaalReeksGedaan = new Set();
       ophaalReeksLiedjes = [];
       ophaalReeksFouten = 0;
-      const gestart = OPHAAL.start(body.url);
+      const gestart = startDownload(body.url);
       if (!gestart.ok) { json(res, 400, { fout: gestart.fout }); return; }
       ophaalLiedje = 0;
       bewaakNieuweMuziek(titel, gestart.url);
@@ -4512,7 +4748,7 @@ async function verwerk(req, res) {
       json(res, 200, Object.assign({ ok: true }, ophaalBeeld(lied.id)));
       return;
     }
-    const gestart = OPHAAL.start(body.url);
+    const gestart = startDownload(body.url);
     if (!gestart.ok) { json(res, 400, { fout: gestart.fout }); return; }
     ophaalLiedje = lied.id;
     ophaalNieuweLiedje = 0;
@@ -5251,7 +5487,7 @@ module.exports = {
   server, db, verstuur: verwerk, herstelOphaalTeksten,
   wachterBeeld, wachterRonde, startWachter, scanRonde,
   weergave, lijstItem, zoekLiedjes, normaliseerLiedje, vindLiedje, eigenRij,
-  maakPreview, previewVoorLiedje, castHelper, leesInstelling, zetInstelling,
+  maakPreview, previewVoorLiedje, castHelper, leesInstelling, zetInstelling, mountpuntVoor,
   paden: { DATA_DIR, MEDIA_DIR, DB_PATH, CAST_HELPER, EIGEN_START, PORT }
 };
 

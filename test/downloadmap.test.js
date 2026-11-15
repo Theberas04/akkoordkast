@@ -44,17 +44,18 @@ test('een onbereikbare downloadmap: de app valt terug en zegt waar de muziek kom
 
 test('de pagina zegt het zelf: waar nieuwe muziek terechtkomt, en wat je moet doen', async () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
-  assert.match(html, /id="mappen-download"/);
-  assert.match(html, /is niet bereikbaar, dus nieuwe muziek/);
-  assert.match(html, /nas-koppelen\.sh/, 'de reparatiestap hoort erbij te staan');
-  assert.match(html, /Nieuwe muziek die je ophaalt komt in/);
+  assert.ok(html.includes('id="mappen-download"'));
+  assert.ok(html.includes('De ingestelde downloadmap'));
+  assert.ok(html.includes('Herstel de koppeling of kies een beschikbare map in'));
+  assert.ok(!html.includes('nas-koppelen.sh'), 'de melding hoort ook bij Drive en OneDrive te kloppen');
+  assert.ok(html.includes('Nieuwe muziek die je ophaalt komt in'));
   // De melding wordt bij het laden van de mappen gevuld (en bij het starten van een reeks).
-  assert.match(html, /var waar = \$\('mappen-download'\)/);
+  assert.ok(html.includes("var waar = $('mappen-download')"));
   const bron = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
-  assert.match(bron, /DOWNLOAD_DIR_GEVRAAGD/);
-  assert.match(bron, /function mapSchrijfFout\(/);
-  assert.match(bron, /var DOWNLOAD_TERUGVAL = null;/);
-  assert.match(bron, /Nieuwe muziek komt in .* terecht/);
+  assert.ok(bron.includes('DOWNLOAD_DIR_GEVRAAGD'));
+  assert.ok(bron.includes('function mapSchrijfFout('));
+  assert.ok(bron.includes('let DOWNLOAD_TERUGVAL = null;'));
+  assert.ok(bron.includes('Nieuwe muziek komt in '));
 });
 
 // De koppeling kan ook tijdens het draaien wegvallen: bij het starten was de map er nog, bij het

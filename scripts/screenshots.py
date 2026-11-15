@@ -18,7 +18,7 @@ from importlib import machinery  # noqa: E402
 lader = machinery.SourceFileLoader('cdpclient', str(pathlib.Path(__file__).parent / 'cdp-client.py'))
 cdp = lader.load_module()
 
-PORTAAL = 9226
+PORTAAL = int(__import__('os').environ.get('CDP_POORT', '9226'))
 
 
 def tab(browser_url):

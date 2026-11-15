@@ -657,6 +657,7 @@
     nav button{font-size:.7rem;min-height:50px;padding:5px 2px}
     main{padding:10px 8px 24px}
     .veld2{grid-template-columns:1fr}
+    #opname-kaart .rij .knop{flex:1 1 auto;min-width:0;white-space:normal;height:auto;min-height:44px;line-height:1.35}
     /* Op een telefoon staan de knoppen onder het liedje in plaats van ernaast: anders wordt de
        titel in een smalle strook geperst en breekt hij in drie regels af. */
     .lied{grid-template-columns:1fr;gap:7px}
@@ -775,7 +776,7 @@
   .chip.eigen{color:var(--blauw);border-color:rgba(106,168,255,.3);background:rgba(106,168,255,.09)}
   .chip.geen{color:var(--tekst3)}
   .melding{background:rgba(17,28,48,.9);border:1px solid var(--lijn-zacht);border-left:3px solid var(--blauw);
-    border-radius:var(--r-klein);padding:10px 12px;font-size:.85rem}
+    border-radius:var(--r-klein);padding:10px 12px;font-size:.85rem;overflow-wrap:anywhere}
   .melding.goed{border-left-color:var(--groen)}
   .melding.fout{border-left-color:var(--rood)}
 
@@ -841,6 +842,19 @@
 .kandidaat .kandidaat-kop strong{color:var(--tekst)}
 .kandidaat .meta{text-transform:none;letter-spacing:0}
 
+/* Downloadbestemming: één rustige kaart met leesbare statusrijen op groot en klein scherm. */
+.download-bestemmingen{margin:14px 0 18px;padding:15px 16px;
+  border:1px solid rgba(245,165,36,.24);border-radius:var(--r);
+  background:linear-gradient(145deg,rgba(245,165,36,.055),rgba(255,255,255,.018))}
+.download-bestemmingen > p{max-width:76ch;margin:0 0 12px}
+.download-bestemmingen h3{margin:8px 0 10px}
+.download-bestemmingen .veld2{align-items:end}
+.download-bestemmingen #download-bestemming-gebruik{width:100%}
+.download-bestemmingen .map-regel{display:grid;grid-template-columns:minmax(130px,.8fr) minmax(210px,1.5fr) minmax(120px,.8fr) auto;
+  gap:10px;align-items:center}
+.download-bestemmingen .map-regel .naam{min-width:0}
+.download-bestemmingen .map-regel .meta{white-space:normal;overflow-wrap:anywhere}
+
 @media (min-width:761px){
     #filter-toggle{display:inline-flex}
     #meer-filters{display:none}
@@ -852,6 +866,10 @@
     nav button{flex-direction:column;gap:3px;min-height:52px;padding:6px 4px;font-size:.74rem}
     main{padding:14px 14px 50px}
     .kaart{padding:14px;border-radius:var(--r)}
+    .download-bestemmingen{padding:12px}
+    .download-bestemmingen .map-regel{grid-template-columns:minmax(0,1fr) auto;gap:6px 10px}
+    .download-bestemmingen .map-regel .naam,.download-bestemmingen .map-regel .meta{grid-column:1;overflow-wrap:anywhere}
+    .download-bestemmingen .map-regel .knop{grid-column:2;grid-row:1/4;align-self:center}
   }
   @media print{
     body::before{display:none}
@@ -1517,10 +1535,39 @@
     <div class="kaart" id="mp3-kaart">
       <h2>Downloaden als mp3</h2>
       <p class="melding">Plak een link (YouTube of iets dergelijks) en de software haalt het geluid
-        eruit als mp3 in je muziekmap. Dat kan als <strong>nieuwe muziek</strong> — het wordt dan een
+        eruit als mp3 in de gekozen downloadmap. Dat kan als <strong>nieuwe muziek</strong> — het wordt dan een
         eigen liedje in de bibliotheek, meteen klaar om mee te spelen — of <strong>bij een liedje dat
         er al staat</strong>, zodat je met die muziek kunt meespelen. Eén download tegelijk, en wat je
         ophaalt is jouw verantwoordelijkheid.</p>
+      <div class="download-bestemmingen" id="download-bestemmingen">
+        <h3>Waar downloads worden bewaard</h3>
+        <p class="les-klein">Kies een beschikbare map. NAS, Google Drive en OneDrive moeten al in de LXC zijn
+          gekoppeld en schrijfbaar zijn. Dit menu kiest de map; het logt niet in bij Google of Microsoft.
+          Voor cloudopslag gebruik je vooraf een rclone-koppeling. Dit geldt alleen voor nieuwe downloads;
+          bestaande bestanden worden niet verplaatst.</p>
+        <div class="veld2">
+          <div><label for="download-bestemming-keuze">Downloadbestemming</label>
+            <select id="download-bestemming-keuze" aria-label="Downloadbestemming"></select></div>
+          <div><label for="download-bestemming-gebruik">Actie</label><button class="knop" id="download-bestemming-gebruik" disabled>Deze map gebruiken</button></div>
+        </div>
+        <div class="melding" id="download-bestemming-status" hidden></div>
+        <div id="download-bestemming-lijst" class="mappen-lijst"></div>
+        <h3>Een bestaande map toevoegen</h3>
+        <div class="veld2">
+          <div><label for="download-bestemming-naam">Naam in het menu</label>
+            <input id="download-bestemming-naam" type="text" maxlength="40" placeholder="bijvoorbeeld Google Drive" autocomplete="off"></div>
+          <div><label for="download-bestemming-type">Opslagsoort</label>
+            <select id="download-bestemming-type">
+              <option value="lokaal">Lokale map</option>
+              <option value="nas">NAS-koppeling</option>
+              <option value="google-drive">Google Drive via rclone</option>
+              <option value="onedrive">OneDrive via rclone</option>
+            </select></div>
+          <div><label for="download-bestemming-pad">Volledig pad naar de downloadmap</label>
+            <input id="download-bestemming-pad" type="text" placeholder="/pad/naar/Gedownload" autocomplete="off" spellcheck="false"></div>
+        </div>
+        <div class="rij"><button class="knop zacht" id="download-bestemming-toevoegen">Map toevoegen</button></div>
+      </div>
       <label for="mp3-wijze">Wat wil je ermee?</label>
       <select id="mp3-wijze">
         <option value="nieuw">Als nieuwe muziek (nieuw liedje in de bibliotheek)</option>
@@ -5643,6 +5690,109 @@ function koppelOpruimKaart() {
   });
 }
 
+var DOWNLOAD_BESTEMMING_DATA = null;
+
+function tekenDownloadBestemmingen(data) {
+  DOWNLOAD_BESTEMMING_DATA = data || { bestemmingen: [], actief: '' };
+  var kaart = $('download-bestemmingen');
+  var select = $('download-bestemming-keuze');
+  if (!kaart || !select) return;
+  var doelen = DOWNLOAD_BESTEMMING_DATA.bestemmingen || [];
+  select.innerHTML = doelen.map(function (d) {
+    return '<option value="' + esc(d.id) + '"' + (d.beschikbaar ? '' : ' disabled') +
+      (d.id === DOWNLOAD_BESTEMMING_DATA.actief ? ' selected' : '') + '>' + esc(d.naam) +
+      (d.beschikbaar ? '' : ' — niet beschikbaar') + '</option>';
+  }).join('');
+  select.value = DOWNLOAD_BESTEMMING_DATA.actief || (doelen[0] && doelen[0].id) || '';
+  var actief = doelen.filter(function (d) { return d.id === DOWNLOAD_BESTEMMING_DATA.actief; })[0];
+  var stand = DOWNLOAD_BESTEMMING_DATA.download || {};
+  if (stand.terugval) {
+    toonMelding('download-bestemming-status', 'De ingestelde map is niet bereikbaar; AkkoordKast valt terug op ' +
+      (stand.map || 'de lokale opslag') + '. Herstel de koppeling of kies een beschikbare map. ' + (stand.fout || ''), 'fout');
+  } else if (actief && actief.beschikbaar) {
+    toonMelding('download-bestemming-status', 'Nieuwe downloads gaan naar ' + (actief.naam || 'de gekozen map') + '.', 'goed');
+  } else {
+    toonMelding('download-bestemming-status', 'De gekozen downloadmap is niet beschikbaar: ' +
+      ((actief && actief.fout) || stand.bestemmingFout || 'controleer de koppeling en schrijfrechten.') +
+      ' Er wordt niet stilzwijgend naar een andere map gedownload.', 'fout');
+  }
+  var lijst = $('download-bestemming-lijst');
+  if (lijst) {
+    var eigen = doelen.filter(function (d) { return !d.ingebouwd; });
+    lijst.innerHTML = eigen.map(function (d) {
+      var soort = d.type === 'google-drive' ? 'Google Drive via rclone' :
+        d.type === 'onedrive' ? 'OneDrive via rclone' : d.type === 'nas' ? 'NAS-koppeling' : 'Lokale map';
+      return '<div class="map-regel' + (d.beschikbaar ? '' : ' fout') + '">' +
+        '<span class="naam">' + esc(d.naam) + '</span>' +
+        '<span class="meta">' + esc(soort) + '</span>' +
+        '<span class="meta">' + (d.beschikbaar ? 'Beschikbaar' : esc(d.fout || 'Niet beschikbaar')) + '</span>' +
+        '<button class="knop mini zacht" data-download-doel-weg="' + esc(d.id) + '"' +
+          (d.id === DOWNLOAD_BESTEMMING_DATA.actief ? ' disabled' : '') + '>Verwijderen</button></div>';
+    }).join('');
+    Array.prototype.forEach.call(lijst.querySelectorAll('[data-download-doel-weg]'), function (knop) {
+      knop.addEventListener('click', function () {
+        api('/api/downloadbestemmingen', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ actie: 'verwijderen', id: knop.getAttribute('data-download-doel-weg') })
+        }).then(function (antwoord) {
+          tekenDownloadBestemmingen(antwoord);
+          toonMelding('download-bestemming-status', 'De map is uit de keuzelijst verwijderd.', 'goed');
+        }).catch(function (e) { toonMelding('download-bestemming-status', e.message, 'fout'); });
+      });
+    });
+  }
+  var kiezen = $('download-bestemming-gebruik');
+  if (kiezen) {
+    var gekozen = doelen.filter(function (d) { return d.id === select.value; })[0];
+    kiezen.disabled = !gekozen || !gekozen.beschikbaar || gekozen.id === DOWNLOAD_BESTEMMING_DATA.actief;
+  }
+}
+
+function laadDownloadBestemmingen() {
+  return api('/api/downloadbestemmingen').then(tekenDownloadBestemmingen).catch(function (e) {
+    toonMelding('download-bestemming-status', e.message, 'fout');
+  });
+}
+
+function koppelDownloadBestemmingen() {
+  var kaart = $('download-bestemmingen');
+  if (!kaart || kaart.dataset.gekoppeld === '1') return;
+  kaart.dataset.gekoppeld = '1';
+  var select = $('download-bestemming-keuze');
+  if (select) select.addEventListener('change', function () {
+    var doelen = (DOWNLOAD_BESTEMMING_DATA && DOWNLOAD_BESTEMMING_DATA.bestemmingen) || [];
+    var doel = doelen.filter(function (d) { return d.id === select.value; })[0];
+    var knop = $('download-bestemming-gebruik');
+    if (knop) knop.disabled = !doel || !doel.beschikbaar || doel.id === (DOWNLOAD_BESTEMMING_DATA && DOWNLOAD_BESTEMMING_DATA.actief);
+  });
+  if ($('download-bestemming-gebruik')) $('download-bestemming-gebruik').addEventListener('click', function () {
+    var id = select ? select.value : '';
+    api('/api/downloadbestemmingen', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ actie: 'selecteer', id: id })
+    }).then(function (antwoord) {
+      tekenDownloadBestemmingen(antwoord);
+      var doel = (antwoord.bestemmingen || []).filter(function (d) { return d.id === antwoord.actief; })[0];
+      toonMelding('download-bestemming-status', 'Nieuwe downloads worden opgeslagen in ' +
+        (doel ? doel.naam : 'de gekozen map') + '.', 'goed');
+    }).catch(function (e) { toonMelding('download-bestemming-status', e.message, 'fout'); });
+  });
+  if ($('download-bestemming-toevoegen')) $('download-bestemming-toevoegen').addEventListener('click', function () {
+    var naam = $('download-bestemming-naam').value.trim();
+    var pad = $('download-bestemming-pad').value.trim();
+    var type = $('download-bestemming-type').value;
+    api('/api/downloadbestemmingen', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ actie: 'toevoegen', naam: naam, pad: pad, type: type })
+    }).then(function (antwoord) {
+      $('download-bestemming-naam').value = '';
+      $('download-bestemming-pad').value = '';
+      tekenDownloadBestemmingen(antwoord);
+      toonMelding('download-bestemming-status', 'Map toegevoegd. Kies haar in het menu om downloads daar te bewaren.', 'goed');
+    }).catch(function (e) { toonMelding('download-bestemming-status', e.message, 'fout'); });
+  });
+}
+
 function laadMappen() {
   return api('/api/mappen').then(function (d) {
     var vak = $('mappen-lijst');
@@ -5655,9 +5805,9 @@ function laadMappen() {
       if (dl.terugval) {
         waar.hidden = false;
         waar.className = 'melding fout';
-        waar.textContent = 'De map ' + (dl.gevraagd || '') + ' is niet bereikbaar, dus nieuwe muziek ' +
-          'komt in ' + (dl.map || '') + ' terecht. Koppel de NAS opnieuw (op de Proxmox-host: ' +
-          'bash deploy/proxmox/nas-koppelen.sh) om die map weer te gebruiken.' +
+        waar.textContent = 'De ingestelde downloadmap ' + (dl.gevraagd || '') + ' is niet bereikbaar. Nieuwe muziek ' +
+          'komt nu in ' + (dl.map || '') + ' terecht. Herstel de koppeling of kies een beschikbare map in ' +
+          'de downloadbestemming bij Downloaden als mp3.' +
           (dl.fout ? ' Melding van het systeem: ' + dl.fout + '.' : '');
       } else if (dl.map) {
         waar.hidden = false;
@@ -8481,6 +8631,10 @@ function slotOpen(doel) {
 
 function slotDicht() {
   SLOT.doel = 0;
+  var wachtwoord = $('slot-wachtwoord');
+  var herhaal = $('slot-herhaal');
+  if (wachtwoord) wachtwoord.value = '';
+  if (herhaal) herhaal.value = '';
   var vak = $('profiel-slot');
   if (vak) vak.classList.remove('aan');
   slotMelding('');
@@ -8619,6 +8773,8 @@ function tekenBeheer() {
     laadWegLijst();
     laadFilterBeheer();
     laadSchijf();
+    koppelDownloadBestemmingen();
+    laadDownloadBestemmingen();
     return;
   }
   if (!BEHEER.ingesteld) {

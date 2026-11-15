@@ -1,0 +1,18 @@
+[
+  {
+    "beeld": "docs/img/akkoordkast-downloadbestemming-nov-2026.png",
+    "stem": "v1.mp3",
+    "tekst": "Kies waar nieuwe downloads worden bewaard: lokaal, NAS of cloudmap"
+  },
+  {
+    "beeld": "docs/img/akkoordkast-downloadbestemming-mobiel-nov-2026.png",
+    "stem": "v2.mp3",
+    "tekst": "Op de telefoon past het menu binnen het scherm",
+    "telefoon": true
+  },
+  {
+    "beeld": "docs/img/akkoordkast-leren-nov-2026.png",
+    "stem": "v3.mp3",
+    "tekst": "Je keuze blijft staan; valt de map weg, dan volgt een melding"
+  }
+]

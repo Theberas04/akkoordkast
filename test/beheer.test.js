@@ -5,6 +5,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 const { start, haal, post, alsBeheerder, zetHandleiding } = require('./hulp');
 const beheer = require('../lib/beheer');
 
@@ -200,6 +201,27 @@ test('het beheerdersprofiel zit achter een wachtwoordkaartje in de pagina', () =
   assert.ok(kaart > 0 && script > 0 && kaart < script, 'het kaartje hoort vóór het grote script te staan');
 });
 
+test('sluiten van het beheerdersslot wist beide wachtwoordvelden uit het geheugen', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  const functie = html.match(/function slotDicht\(\) \{[\s\S]*?\n\}/);
+  assert.ok(functie, 'de functie die het slot sluit hoort in de pagina te staan');
+  const velden = {
+    'slot-wachtwoord': { value: 'proef-geheim-1' },
+    'slot-herhaal': { value: 'proef-geheim-2' },
+    'profiel-slot': { classList: { remove() {} } }
+  };
+  const context = {
+    SLOT: { doel: 42 },
+    $: id => velden[id],
+    slotMelding() {},
+    tekenProfielOpties() {}
+  };
+  vm.runInNewContext(functie[0] + '\nslotDicht();', context);
+  assert.equal(velden['slot-wachtwoord'].value, '');
+  assert.equal(velden['slot-herhaal'].value, '');
+  assert.equal(context.SLOT.doel, 0);
+});
+
 test('het gereedschap "Downloaden als mp3" staat in het tabblad Toevoegen', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
   for (const id of ['mp3-kaart', 'mp3-wijze', 'mp3-nieuw-vak', 'mp3-titel', 'mp3-bestaand-vak',
@@ -229,7 +251,7 @@ test('op een telefoon blijft de profielkiezer staan', () => {
   // De regel met de mobiele stijl van de kop opzoeken (er zijn meer media-blokken).
   const i = html.indexOf('.onderkop > span:first-child{display:none}');
   assert.ok(i > 0, 'de ondertitel hoort op een telefoon weg te blijven, de kiezer te blijven');
-  const blok = html.slice(i, i + 800);
+  const blok = html.slice(i, i + 1200);
   assert.ok(!/\.onderkop\{display:none\}/.test(html), 'de onderkop mag niet meer verborgen worden');
   assert.match(blok, /\.profiel-rij\{display:flex/, 'de profielrij hoort op een telefoon zichtbaar te zijn');
   assert.match(blok, /\.lied\{grid-template-columns:1fr/, 'de liedjeskaartjes horen op een telefoon onder elkaar te staan');

@@ -71,6 +71,7 @@ de handleiding in de app zelf (knop **Handleiding openen**) · [installeren op P
 | ![beheer](docs/img/beheer.png) | **Beheer en bijwerken** — welke versie er draait, of er iets nieuws klaarstaat op GitHub, en in één klik bijwerken als deze machine daarop is ingericht. |
 | ![start/stop](docs/img/start-stop.png) | **Start en stop bij het spelen** — naast de speler staan twee gewone knoppen (Start en Stop) met de stand ernaast; Stop zet de muziek ook echt terug naar het begin. |
 | ![tekst](docs/img/liedjestekst-bij-opname.png) | **De liedjestekst erbij** — lijkt de bestandsnaam op een liedje uit de bibliotheek, dan krijg je de tekst van dat liedje erbij te lezen, met de akkoorden uit jouw opname erboven. |
+| ![downloadbestemming](docs/img/akkoordkast-downloadbestemming-nov-2026.png) | **Waar downloads worden bewaard** — kies als beheerder een lokale map, je NAS of een vooraf gemounte Drive/OneDrive-map; de keuze blijft staan en geldt alleen voor nieuwe downloads. |
 
 ## Rondleiding door de app
 
@@ -88,6 +89,16 @@ opnieuw maken met `python3 scripts/maak-filmpje.py --scenes filmpjes/akkoordkast
 
 Eerder: [rondleiding.mp4](docs/img/rondleiding.mp4) (56 s) en
 [nieuwe-functies.mp4](docs/img/nieuwe-functies.mp4) (1 min 51).
+
+### Kies waar je downloads worden bewaard
+
+[![Kies waar je downloads worden bewaard: klik om de video te openen](docs/img/downloadbestemming-scherm.jpg)](docs/img/downloadbestemming.mp4)
+
+🎬 **[Kies waar je downloads worden bewaard (47 s, MP4, 1280×720, Nederlandse voice-over)](docs/img/downloadbestemming.mp4)**
+— nieuw in 1.56.1: het beheerdersmenu waarmee je nieuwe downloads naar een lokale map, je NAS of een
+vooraf gemounte Drive/OneDrive-map laat gaan, hoe dat op de telefoon staat, en wat er gebeurt als de
+gekozen map wegvalt. Een diashow van echte schermen (demo-gegevens) volgens
+`filmpjes/downloadbestemming.json`.
 
 ## Installeren op je Proxmox-host
 
@@ -196,6 +207,8 @@ Het toevoeggereedschap zit in een **eigen profiel** (`Admin`), niet in je gewone
 | Muziekmappen toevoegen of weghalen, eigen liedjes bewerken, opnamen uploaden | beheerder |
 | Liedjes uit de app halen (eigen liedjes echt, meegeleverde verbergen) | beheerder |
 | Filters beheren: talen en genres toevoegen, weghalen en liedjes eraan koppelen | beheerder |
+| Waar nieuwe downloads worden bewaard (lokale map, NAS of gemounte Drive/OneDrive) | beheerder |
+| Back-up, wachter, bijwerken, Spotify-sleutels | beheerder |
 
 **Je eigen bladmuziek.** In de kaart van een liedje kun je als beheerder je eigen foto of PDF van het
 nummer zetten (`media/bladmuziek`). De verzameling zelf blijft bij publiek domein; dit is jouw eigen
@@ -226,7 +239,15 @@ Zo blijft ophalen werken en weet je waar de muziek staat. Dat geldt ook als de k
 het draaien** wegvalt: bij elke download wordt opnieuw gekeken of de map beschrijfbaar is. Koppel je
 NAS opnieuw met `bash deploy/proxmox/nas-koppelen.sh` (op de Proxmox-host) om de muziekmap weer te
 gebruiken.
-| Back-up, wachter, bijwerken, Spotify-sleutels | beheerder |
+
+**Kies je eigen downloadbestemming.** In het beheerdersprofiel staat bij *Downloaden als mp3* het
+blok **Waar downloads worden bewaard**: kies een beschikbare lokale map, een NAS-koppeling of een
+vooraf gemounte Google Drive/OneDrive-map (via rclone) en druk op **Deze map gebruiken**. De keuze
+blijft na een herstart staan en geldt alleen voor nieuwe downloads; bestaande muziek wordt niet
+verplaatst. Het menu regelt géén OAuth of mount: een cloudmap moet in de LXC al gekoppeld en
+schrijfbaar zijn (daar is `deploy/proxmox/drive-koppelen.sh` voor). Valt de expliciet gekozen map weg
+of is hij niet schrijfbaar, dan **stopt een nieuwe download met een duidelijke melding** — hij valt
+niet stilzwijgend terug op lokale opslag.
 
 Het tabblad **Toevoegen** bestaat alleen in het profiel `Admin` (in de profielkiezer staat het als
 *Admin · beheerder*, met een slotje zolang je niet bent ingelogd); in andere profielen is het er
@@ -918,7 +939,7 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 250 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+node --test test/*.test.js          # 338 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
                                     # setlists, akkoordenboek, de wachter en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL

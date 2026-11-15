@@ -18,7 +18,7 @@ cdp = lader.load_module()
 
 WORTEL = pathlib.Path(__file__).resolve().parent.parent
 DOCS = WORTEL / 'docs' / 'img'
-PORTAAL = 9226
+PORTAAL = int(__import__('os').environ.get('CDP_POORT', '9226'))
 
 KLEUREN = {
     'bg': '#0b1120', 'pane': '#16223c', 'lijn': '#25365c',

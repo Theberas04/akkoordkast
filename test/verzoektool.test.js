@@ -12,10 +12,10 @@ const PAGINA = () => fs.readFileSync(path.join(__dirname, '..', 'public', 'index
 
 test('de tool staat in de werkbalk van het liedboek en heeft een eigen scherm', () => {
   const html = PAGINA();
-  for (const id of ['verzoek-tool-knop', 'verzoek-tool', 'vt-zoek', 'vt-lijst', 'vt-melding', 'vt-sluiten']) {
+  for (const id of ['verzoek-tool-knop', 'verzoek-tool', 'vt-zoek', 'vt-lijst', 'vt-melding', 'vt-sluiten', 'vt-vraag', 'vt-vraag-knop']) {
     assert.ok(html.includes('id="' + id + '"'), 'de pagina hoort ' + id + ' te hebben');
   }
-  for (const fn of ['function vtOpen(', 'function vtSluit(', 'function vtZoek(', 'function tekenVtLijst(', 'function vtLaadOpen(']) {
+  for (const fn of ['function vtOpen(', 'function vtSluit(', 'function vtZoek(', 'function vtToonVraag(', 'function tekenVtLijst(', 'function vtLaadOpen(']) {
     assert.ok(html.includes(fn), 'de functie hoort te bestaan: ' + fn);
   }
   assert.ok(html.includes('>Verzoeknummers<'), 'de knop hoort Verzoeknummers te heten');
@@ -27,6 +27,9 @@ test('de tool zoekt in het liedboek en hergebruikt het verzoekje-versturen', () 
   assert.ok(html.includes("meldingId: 'vt-melding'"), 'de melding hoort in de tool zelf te komen');
   assert.ok(html.includes('blijvend: true'), 'in de tool blijft "Verzocht" staan, ook na vier seconden');
   assert.ok(html.includes('v.profiel === actiefProfiel()'), 'open verzoekjes van dit profiel horen herkend te worden');
+  // Ook liedjes die nog niet in het liedboek staan kun je vragen (vrije tekst).
+  assert.ok(html.includes('opties.vraag ? { vraag: opties.vraag }'), 'een vrije vraag hoort als vraag verstuurd te worden');
+  assert.ok(html.includes('nog niet in het liedboek'), 'de beheerder hoort te zien dat het nummer er nog niet is');
 });
 
 test('een verzoekje in de lijst draagt het profiel waarop de tool filtert', async () => {

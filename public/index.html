@@ -932,6 +932,8 @@
   .vt-regel .vt-titel{font-weight:600}
   .vt-regel .vt-artiest{display:block;font-weight:400;color:var(--tekst2);font-size:.78rem}
   #vt-zoek{width:100%;margin-top:8px}
+  .vt-vraag{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+  .vt-vraag .meta{margin:0;flex:1 1 220px}
   /* ==================== lichte weergave ====================
      De app is van huis uit donker: rustig 's avonds en op een podium. Maar buiten in de zon is een
      licht scherm veel beter leesbaar. Deze regels zetten alles om zodra <html> de klasse 'licht'
@@ -2222,10 +2224,14 @@
 <div id="verzoek-tool" class="slot" role="dialog" aria-modal="true" aria-labelledby="vt-kop">
   <div class="slot-kaart" style="max-width:560px">
     <h3 id="vt-kop">Verzoeknummers</h3>
-    <p class="meta">Zoek een liedje en tik het aan: het verzoekje komt bij de beheerder te staan. Je kunt er zo meerdere na elkaar vragen.</p>
+    <p class="meta">Zoek een liedje en tik het aan: het verzoekje komt bij de beheerder te staan. Je kunt er zo meerdere na elkaar vragen — ook liedjes die nog niet in het liedboek staan.</p>
     <input id="vt-zoek" type="search" placeholder="Zoek op titel of artiest…" autocomplete="off">
     <div class="melding" id="vt-melding" hidden></div>
     <div class="vt-lijst" id="vt-lijst"></div>
+    <div class="vt-vraag" id="vt-vraag" hidden>
+      <button class="knop goed" id="vt-vraag-knop">Vraag het toch aan</button>
+      <span class="meta">Staat je liedje er niet bij? Vraag het toch aan — de beheerder ziet je vraag, ook als het nummer nog niet in het liedboek staat.</span>
+    </div>
     <div class="rij" style="justify-content:flex-end"><button class="knop zacht" id="vt-sluiten">Sluiten</button></div>
   </div>
 </div>
@@ -9969,12 +9975,14 @@ function tekenVerzoeken(lijst) {
     return;
   }
   houder.innerHTML = lijst.map(function (v) {
+    var titel = v.vraag ? '\u201c' + esc(v.vraag) + '\u201d' : esc(v.titel || ('Liedje ' + v.liedje));
     return '<div class="verzoek-regel' + (v.gedaan ? ' klaar' : '') + '" data-verzoek="' + v.id + '" data-verzoek-liedje="' + v.liedje + '">' +
       '<div class="rij" style="justify-content:space-between">' +
-        '<span><span class="verzoek-titel">' + esc(v.titel || ('Liedje ' + v.liedje)) + '</span> ' +
+        '<span><span class="verzoek-titel">' + titel + '</span>' +
+        (v.vraag ? ' <span class="verzoek-van">nog niet in het liedboek</span>' : '') + ' ' +
         '<span class="verzoek-van">van ' + esc(v.naam || 'onbekend') + ' · ' + verzoekToen(v.gemaakt) + (v.gedaan ? ' · gedaan' : '') + '</span></span>' +
         '<span class="rij" style="gap:6px">' +
-          '<button class="knop zacht" data-verzoek-doe="open" data-verzoek-id="' + v.id + '">Open</button>' +
+          (v.liedje ? '<button class="knop zacht" data-verzoek-doe="open" data-verzoek-id="' + v.id + '">Open</button>' : '') +
           (v.gedaan ? '' : '<button class="knop goed" data-verzoek-doe="gedaan" data-verzoek-id="' + v.id + '">Klaar</button>') +
           '<button class="knop zacht" data-verzoek-doe="weg" data-verzoek-id="' + v.id + '" title="Dit verzoekje weggooien">\u2715</button>' +
         '</span>' +
@@ -10005,7 +10013,7 @@ function verzoekVersturen(liedjeId, knop, opties) {
   fetch('/api/verzoek', {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' },
-    body: JSON.stringify({ liedje: liedjeId })
+    body: JSON.stringify(opties.vraag ? { vraag: opties.vraag } : { liedje: liedjeId })
   }).then(function (r) {
     return r.json().catch(function () { return {}; }).then(function (d) {
       if (!r.ok) throw new Error(d.fout || ('Fout ' + r.status));
@@ -10019,7 +10027,7 @@ function verzoekVersturen(liedjeId, knop, opties) {
       knop.disabled = true;
       // In de verzoeknummers-tool blijft "Verzocht" staan (je doet er daar vaak meer); bij het
       // liedje zelf springt de knop na vier seconden terug.
-      if (!opties.blijvend) setTimeout(function () { knop.textContent = 'Verzoek'; knop.disabled = false; }, 4000);
+      if (!opties.blijvend) setTimeout(function () { knop.textContent = opties.herstel || 'Verzoek'; knop.disabled = false; }, 4000);
     }
     if (typeof opties.klaar === 'function') opties.klaar();
   }).catch(function (e) { toonMelding(opties.meldingId || 'speler-melding', e.message, 'fout'); });
@@ -10102,10 +10110,22 @@ function tekenVtLijst() {
 }
 function vtZoek(tekst) {
   tekst = String(tekst || '').trim();
+  vtToonVraag(tekst);
   api('/api/liedjes?compact=1&aantal=30' + (tekst ? '&zoek=' + encodeURIComponent(tekst) : '')).then(function (d) {
     VT.laatste = d.liedjes || [];
     tekenVtLijst();
   }).catch(function (e) { toonMelding('vt-melding', e.message, 'fout'); });
+}
+// Staat je liedje er niet bij? Dan kun je het tóch vragen — ook als het nog niet in het liedboek
+// staat; de beheerder krijgt dan een vrije-tekstverzoekje ("nog niet in het liedboek").
+function vtToonVraag(tekst) {
+  var vak = $('vt-vraag');
+  var knop = $('vt-vraag-knop');
+  if (!vak || !knop) return;
+  var t = String(tekst || '').trim();
+  var tonen = t.length >= 2;
+  vak.hidden = !tonen;
+  if (tonen) knop.textContent = 'Vraag \u201c' + t + '\u201d aan';
 }
 $('verzoek-tool-knop').addEventListener('click', vtOpen);
 $('vt-sluiten').addEventListener('click', vtSluit);
@@ -10126,6 +10146,16 @@ $('vt-lijst').addEventListener('click', function (e) {
     blijvend: true,
     tekst: '\u201c' + (l.titel || 'Dat liedje') + '\u201d staat bij de beheerder \u2014 je kunt er zo n\u00f3g een vragen.',
     klaar: function () { if (VT.open.indexOf(id) === -1) VT.open.push(id); }
+  });
+});
+$('vt-vraag-knop').addEventListener('click', function () {
+  var t = String($('vt-zoek').value || '').trim().slice(0, 120);
+  if (t.length < 2) return;
+  verzoekVersturen(0, this, {
+    vraag: t,
+    meldingId: 'vt-melding',
+    tekst: '\u201c' + t + '\u201d staat bij de beheerder \u2014 hij ziet dat het nummer nog niet in het liedboek staat.',
+    herstel: 'Vraag \u201c' + t + '\u201d aan'
   });
 });
 document.addEventListener('keydown', function (e) {

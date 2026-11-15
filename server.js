@@ -40,7 +40,7 @@ const CAST_HELPER = process.env.CAST_HELPER
   : path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.69.0';
+const VERSIE = '1.70.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -217,6 +217,7 @@ db.exec(`
     profiel_id INTEGER NOT NULL,
     naam TEXT NOT NULL DEFAULT '',
     liedje_id INTEGER NOT NULL,
+    vraag TEXT NOT NULL DEFAULT '',
     bericht TEXT NOT NULL DEFAULT '',
     gemaakt TEXT NOT NULL,
     gedaan INTEGER NOT NULL DEFAULT 0,
@@ -247,6 +248,10 @@ for (const kolom of [
 ]) {
   try { db.exec(kolom); } catch (e) { /* de kolom bestaat al */ }
 }
+
+// Migratie: een verzoekje mag ook een vraag zijn om een liedje dat nog niet in het liedboek staat
+// (vrije tekst); dan is liedje_id 0 en staat de titel in vraag.
+try { db.exec("ALTER TABLE verzoeken ADD COLUMN vraag TEXT NOT NULL DEFAULT ''"); } catch (e) { /* de kolom bestaat al */ }
 
 const SLEUTELS = ['cast_apparaat', 'cast_naam', 'laatste_liedje', 'spotify_client_id', 'spotify_client_secret', 'spotify_markt', 'spotify_token', 'spotify_token_verloopt'];
 
@@ -1015,7 +1020,7 @@ function setlistsVan(profielId) {
 // net gebeurd is. De titel komt uit de liedjesbron (niet uit de databank: de meegeleverde liedjes
 // staan in bestanden) en is dus altijd actueel.
 function verzoekenLijst() {
-  return db.prepare(`SELECT v.id, v.profiel_id, v.naam, v.liedje_id, v.bericht, v.gemaakt, v.gedaan, v.gedaan_op
+  return db.prepare(`SELECT v.id, v.profiel_id, v.naam, v.liedje_id, v.vraag, v.bericht, v.gemaakt, v.gedaan, v.gedaan_op
     FROM verzoeken v
     ORDER BY v.gedaan ASC, v.id DESC LIMIT 60`).all()
     .map(r => {
@@ -1025,6 +1030,7 @@ function verzoekenLijst() {
         profiel: Number(r.profiel_id),
         naam: String(r.naam || ''),
         liedje: Number(r.liedje_id),
+        vraag: String(r.vraag || ''),
         titel: lied ? String(lied.titel || '') : '',
         bericht: String(r.bericht || ''),
         gemaakt: String(r.gemaakt || ''),
@@ -4638,19 +4644,24 @@ async function verwerk(req, res) {
     const profielId = profielVan(req, query);
     const body = await leesJsonBody(req);
     const liedjeId = Number(body.liedje || 0);
+    const vraag = String(body.vraag || '').trim().slice(0, 120);
     const lied = liedjeId ? vindLiedje(liedjeId) : null;
-    if (!lied) { json(res, 404, { fout: 'Dat liedje bestaat niet (meer).' }); return; }
+    if (liedjeId && !lied) { json(res, 404, { fout: 'Dat liedje bestaat niet (meer).' }); return; }
+    // Geen liedje uit het boek, maar wel een vraag ("speel eens Piano man")? Dat mag ook — de
+    // beheerder ziet dan dat het nummer nog niet in het liedboek staat.
+    if (!lied && !vraag) { json(res, 404, { fout: 'Dat liedje bestaat niet (meer).' }); return; }
+    if (!lied && vraag.length < 2) { json(res, 400, { fout: 'Vul in om welk liedje het gaat.' }); return; }
     const bericht = String(body.bericht || '').trim().slice(0, 200);
     const naam = String((db.prepare('SELECT naam FROM profielen WHERE id = ?').get(profielId) || {}).naam || '').slice(0, 60);
     const moment = new Date().toISOString();
-    // Vraagt hetzelfde profiel hetzelfde liedje nog een keer? Dan is het één verzoekje, met het
-    // nieuwste bericht en moment — geen dubbele regels in de lijst.
-    const bestaand = db.prepare('SELECT id FROM verzoeken WHERE profiel_id = ? AND liedje_id = ? AND gedaan = 0').get(profielId, liedjeId);
+    // Vraagt hetzelfde profiel hetzelfde liedje (of dezelfde vraag) nog een keer? Dan is het één
+    // verzoekje, met het nieuwste bericht en moment — geen dubbele regels in de lijst.
+    const bestaand = db.prepare('SELECT id FROM verzoeken WHERE profiel_id = ? AND liedje_id = ? AND vraag = ? AND gedaan = 0').get(profielId, lied ? liedjeId : 0, lied ? '' : vraag);
     if (bestaand) {
       db.prepare('UPDATE verzoeken SET bericht = ?, gemaakt = ? WHERE id = ?').run(bericht, moment, bestaand.id);
     } else {
-      db.prepare('INSERT INTO verzoeken (profiel_id, naam, liedje_id, bericht, gemaakt) VALUES (?, ?, ?, ?, ?)')
-        .run(profielId, naam, liedjeId, bericht, moment);
+      db.prepare('INSERT INTO verzoeken (profiel_id, naam, liedje_id, vraag, bericht, gemaakt) VALUES (?, ?, ?, ?, ?, ?)')
+        .run(profielId, naam, lied ? liedjeId : 0, lied ? '' : vraag, bericht, moment);
     }
     // De lijst blijft behapbaar: boven de tweehonderd verzoekjes vallen de oudste af.
     db.prepare('DELETE FROM verzoeken WHERE id NOT IN (SELECT id FROM verzoeken ORDER BY id DESC LIMIT 200)').run();

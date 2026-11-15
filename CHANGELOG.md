@@ -3,6 +3,17 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.70.0] — 15 november 2026
+
+### Ook liedjes van buiten het liedboek kun je vragen
+
+- In de Verzoeknummers-tool kun je nu elk liedje vragen dat er bestaat — ook als het nog niet in
+  het liedboek staat. Typ de titel en tik op **Vraag "…" aan**; de beheerder ziet je vraag staan
+  met de vermelding dat het nummer er nog niet is.
+- Zo'n vraag staat in de inbox zonder Open-knop (er is nog niets om te openen); **Klaar** en **✕**
+  werken gewoon. Twee keer dezelfde vraag van hetzelfde profiel blijft één verzoekje; een andere
+  titel komt er naast te staan.
+
 ## [1.69.0] — 15 november 2026
 
 ### Verzoeknummers: een eigen scherm om te vragen

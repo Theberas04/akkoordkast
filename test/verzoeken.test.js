@@ -97,3 +97,35 @@ test('de verzoekknop staat bij het liedje en de kaart bij de beheerder', () => {
     assert.ok(html.includes(stuk), 'aanvraag ontbreekt: ' + stuk);
   }
 });
+
+test('een verzoekje om een liedje dat nog niet in het liedboek staat mag ook', async () => {
+  const omgeving = await hulp.start();
+  try {
+    const uit = await hulp.post(omgeving.basis, '/api/verzoek', { vraag: 'Piano man' });
+    assert.equal(uit.status, 201, JSON.stringify(uit.data));
+    const v = uit.data.verzoeken.filter(x => !x.gedaan)[0];
+    assert.ok(v, 'er hoort een open verzoekje te zijn');
+    assert.equal(v.vraag, 'Piano man', 'de vrije tekst hoort bewaard te worden');
+    assert.equal(v.liedje, 0, 'een vrije vraag hoort aan geen liedje te hangen');
+    assert.equal(v.titel, '', 'er is geen titel uit het liedboek');
+    assert.ok(v.naam, 'wie het vroeg hoort erbij te zitten');
+    // Twee keer dezelfde vraag blijft één regel; een andere titel komt er naast.
+    await hulp.post(omgeving.basis, '/api/verzoek', { vraag: 'Piano man' });
+    await hulp.post(omgeving.basis, '/api/verzoek', { vraag: 'Hallelujah' });
+    const na = (await hulp.haal(omgeving.basis, '/api/verzoeken')).data.verzoeken.filter(x => !x.gedaan);
+    assert.equal(na.length, 2, 'dezelfde vraag blijft één, een andere vraag komt erbij');
+  } finally {
+    await omgeving.stop();
+  }
+});
+
+test('een te korte vraag wordt geweigerd', async () => {
+  const omgeving = await hulp.start();
+  try {
+    const uit = await hulp.post(omgeving.basis, '/api/verzoek', { vraag: 'x' });
+    assert.equal(uit.status, 400);
+    assert.match(String(uit.data.fout), /liedje/i);
+  } finally {
+    await omgeving.stop();
+  }
+});

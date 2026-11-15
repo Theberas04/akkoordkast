@@ -437,6 +437,13 @@
   .setlist-papier th{color:#555;font-size:.78rem;letter-spacing:.05em;text-transform:uppercase}
   .setlist-papier .nr{width:2rem;color:#555}
   .setlist-papier .ruimte{width:34%;border-bottom:1px solid #ddd}
+
+  /* slimme oefensessie */
+  .sessie-blok{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--lijn);flex-wrap:wrap}
+  .sessie-blok:last-child{border-bottom:0}
+  .sessie-soort{min-width:86px;color:var(--tekst2);font-size:.78rem;letter-spacing:.05em;text-transform:uppercase;padding-top:3px}
+  .sessie-titel{flex:1;min-width:200px}
+  .sessie-titel .sessie-min{color:var(--tekst2);font-size:.8rem;margin-left:8px}
   #optreden-balk{display:none}
   body.optreden #optreden-balk{display:flex}
   /* De maat waar je met de pijltjes naartoe springt, licht even op. */
@@ -1044,6 +1051,29 @@
       </div>
       <div id="oefencijfers" style="margin-top:12px"></div>
       <div id="oefen-weken" style="margin-top:16px"></div>
+    </div>
+
+    <div class="kaart" id="sessie-kaart">
+      <div class="leren-kop">
+        <div>
+          <h2>Slimme oefensessie</h2>
+          <div class="les-klein">De app zet je oefencijfers en je liedjes om in één sessie: even inkomen,
+            iets dat je lang niet deed, een uitdaging en een afsluiter. Kies alleen hoe lang je hebt.</div>
+        </div>
+      </div>
+      <div class="rij" style="margin-top:10px">
+        <label for="sessie-minuten">Hoe lang?</label>
+        <select id="sessie-minuten">
+          <option value="10">10 minuten</option>
+          <option value="15" selected>15 minuten</option>
+          <option value="20">20 minuten</option>
+          <option value="30">30 minuten</option>
+        </select>
+        <button class="knop" id="sessie-maak">Stel mijn sessie samen</button>
+        <span class="pilletje" id="sessie-totaal" hidden></span>
+      </div>
+      <div id="sessie-plan" style="margin-top:12px"></div>
+      <div class="melding" id="sessie-melding" hidden></div>
     </div>
 
     <div class="kaart" id="oefenplan-kaart">
@@ -1952,6 +1982,7 @@
 <script src="/lib/lessen-uitgebreid.js"></script>
 <script src="/lib/noten.js"></script>
 <script src="/lib/offline.js"></script>
+<script src="/lib/sessie.js"></script>
 <script>
 'use strict';
 var staat = {
@@ -7892,6 +7923,57 @@ function bewaarOefensessie(soort, seconden, wissels, akkoorden) {
   }).then(function () { laadOefencijfers(); }).catch(function () {});
 }
 
+// ------------------------------------------------------- slimme sessie ---
+// De app stelt uit je oefencijfers een oefensessie samen; het rekenwerk (welke blokken, welke
+// liedjes, hoeveel minuten) staat in lib/sessie.js, zodat de tests dezelfde keuzes raken.
+function maakSessie() {
+  var minuten = Number($('sessie-minuten').value) || 15;
+  var knop = $('sessie-maak');
+  knop.disabled = true;
+  toonMelding('sessie-melding', 'Bezig: je oefencijfers en liedjes ophalen…', '');
+  Promise.all([
+    api('/api/liedjes?compact=1&aantal=200'),
+    api('/api/oefenen/weken?weken=6')
+  ]).then(function (uit) {
+    knop.disabled = false;
+    var liedjes = (uit[0].liedjes || []).map(function (l) {
+      return { id: l.id, titel: l.titel, moeilijkheid: l.moeilijkheid, favoriet: !!l.favoriet, gespeeld: l.gespeeld || '' };
+    });
+    var weken = (uit[1].weken || []).map(function (w) { return { minuten: w.minuten, sessies: w.sessies }; });
+    tekenSessie(sessieRekenen.stelSamen({ minuten: minuten, liedjes: liedjes, weken: weken }), weken);
+  }).catch(function (e) {
+    knop.disabled = false;
+    toonMelding('sessie-melding', e.message, 'fout');
+  });
+}
+
+function tekenSessie(plan, weken) {
+  var vak = $('sessie-plan');
+  if (!plan.blokken.length) {
+    vak.innerHTML = '<div class="les-klein">Er staan nog geen liedjes klaar om mee te oefenen.</div>';
+    $('sessie-totaal').hidden = true;
+    return;
+  }
+  var kop = { opwarmen: 'Opwarmen', herhalen: 'Herhalen', uitdaging: 'Uitdaging', afsluiter: 'Afsluiter' };
+  vak.innerHTML = plan.blokken.map(function (b) {
+    return '<div class="sessie-blok">' +
+      '<span class="sessie-soort">' + esc(kop[b.soort] || b.soort) + '</span>' +
+      '<span class="sessie-titel"><b>' + esc(b.liedje.titel) + '</b><span class="sessie-min">' + b.minuten + ' min</span>' +
+        '<div class="les-klein">' + esc(b.uitleg) + '</div></span>' +
+      '<button class="knop zacht" data-sessie-speel="' + b.liedje.id + '">Spelen</button>' +
+    '</div>';
+  }).join('');
+  Array.prototype.forEach.call(vak.querySelectorAll('[data-sessie-speel]'), function (knop) {
+    knop.addEventListener('click', function () { openLiedje(Number(knop.getAttribute('data-sessie-speel'))); });
+  });
+  var week = weken && weken.length ? weken[weken.length - 1] : null;
+  var pil = $('sessie-totaal');
+  pil.hidden = false;
+  pil.textContent = 'sessie van ' + plan.totaal + ' minuten' +
+    (week && week.minuten ? ' · deze week al ' + week.minuten + ' minuten geoefend' : '');
+  toonMelding('sessie-melding', '', '');
+}
+
 // -------------------------------------------------------------- stemmen ---
 var SNAREN = [
   { naam: 'E', dik: 'dikste snaar', midi: 40 },
@@ -9558,6 +9640,7 @@ function laadLeren() {
   $('leren-naar-akkoorden').addEventListener('click', function () {
     $('leren-grepen').scrollIntoView({ block: 'center' });
   });
+  $('sessie-maak').addEventListener('click', maakSessie);
   $('trein-start').addEventListener('click', startTrainer);
   $('trein-stop').addEventListener('click', function () { stopTrainer(false); });
   $('trein-tempo').addEventListener('input', function () {

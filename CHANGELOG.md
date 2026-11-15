@@ -3,6 +3,23 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.59.0] — 15 november 2026
+
+### De slimme oefensessie
+
+- Op het tabblad **Leren** staat de kaart **Slimme oefensessie**: kies 10–30 minuten en de app stelt
+  een sessie samen uit je oefencijfers en je liedjes — **opwarmen** (een favoriet of iets makkelijks),
+  **herhalen** (het liedje dat je het langst niet deed, met de tijd erbij in gewone taal — "Deze deed
+  je het laatst 3 weken geleden"), **uitdaging** (een tandje moeilijker of iets dat nog niet in je
+  geschiedenis staat) en een **afsluiter** (hetzelfde liedje nog eens, op tempo).
+- Elk blok heeft een **Spelen**-knop; wat je speelt komt meteen in je oefencijfers terecht, dus het
+  plan wordt elke keer een beetje slimmer. Onder het plan staat ook hoeveel je deze week al deed.
+- Was je een week stil, dan opent de sessie rustig; na een goede week gaat er een tandje bij. Kort
+  blijft kort: bij een sessie onder de negen minuten vervalt de afsluiter.
+- De keuzes staan in `lib/sessie.js`, zodat tests en app precies dezelfde rekenkunde gebruiken.
+
+Nieuwe proef: `test/sessie.test.js`.
+
 ## [1.58.0] — 15 november 2026
 
 ### Setlists offline klaarzetten

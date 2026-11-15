@@ -74,6 +74,7 @@ de handleiding in de app zelf (knop **Handleiding openen**) · [installeren op P
 | ![downloadbestemming](docs/img/akkoordkast-downloadbestemming-nov-2026.png) | **Waar downloads worden bewaard** — kies als beheerder een lokale map, je NAS of een vooraf gemounte Drive/OneDrive-map; de keuze blijft staan en geldt alleen voor nieuwe downloads. |
 | ![cloudkoppeling](docs/img/akkoordkast-cloudkoppeling-gekoppeld-nov-2026.png) | **Cloudopslag koppelen** — hang je Google Drive of OneDrive in één keer aan de app: sleutel plakken, map kiezen, koppelen; de app houdt de verbinding in de gaten (valt hij weg, dan komt hij terug) en zet hem met één klik als muziekmap of downloadbestemming. |
 | ![offline setlist](docs/img/akkoordkast-offline-setlist-nov-2026.png) | **Setlist offline klaarzetten** — neem je setlist mee naar een podium zonder wifi: teksten, grepen, bladmuziek en de begeleiding worden op het toestel bewaard en spelen gewoon door als er geen verbinding meer is. |
+| ![slimme oefensessie](docs/img/akkoordkast-sessie-nov-2026.png) | **Slimme oefensessie** — de app stelt uit je oefencijfers en je liedjes een sessie samen: opwarmen, iets dat je lang niet deed, een uitdaging en een afsluiter; elk blok heeft een knop om meteen te spelen. |
 
 ## Rondleiding door de app
 
@@ -190,6 +191,9 @@ in plaats van wav. Geen npm-afhankelijkheden.
   door: groot beeld, alleen het liedje van nu, met de knoppen om verder te gaan en een pauzeklok.
 - **Een setlist offline klaarzetten.** Voor een podium zonder wifi bewaart het toestel de liedjes,
   de begeleiding en je bladmuziek van één setlist; daarna speelt alles gewoon door zonder verbinding.
+- **Een slimme oefensessie.** Het tabblad Leren stelt uit je oefencijfers en je liedjes een sessie
+  samen: even inkomen, iets dat je lang niet deed, een uitdaging en een afsluiter — jij kiest alleen
+  hoe lang.
 - **Gehoor-trainer.** De app speelt een akkoord en jij zegt welk het is; of ze speelt er twee en
   jij zegt of het tweede hoger of lager klinkt. Je hoeft niets te zien.
 - **PWA.** Installeerbaar op je telefoon, met de app-schil in de cache maar liedjes, audio en
@@ -931,6 +935,24 @@ het oudste vooraan. **Wachtwoorden en API-sleutels gaan er niet in**: een back-u
 in een cloudmap en daar horen geen geheimen te staan. Staat de map er niet (NAS uit, koppeling weg), dan
 zegt de app dat en maakt ze niets.
 
+## De slimme oefensessie
+
+Weet je niet wat je vandaag moet spelen, dan stelt de app het voor je samen. Op het tabblad **Leren**
+kies je hoe lang je hebt (10 tot 30 minuten) en druk je op **Stel mijn sessie samen**. De app kijkt
+naar je oefencijfers en je liedjes en maakt een plan van vier blokken:
+
+- **Opwarmen** — een favoriet of iets makkelijks om in te komen;
+- **Herhalen** — het liedje dat je het langst niet deed (met de tijd erbij: *"Deze deed je het laatst
+  3 weken geleden"*);
+- **Uitdaging** — een tandje moeilijker, of iets dat nog niet in je geschiedenis staat;
+- **Afsluiter** — het liedje van het herhaalblok nog één keer, nu op tempo.
+
+Bij elk blok staat een knop **Spelen** die het liedje opent; wat je speelt komt meteen weer in je
+oefencijfers terecht, dus het plan wordt elke keer een beetje slimmer. Was je een week stil, dan
+opent de sessie rustig; zit je lekker in het ritme, dan gaat er een tandje bij.
+
+![De slimme oefensessie](docs/img/akkoordkast-sessie-nov-2026.png)
+
 ## Jouw oefenen per week
 
 Het tabblad **Leren** laat onder je oefencijfers een overzicht per week zien: hoeveel minuten, hoe vaak,
@@ -963,14 +985,15 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 | Bladmuziek | `lib/chordpro.js` parseert ChordPro naar een renderbaar model |
 | Audio | `lib/gitaar.js` synthetiseert tokkels naar WAV; `ffmpeg` zet dat om naar mp3 en die wordt gecachet |
 | Offline | `lib/offline.js` bepaalt welke adressen een klaargezette setlist nodig heeft (en hoe een vraag die nét anders is de bewaarde versie vindt); `public/sw.js` levert die voorraad uit als er geen verbinding is |
+| Oefensessie | `lib/sessie.js` kiest de blokken en de liedjes (opwarmen, herhalen, uitdaging, afsluiter) uit moeilijkheid, favorieten en de speelgeschiedenis |
 | Casten | `scripts/cast-helper.py` met pychromecast, door de server aangeroepen; de pagina praat nooit rechtstreeks met de Chromecast |
 
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 361 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
-                                    # setlists, de offline-setlist, akkoordenboek, de wachter, de cloudkoppeling
-                                    # en de deploy-scripts
+node --test test/*.test.js          # 374 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+                                    # setlists, de offline-setlist, de slimme oefensessie, akkoordenboek,
+                                    # de wachter, de cloudkoppeling en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL
 ```

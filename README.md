@@ -75,6 +75,7 @@ de handleiding in de app zelf (knop **Handleiding openen**) · [installeren op P
 | ![cloudkoppeling](docs/img/akkoordkast-cloudkoppeling-gekoppeld-nov-2026.png) | **Cloudopslag koppelen** — hang je Google Drive of OneDrive in één keer aan de app: sleutel plakken, map kiezen, koppelen; de app houdt de verbinding in de gaten (valt hij weg, dan komt hij terug) en zet hem met één klik als muziekmap of downloadbestemming. |
 | ![offline setlist](docs/img/akkoordkast-offline-setlist-nov-2026.png) | **Setlist offline klaarzetten** — neem je setlist mee naar een podium zonder wifi: teksten, grepen, bladmuziek en de begeleiding worden op het toestel bewaard en spelen gewoon door als er geen verbinding meer is. |
 | ![slimme oefensessie](docs/img/akkoordkast-sessie-nov-2026.png) | **Slimme oefensessie** — de app stelt uit je oefencijfers en je liedjes een sessie samen: opwarmen, iets dat je lang niet deed, een uitdaging en een afsluiter; elk blok heeft een knop om meteen te spelen. |
+| ![twee koppelingen](docs/img/akkoordkast-cloud-twee-nov-2026.png) | **Twee cloudkoppelingen naast elkaar** — bijvoorbeeld Google Drive voor je muziek en OneDrive voor de back-up; elk met een eigen sleutel, een eigen map en een eigen waker, en losmaken van de ene raakt de andere niet. |
 
 ## Rondleiding door de app
 
@@ -216,7 +217,7 @@ Het toevoeggereedschap zit in een **eigen profiel** (`Admin`), niet in je gewone
 | Liedjes uit de app halen (eigen liedjes echt, meegeleverde verbergen) | beheerder |
 | Filters beheren: talen en genres toevoegen, weghalen en liedjes eraan koppelen | beheerder |
 | Waar nieuwe downloads worden bewaard (lokale map, NAS of gemounte Drive/OneDrive) | beheerder |
-| Cloudopslag koppelen (Google Drive of OneDrive): aanmelden, koppelen en losmaken | beheerder |
+| Cloudopslag koppelen (Google Drive of OneDrive): aanmelden, koppelen en losmaken — tot twee koppelingen naast elkaar | beheerder |
 | Back-up, wachter, bijwerken, Spotify-sleutels | beheerder |
 
 **Je eigen bladmuziek.** In de kaart van een liedje kun je als beheerder je eigen foto of PDF van het
@@ -645,7 +646,9 @@ het verschil niet.
 
 > Kan sinds 1.57.0 ook gewoon **in de app**: *Toevoegen → Downloaden als mp3 → Cloudopslag koppelen*.
 > Zet eenmalig fuse en rclone klaar op de host met `deploy/proxmox/drive-koppelen-lxc.sh`; daarna is het
-> plakken en klikken. De stappen hieronder blijven bestaan voor wie het liever zelf doet.
+> plakken en klikken. Sinds 1.60.0 kunnen er **twee koppelingen naast elkaar** staan: bijvoorbeeld Drive
+> voor de muziek en OneDrive voor de back-up. De stappen hieronder blijven bestaan voor wie het liever
+> zelf doet.
 
 1. In de container, als root:
    ```bash
@@ -991,9 +994,9 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 374 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+node --test test/*.test.js          # 375 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
                                     # setlists, de offline-setlist, de slimme oefensessie, akkoordenboek,
-                                    # de wachter, de cloudkoppeling en de deploy-scripts
+                                    # de wachter, de cloudkoppelingen en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL
 ```

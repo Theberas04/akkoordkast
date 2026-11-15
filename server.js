@@ -40,7 +40,7 @@ const CAST_HELPER = process.env.CAST_HELPER
   : path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.59.0';
+const VERSIE = '1.60.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -1738,10 +1738,13 @@ function startDownload(link, opties) {
 // weg in rclone.conf (alleen deze gebruiker kan het lezen), start de koppeling als rclone mount en
 // houdt hem in de gaten. Het klaarzetten van rclone en fuse op de machine zelf kan de app niet (dat
 // vraagt root): daarvoor staat het hostcommando klaar in hetzelfde blok in de app.
+// Cloudopslag koppelen (rclone): er kunnen twee koppelingen naast elkaar staan — bijvoorbeeld
+// Google Drive voor de muziek en OneDrive voor de back-up. Elke koppeling heeft een eigen
+// aanmelding (remote) in rclone.conf, een eigen koppelmap en een eigen waker. Slot 1 houdt de
+// oude naam (cloud_koppeling), zodat een bestaande koppeling gewoon blijft werken.
 const CLOUD_BASIS = path.resolve(String(process.env.CLOUD_BASIS || '').trim() || os.homedir());
 const CLOUD_CONF = path.join(CLOUD_BASIS, '.config', 'rclone', 'rclone.conf');
 const CLOUD_MOUNT = path.join(CLOUD_BASIS, 'muziek');
-const CLOUD_SLEUTEL = 'cloud_koppeling';
 const CLOUD_RCLONE = String(process.env.RCLONE_PRG || '').trim() || 'rclone';
 const CLOUD_FUSERMOUNT = String(process.env.FUSERMOUNT_PRG || '').trim() || 'fusermount3';
 const CLOUD_FUSE = String(process.env.FUSE_PAD || '').trim() || '/dev/fuse';
@@ -1751,11 +1754,19 @@ const CLOUD_SOORTEN = {
   gdrive: { type: 'drive', naam: 'Google Drive', bestemming: 'google-drive' },
   onedrive: { type: 'onedrive', naam: 'OneDrive', bestemming: 'onedrive' }
 };
+const CLOUD_SLOTS = [1, 2];
 const CLOUD_HOSTCOMMANDO = 'CTID=106 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Theberas04/akkoordkast/main/deploy/proxmox/drive-koppelen-lxc.sh)"';
 
-let CLOUD_KIND = null;         // het rclone-proces dat deze app zelf startte
-let CLOUD_LAATSTE_FOUT = '';
-let CLOUD_POGINGEN = 0;
+// Slot 1 woont in de oude sleutel; slot 2 in een eigen sleutel. Zo hoeft er niets gemigreerd te worden.
+function cloudSlotVan(waarde) { return Number(waarde) === 2 ? 2 : 1; }
+function cloudSleutel(slot) { return cloudSlotVan(slot) === 2 ? 'cloud_koppeling_2' : 'cloud_koppeling'; }
+function cloudMountVoor(slot) { return cloudSlotVan(slot) === 2 ? path.join(CLOUD_BASIS, 'muziek-2') : CLOUD_MOUNT; }
+// De remote in rclone.conf: slot 1 heet naar zijn soort (zoals altijd), slot 2 krijgt er -2 achter.
+function cloudRemoteNaam(slot, soort) { return cloudSlotVan(slot) === 2 ? soort + '-2' : soort; }
+
+let CLOUD_KIND = { 1: null, 2: null };            // het rclone-proces per koppeling dat deze app zelf startte
+let CLOUD_LAATSTE_FOUT = { 1: '', 2: '' };
+let CLOUD_POGINGEN = { 1: 0, 2: 0 };
 
 function rcloneVersie() {
   const uit = spawnSync(CLOUD_RCLONE, ['version'], { timeout: 5000, encoding: 'utf8' });
@@ -1764,16 +1775,18 @@ function rcloneVersie() {
   return { aanwezig: true, versie: (eerste.match(/v[\d.]+/) || [''])[0] };
 }
 
-function leesCloudKoppeling() {
+function leesCloudKoppeling(slot) {
+  const n = cloudSlotVan(slot);
   let staat = null;
-  try { staat = JSON.parse(leesInstelling(CLOUD_SLEUTEL, 'null')); } catch (e) { staat = null; }
-  if (!staat || typeof staat !== 'object' || Array.isArray(staat)) return { aan: false, soort: 'gdrive', pad: '' };
+  try { staat = JSON.parse(leesInstelling(cloudSleutel(n), 'null')); } catch (e) { staat = null; }
+  if (!staat || typeof staat !== 'object' || Array.isArray(staat)) return { slot: n, aan: false, soort: 'gdrive', pad: '' };
   const soort = CLOUD_SOORTEN[String(staat.soort || '')] ? String(staat.soort) : 'gdrive';
-  return { aan: staat.aan === true, soort, pad: String(staat.pad || '').slice(0, 200) };
+  return { slot: n, aan: staat.aan === true, soort, pad: String(staat.pad || '').slice(0, 200) };
 }
 
 function bewaarCloudKoppeling(staat) {
-  zetInstelling(CLOUD_SLEUTEL, JSON.stringify({ aan: staat.aan === true, soort: staat.soort, pad: staat.pad || '' }));
+  const n = cloudSlotVan(staat.slot);
+  zetInstelling(cloudSleutel(n), JSON.stringify({ aan: staat.aan === true, soort: staat.soort, pad: staat.pad || '' }));
 }
 
 // Waar de proeven (en een handmatige controle) een andere kijk op de koppelingen kunnen geven.
@@ -1797,32 +1810,40 @@ function cloudMapLeeft(pad) {
   catch (e) { return !(e && e.code === 'ENOTCONN'); }
 }
 
-function leesCloudRemoteKlaar(soort) {
+function leesCloudRemoteKlaar(slot, soort) {
+  const remote = cloudRemoteNaam(slot, soort);
   try {
     if (!fs.existsSync(CLOUD_CONF)) return false;
     const tekst = fs.readFileSync(CLOUD_CONF, 'utf8');
-    return new RegExp('^\\[' + soort + '\\][ \\t]*$', 'm').test(tekst);
+    return new RegExp('^\\[' + remote + '\\][ \\t]*$', 'm').test(tekst);
   } catch (e) { return false; }
 }
 
-function cloudStand() {
-  const koppeling = leesCloudKoppeling();
+// Het beeld van één koppeling voor het scherm in de app.
+function cloudSlotBeeld(slot) {
+  const koppeling = leesCloudKoppeling(slot);
   const info = CLOUD_SOORTEN[koppeling.soort];
+  const mount = cloudMountVoor(koppeling.slot);
+  return {
+    slot: koppeling.slot,
+    soort: koppeling.soort,
+    naam: info.naam,
+    bestemmingType: info.bestemming,
+    aan: koppeling.aan,
+    pad: koppeling.pad,
+    mount: mount,
+    downloadPad: path.join(mount, 'Gedownload'),
+    gemount: cloudGemount(mount),
+    aanmelding: { klaar: leesCloudRemoteKlaar(koppeling.slot, koppeling.soort), soort: koppeling.soort },
+    laatsteFout: CLOUD_LAATSTE_FOUT[koppeling.slot]
+  };
+}
+
+function cloudStand() {
   return {
     rclone: rcloneVersie(),
     fuse: { aanwezig: fs.existsSync(CLOUD_FUSE), pad: CLOUD_FUSE },
-    aanmelding: { klaar: leesCloudRemoteKlaar(koppeling.soort), soort: koppeling.soort },
-    koppeling: {
-      aan: koppeling.aan,
-      soort: koppeling.soort,
-      naam: info.naam,
-      bestemmingType: info.bestemming,
-      pad: koppeling.pad,
-      mount: CLOUD_MOUNT,
-      downloadPad: path.join(CLOUD_MOUNT, 'Gedownload'),
-      gemount: cloudGemount(CLOUD_MOUNT)
-    },
-    laatsteFout: CLOUD_LAATSTE_FOUT,
+    slots: CLOUD_SLOTS.map(cloudSlotBeeld),
     hostcommando: CLOUD_HOSTCOMMANDO
   };
 }
@@ -1863,18 +1884,20 @@ function vervangRemoteBlok(tekst, remote, nieuwBlok) {
   return uit.join('\n\n').trim() + '\n';
 }
 
-function schrijfCloudRemote(soort, tokenObj) {
+function schrijfCloudRemote(slot, soort, tokenObj) {
+  const n = cloudSlotVan(slot);
   const info = CLOUD_SOORTEN[soort];
   if (!info) throw new Error('Onbekende soort cloudopslag.');
+  const remote = cloudRemoteNaam(n, soort);
   const map = path.dirname(CLOUD_CONF);
   fs.mkdirSync(map, { recursive: true, mode: 0o700 });
   try { fs.chmodSync(map, 0o700); } catch (e) {}
   let bestaand = '';
   try { if (fs.existsSync(CLOUD_CONF)) bestaand = fs.readFileSync(CLOUD_CONF, 'utf8'); } catch (e) { bestaand = ''; }
-  const regels = ['[' + soort + ']', 'type = ' + info.type];
+  const regels = ['[' + remote + ']', 'type = ' + info.type];
   if (info.type === 'drive') regels.push('scope = drive');
   regels.push('token = ' + JSON.stringify(tokenObj));
-  const inhoud = vervangRemoteBlok(bestaand, soort, regels.join('\n'));
+  const inhoud = vervangRemoteBlok(bestaand, remote, regels.join('\n'));
   // Eerst schrijven naar een tijdelijk bestand en dan pas omzetten: een half bestand kan zo nooit
   // de aanmelding van een andere remote slopen.
   const tijdelijk = CLOUD_CONF + '.deel';
@@ -1920,20 +1943,23 @@ function fuseRuimVoorAnderen() {
 }
 
 function cloudMountArgumenten(koppeling) {
-  const info = CLOUD_SOORTEN[koppeling.soort] || CLOUD_SOORTEN.gdrive;
-  const bron = koppeling.soort + ':' + (koppeling.pad || '');
-  const argumenten = ['mount', bron, CLOUD_MOUNT, '--config', CLOUD_CONF,
+  const slot = cloudSlotVan(koppeling && koppeling.slot);
+  const mount = cloudMountVoor(slot);
+  const bron = cloudRemoteNaam(slot, koppeling.soort) + ':' + (koppeling.pad || '');
+  const argumenten = ['mount', bron, mount, '--config', CLOUD_CONF,
     '--vfs-cache-mode', 'writes', '--dir-cache-time', '1m', '--poll-interval', '15s', '--umask', '002'];
   if (fuseRuimVoorAnderen()) argumenten.push('--allow-other');
   return argumenten;
 }
 
-function maakCloudDownloadmap() {
-  try { fs.mkdirSync(path.join(CLOUD_MOUNT, 'Gedownload'), { recursive: true }); } catch (e) {}
+function maakCloudDownloadmap(slot) {
+  try { fs.mkdirSync(path.join(cloudMountVoor(slot), 'Gedownload'), { recursive: true }); } catch (e) {}
 }
 
 async function cloudKoppelAan(koppeling) {
-  const staat = koppeling || leesCloudKoppeling();
+  const staat = koppeling || leesCloudKoppeling(1);
+  const slot = cloudSlotVan(staat.slot);
+  const mount = cloudMountVoor(slot);
   const info = CLOUD_SOORTEN[staat.soort] || CLOUD_SOORTEN.gdrive;
   if (!rcloneVersie().aanwezig) {
     return { ok: false, fout: 'rclone staat nog niet op deze machine. Draai eerst het hostcommando uit dit blok op je Proxmox-host.' };
@@ -1941,90 +1967,102 @@ async function cloudKoppelAan(koppeling) {
   if (!fs.existsSync(CLOUD_FUSE)) {
     return { ok: false, fout: 'Deze container heeft nog geen /dev/fuse. Draai eerst het hostcommando uit dit blok op je Proxmox-host.' };
   }
-  if (!leesCloudRemoteKlaar(staat.soort)) {
+  if (!leesCloudRemoteKlaar(slot, staat.soort)) {
     return { ok: false, fout: 'De aanmelding is nog niet ingesteld. Plak eerst de sleutel van ' + info.naam + ' en druk op Aanmelding opslaan.' };
   }
-  if (cloudGemount(CLOUD_MOUNT)) {
-    if (cloudMapLeeft(CLOUD_MOUNT)) {
+  if (cloudGemount(mount)) {
+    if (cloudMapLeeft(mount)) {
       staat.aan = true;
       bewaarCloudKoppeling(staat);
-      maakCloudDownloadmap();
+      maakCloudDownloadmap(slot);
       return { ok: true, al: true };
     }
     // Een dode koppeling eerst opruimen; anders kan de nieuwe er niet overheen.
-    await draaiHulp(CLOUD_FUSERMOUNT, ['-uz', CLOUD_MOUNT], { timeout: 10000 });
+    await draaiHulp(CLOUD_FUSERMOUNT, ['-uz', mount], { timeout: 10000 });
   }
-  try { fs.mkdirSync(CLOUD_MOUNT, { recursive: true }); } catch (e) {}
+  try { fs.mkdirSync(mount, { recursive: true }); } catch (e) {}
   let kind;
   try {
     kind = spawnKind(CLOUD_RCLONE, cloudMountArgumenten(staat), { stdio: ['ignore', 'ignore', 'pipe'] });
   } catch (e) {
     return { ok: false, fout: 'De koppeling kon niet worden gestart: ' + (e.message || e) };
   }
-  CLOUD_KIND = kind;
+  CLOUD_KIND[slot] = kind;
   let fout = '';
   kind.stderr.on('data', d => { fout += d; if (fout.length > 4000) fout = fout.slice(-4000); });
-  kind.on('close', () => { if (CLOUD_KIND === kind) CLOUD_KIND = null; });
+  kind.on('close', () => { if (CLOUD_KIND[slot] === kind) CLOUD_KIND[slot] = null; });
   const tot = Date.now() + CLOUD_WACHT_MS;
   let opgekomen = false;
   while (Date.now() < tot) {
-    if (cloudGemount(CLOUD_MOUNT)) { opgekomen = true; break; }
+    if (cloudGemount(mount)) { opgekomen = true; break; }
     if (kind.exitCode !== null) break;
     await new Promise(r => setTimeout(r, 250));
   }
   if (!opgekomen) {
     try { kind.kill('SIGTERM'); } catch (e) {}
-    if (CLOUD_KIND === kind) CLOUD_KIND = null;
+    if (CLOUD_KIND[slot] === kind) CLOUD_KIND[slot] = null;
     const reden = String(fout || '').split('\n').map(r => r.trim()).filter(Boolean).slice(-2).join(' ');
     return { ok: false, fout: 'De koppeling kwam niet op' + (reden ? ': ' + reden.slice(0, 240) : '. Probeer het nog een keer; blijft het misgaan, kijk dan op de machine met "journalctl -u akkoordkast -n 30".') };
   }
   staat.aan = true;
   bewaarCloudKoppeling(staat);
-  CLOUD_LAATSTE_FOUT = '';
-  CLOUD_POGINGEN = 0;
-  maakCloudDownloadmap();
+  CLOUD_LAATSTE_FOUT[slot] = '';
+  CLOUD_POGINGEN[slot] = 0;
+  maakCloudDownloadmap(slot);
   return { ok: true, al: false };
 }
 
-async function cloudKoppelUit() {
-  if (CLOUD_KIND) {
-    try { CLOUD_KIND.kill('SIGTERM'); } catch (e) {}
-    CLOUD_KIND = null;
+async function cloudKoppelUit(slot) {
+  const n = cloudSlotVan(slot);
+  const mount = cloudMountVoor(n);
+  if (CLOUD_KIND[n]) {
+    try { CLOUD_KIND[n].kill('SIGTERM'); } catch (e) {}
+    CLOUD_KIND[n] = null;
   }
-  if (cloudGemount(CLOUD_MOUNT)) {
-    let uit = await draaiHulp(CLOUD_FUSERMOUNT, ['-u', CLOUD_MOUNT], { timeout: 10000 });
-    if (uit.code !== 0) uit = await draaiHulp(CLOUD_FUSERMOUNT, ['-uz', CLOUD_MOUNT], { timeout: 10000 });
-    if (uit.code !== 0 && cloudGemount(CLOUD_MOUNT)) {
+  if (cloudGemount(mount)) {
+    let uit = await draaiHulp(CLOUD_FUSERMOUNT, ['-u', mount], { timeout: 10000 });
+    if (uit.code !== 0) uit = await draaiHulp(CLOUD_FUSERMOUNT, ['-uz', mount], { timeout: 10000 });
+    if (uit.code !== 0 && cloudGemount(mount)) {
       const reden = String(uit.fout || '').split('\n').map(r => r.trim()).filter(Boolean).slice(-1).join(' ');
       return { ok: false, fout: 'De koppeling liet zich niet losmaken' + (reden ? ': ' + reden.slice(0, 200) : '.') };
     }
   }
-  const staat = leesCloudKoppeling();
+  const staat = leesCloudKoppeling(n);
   staat.aan = false;
   bewaarCloudKoppeling(staat);
-  CLOUD_POGINGEN = 0;
+  CLOUD_POGINGEN[n] = 0;
   return { ok: true };
 }
 
-// Eén ronde van de waker: staat de koppeling aan, maar is de map weg of dood, zet hem dan terug.
-// Na vijf mislukte pogingen stopt hij en zegt dat; koppelen met de hand kan altijd nog.
-function cloudZorg() {
-  const staat = leesCloudKoppeling();
+// Eén ronde van de waker: staat een koppeling aan, maar is de map weg of dood, zet hem dan terug.
+// Na vijf mislukte pogingen stopt die koppeling en zegt dat; losmaken met de hand kan altijd nog.
+function cloudZorgSlot(slot) {
+  const n = cloudSlotVan(slot);
+  const staat = leesCloudKoppeling(n);
   if (!staat.aan) return Promise.resolve({ gedaan: false, reden: 'uit' });
-  if (cloudGemount(CLOUD_MOUNT) && cloudMapLeeft(CLOUD_MOUNT)) return Promise.resolve({ gedaan: false, reden: 'gekoppeld' });
-  if (CLOUD_POGINGEN >= 5) return Promise.resolve({ gedaan: false, reden: 'opgegeven', fout: CLOUD_LAATSTE_FOUT });
-  CLOUD_POGINGEN += 1;
+  const mount = cloudMountVoor(n);
+  if (cloudGemount(mount) && cloudMapLeeft(mount)) return Promise.resolve({ gedaan: false, reden: 'gekoppeld' });
+  if (CLOUD_POGINGEN[n] >= 5) return Promise.resolve({ gedaan: false, reden: 'opgegeven', fout: CLOUD_LAATSTE_FOUT[n] });
+  CLOUD_POGINGEN[n] += 1;
   return cloudKoppelAan(staat).then(uit => {
     if (!uit.ok) {
-      CLOUD_LAATSTE_FOUT = uit.fout;
-      console.warn('cloudkoppeling: ' + uit.fout);
-      if (CLOUD_POGINGEN >= 5) console.warn('cloudkoppeling: ik stop met proberen; kijk in de app bij Cloudopslag koppelen.');
+      CLOUD_LAATSTE_FOUT[n] = uit.fout;
+      console.warn('cloudkoppeling ' + n + ': ' + uit.fout);
+      if (CLOUD_POGINGEN[n] >= 5) console.warn('cloudkoppeling ' + n + ': ik stop met proberen; kijk in de app bij Cloudopslag koppelen.');
     }
     return { gedaan: true, ok: uit.ok, fout: uit.fout || '' };
   }).catch(e => {
-    CLOUD_LAATSTE_FOUT = e.message || String(e);
-    return { gedaan: true, ok: false, fout: CLOUD_LAATSTE_FOUT };
+    CLOUD_LAATSTE_FOUT[n] = e.message || String(e);
+    return { gedaan: true, ok: false, fout: CLOUD_LAATSTE_FOUT[n] };
   });
+}
+
+// De waker loopt alle koppelingen langs (één voor één, zodat ze elkaar niet in de weg zitten).
+function cloudZorg() {
+  return CLOUD_SLOTS.reduce(
+    (keten, slot) => keten.then(uitslagen => cloudZorgSlot(slot).then(u => { uitslagen[slot] = u; return uitslagen; })),
+    Promise.resolve({})
+  ).then(uitslagen => ({ gedaan: true, slots: uitslagen }));
 }
 
 // Zorg dat het beheerdersprofiel bestaat zodra de app start, zodat het in de profielenlijst staat.
@@ -4045,6 +4083,7 @@ async function verwerk(req, res) {
   if (pad === '/api/cloud' && methode === 'POST') {
     const body = await leesJsonBody(req);
     const actie = String(body.actie || '');
+    const slot = cloudSlotVan(body.slot);
 
     if (actie === 'aanmelden') {
       const soort = CLOUD_SOORTEN[String(body.soort || 'gdrive')] ? String(body.soort || 'gdrive') : 'gdrive';
@@ -4054,11 +4093,12 @@ async function verwerk(req, res) {
         json(res, 409, { fout: 'rclone staat nog niet op deze machine. Draai eerst het hostcommando op je Proxmox-host.' });
         return;
       }
-      try { schrijfCloudRemote(soort, gelezen.token); }
+      try { schrijfCloudRemote(slot, soort, gelezen.token); }
       catch (e) { json(res, 500, { fout: 'De aanmelding kon niet worden opgeslagen: ' + (e.message || e) }); return; }
       // Kijken of de aanmelding echt werkt; opslaan bewijst nog geen verbinding.
-      const proef = await draaiHulp(CLOUD_RCLONE, ['lsd', soort + ':', '--max-depth', '1', '--config', CLOUD_CONF], { timeout: 30000 });
-      const staat = leesCloudKoppeling();
+      const remote = cloudRemoteNaam(slot, soort);
+      const proef = await draaiHulp(CLOUD_RCLONE, ['lsd', remote + ':', '--max-depth', '1', '--config', CLOUD_CONF], { timeout: 30000 });
+      const staat = leesCloudKoppeling(slot);
       staat.soort = soort;
       bewaarCloudKoppeling(staat);
       const antwoord = { ok: true, bereikbaar: proef.code === 0, stand: cloudStand() };
@@ -4074,7 +4114,7 @@ async function verwerk(req, res) {
     }
 
     if (actie === 'koppelen') {
-      const staat = leesCloudKoppeling();
+      const staat = leesCloudKoppeling(slot);
       if (CLOUD_SOORTEN[String(body.soort || staat.soort)]) staat.soort = String(body.soort || staat.soort);
       const pad = String(body.pad || '').trim().slice(0, 200);
       if (/[\\\r\n\t]/.test(pad) || pad.startsWith('/')) {
@@ -4096,7 +4136,7 @@ async function verwerk(req, res) {
     }
 
     if (actie === 'los') {
-      const uit = await cloudKoppelUit();
+      const uit = await cloudKoppelUit(slot);
       if (!uit.ok) { json(res, 409, { fout: uit.fout, stand: cloudStand() }); return; }
       json(res, 200, {
         ok: true,
@@ -5853,17 +5893,20 @@ if (require.main === module) {
     console.log(`AkkoordKast luistert op http://0.0.0.0:${PORT} (${bron.alle().length} meegeleverde liedjes)`);
     startWachter();
   });
-  // De cloudkoppeling: kort na het starten kijken of hij er nog is, daarna regelmatig.
+  // De cloudkoppelingen: kort na het starten kijken of ze er nog zijn, daarna regelmatig.
   setTimeout(() => { cloudZorg().catch(() => {}); }, 5000).unref();
   setInterval(() => { cloudZorg().catch(() => {}); }, 60000).unref();
-  // Netjes afsluiten (bijwerken, herstarten van de dienst): de koppeling losmaken zodat er geen
+  // Netjes afsluiten (bijwerken, herstarten van de dienst): de koppelingen losmaken zodat er geen
   // dood hulpstuk achterblijft waar de volgende start overheen moet.
   for (const signaal of ['SIGTERM', 'SIGINT']) {
     process.on(signaal, () => {
-      try { if (CLOUD_KIND) CLOUD_KIND.kill('SIGTERM'); } catch (e) {}
-      try {
-        if (cloudGemount(CLOUD_MOUNT)) spawnSync(CLOUD_FUSERMOUNT, ['-uz', CLOUD_MOUNT], { timeout: 5000 });
-      } catch (e) {}
+      for (const slot of CLOUD_SLOTS) {
+        try { if (CLOUD_KIND[slot]) CLOUD_KIND[slot].kill('SIGTERM'); } catch (e) {}
+        try {
+          const mount = cloudMountVoor(slot);
+          if (cloudGemount(mount)) spawnSync(CLOUD_FUSERMOUNT, ['-uz', mount], { timeout: 5000 });
+        } catch (e) {}
+      }
       process.exit(0);
     });
   }

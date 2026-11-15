@@ -1628,10 +1628,21 @@
       <div class="cloud-koppel" id="cloud-koppel">
         <h3>Cloudopslag koppelen (Google Drive of OneDrive)</h3>
         <p class="les-klein">Koppel je Google Drive of OneDrive hier in de app: de app zet de koppeling op
-          en houdt hem in de gaten — valt hij weg, dan komt hij terug. Vooraf is één keer het hostcommando
-          nodig dat hier verschijnt als rclone of fuse nog ontbreekt; dat zet die twee klaar op de machine.
-          Het aanmelden gebeurt daarna één keer met een sleutel die je hier plakt; die sleutel gaat naar
-          rclone op deze machine, niet in de app zelf.</p>
+          en houdt hem in de gaten — valt hij weg, dan komt hij terug. Er kunnen <strong>twee koppelingen
+          naast elkaar</strong> staan, bijvoorbeeld Drive voor de muziek en OneDrive voor de back-up:
+          kies hieronder welke je instelt. Vooraf is één keer het hostcommando nodig dat hier verschijnt
+          als rclone of fuse nog ontbreekt; dat zet die twee klaar op de machine. Het aanmelden gebeurt
+          daarna één keer per koppeling met een sleutel die je hier plakt; die sleutel gaat naar rclone
+          op deze machine, niet in de app zelf.</p>
+        <div class="rij" style="margin:0 0 10px">
+          <label for="cloud-slot">Kies je koppeling</label>
+          <select id="cloud-slot">
+            <option value="1">Koppeling 1</option>
+            <option value="2">Koppeling 2</option>
+          </select>
+          <span class="pilletje" id="cloud-slot-1">…</span>
+          <span class="pilletje" id="cloud-slot-2">…</span>
+        </div>
         <div class="chips">
           <span class="chip">rclone <span id="cloud-rclone">…</span></span>
           <span class="chip">fuse <span id="cloud-fuse">…</span></span>
@@ -6104,7 +6115,13 @@ function koppelDownloadBestemmingen() {
 // ------------------------------------------------------ cloudopslag koppelen ---
 // Het scherm voor de koppelwizard. De pagina stuurt alleen opdrachten naar /api/cloud; de server
 // controleert alles (en schrijft niets van dit scherm blind over).
-var CLOUD = { stand: null, bezig: false };
+var CLOUD = { stand: null, bezig: false, slot: 1, laatsteSlot: 0 };
+
+function cloudHuidige() {
+  var d = CLOUD.stand;
+  if (!d || !d.slots) return null;
+  return d.slots.filter(function (x) { return x.slot === CLOUD.slot; })[0] || d.slots[0];
+}
 
 function laadCloud() {
   return api('/api/cloud').then(function (d) {
@@ -6115,26 +6132,42 @@ function laadCloud() {
 }
 
 function tekenCloud(d) {
-  if (!d || !d.koppeling) return;
+  if (!d || !d.slots) return;
   CLOUD.stand = d;
+  // De twee koppelingen in één oogopslag.
+  d.slots.forEach(function (s) {
+    var pil = $('cloud-slot-' + s.slot);
+    if (!pil) return;
+    pil.textContent = 'Koppeling ' + s.slot + ' · ' + s.naam + ' · ' +
+      (s.gemount ? 'gekoppeld' : (s.aan ? 'niet bereikbaar' : (s.aanmelding.klaar ? 'klaar om te koppelen' : 'vrij')));
+    pil.style.opacity = s.slot === CLOUD.slot ? '1' : '.6';
+  });
+  var s = cloudHuidige();
+  if (!s) return;
   $('cloud-rclone').textContent = d.rclone.aanwezig
     ? ('aanwezig' + (d.rclone.versie ? ' · ' + d.rclone.versie : '')) : 'ontbreekt';
   $('cloud-fuse').textContent = d.fuse.aanwezig ? 'aanwezig' : 'ontbreekt';
-  $('cloud-aanmelding').textContent = d.aanmelding.klaar ? 'ingesteld' : 'nog niet';
-  $('cloud-koppeling').textContent = d.koppeling.gemount
-    ? ('gekoppeld' + (d.koppeling.pad ? ' · ' + d.koppeling.pad : ''))
-    : (d.koppeling.aan ? 'niet bereikbaar' : 'uit');
+  $('cloud-aanmelding').textContent = s.aanmelding.klaar ? 'ingesteld' : 'nog niet';
+  $('cloud-koppeling').textContent = s.gemount
+    ? ('gekoppeld' + (s.pad ? ' · ' + s.pad : ''))
+    : (s.aan ? 'niet bereikbaar' : 'uit');
+  // De velden horen bij de gekozen koppeling; alleen bij het wisselen vullen we ze.
+  if (CLOUD.laatsteSlot !== CLOUD.slot) {
+    CLOUD.laatsteSlot = CLOUD.slot;
+    if (s.pad || !$('cloud-map').value) $('cloud-map').value = s.pad || '';
+    $('cloud-soort').value = s.soort;
+  }
   var mist = !d.rclone.aanwezig || !d.fuse.aanwezig;
   $('cloud-commando').hidden = !mist;
   if (mist) $('cloud-commando').textContent = 'Op je Proxmox-host (eenmalig): ' + d.hostcommando;
   $('cloud-aanmelden').disabled = CLOUD.bezig || !d.rclone.aanwezig;
   $('cloud-koppel-aan').disabled = CLOUD.bezig ||
-    !(d.rclone.aanwezig && d.fuse.aanwezig && d.aanmelding.klaar) || d.koppeling.gemount;
-  $('cloud-koppel-uit').disabled = CLOUD.bezig || !d.koppeling.gemount;
-  $('cloud-als-muziekmap').disabled = CLOUD.bezig || !d.koppeling.gemount;
-  $('cloud-als-download').disabled = CLOUD.bezig || !d.koppeling.gemount;
-  if (d.laatsteFout && $('cloud-melding').hidden) {
-    toonMelding('cloud-melding', 'Let op: ' + d.laatsteFout, 'fout');
+    !(d.rclone.aanwezig && d.fuse.aanwezig && s.aanmelding.klaar) || s.gemount;
+  $('cloud-koppel-uit').disabled = CLOUD.bezig || !s.gemount;
+  $('cloud-als-muziekmap').disabled = CLOUD.bezig || !s.gemount;
+  $('cloud-als-download').disabled = CLOUD.bezig || !s.gemount;
+  if (s.laatsteFout && $('cloud-melding').hidden) {
+    toonMelding('cloud-melding', 'Let op (koppeling ' + s.slot + '): ' + s.laatsteFout, 'fout');
   }
 }
 
@@ -6168,40 +6201,44 @@ function koppelCloud() {
   var kaart = $('cloud-koppel');
   if (!kaart || kaart.dataset.gekoppeld === '1') return;
   kaart.dataset.gekoppeld = '1';
+  $('cloud-slot').addEventListener('change', function () {
+    CLOUD.slot = Number(this.value) === 2 ? 2 : 1;
+    if (CLOUD.stand) tekenCloud(CLOUD.stand);
+  });
   $('cloud-aanmelden').addEventListener('click', function () {
     var token = $('cloud-token').value.trim();
     if (!token) {
       toonMelding('cloud-melding', 'Plak eerst de sleutel bij "Zo kom je aan de sleutel".', 'fout');
       return;
     }
-    cloudStuur({ actie: 'aanmelden', soort: $('cloud-soort').value, token: token },
+    cloudStuur({ actie: 'aanmelden', slot: CLOUD.slot, soort: $('cloud-soort').value, token: token },
       'Bezig met aanmelden… dit wordt meteen bij Google of Microsoft gecontroleerd.',
       function () { $('cloud-token').value = ''; });
   });
   $('cloud-koppel-aan').addEventListener('click', function () {
-    cloudStuur({ actie: 'koppelen', soort: $('cloud-soort').value, pad: $('cloud-map').value.trim() },
+    cloudStuur({ actie: 'koppelen', slot: CLOUD.slot, soort: $('cloud-soort').value, pad: $('cloud-map').value.trim() },
       'Bezig met koppelen… de eerste keer kan dit een halve minuut duren.');
   });
   $('cloud-koppel-uit').addEventListener('click', function () {
-    cloudStuur({ actie: 'los' }, 'Bezig met losmaken…');
+    cloudStuur({ actie: 'los', slot: CLOUD.slot }, 'Bezig met losmaken…');
   });
   $('cloud-als-muziekmap').addEventListener('click', function () {
-    var d = CLOUD.stand;
-    if (!d || !d.koppeling || !d.koppeling.mount) return;
+    var s = cloudHuidige();
+    if (!s || !s.mount) return;
     api('/api/mappen', {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ pad: d.koppeling.mount })
+      body: JSON.stringify({ pad: s.mount })
     }).then(function () {
       toonMelding('cloud-melding', 'De map staat nu bij Muziekmap scannen. Gebruik daar "Kijk wat erin zit" en daarna "Alles omzetten".', 'goed');
       laadMappen();
     }).catch(function (e) { toonMelding('cloud-melding', e.message, 'fout'); });
   });
   $('cloud-als-download').addEventListener('click', function () {
-    var d = CLOUD.stand;
-    if (!d || !d.koppeling || !d.koppeling.gemount) return;
-    var pad = d.koppeling.downloadPad;
-    var type = d.koppeling.bestemmingType;
-    var naam = d.koppeling.naam;
+    var s = cloudHuidige();
+    if (!s || !s.gemount) return;
+    var pad = s.downloadPad;
+    var type = s.bestemmingType;
+    var naam = s.naam;
     var kies = function (antwoord) {
       var doel = (antwoord.bestemmingen || []).filter(function (b) { return b.pad === pad; })[0];
       if (!doel) return Promise.reject(new Error('De koppelmap staat niet in de keuzelijst.'));

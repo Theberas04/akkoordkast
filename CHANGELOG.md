@@ -3,6 +3,20 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.60.0] — 15 november 2026
+
+### Twee cloudkoppelingen naast elkaar
+
+- In het blok **Cloudopslag koppelen** kun je nu twee koppelingen naast elkaar zetten — bijvoorbeeld
+  Google Drive voor de muziek en OneDrive voor de back-up. Kies bovenin welke je instelt; twee pillen
+  tonen in één oogopslag wat elke koppeling doet.
+- Elke koppeling heeft een eigen aanmelding in `rclone.conf` (slot 2 krijgt zijn eigen remote,
+  bijvoorbeeld `onedrive-2`), een eigen koppelmap (`muziek` en `muziek-2`) en een eigen waker die hem
+  in de gaten houdt. Een bestaande koppeling blijft gewoon staan als slot 1.
+- **Losmaken van de ene koppeling raakt de andere niet**, en de aanmeldingen blijven sowieso bewaard.
+- "Als muziekmap gebruiken" en "Als downloadbestemming gebruiken" werken per gekozen koppeling; bij het
+  bijwerken van de app blijven beide koppelingen staan.
+
 ## [1.59.0] — 15 november 2026
 
 ### De slimme oefensessie

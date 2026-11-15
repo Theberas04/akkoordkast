@@ -42,6 +42,7 @@ function maakProefwereld() {
   fs.writeFileSync(fuseConf, 'user_allow_other\n');
   const basis = path.join(wortel, 'thuis');
   fs.mkdirSync(path.join(basis, 'muziek'), { recursive: true });
+  fs.mkdirSync(path.join(basis, 'muziek-2'), { recursive: true });
   return { wortel, log, mounts, fusePad, fuseConf, basis, nepRclone, nepFusermount };
 }
 
@@ -81,6 +82,12 @@ function zetGemount(w) {
     '26 25 0:44 / ' + path.join(w.basis, 'muziek') + ' rw - fuse.rclone gdrive:Muziek rw,user_id=999\n');
 }
 
+// Slot 2 hangt op zijn eigen koppelmap (muziek-2); deze zet hem erbij.
+function zetGemount2(w) {
+  fs.appendFileSync(w.mounts,
+    '27 26 0:44 / ' + path.join(w.basis, 'muziek-2') + ' rw - fuse.rclone onedrive-2:Backup rw,user_id=999\n');
+}
+
 function leesLog(w) {
   return fs.existsSync(w.log) ? fs.readFileSync(w.log, 'utf8') : '';
 }
@@ -114,13 +121,17 @@ test('de stand vertelt eerlijk wat er ontbreekt en de waker zwijgt als er niets 
     assert.equal(antwoord.status, 200, JSON.stringify(antwoord.data));
     assert.equal(antwoord.data.rclone.aanwezig, false);
     assert.equal(antwoord.data.fuse.aanwezig, false);
-    assert.equal(antwoord.data.aanmelding.klaar, false);
-    assert.equal(antwoord.data.koppeling.aan, false);
-    assert.equal(antwoord.data.koppeling.gemount, false);
+    assert.equal(antwoord.data.slots.length, 2, 'er horen twee koppelingen te zijn');
+    const een = antwoord.data.slots.find(s => s.slot === 1);
+    assert.equal(een.aanmelding.klaar, false);
+    assert.equal(een.aan, false);
+    assert.equal(een.gemount, false);
     assert.match(antwoord.data.hostcommando, /drive-koppelen-lxc\.sh/,
       'zonder rclone of fuse hoort de app het eenmalige hostcommando te tonen');
     const waker = await omgeving.app.cloudZorg();
-    assert.equal(waker.gedaan, false, 'zonder koppeling hoort de waker niets te doen');
+    assert.equal(waker.gedaan, true);
+    assert.equal(waker.slots[1].gedaan, false, 'zonder koppeling hoort de waker slot 1 niets te laten doen');
+    assert.equal(waker.slots[2].gedaan, false, 'en slot 2 ook niet');
   } finally {
     await omgeving.stop();
     herstel();
@@ -157,7 +168,7 @@ test('een geldige sleutel belandt in rclone.conf zonder de rest te slopen en zon
       'de sleutel hoort nooit in het antwoord te zitten');
 
     const stand = await baas.haal('/api/cloud');
-    assert.equal(stand.data.aanmelding.klaar, true);
+    assert.equal(stand.data.slots[0].aanmelding.klaar, true);
     assert.equal(JSON.stringify(stand.data).includes('geheim-token-xyz'), false);
   } finally {
     await omgeving.stop();
@@ -203,7 +214,7 @@ test('staat de koppeling er al, dan meldt de app dat zonder een tweede mount', a
     const antwoord = await baas.post('/api/cloud', { actie: 'koppelen', pad: 'Muziek' });
     assert.equal(antwoord.status, 200, JSON.stringify(antwoord.data));
     assert.match(antwoord.data.melding, /stond al/i);
-    assert.equal(antwoord.data.stand.koppeling.gemount, true);
+    assert.equal(antwoord.data.stand.slots[0].gemount, true);
     assert.equal(leesLog(w).split('\n').some(r => r.startsWith('mount ')), false,
       'een bestaande koppeling mag geen tweede mount starten');
     const opgeslagen = omgeving.app.db.prepare('SELECT waarde FROM instellingen WHERE sleutel = ?')
@@ -254,8 +265,8 @@ test('losmaken ontkoppelt, wist de toestand en laat de aanmelding staan', async 
     assert.equal(aan.status, 200, JSON.stringify(aan.data));
     const los = await baas.post('/api/cloud', { actie: 'los' });
     assert.equal(los.status, 200, JSON.stringify(los.data));
-    assert.equal(los.data.stand.koppeling.gemount, false);
-    assert.equal(los.data.stand.koppeling.aan, false);
+    assert.equal(los.data.stand.slots[0].gemount, false);
+    assert.equal(los.data.stand.slots[0].aan, false);
     assert.match(leesLog(w), /fusermount/, 'de koppeling hoort echt losgemaakt te worden');
     assert.ok(fs.existsSync(conf), 'de aanmelding hoort te blijven staan voor een nieuwe poging');
     const opgeslagen = omgeving.app.db.prepare('SELECT waarde FROM instellingen WHERE sleutel = ?')
@@ -283,6 +294,7 @@ test('de waker probeert een weggevallen koppeling terug te zetten', async () => 
     fs.writeFileSync(w.mounts, '');
     const uit = await omgeving.app.cloudZorg();
     assert.equal(uit.gedaan, true, 'de waker hoort een poging te doen als de map weg is');
+    assert.equal(uit.slots[1].gedaan, true, 'slot 1 hoort aan de beurt te zijn');
     assert.ok(leesLog(w).split('\n').some(r => r.startsWith('mount ')),
       'de waker hoort het mountcommando te proberen');
   } finally {
@@ -308,6 +320,13 @@ test('de mount-opdracht draagt de veilige opties en allow-other alleen als fuse 
     const zonder = omgeving.app.cloudMountArgumenten({ soort: 'gdrive', pad: '' });
     assert.equal(zonder.includes('--allow-other'), false);
     assert.equal(zonder[1], 'gdrive:', 'zonder submap hoort de hele Drive gekoppeld te worden');
+
+    // Slot 2: een eigen remote-naam en een eigen koppelmap, naast slot 1.
+    const tweede = omgeving.app.cloudMountArgumenten({ slot: 2, soort: 'onedrive', pad: 'Backup' });
+    assert.equal(tweede[1], 'onedrive-2:Backup', 'slot 2 hoort zijn eigen remote te gebruiken');
+    assert.equal(tweede[2], path.join(w.basis, 'muziek-2'), 'slot 2 hoort op zijn eigen map te hangen');
+    assert.notEqual(tweede[2], omgeving.app.cloudMountArgumenten({ soort: 'onedrive', pad: 'Backup' })[2],
+      'de twee koppelingen mogen niet op dezelfde map hangen');
   } finally {
     await omgeving.stop();
     herstel();
@@ -333,6 +352,62 @@ test('de sleutelcontrole weigert onzin en houdt de foutmelding vriendelijk', asy
   }
 });
 
+test('twee koppelingen naast elkaar: eigen remotes, eigen mappen, en losmaken raakt de ander niet', async () => {
+  const w = maakProefwereld();
+  const herstel = zetOmgeving(w);
+  const omgeving = await hulp.start();
+  try {
+    const baas = await hulp.alsBeheerder(omgeving.basis, 'proefwachtwoord-cloud-twee');
+    const conf = zetConfKlaar(w, '[nas]\ntype = smb\nhost = 192.168.1.100\n');
+    const sleutel1 = JSON.stringify({ access_token: 'tok-een', refresh_token: 'verv-een' });
+    const sleutel2 = JSON.stringify({ access_token: 'tok-twee', refresh_token: 'verv-twee' });
+
+    const een = await baas.post('/api/cloud', { actie: 'aanmelden', slot: 1, soort: 'gdrive', token: sleutel1 });
+    assert.equal(een.status, 200, JSON.stringify(een.data));
+    const twee = await baas.post('/api/cloud', { actie: 'aanmelden', slot: 2, soort: 'onedrive', token: sleutel2 });
+    assert.equal(twee.status, 200, JSON.stringify(twee.data));
+
+    const inhoud = fs.readFileSync(conf, 'utf8');
+    assert.ok(inhoud.includes('[gdrive]'), 'slot 1 hoort zijn eigen remote te hebben');
+    assert.ok(inhoud.includes('[onedrive-2]'), 'slot 2 hoort een eigen remote te krijgen');
+    assert.ok(inhoud.includes('[nas]'), 'de bestaande remote hoort te blijven staan');
+    assert.ok(inhoud.includes('tok-een') && inhoud.includes('tok-twee'), 'beide sleutels horen bewaard te zijn');
+
+    const stand = await baas.haal('/api/cloud');
+    assert.equal(stand.data.slots[0].aanmelding.klaar, true);
+    assert.equal(stand.data.slots[1].aanmelding.klaar, true);
+    assert.equal(stand.data.slots[0].soort, 'gdrive');
+    assert.equal(stand.data.slots[1].soort, 'onedrive');
+
+    // Beide koppelingen staan er (in de nep-mountwereld) al; koppelen meldt dat en raakt niets dubbel.
+    zetGemount(w);
+    zetGemount2(w);
+    const aan1 = await baas.post('/api/cloud', { actie: 'koppelen', slot: 1, pad: 'Muziek' });
+    assert.equal(aan1.status, 200, JSON.stringify(aan1.data));
+    const aan2 = await baas.post('/api/cloud', { actie: 'koppelen', slot: 2, pad: 'Backup' });
+    assert.equal(aan2.status, 200, JSON.stringify(aan2.data));
+    assert.equal(aan2.data.stand.slots[0].gemount, true, 'slot 1 hoort te blijven hangen');
+    assert.equal(aan2.data.stand.slots[1].gemount, true, 'slot 2 hoort te hangen');
+
+    // Losmaken van slot 1 raakt slot 2 niet.
+    const los = await baas.post('/api/cloud', { actie: 'los', slot: 1 });
+    assert.equal(los.status, 200, JSON.stringify(los.data));
+    const fus = leesLog(w).split('\n').filter(r => r.startsWith('fusermount'));
+    assert.ok(fus.some(r => r.includes('muziek') && !r.includes('muziek-2')), 'slot 1 hoort te worden losgemaakt');
+    assert.equal(leesLog(w).includes('muziek-2'), false, 'slot 2 hoort niet te worden aangeraakt');
+    const instellingen = (sleutel) => {
+      const rij = omgeving.app.db.prepare('SELECT waarde FROM instellingen WHERE sleutel = ?').get(sleutel);
+      return rij ? JSON.parse(rij.waarde) : null;
+    };
+    assert.equal(instellingen('cloud_koppeling').aan, false, 'slot 1 staat uit');
+    assert.equal(instellingen('cloud_koppeling_2').aan, true, 'slot 2 draait gewoon door');
+  } finally {
+    await omgeving.stop();
+    herstel();
+    fs.rmSync(w.wortel, { recursive: true, force: true });
+  }
+});
+
 test('de mappenlijst onder de koppelkaart kan op mobiel de pagina niet breder maken', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
   assert.ok(html.includes('.mappen-lijst{display:grid;grid-template-columns:minmax(0,1fr)'),
@@ -347,12 +422,14 @@ test('het Admin-scherm heeft de koppelwizard met de juiste knoppen en uitleg', (
   const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
   for (const id of ['cloud-koppel', 'cloud-rclone', 'cloud-fuse', 'cloud-aanmelding', 'cloud-koppeling',
     'cloud-melding', 'cloud-commando', 'cloud-token', 'cloud-soort', 'cloud-map', 'cloud-aanmelden',
-    'cloud-koppel-aan', 'cloud-koppel-uit', 'cloud-als-muziekmap', 'cloud-als-download']) {
+    'cloud-koppel-aan', 'cloud-koppel-uit', 'cloud-als-muziekmap', 'cloud-als-download',
+    'cloud-slot', 'cloud-slot-1', 'cloud-slot-2']) {
     assert.ok(html.includes('id="' + id + '"'), 'het koppelscherm mist ' + id);
   }
   assert.ok(html.includes('function koppelCloud()'), 'de wizard hoort zijn eigen koppelfunctie te hebben');
   assert.ok(html.includes("api('/api/cloud'"), 'de knoppen horen met de server te praten');
   assert.ok(html.includes('Cloudopslag koppelen'), 'de kaart hoort zo te heten');
+  assert.ok(html.includes('twee koppelingen'), 'de uitleg hoort te noemen dat er twee naast elkaar kunnen');
   assert.ok(html.includes('rclone authorize'), 'de uitleg voor de sleutel hoort er te staan');
   assert.ok(html.indexOf('.cloud-koppel{') !== -1, 'het blok hoort een eigen visuele kaart te hebben');
 });

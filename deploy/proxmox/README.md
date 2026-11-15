@@ -134,6 +134,10 @@ journaalregels, met onderaan per bevinding de letterlijke opdracht die het oplos
 
 - **Geen nginx.** De Node-dienst serveert zijn eigen pagina's en statische bestanden, en krijgt
   poort 80 via `AmbientCapabilities=CAP_NET_BIND_SERVICE` terwijl hij als gewone gebruiker draait.
+  De bounding set bevat daarnaast `CAP_SYS_ADMIN` (de fuse-hulp van de cloudkoppeling heeft dat
+  recht nodig om te mogen mounten) en `NoNewPrivileges` staat bewust **uit**: met
+  `NoNewPrivileges=yes` is het setuid-bit van de fuse-hulp onwerkzaam en faalt elke koppeling
+  vanuit de app met `fusermount: mount failed: Operation not permitted` (terwijl los koppelen wél lukt).
   Een proxy die zelf `/healthz` antwoordt, verbergt een verkeerd webroot-pad: de controle slaagt
   terwijl de app onzichtbaar is. Nadeel dat je moet weten: browsers geven alleen camera-toegang in
   een beveiligde context, dus op een `http://`-adres in je LAN werkt camerascannen niet.

@@ -114,6 +114,11 @@ case "${1:-}" in
     printf "   no_new_privs:         %s\n" "$(grep -i NoNewPrivs /proc/1/status 2>/dev/null | tr -d "[:blank:]")"
     printf "   rootfs-opties:        %s\n" "$(grep " / " /proc/mounts | cut -d" " -f4)"
     printf "   dienst-gebruiker:     %s\n" "$(systemctl show akkoordkast -p User --value 2>/dev/null || echo "?")"
+    printf "   dienst NoNewPrivs:    %s\n" "$(systemctl show akkoordkast -p NoNewPrivileges --value 2>/dev/null || echo "?")"
+    printf "   dienst bounding set:  %s\n" "$(systemctl show akkoordkast -p CapabilityBoundingSet --value 2>/dev/null || echo "?")"
+    if [ "$(systemctl show akkoordkast -p NoNewPrivileges --value 2>/dev/null)" = "yes" ]; then
+      echo "     LET OP: de app-dienst staat op NoNewPrivileges=yes; daarmee kan de fuse-hulp niet mounten."
+    fi
     printf "   fusermount3:          %s\n" "$(command -v fusermount3 || echo ONTBREEKT)"
     ls -l /usr/bin/fusermount3 /usr/bin/fusermount /usr/local/bin/fusermount3 /usr/local/bin/fusermount 2>&1 | grep -v "No such" | sed "s/^/     /"
     printf "   fusermount3-versie:   %s\n" "$(fusermount3 --version 2>&1 | head -1)"

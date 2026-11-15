@@ -187,8 +187,11 @@ Environment=YTDLP=/usr/local/bin/yt-dlp
 # Bijwerken vanuit de app: de app start dit script als je op Bijwerken drukt.
 Environment=UPDATE_SCRIPT=$APP_DIR/scripts/bijwerken-in-de-app.sh
 AmbientCapabilities=CAP_NET_BIND_SERVICE
-CapabilityBoundingSet=CAP_NET_BIND_SERVICE
-NoNewPrivileges=yes
+# SYS_ADMIN hoort erbij: de fuse-hulp (fusermount3) van de cloudkoppeling heeft dit recht
+# nodig om te mogen mounten. En let op: NoNewPrivileges mag hier nooit aan staan — dat maakt
+# het setuid-bit van fusermount3 onwerkzaam en dan faalt elke koppeling vanuit de app met
+# "fusermount: mount failed: Operation not permitted" (terwijl los koppelen wel lukt).
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE CAP_SYS_ADMIN
 Restart=always
 RestartSec=3
 

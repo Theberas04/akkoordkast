@@ -16,7 +16,9 @@
 #      configuratie wordt bewaard) en herstart de container één keer, alleen als dat nodig is;
 #   2. installeert in de container rclone en fuse3 (alleen als ze er nog niet zijn);
 #   3. zet user_allow_other in /etc/fuse.conf, zodat de koppeling ook voor andere gebruikers
-#      (zoals root) leesbaar is.
+#      (zoals root) leesbaar is;
+#   4. herstelt zo nodig een te strenge instelling van de app-dienst (NoNewPrivileges), die
+#      een koppeling vanuit de app laat mislukken met "mount failed: Operation not permitted".
 #
 # De oudere route met drive-koppelen.sh (een systemd-dienst in de container) blijft bestaan,
 # maar is voor de koppelwizard in de app niet nodig.
@@ -119,6 +121,19 @@ if [ -e /usr/bin/fusermount3 ]; then
   else
     echo "   setuid-bit op fusermount3 staat goed (4755)."
   fi
+fi
+# De app-dienst van eerdere installaties kan te streng staan: NoNewPrivileges=yes maakt het
+# setuid-bit van fusermount3 onwerkzaam ("mount failed: Operation not permitted" vanuit de
+# app, terwijl los koppelen lukt). Een drop-in zet het recht goed; nieuwe installaties
+# hebben hem niet nodig.
+if [ -f /etc/systemd/system/akkoordkast.service ] && grep -q "NoNewPrivileges=yes" /etc/systemd/system/akkoordkast.service; then
+  install -d /etc/systemd/system/akkoordkast.service.d
+  printf "[Service]\nNoNewPrivileges=no\nCapabilityBoundingSet=CAP_NET_BIND_SERVICE CAP_SYS_ADMIN\n" > /etc/systemd/system/akkoordkast.service.d/zz-fuse-recht.conf
+  systemctl daemon-reload
+  systemctl restart akkoordkast
+  echo "   app-dienst hersteld: koppelrecht gezet (NoNewPrivileges uit, SYS_ADMIN erin) en herstart."
+else
+  echo "   app-dienst: geen herstel nodig (of nog geen dienst)."
 fi
 BINNENEOF
 pct push "$CTID" "$BINNEN" /root/akkoordkast-drive-voorbereiden.sh --perms 700 >/dev/null

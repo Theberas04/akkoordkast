@@ -244,6 +244,10 @@ test('de systemd-eenheid van de app is compleet en door systemd te lezen', () =>
   assert.match(unit, /^User=/m, 'geen gebruiker: de dienst zou als root draaien');
   assert.match(unit, /MUSIC_DIR=/, 'de muziekmap wordt niet meegegeven');
   assert.match(unit, /AmbientCapabilities=CAP_NET_BIND_SERVICE/, 'geen recht om poort 80 te openen');
+  assert.match(unit, /CapabilityBoundingSet=CAP_NET_BIND_SERVICE CAP_SYS_ADMIN/,
+    'zonder SYS_ADMIN in de bounding set kan de setuid-fuse-hulp niet mounten');
+  assert.doesNotMatch(unit, /NoNewPrivileges=yes/,
+    'NoNewPrivileges=yes maakt het setuid-bit van de fuse-hulp onwerkzaam');
   assert.match(unit, /^WantedBy=multi-user\.target$/m, 'de dienst wordt niet mee gestart bij het opstarten');
   const nietIngevuld = unit.match(/\$[A-Z_]+\b/);
   assert.equal(nietIngevuld, null, 'een variabele is niet ingevuld: ' + (nietIngevuld || '')[0]);
@@ -262,6 +266,18 @@ test('de systemd-eenheid van de app is compleet en door systemd te lezen', () =>
   }
   assert.doesNotMatch(uit, /bad unit file setting|Refusing/, 'systemd keurt de eenheid af: ' + uit);
   fs.unlinkSync(eenheidPad);
+});
+
+test('het koppelscript herstelt een te strenge app-dienst', () => {
+  // Installaties van vóór deze reparatie kunnen NoNewPrivileges=yes in de dienst hebben; dan
+  // faalt "Koppelen" in de app met "fusermount: mount failed: Operation not permitted"
+  // (los koppelen lukt wel). Een herhaalronde van het koppelscript lost dat zelf op met een
+  // drop-in, ook als de app-dienst al bestaat.
+  const tekst = lees('drive-koppelen-lxc.sh');
+  assert.match(tekst, /NoNewPrivileges=no/, 'het script zet de te strenge instelling niet terug');
+  assert.match(tekst, /zz-fuse-recht\.conf/, 'de drop-in mist of heeft niet de vaste, late naam');
+  assert.match(tekst, /CapabilityBoundingSet=CAP_NET_BIND_SERVICE CAP_SYS_ADMIN/,
+    'SYS_ADMIN hoort in de bounding set van de herstelde dienst');
 });
 
 test('de gezondheidscontrole eist de app-marker en een node-proces op de poort', () => {

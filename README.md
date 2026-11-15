@@ -576,8 +576,8 @@ Twee hulpscripts horen erbij:
 | [`deploy/proxmox/nas-koppelen-lxc.sh`](deploy/proxmox/nas-koppelen-lxc.sh) | op de **Proxmox-host**, als root | zet het fuse-recht in de container en laat de container de NAS zelf koppelen (route 1b) |
 | [`deploy/proxmox/nas-mount-lxc.sh`](deploy/proxmox/nas-mount-lxc.sh) | **in de container**, als root | het containerdeel van route 1b: rclone koppelt de NAS-share |
 | [`deploy/proxmox/drive-koppelen.sh`](deploy/proxmox/drive-koppelen.sh) | **in de container**, als root | koppelt Google Drive met rclone, als systemd-dienst met een controletimer |
-| [`deploy/proxmox/drive-koppelen-lxc.sh`](deploy/proxmox/drive-koppelen-lxc.sh) | op de **Proxmox-host**, als root | zet het fuse-recht (fuse=1) in de container en installeert rclone en fuse3 — de eenmalige voorbereiding voor **Cloudopslag koppelen** in de app |
-| [`deploy/proxmox/fuse-proef-lxc.sh`](deploy/proxmox/fuse-proef-lxc.sh) | op de **Proxmox-host**, als root | loopt na waarom een fuse-koppeling niet opkomt (setuid-bit, no_new_privs, apparmor, proefkoppelingen als root en als de app-gebruiker) en herstelt de setuid-bit van fusermount3 |
+| [`deploy/proxmox/drive-koppelen-lxc.sh`](deploy/proxmox/drive-koppelen-lxc.sh) | op de **Proxmox-host**, als root | zet het fuse-recht (fuse=1) in de container, installeert rclone en fuse3 en herstelt een te strenge app-dienst (NoNewPrivileges) — de eenmalige voorbereiding voor **Cloudopslag koppelen** in de app |
+| [`deploy/proxmox/fuse-proef-lxc.sh`](deploy/proxmox/fuse-proef-lxc.sh) | op de **Proxmox-host**, als root | loopt na waarom een fuse-koppeling niet opkomt (setuid-bit, no_new_privs van container én dienst, apparmor, proefkoppelingen als root, als de app-gebruiker en op de echte koppelmap) en herstelt de setuid-bit van fusermount3 |
 
 ### Route 1: een NAS in hetzelfde netwerk
 
@@ -1047,7 +1047,7 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 422 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+node --test test/*.test.js          # 423 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
                                     # setlists, de offline-setlist en het liedboek offline, de slimme
                                     # oefensessie, nazingen, opnemen met begeleiding, de jukebox,
                                     # het showplan, het weetje van de dag, de weergavekeuze, de

@@ -3,6 +3,16 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.71.0] — 15 november 2026
+
+### Verzoeknummers is nu een eigen tabblad
+
+- De verzoeknummers zijn verhuisd van een los venster (knop in de werkbalk van Liedjes) naar een
+  eigen tabblad naast *Leren* — net als de andere onderdelen staan ze in de tabbalk. Het tabblad is
+  ook direct te openen met `.../#verzoeknummers`.
+- Op een telefoon staan de tabbladen nu in een rooster van drie, zodat alles leesbaar blijft naast
+  het extra tabblad.
+
 ## [1.70.0] — 15 november 2026
 
 ### Ook liedjes van buiten het liedboek kun je vragen

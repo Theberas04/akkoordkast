@@ -900,7 +900,7 @@
   }
   @media (max-width:760px){
     header{padding:10px 14px 8px}
-    nav{padding:10px 14px 0;gap:4px}
+    nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:10px 14px 0;gap:6px}
     nav button{flex-direction:column;gap:3px;min-height:52px;padding:6px 4px;font-size:.74rem}
     main{padding:14px 14px 50px}
     .kaart{padding:14px;border-radius:var(--r)}
@@ -1061,6 +1061,7 @@
   <button id="tab-liedjes" class="actief" data-paneel="paneel-liedjes"><span class="ic" aria-hidden="true"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M9 17.5V6.2l10-1.9v11.2'/><circle cx='6.6' cy='17.6' r='2.4'/><circle cx='16.6' cy='15.5' r='2.4'/></svg></span><span>Liedjes</span></button>
   <button id="tab-spelen" data-paneel="paneel-spelen"><span class="ic" aria-hidden="true"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M8.5 5.6v12.8L19 12z'/></svg></span><span>Spelen</span></button>
   <button id="tab-leren" data-paneel="paneel-leren"><span class="ic" aria-hidden="true"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M4 5.6A2.6 2.6 0 0 1 6.6 3H19v14.6H6.6A2.6 2.6 0 0 0 4 20.2z'/><path d='M8.2 7.4h7M8.2 10.6h4.6'/></svg></span><span>Leren</span></button>
+  <button id="tab-verzoeknummers" data-paneel="paneel-verzoeknummers"><span class="ic" aria-hidden="true"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M4.2 6.7A2.5 2.5 0 0 1 6.7 4.2h10.6a2.5 2.5 0 0 1 2.5 2.5v7.1a2.5 2.5 0 0 1-2.5 2.5h-6.5l-3.6 2.9v-2.9h-.5a2.5 2.5 0 0 1-2.5-2.5z'/><path d='M12.6 13V8.6l2.8-.6'/><circle cx='11.4' cy='13' r='1.2'/></svg></span><span>Verzoeknummers</span></button>
   <button id="tab-toevoegen" data-paneel="paneel-toevoegen"><span class="ic" aria-hidden="true"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M12 5.5v13M5.5 12h13'/></svg></span><span>Toevoegen</span></button>
   <button id="tab-casten" data-paneel="paneel-casten"><span class="ic" aria-hidden="true"><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M3.2 19.8h.1M3.2 15.4a4.4 4.4 0 0 1 4.4 4.4M3.2 11a8.8 8.8 0 0 1 8.8 8.8'/><rect x='13.6' y='3.8' width='7.2' height='9.6' rx='1.6'/></svg></span><span>Casten</span></button>
 </nav>
@@ -1108,7 +1109,6 @@
         <button class="knop zacht" id="filter-wis">Filters wissen</button>
         <button class="knop zacht" id="verras-knop" title="Een willekeurig liedje uit wat je nu gekozen hebt">Verras me</button>
         <button class="knop zacht" id="boek-printen" title="Alle liedjes van deze selectie als één document">Boek maken</button>
-        <button class="knop zacht" id="verzoek-tool-knop" title="Zoek liedjes en vraag ze met één tik aan bij de beheerder">Verzoeknummers</button>
         <span class="pilletje" id="lijst-teller">…</span>
       </div>
       <div class="melding" id="lijst-melding" hidden></div>
@@ -1669,6 +1669,24 @@
     </div>
   </section>
 
+  <!-- ------------------------------------------------ verzoeknummers -->
+  <section id="paneel-verzoeknummers" class="paneel">
+    <!-- Een eigen tabblad om nummers te vragen: zoeken in het liedboek en met één tik vragen,
+         zonder het liedje te openen. Meerdere na elkaar mag; de beheerder ziet ze bij de
+         verzoekjes. Ook liedjes die nog niet in het liedboek staan kun je vragen. -->
+    <div class="kaart">
+      <h2>Verzoeknummers</h2>
+      <p class="meta">Zoek een liedje en tik het aan: het verzoekje komt bij de beheerder te staan. Je kunt er zo meerdere na elkaar vragen — ook liedjes die nog niet in het liedboek staan.</p>
+      <input id="vt-zoek" type="search" placeholder="Zoek op titel of artiest…" autocomplete="off">
+      <div class="melding" id="vt-melding" hidden></div>
+      <div class="vt-lijst" id="vt-lijst"></div>
+      <div class="vt-vraag" id="vt-vraag" hidden>
+        <button class="knop goed" id="vt-vraag-knop">Vraag het toch aan</button>
+        <span class="meta">Staat je liedje er niet bij? Vraag het toch aan — de beheerder ziet je vraag, ook als het nummer nog niet in het liedboek staat.</span>
+      </div>
+    </div>
+  </section>
+
   <!-- ------------------------------------------------ toevoegen -->
   <section id="paneel-toevoegen" class="paneel">
     <!-- Muziek toevoegen hoort bij de beheerder. Iedereen kan zoeken, spelen en leren; de
@@ -1685,7 +1703,7 @@
       <h2>Verzoekjes <span class="pilletje" id="verzoek-teller" hidden></span></h2>
       <p class="meta">Liedjes waar iemand om vroeg — uit een ander profiel, of van iemand die even
         meekeek. Iemand vraagt er eentje aan met de knop <strong>Verzoek</strong> bij het liedje of
-        via <strong>Verzoeknummers</strong> in het tabblad Liedjes; hier zie je ze staan en vink je
+        via het tabblad <strong>Verzoeknummers</strong>; hier zie je ze staan en vink je
         ze af als ze gedaan zijn.</p>
       <div class="rij" style="margin:8px 0">
         <button class="knop zacht" id="verzoek-ververs" title="Opnieuw kijken of er nieuwe verzoekjes zijn">Verversen</button>
@@ -2219,22 +2237,8 @@
   <div id="boek-inhoud"></div>
 </section>
 
-<!-- De verzoeknummers-tool: zoeken in het liedboek en met één tik vragen, zonder het liedje te
-     openen. Meerdere na elkaar mag; de beheerder ziet ze bij de verzoekjes. -->
-<div id="verzoek-tool" class="slot" role="dialog" aria-modal="true" aria-labelledby="vt-kop">
-  <div class="slot-kaart" style="max-width:560px">
-    <h3 id="vt-kop">Verzoeknummers</h3>
-    <p class="meta">Zoek een liedje en tik het aan: het verzoekje komt bij de beheerder te staan. Je kunt er zo meerdere na elkaar vragen — ook liedjes die nog niet in het liedboek staan.</p>
-    <input id="vt-zoek" type="search" placeholder="Zoek op titel of artiest…" autocomplete="off">
-    <div class="melding" id="vt-melding" hidden></div>
-    <div class="vt-lijst" id="vt-lijst"></div>
-    <div class="vt-vraag" id="vt-vraag" hidden>
-      <button class="knop goed" id="vt-vraag-knop">Vraag het toch aan</button>
-      <span class="meta">Staat je liedje er niet bij? Vraag het toch aan — de beheerder ziet je vraag, ook als het nummer nog niet in het liedboek staat.</span>
-    </div>
-    <div class="rij" style="justify-content:flex-end"><button class="knop zacht" id="vt-sluiten">Sluiten</button></div>
-  </div>
-</div>
+<!-- De verzoeknummers horen bij het eigen tabblad Verzoeknummers; zie paneel-verzoeknummers. -->
+
 
 <div id="profiel-slot" class="slot" role="dialog" aria-modal="true" aria-labelledby="slot-kop">
   <div class="slot-kaart">
@@ -2311,7 +2315,7 @@ function toonMelding(id, tekst, soort) {
 }
 
 // --------------------------------------------------------------- navigatie ---
-var TABS = ['liedjes', 'spelen', 'leren', 'toevoegen', 'casten'];
+var TABS = ['liedjes', 'spelen', 'leren', 'verzoeknummers', 'toevoegen', 'casten'];
 TABS.forEach(function (naam) {
   $('tab-' + naam).addEventListener('click', function () { toonTab(naam); });
 });
@@ -2322,6 +2326,7 @@ function toonTab(naam) {
   });
   if (naam === 'casten') laadApparaten(true);
   if (naam === 'leren') laadLeren();
+  if (naam === 'verzoeknummers') vtLaad();
   houdSchermAan(naam === 'spelen');
   window.scrollTo(0, 0);
 }
@@ -9971,7 +9976,7 @@ function tekenVerzoeken(lijst) {
     teller.textContent = open.length === 1 ? '1 open' : open.length + ' open';
   }
   if (!lijst.length) {
-    houder.innerHTML = '<div class="meta">Er zijn nog geen verzoekjes. Iemand vraagt er eentje aan met de knop <strong>Verzoek</strong> bij een liedje, of via <strong>Verzoeknummers</strong> in het tabblad Liedjes.</div>';
+    houder.innerHTML = '<div class="meta">Er zijn nog geen verzoekjes. Iemand vraagt er eentje aan met de knop <strong>Verzoek</strong> bij een liedje, of via het tabblad <strong>Verzoeknummers</strong>.</div>';
     return;
   }
   houder.innerHTML = lijst.map(function (v) {
@@ -10064,23 +10069,21 @@ $('verzoek-lijst').addEventListener('click', function (e) {
 $('verzoek-ververs').addEventListener('click', function () { laadVerzoeken(); });
 laadVerzoeken(true);
 
-// De verzoeknummers-tool: een eigen scherm om in het liedboek te zoeken en met één tik te vragen —
-// zonder het liedje te openen, en gerust meerdere na elkaar (op een feestje bijvoorbeeld). Hij
-// herkent je al openstaande verzoekjes, zodat je ze niet dubbel doet.
-var VT = { open: [], laatste: [], zoekTimer: null };
-function vtOpen() {
-  var vak = $('verzoek-tool');
-  if (!vak) return;
-  vak.classList.add('aan');
-  $('vt-zoek').value = '';
-  toonMelding('vt-melding', '');
+// Het tabblad Verzoeknummers: zoek in het liedboek en vraag met één tik — zonder het liedje te
+// openen, en gerust meerdere na elkaar (op een feestje bijvoorbeeld). Hij herkent je al
+// openstaande verzoekjes, zodat je ze niet dubbel doet. Je kunt het tabblad ook direct openen met
+// .../#verzoeknummers.
+var VT = { open: [], laatste: [], zoekTimer: null, geladen: false };
+// Draait als je het tabblad opent: je al openstaande verzoekjes en de lijst verversen.
+function vtLaad() {
   vtLaadOpen();
-  vtZoek('');
-  setTimeout(function () { var z = $('vt-zoek'); if (z) z.focus(); }, 60);
-}
-function vtSluit() {
-  var vak = $('verzoek-tool');
-  if (vak) vak.classList.remove('aan');
+  var z = $('vt-zoek');
+  if (!VT.geladen) {
+    VT.geladen = true;
+    z.value = '';
+    toonMelding('vt-melding', '');
+  }
+  vtZoek(z.value);
 }
 function vtLaadOpen() {
   laadVerzoeken(true).then(function (d) {
@@ -10127,9 +10130,6 @@ function vtToonVraag(tekst) {
   vak.hidden = !tonen;
   if (tonen) knop.textContent = 'Vraag \u201c' + t + '\u201d aan';
 }
-$('verzoek-tool-knop').addEventListener('click', vtOpen);
-$('vt-sluiten').addEventListener('click', vtSluit);
-$('verzoek-tool').addEventListener('click', function (e) { if (e.target === this) vtSluit(); });
 $('vt-zoek').addEventListener('input', function () {
   var tekst = this.value;
   clearTimeout(VT.zoekTimer);
@@ -10158,10 +10158,6 @@ $('vt-vraag-knop').addEventListener('click', function () {
     herstel: 'Vraag \u201c' + t + '\u201d aan'
   });
 });
-document.addEventListener('keydown', function (e) {
-  if (e.key === 'Escape' && $('verzoek-tool').classList.contains('aan')) vtSluit();
-});
-
 // ----------------------------------------------------------------- showplan ---
 // Hoe lang duurt het optreden? Van de liedjes van de gekozen setlist maakt de app een tijdlijn: per
 // liedje een geschatte speeltijd (aan te passen), een praatje ertussen, en hoe laat elk liedje

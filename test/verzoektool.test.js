@@ -1,7 +1,7 @@
 'use strict';
-// De verzoeknummers-tool: een eigen scherm in het tabblad Liedjes waarmee je in het liedboek zoekt
-// en met één tik verzoekjes doet — meerdere na elkaar, zonder het liedje te openen. Dit dekt de
-// bedrading in de pagina en het veld waarop de tool "al verzocht" herkent.
+// De verzoeknummers: een eigen tabblad naast Leren waarmee je in het liedboek zoekt en met één tik
+// verzoekjes doet — meerdere na elkaar, zonder het liedje te openen. Dit dekt de bedrading in de
+// pagina en het veld waarop de tool "al verzocht" herkent.
 const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
@@ -10,19 +10,25 @@ const hulp = require('./hulp.js');
 
 const PAGINA = () => fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
 
-test('de tool staat in de werkbalk van het liedboek en heeft een eigen scherm', () => {
+test('de tool is een eigen tabblad naast Leren en heeft een eigen scherm', () => {
   const html = PAGINA();
-  for (const id of ['verzoek-tool-knop', 'verzoek-tool', 'vt-zoek', 'vt-lijst', 'vt-melding', 'vt-sluiten', 'vt-vraag', 'vt-vraag-knop']) {
+  assert.match(html, /var TABS = \[[^\]]*'verzoeknummers'/);
+  assert.match(html, /if \(naam === 'verzoeknummers'\) vtLaad\(\)/);
+  for (const id of ['tab-verzoeknummers', 'paneel-verzoeknummers', 'vt-zoek', 'vt-lijst', 'vt-melding', 'vt-vraag', 'vt-vraag-knop']) {
     assert.ok(html.includes('id="' + id + '"'), 'de pagina hoort ' + id + ' te hebben');
   }
-  for (const fn of ['function vtOpen(', 'function vtSluit(', 'function vtZoek(', 'function vtToonVraag(', 'function tekenVtLijst(', 'function vtLaadOpen(']) {
+  for (const fn of ['function vtLaad(', 'function vtLaadOpen(', 'function vtZoek(', 'function vtToonVraag(', 'function tekenVtLijst(']) {
     assert.ok(html.includes(fn), 'de functie hoort te bestaan: ' + fn);
   }
-  assert.ok(html.includes('>Verzoeknummers<'), 'de knop hoort Verzoeknummers te heten');
+  assert.ok(html.includes('>Verzoeknummers<'), 'het tabblad hoort Verzoeknummers te heten');
+  // Het losse venster en de werkbalkknop van 1.69/1.70 zijn vervangen door het tabblad.
+  assert.ok(!html.includes('id="verzoek-tool"'), 'het oude losse venster hoort weg te zijn');
+  assert.ok(!html.includes('id="verzoek-tool-knop"'), 'de oude werkbalkknop hoort weg te zijn');
 });
 
 test('de tool zoekt in het liedboek en hergebruikt het verzoekje-versturen', () => {
   const html = PAGINA();
+  assert.ok(html.includes('<section id="paneel-verzoeknummers" class="paneel">'), 'de tool hoort een eigen paneel te hebben');
   assert.ok(html.includes("api('/api/liedjes?compact=1&aantal=30'"), 'de tool hoort via de api()-helper te zoeken');
   assert.ok(html.includes("meldingId: 'vt-melding'"), 'de melding hoort in de tool zelf te komen');
   assert.ok(html.includes('blijvend: true'), 'in de tool blijft "Verzocht" staan, ook na vier seconden');

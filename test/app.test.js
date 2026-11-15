@@ -436,7 +436,7 @@ test('het liedpaneel heeft een eigen start- en stopknop bij het spelen', () => {
 test('de leermodus staat in de pagina: leslijst, trainer, stemmen, ritme en grepen', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
   assert.match(html, /id="tab-leren"[^>]*data-paneel="paneel-leren"/);
-  assert.match(html, /var TABS = \['liedjes', 'spelen', 'leren', 'toevoegen', 'casten'\]/);
+  assert.match(html, /var TABS = \['liedjes', 'spelen', 'leren', 'verzoeknummers', 'toevoegen', 'casten'\]/);
   for (const id of ['paneel-leren', 'leren-lessen', 'leren-balk', 'leren-voortgang', 'trein-set', 'trein-tempo',
     'trein-maten', 'trein-start', 'trein-stop', 'trein-akkoord', 'trein-volgend', 'trein-greep', 'trein-tellen',
     'trein-stats', 'stem-rij', 'ritme-rij', 'ritme-start', 'ritme-stop', 'ritme-tellen', 'ritme-uitleg', 'leren-grepen',

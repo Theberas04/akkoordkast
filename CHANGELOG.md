@@ -3,6 +3,21 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.65.0] — 15 november 2026
+
+### Showplan met speeltijden
+
+- Nieuwe kaart **Showplan met speeltijden** onder de setlistkaart: de app zet de liedjes van de
+  gekozen setlist op een tijdlijn. Per liedje een geschatte speeltijd (uit de tekst en het tempo —
+  aan te passen in minuten), een praatje tussen de liedjes, en hoe laat elk liedje begint en klaar
+  is. Vul je begintijd en je beschikbare tijd in, en de kaart zegt of het past (en hoeveel je
+  overhoudt of tekortkomt).
+- **Printen** maakt er een vel van — om naast je neer te leggen of in de map te doen — met per
+  liedje de speeltijd, de begintijd en de klaartijd, en ruimte voor notities.
+- Het plan blijft per setlist op dit toestel bewaard (begintijd, praatje, beschikbare tijd en elke
+  aangepaste speeltijd), dus de volgende keer staat het er weer.
+- Het rekenwerk staat in `lib/showplan.js` (regeltelling, kloktijden, de tijdlijn), met eigen proeven.
+
 ## [1.64.0] — 15 november 2026
 
 ### Jukebox

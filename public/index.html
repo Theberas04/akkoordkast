@@ -432,6 +432,12 @@
   .setlist-rij .nr{width:1.6rem;color:var(--tekst2);font-variant-numeric:tabular-nums}
   .setlist-rij .wie{flex:1;min-width:220px;font-size:.86rem;color:var(--tekst2)}
   .setlist-rij .wie b{color:var(--tekst);font-size:.95rem}
+  .showplan-rij{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--lijn);flex-wrap:wrap}
+  .showplan-rij:last-child{border-bottom:0}
+  .showplan-rij .nr{width:1.6rem;color:var(--tekst2);font-variant-numeric:tabular-nums}
+  .showplan-rij .wie{flex:1;min-width:170px;font-size:.95rem}
+  .showplan-rij input{width:76px;text-align:right}
+  .showplan-rij .showplan-tijd{font-variant-numeric:tabular-nums;color:var(--tekst2);min-width:118px}
   .setlist-papier{width:100%;border-collapse:collapse;margin-top:14px}
   .setlist-papier th,.setlist-papier td{text-align:left;vertical-align:top;padding:7px 8px;border-bottom:1px solid #ccc;font-size:.95rem}
   .setlist-papier th{color:#555;font-size:.78rem;letter-spacing:.05em;text-transform:uppercase}
@@ -1009,6 +1015,27 @@
       <div class="rij" id="setlist-deel" hidden></div>
       <div class="melding" id="setlist-melding" hidden></div>
       <div class="melding" id="setlist-offline-melding" hidden></div>
+    </div>
+    <div class="kaart" id="showplan-kaart">
+      <h3>Showplan met speeltijden</h3>
+      <p class="les-klein" style="margin:0 0 10px">Hoe lang duurt je optreden? De app zet de liedjes van de
+        gekozen setlist op een tijdlijn: per liedje een geschatte speeltijd (aan te passen), een praatje
+        ertussen, en hoe laat je begint en klaar bent. Zo weet je vooraf of je binnen je tijd past.</p>
+      <div class="rij">
+        <button class="knop zacht" id="showplan-maak">Showplan maken</button>
+        <button class="knop zacht" id="showplan-print" hidden>Printen</button>
+        <span class="pilletje" id="showplan-stand" hidden></span>
+      </div>
+      <div class="rij" style="margin-top:8px" id="showplan-instellingen" hidden>
+        <label for="showplan-start">Beginnen om</label>
+        <input id="showplan-start" type="time" value="20:00">
+        <label for="showplan-praatje">praatje tussen de liedjes</label>
+        <input id="showplan-praatje" type="number" min="0" max="300" step="5" value="30" style="width:84px"> sec
+        <label for="showplan-slot">beschikbaar</label>
+        <input id="showplan-slot" type="number" min="0" max="240" step="5" value="45" style="width:84px"> min
+      </div>
+      <div id="showplan-inhoud" style="margin-top:10px"></div>
+      <div class="melding" id="showplan-melding" hidden></div>
     </div>
     <div class="kaart" id="jukebox-kaart">
       <h3>Jukebox</h3>
@@ -2073,6 +2100,7 @@
 <script src="/lib/offline.js"></script>
 <script src="/lib/sessie.js"></script>
 <script src="/lib/motiefjes.js"></script>
+<script src="/lib/showplan.js"></script>
 <script>
 'use strict';
 var staat = {
@@ -3318,6 +3346,7 @@ $('setlist-kies').addEventListener('change', function () {
   var id = Number(this.value) || 0;
   zetActieveSetlist(id);
   if (id) laadSetlistInhoud(id);
+  if (SP.open) laadShowplan();
 });
 $('setlist-nieuw').addEventListener('click', nieuweSetlist);
 $('setlist-naam').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') nieuweSetlist(); });
@@ -9742,6 +9771,163 @@ $('jukebox-audio').addEventListener('ended', function () {
   if (JB.aan && !JB.bezig) jukeboxStartItem(JB.index + 1);
 });
 $('jukebox-audio').addEventListener('timeupdate', jukeboxTik);
+
+// ----------------------------------------------------------------- showplan ---
+// Hoe lang duurt het optreden? Van de liedjes van de gekozen setlist maakt de app een tijdlijn: per
+// liedje een geschatte speeltijd (aan te passen), een praatje ertussen, en hoe laat elk liedje
+// begint en klaar is. Het rekenwerk staat in lib/showplan.js; hier zit het scherm en het bewaren
+// (localStorage, per setlist — het plan hoort bij dit toestel).
+var SHOWPLAN_SLEUTEL = 'akkoordkast-showplan-';
+var SP = { rijen: [], open: false };
+
+function showplanLees(id) {
+  try { return JSON.parse(localStorage.getItem(SHOWPLAN_SLEUTEL + id) || 'null'); } catch (e) { return null; }
+}
+
+function showplanBewaar() {
+  if (!SP.open || !staat.setlist || !staat.setlist.id) return;
+  var gegevens = {
+    start: $('showplan-start').value || '20:00',
+    praatje: Number($('showplan-praatje').value) || 0,
+    slot: Number($('showplan-slot').value) || 0,
+    minuten: {}
+  };
+  Array.prototype.forEach.call($('showplan-inhoud').querySelectorAll('[data-showplan-duur]'), function (veld) {
+    var id = Number(veld.getAttribute('data-showplan-duur'));
+    var waarde = Number(String(veld.value).replace(',', '.'));
+    if (waarde > 0) gegevens.minuten[id] = Math.round(waarde * 60);
+  });
+  try { localStorage.setItem(SHOWPLAN_SLEUTEL + staat.setlist.id, JSON.stringify(gegevens)); } catch (e) {}
+}
+
+function laadShowplan() {
+  var id = staat.setlist && staat.setlist.id;
+  if (!id) { toonMelding('showplan-melding', 'Kies eerst een setlist.', 'fout'); return; }
+  toonMelding('showplan-melding', 'De tijden worden uitgerekend…', '');
+  api('/api/setlists/' + id).then(function (s) {
+    if (!s.liedjes.length) {
+      toonMelding('showplan-melding', 'Deze setlist is nog leeg. Zet er eerst liedjes in.', 'fout');
+      return;
+    }
+    var bewaard = showplanLees(id) || {};
+    return Promise.all(s.liedjes.map(function (l) { return api('/api/liedjes/' + l.id); })).then(function (details) {
+      SP.rijen = details.map(function (d) {
+        var geschat = showplanRekenen.schatSeconden(d.chordpro, d.tempo);
+        var uitBewaard = bewaard.minuten && bewaard.minuten[d.id];
+        return { id: d.id, titel: d.titel, geschat: geschat, seconden: uitBewaard || geschat };
+      });
+      SP.open = true;
+      $('showplan-instellingen').hidden = false;
+      $('showplan-print').hidden = false;
+      $('showplan-stand').hidden = false;
+      if (bewaard.start) $('showplan-start').value = bewaard.start;
+      if (bewaard.praatje !== undefined) $('showplan-praatje').value = bewaard.praatje;
+      if (bewaard.slot !== undefined) $('showplan-slot').value = bewaard.slot;
+      tekenShowplan();
+    });
+  }).catch(function (e) { toonMelding('showplan-melding', e.message, 'fout'); });
+}
+
+function tekenShowplan() {
+  var rek = showplanRekenen;
+  $('showplan-inhoud').innerHTML = SP.rijen.map(function (r, i) {
+    return '<div class="showplan-rij">' +
+      '<span class="nr">' + (i + 1) + '</span>' +
+      '<span class="wie"><b>' + esc(r.titel) + '</b></span>' +
+      '<span><input data-showplan-duur="' + r.id + '" type="number" min="0.5" max="20" step="0.05" ' +
+        'value="' + (Math.round(r.seconden / 3) / 20) + '" title="Speeltijd in minuten (geschat: ' +
+        rek.minuutSeconde(r.geschat) + ')"> min</span>' +
+      '<span class="showplan-tijd" data-showplan-tijd="' + r.id + '"></span>' +
+      '<span class="les-klein">geschat ' + rek.minuutSeconde(r.geschat) + '</span>' +
+    '</div>';
+  }).join('') +
+    '<div class="les-klein" style="margin-top:8px" id="showplan-totaal"></div>';
+  $('showplan-stand').textContent = SP.rijen.length + (SP.rijen.length === 1 ? ' liedje' : ' liedjes');
+  showplanHerreken();
+}
+
+function showplanHerreken() {
+  var rek = showplanRekenen;
+  var startSeconden = rek.klokNaarSeconden($('showplan-start').value);
+  if (startSeconden === null) {
+    toonMelding('showplan-melding', 'Vul een begintijd in als 20:00.', 'fout');
+    return;
+  }
+  Array.prototype.forEach.call($('showplan-inhoud').querySelectorAll('[data-showplan-duur]'), function (veld) {
+    var id = Number(veld.getAttribute('data-showplan-duur'));
+    var waarde = Number(String(veld.value).replace(',', '.'));
+    var rij = SP.rijen.filter(function (r) { return r.id === id; })[0];
+    if (rij && waarde > 0) rij.seconden = Math.round(waarde * 60);
+  });
+  var plan = rek.maakTijdlijn(SP.rijen, {
+    startSeconden: startSeconden,
+    praatjeSeconden: Math.max(0, Number($('showplan-praatje').value) || 0)
+  });
+  plan.rijen.forEach(function (r) {
+    var vak = $('showplan-inhoud').querySelector('[data-showplan-tijd="' + r.id + '"]');
+    if (vak) vak.textContent = rek.secondenNaarKlok(r.begintSeconden) + ' – ' + rek.secondenNaarKlok(r.klaarSeconden);
+  });
+  var totaalvak = $('showplan-totaal');
+  if (totaalvak) {
+    totaalvak.textContent = 'Speeltijd ' + rek.minuutSeconde(plan.gespeeldSeconden) +
+      ' · met de praatjes erbij ' + rek.minuutSeconde(plan.totaalSeconden) +
+      ' · klaar om ' + rek.secondenNaarKlok(plan.eindSeconden) + '.';
+  }
+  var slotMinuten = Number($('showplan-slot').value) || 0;
+  if (!slotMinuten) toonMelding('showplan-melding', '', '');
+  else if (plan.totaalSeconden > slotMinuten * 60) {
+    toonMelding('showplan-melding', 'Let op: dit plan duurt ' +
+      rek.minuutSeconde(plan.totaalSeconden - slotMinuten * 60) + ' langer dan de ' + slotMinuten +
+      ' minuten die je hebt.', 'fout');
+  } else {
+    toonMelding('showplan-melding', 'Dit plan past binnen de ' + slotMinuten + ' minuten (nog ' +
+      rek.minuutSeconde(slotMinuten * 60 - plan.totaalSeconden) + ' over).', 'goed');
+  }
+  showplanBewaar();
+}
+
+// De setlist als vel papier: het showplan om naast je neer te leggen.
+function printShowplan() {
+  if (!SP.open || !SP.rijen.length) { toonMelding('showplan-melding', 'Maak eerst een showplan.', 'fout'); return; }
+  var rek = showplanRekenen;
+  var startSeconden = rek.klokNaarSeconden($('showplan-start').value) || 0;
+  var plan = rek.maakTijdlijn(SP.rijen, {
+    startSeconden: startSeconden,
+    praatjeSeconden: Math.max(0, Number($('showplan-praatje').value) || 0)
+  });
+  var vandaag = new Date().toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
+  var naam = (staat.setlist && staat.setlist.naam) || 'setlist';
+  $('boek-inhoud').innerHTML =
+    '<div class="boek-titelblad">' +
+      '<h1>Showplan — ' + esc(naam) + '</h1>' +
+      '<div class="boek-onder">' + esc(vandaag) + ' · beginnen om ' + rek.secondenNaarKlok(startSeconden) +
+        ' · klaar om ' + rek.secondenNaarKlok(plan.eindSeconden) + '</div>' +
+    '</div>' +
+    '<table class="setlist-papier">' +
+      '<thead><tr><th>#</th><th>Liedje</th><th>Speeltijd</th><th>Begint</th><th>Klaar</th><th>Notities</th></tr></thead>' +
+      '<tbody>' + plan.rijen.map(function (r, i) {
+        return '<tr><td class="nr">' + (i + 1) + '</td>' +
+          '<td><b>' + esc(r.titel) + '</b></td>' +
+          '<td>' + rek.minuutSeconde(r.duur) + '</td>' +
+          '<td>' + rek.secondenNaarKlok(r.begintSeconden) + '</td>' +
+          '<td>' + rek.secondenNaarKlok(r.klaarSeconden) + '</td>' +
+          '<td class="ruimte"></td></tr>';
+      }).join('') + '</tbody>' +
+    '</table>';
+  $('boek-teller').textContent = 'Showplan ' + naam + ' · ' + plan.rijen.length + ' liedjes';
+  document.documentElement.classList.add('boek-zichtbaar');
+  $('printboek').classList.add('zichtbaar');
+  $('printboek').scrollIntoView({ block: 'start' });
+}
+
+$('showplan-maak').addEventListener('click', laadShowplan);
+$('showplan-print').addEventListener('click', printShowplan);
+$('showplan-inhoud').addEventListener('input', function (ev) {
+  if (ev.target && ev.target.hasAttribute && ev.target.hasAttribute('data-showplan-duur')) showplanHerreken();
+});
+['showplan-start', 'showplan-praatje', 'showplan-slot'].forEach(function (veld) {
+  $(veld).addEventListener('input', showplanHerreken);
+});
 
 // ---------------------------------------------------------------- laden ---
 var lerenGeladen = false;

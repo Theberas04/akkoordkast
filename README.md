@@ -69,6 +69,7 @@ de handleiding in de app zelf (knop **Handleiding openen**) · [installeren op P
 | ![nazingen](docs/img/akkoordkast-nazingen-nov-2026.png) | **Nazingen & naspelen** — de app speelt een kort motiefje voor en jij speelt of zingt het na; de microfoon vertelt per noot wat goed ging. |
 | ![opnemen met begeleiding](docs/img/akkoordkast-opnemen-begeleiding-klaar-nov-2026.png) | **Opnemen mét begeleiding** — neem jezelf op terwijl de begeleiding speelt: je stem en de begeleiding komen via de mengtafel samen in één opname op je toestel. |
 | ![jukebox](docs/img/akkoordkast-jukebox-nov-2026.png) | **Jukebox** — zet je favorieten of wat er nu in de lijst staat achter elkaar aan; de app maakt van elk liedje de begeleiding en speelt ze na elkaar, met vorige/volgende en een voortgangsbalk. |
+| ![showplan](docs/img/akkoordkast-showplan-nov-2026.png) | **Showplan met speeltijden** — zet de setlist op een tijdlijn: geschatte speeltijd per liedje (aan te passen), een praatje ertussen, hoe laat je begint en klaar bent — en of het in je tijd past. |
 | ![akkoordenboek](docs/img/akkoordenboek.png) | **Akkoordenboek** — van elk akkoord alle posities over de hals, met het vaknummer en een uitleg, en een knop om er een grepenkaart van te printen. |
 | ![wachter](docs/img/wachter.png) | **Automatisch bijhouden** — de app kijkt zelf in je muziekmap en naar nieuwe versies op GitHub, en schrijft op wat er gedaan is. |
 | ![beheer](docs/img/beheer.png) | **Beheer en bijwerken** — welke versie er draait, of er iets nieuws klaarstaat op GitHub, en in één klik bijwerken als deze machine daarop is ingericht. |
@@ -211,6 +212,9 @@ in plaats van wav. Geen npm-afhankelijkheden.
 - **Jukebox.** Zet een rij liedjes achter elkaar aan — je favorieten of wat er nu in de lijst staat —
   en de app speelt van elk de begeleiding, met vorige/volgende en een voortgangsbalk. Liedjes waar
   geen begeleiding van te maken is worden overgeslagen; de app zegt het erbij.
+- **Showplan met speeltijden.** Hoe lang duurt je optreden? De app schat per liedje de speeltijd,
+  telt de praatjes ertussen mee en laat de kloktijden zien — met een waarschuwing als het niet in je
+  tijd past, en een printvel om naast je neer te leggen.
 - **PWA.** Installeerbaar op je telefoon, met de app-schil in de cache maar liedjes, audio en
   cast-status altijd live.
 
@@ -1017,15 +1021,17 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 | Offline | `lib/offline.js` bepaalt welke adressen een klaargezette setlist (of het hele liedboek) nodig heeft (en hoe een vraag die nét anders is de bewaarde versie vindt); `public/sw.js` levert die voorraad uit als er geen verbinding is |
 | Oefensessie | `lib/sessie.js` kiest de blokken en de liedjes (opwarmen, herhalen, uitdaging, afsluiter) uit moeilijkheid, favorieten en de speelgeschiedenis |
 | Nazingen | `lib/motiefjes.js` bedenkt een kort motiefje in de gekozen toonsoort en beoordeelt wat de microfoon hoorde (per noot, met halve-toonspeling maar zonder dat een nieuwe poging een fout toedekt) |
+| Showplan | `lib/showplan.js` schat de speeltijd uit de tekst en het tempo, rekent de kloktijden met praatjes ertussen en waarschuwt als het optreden niet in de beschikbare tijd past |
 | Casten | `scripts/cast-helper.py` met pychromecast, door de server aangeroepen; de pagina praat nooit rechtstreeks met de Chromecast |
 
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 399 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+node --test test/*.test.js          # 404 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
                                     # setlists, de offline-setlist en het liedboek offline, de slimme
                                     # oefensessie, nazingen, opnemen met begeleiding, de jukebox,
-                                    # akkoordenboek, de wachter, de cloudkoppelingen en de deploy-scripts
+                                    # het showplan, akkoordenboek, de wachter, de cloudkoppelingen en
+                                    # de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL
 ```

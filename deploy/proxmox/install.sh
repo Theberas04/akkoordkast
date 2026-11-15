@@ -77,6 +77,7 @@ FILES=(
   "lib/offline.js"
   "lib/sessie.js"
   "lib/motiefjes.js"
+  "lib/showplan.js"
   "lib/voorstel.js"
   "lib/lessen-uitgebreid.js"
   "lib/overgangen.js"

@@ -5,13 +5,13 @@
 // alleen wat je zélf klaarzette, komt uit de voorraad (en wordt bij nieuwere data bijgewerkt).
 importScripts('/lib/offline.js');
 
-const CACHE = 'akkoordkast-v103';
+const CACHE = 'akkoordkast-v104';
 // Deze bestanden komen ALTIJD eerst van de server. Ze zijn klein, en zo zie je na een bijwerking meteen
 // de nieuwe versie in plaats van de oude uit de cache - dat kostte eerder een tweede keer laden, waardoor
 // een melding die al weg was toch bleef staan.
 const NETWERK_EERST = ['/', '/index.html', '/lib/offline.js', '/lib/sessie.js', '/lib/lessen-uitgebreid.js', '/lib/stemmen.js', '/lib/ritme.js',
-  '/lib/toonladders.js', '/lib/noten.js', '/lib/oefenplan.js', '/lib/motiefjes.js'];
-const SCHIL = ['/', '/index.html', '/favicon.svg', '/manifest.webmanifest', '/icon-192.png', '/lib/offline.js', '/lib/sessie.js', '/lib/lessen-uitgebreid.js', '/lib/stemmen.js', '/lib/ritme.js', '/lib/toonladders.js', '/lib/noten.js', '/lib/oefenplan.js', '/lib/motiefjes.js'];
+  '/lib/toonladders.js', '/lib/noten.js', '/lib/oefenplan.js', '/lib/motiefjes.js', '/lib/showplan.js'];
+const SCHIL = ['/', '/index.html', '/favicon.svg', '/manifest.webmanifest', '/icon-192.png', '/lib/offline.js', '/lib/sessie.js', '/lib/lessen-uitgebreid.js', '/lib/stemmen.js', '/lib/ritme.js', '/lib/toonladders.js', '/lib/noten.js', '/lib/oefenplan.js', '/lib/motiefjes.js', '/lib/showplan.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SCHIL)).then(() => self.skipWaiting()));

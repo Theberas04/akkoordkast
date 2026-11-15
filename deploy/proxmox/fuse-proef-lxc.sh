@@ -12,8 +12,8 @@
 #      de fusermount-hulpen (setuid-bit!), /dev/fuse en /etc/fuse.conf;
 #   3. als de setuid-bit op /usr/bin/fusermount3 ontbreekt: goedzetten (dat is de standaard
 #      van Debian; de fuse3-postinst zet hem normaal bij installatie);
-#   4. twee proefkoppelingen met rclone (:memory:, geen aanmelding nodig): als root en als
-#      de app-gebruiker (uid 999), met dezelfde opties als de app gebruikt;
+#   4. drie proefkoppelingen met rclone (:memory:, geen aanmelding nodig): als root, als de
+#      app-gebruiker (uid 999) en op de échte koppelmap van de app met de opties van de app;
 #   5. apparmor-weigeringen op de host (dmesg), plus de versies van PVE en de hulppakketten.
 #
 # Er wordt niets buiten deze container aangeraakt; de enige wijziging kan de setuid-bit zijn.
@@ -59,7 +59,7 @@ done
 [ "$profiel_gevonden" = "1" ] || zeg "   (geen profielbestand gevonden)"
 zeg
 
-# Het hulpscript voor in de container: vraagt de feiten op en doet de twee proefkoppelingen.
+# Het hulpscript voor in de container: vraagt de feiten op en doet de proefkoppelingen.
 # (Zo blijft elke regel van dit script heel voor de huisregel dat aanhalingstekens per regel
 # in paren komen; een open quote over meerdere regels mag niet.)
 BINNEN="$(mktemp)"
@@ -84,6 +84,30 @@ proef() {
   wait "$RP" 2>/dev/null || true
   true
 }
+proef_map() {
+  MP="$1"
+  LOG=/tmp/fuseproef-app.log
+  rm -f "$LOG"
+  if mountpoint -q "$MP"; then
+    echo "     (er staat nog een oude koppeling; eerst opruimen)"
+    fusermount3 -u "$MP" 2>/dev/null || umount "$MP" 2>/dev/null || true
+    sleep 1
+  fi
+  mkdir -p "$MP" 2>/dev/null || true
+  rclone mount :memory: "$MP" --vfs-cache-mode writes --umask 002 --allow-other --dir-cache-time 1m --poll-interval 15s >"$LOG" 2>&1 &
+  RP=$!
+  sleep 3
+  if mountpoint -q "$MP"; then
+    echo "     WERKT (op de echte map, met de opties van de app)"
+    fusermount3 -u "$MP" 2>/dev/null || umount "$MP" 2>/dev/null || true
+  else
+    echo "     MISLUKT (op de echte map):"
+    tail -5 "$LOG" 2>/dev/null | sed 's/^/       /'
+  fi
+  kill "$RP" 2>/dev/null || true
+  wait "$RP" 2>/dev/null || true
+  true
+}
 case "${1:-}" in
   feiten)
     printf "   draait onder profiel: %s\n" "$(cat /proc/1/attr/current 2>/dev/null)"
@@ -93,6 +117,13 @@ case "${1:-}" in
     printf "   fusermount3:          %s\n" "$(command -v fusermount3 || echo ONTBREEKT)"
     ls -l /usr/bin/fusermount3 /usr/bin/fusermount /usr/local/bin/fusermount3 /usr/local/bin/fusermount 2>&1 | grep -v "No such" | sed "s/^/     /"
     printf "   fusermount3-versie:   %s\n" "$(fusermount3 --version 2>&1 | head -1)"
+    printf "   rclone:               %s\n" "$(command -v rclone || echo ONTBREEKT)"
+    ls -l /usr/bin/rclone /usr/local/bin/rclone /bin/rclone 2>&1 | grep -v "No such" | sed "s/^/     /"
+    printf "   rclone-versie:        %s\n" "$(rclone version 2>/dev/null | head -1)"
+    H99="$(getent passwd 999 | cut -d: -f6)"
+    printf "   app-thuismap:         %s\n" "$H99"
+    ls -ld "$H99" "$H99/muziek" "$H99/muziek-2" "$H99/.config/rclone" 2>&1 | sed "s/^/     /"
+    printf "   al gemount op koppelmap: %s\n" "$(grep -c " $H99/muziek " /proc/mounts 2>/dev/null || echo 0)"
     printf "   /dev/fuse:            %s\n" "$(ls -ld /dev/fuse 2>&1)"
     printf "   /etc/fuse.conf:       %s\n" "$(ls -l /etc/fuse.conf 2>&1)"
     printf "   fuse3-pakket:         %s\n" "$(dpkg-query -W -f='${Status} ${Version}' fuse3 2>/dev/null || echo "niet gevonden")"
@@ -112,6 +143,20 @@ case "${1:-}" in
     ;;
   gebruiker2)
     proef /tmp/fuseproef-gebruiker
+    ;;
+  app)
+    U="$(getent passwd 999 | cut -d: -f1)"
+    H99="$(getent passwd 999 | cut -d: -f6)"
+    if [ -z "$U" ]; then
+      echo "   geen gebruiker met uid 999 in deze container"
+      exit 0
+    fi
+    echo "   op de echte koppelmap van de app ($H99/muziek):"
+    su -s /bin/bash "$U" -c "cd $H99 && /tmp/akkoordkast-fuse-proef.sh app2" 2>&1 || true
+    ;;
+  app2)
+    H99="$(getent passwd "$(id -u)" | cut -d: -f6)"
+    proef_map "$H99/muziek"
     ;;
 esac
 BINNENEOF
@@ -145,6 +190,7 @@ if [ "$gepusht" = "1" ]; then
   zeg "-- 5/6 proefkoppelingen (rclone :memory:, opties gelijk aan de app)"
   pct exec "$CTID" -- bash "$BINNEN_CONTAINER" root || true
   pct exec "$CTID" -- bash "$BINNEN_CONTAINER" gebruiker || true
+  pct exec "$CTID" -- bash "$BINNEN_CONTAINER" app || true
   pct exec "$CTID" -- rm -f "$BINNEN_CONTAINER" >/dev/null 2>&1 || true
   zeg
 else

@@ -6,6 +6,18 @@
 <title>AkkoordKast · gitaarsongbook met capo-advies</title>
 <meta name="description" content="Bladmuziek, akkoorden, capo-advies, grepen en audio voor gitaar — met Chromecast.">
 <meta name="theme-color" content="#0f172a">
+<script>
+// Zo vroeg mogelijk — vóór de eerste tekening — anders zie je bij de lichte weergave eerst een
+// donkere flits. Donker is de standaard; 'auto' volgt het toestel.
+(function () {
+  try {
+    var v = localStorage.getItem('akkoordkast-weergave');
+    var licht = v === 'licht' ||
+      (v === 'auto' && !(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches));
+    if (licht) document.documentElement.classList.add('licht');
+  } catch (e) {}
+})();
+</script>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -906,6 +918,105 @@
     body::before{display:none}
     .kaart{background:#fff!important;border-color:#ddd;box-shadow:none}
   }
+  /* ==================== lichte weergave ====================
+     De app is van huis uit donker: rustig 's avonds en op een podium. Maar buiten in de zon is een
+     licht scherm veel beter leesbaar. Deze regels zetten alles om zodra <html> de klasse 'licht'
+     heeft; zonder die klasse verandert er niets. De pauze- en podiumdelen blijven expres donker —
+     die horen bij het optreden zo. De printbladen (liedjesboek, setlist, showplan) zijn van papier
+     en blijven altijd licht. */
+  html.licht{
+    --bg:#eef2f9; --bg2:#e5ebf6; --pane:#ffffff; --pane2:#f4f7fc; --pane3:#e8eef7;
+    --tekst:#111c30; --tekst2:#4d5d7a; --tekst3:#71809c;
+    --lijn:#d7dfec; --lijn-zacht:rgba(17,28,48,.07);
+    --amber:#b45309; --amber2:#d97706; --gitaar:#a16207;
+    --groen:#0e9f6e; --rood:#dc2626; --blauw:#2563eb;
+    --schaduw-1:0 1px 2px rgba(17,28,48,.07);
+    --schaduw-2:0 14px 30px -20px rgba(17,28,48,.28);
+    --schaduw-3:0 26px 60px -30px rgba(17,28,48,.35);
+    --ring:0 0 0 3px rgba(180,83,9,.22);
+  }
+  html.licht body::before{background:
+    radial-gradient(1200px 560px at 8% -10%, #dbe7fb 0%, rgba(219,231,251,0) 62%),
+    radial-gradient(1000px 520px at 96% 2%, #f3e6f7 0%, rgba(243,230,247,0) 58%);}
+  html.licht header{background:rgba(255,255,255,.92);border-bottom-color:var(--lijn);box-shadow:0 8px 24px -22px rgba(17,28,48,.45)}
+  html.licht nav button{background:rgba(255,255,255,.88)}
+  html.licht nav button:hover{border-color:#b9c7dd;background:#f4f7fc}
+  html.licht nav button.actief{color:#3a2606;border-color:#e8a33d;box-shadow:0 10px 24px -16px rgba(217,119,6,.65)}
+  html.licht .kaart{background:linear-gradient(180deg,#ffffff,#f6f9fd)}
+  html.licht .lied{background:linear-gradient(180deg,#ffffff,#f6f9fd)}
+  html.licht .lied:hover{border-color:#b9c7dd}
+  html.licht .kaart h3{color:#71809c}
+  html.licht .pilletje{background:rgba(17,28,48,.06)}
+  html.licht input:not([type=range]),html.licht select,html.licht textarea{background-color:#fff;border-color:#c9d4e4;color:var(--tekst)}
+  html.licht input:not([type=range]):hover,html.licht select:hover,html.licht textarea:hover{border-color:#a7b6cd}
+  html.licht input:not([type=range]):focus,html.licht select:focus,html.licht textarea:focus{background-color:#fff}
+  html.licht input::placeholder,html.licht textarea::placeholder{color:#8b99b3}
+  /* De keuzelijsten hebben een pijltje dat als twee kleine gradient-driehoekjes is getekend. In de
+     lichte weergave hoort daar dezelfde maat en plek bij te staan als in de donkere; alleen de
+     kleur verschilt. (Alleen de kleur overschrijven liet de driehoek over het hele vlak uitrekken.) */
+  html.licht select{background-image:linear-gradient(45deg,transparent 50%,#5b6b88 50%),linear-gradient(135deg,#5b6b88 50%,transparent 50%);background-position:calc(100% - 19px) calc(50% + 1px),calc(100% - 14px) calc(50% + 1px);background-size:5px 5px;background-repeat:no-repeat}
+  html.licht .knop.zacht{background:#fff;border-color:#c9d4e4}
+  html.licht .knop.zacht:hover{border-color:#a7b6cd;background:#f4f7fc}
+  html.licht .melding{background:#f1f5fa;border-color:var(--lijn);border-left-color:#7c96c4;color:#44546e}
+  html.licht .melding.goed{background:#e9f8f0;color:#146c43}
+  html.licht .melding.fout{background:#fdecec;color:#9f1d1d}
+  html.licht .advies{background:#fdf5e4;border-color:#e6c98a}
+  html.licht .advies.clean{background:#eaf8f1;border-color:#9ed7bd}
+  html.licht .chip{background:rgba(17,28,48,.04)}
+  html.licht .chip.capo{background:rgba(180,83,9,.09);border-color:rgba(180,83,9,.32)}
+  html.licht .chip.eigen{background:rgba(37,99,235,.09);border-color:rgba(37,99,235,.3)}
+  html.licht .chip.label{background:#e4efff;border-color:#a8c8f2;color:#1d4f8c}
+  html.licht .capo-rij button{background:#fff;border-color:#c9d4e4}
+  html.licht .scan-regel.klaar,html.licht .overgang-regel.klaar,html.licht .plan-week.klaar,html.licht .greep-kaart.klaar{border-color:#2e9e64}
+  html.licht .scan-regel.fout,html.licht .map-regel.fout{border-color:#d98d8d}
+  html.licht .week-staaf span{background:#16a34a}
+  html.licht .pilletje.goed{background:#e6f7ee;border-color:#a5dfc0;color:#146c43}
+  html.licht .staaf{background:rgba(17,28,48,.08)}
+  html.licht .cursus-deel > summary:hover{background:#f1f5fb}
+  html.licht .spotify-speler iframe{background:#f1f5f9}
+  html.licht .greep-kaart:hover{border-color:#a7b6cd}
+  /* De grepenkaartjes en de grepen-tegels in het liedblad hadden een donkere ondergrond; in de
+     lichte weergave horen die wit te zijn, want de lijnen erop zijn nu donker. */
+  html.licht .grepen figure{background:#fff}
+  html.licht .greep-kaart{background:#fbfcfe}
+  html.licht .gehoor-knop.fout{border-color:#dc2626;color:#dc2626}
+  html.licht .stem-meter,html.licht .rt-meter{background:linear-gradient(90deg,#e5b9b9 0%,#e6d9ae 32%,#b7e2cb 50%,#e6d9ae 68%,#e5b9b9 100%)}
+  html.licht .stem-meter .stem-midden{background:rgba(17,28,48,.35)}
+  html.licht .rt-lijst .stip.vroeg{background:#d19a1f;border-color:#d19a1f}
+  html.licht .rt-lijst .stip.laat{background:#cf6b58;border-color:#cf6b58}
+  html.licht *{scrollbar-color:#c3cfe0 transparent}
+  html.licht *::-webkit-scrollbar-thumb{background:#c3cfe0}
+  html.licht *::-webkit-scrollbar-thumb:hover{background:#a9b8d0}
+  /* notenbalk, hals en tabs: de lijnen en noten waren getekend voor een donkere kaart; in de
+     lichte weergave draaien ze om. */
+  html.licht .nb-lijn,html.licht .nb-ledger{stroke:#c3cfe0}
+  html.licht .nb-maat,html.licht .nb-tik{stroke:#94a3b8}
+  html.licht .nb-maatnummer,html.licht .nb-slag,html.licht .nb-naam{fill:#66748f}
+  html.licht .nb-noot{fill:#334155}
+  html.licht .nb-cursor{stroke:#dc2626}
+  html.licht .tabmaat{border-right-color:#cbd5e1}
+  html.licht .tabsnaar .snaam{color:#66748f}
+  html.licht .tabcel{color:#8b99b3}
+  html.licht .tabcel.noot{color:#1e293b}
+  html.licht .tabcel.niet{color:#dc2626}
+  html.licht .hs-fret{stroke:#c3cfe0}
+  html.licht .hs-stip{fill:#a7b6cd}
+  html.licht .mees-noot{color:#1e293b}
+  html.licht .mees-noten{color:#66748f}
+  html.licht .mees-noten b{color:#0f172a}
+  html.licht .greep-positie,html.licht .greep-geen{fill:#556480}
+  html.licht .greep-geen-klein{fill:#66748f}
+  html.licht .greep-mute{fill:#dc2626}
+  html.licht .greep-capo{fill:#b45309}
+  html.licht .ln-fret{stroke:#94a3b8}
+  html.licht .ln-kam{stroke:#556480}
+  html.licht .ln-vak{fill:#66748f}
+  /* de grependiagrammen komen als svg met vaste kleuren uit de server; deze drie tinten
+     (snaren, fretten, topkam) horen mee te draaien. */
+  html.licht [stroke="#cbd5e1"]{stroke:#7c8ba6}
+  html.licht [stroke="#94a3b8"]{stroke:#556480}
+  html.licht [stroke="#e2e8f0"]{stroke:#334155}
+  html.licht [fill="#e2e8f0"]{fill:#334155}
 </style>
 </head>
 <body>
@@ -925,6 +1036,7 @@
       <label for="profiel-kies">Profiel</label>
       <select id="profiel-kies" title="Wiens favorieten en oefencijfers wil je zien?"></select>
       <button class="knop zacht" id="profiel-nieuw" title="Een profiel erbij maken">+</button>
+      <button class="knop zacht" id="weergave-knop" title="Weergave: donker — klik voor licht" aria-label="Weergave wisselen"><span id="weergave-icoon" aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px">◐</span></button>
     </span>
   </div>
 </header>
@@ -9937,6 +10049,62 @@ $('showplan-inhoud').addEventListener('input', function (ev) {
 ['showplan-start', 'showplan-praatje', 'showplan-slot'].forEach(function (veld) {
   $(veld).addEventListener('input', showplanHerreken);
 });
+
+// -------------------------------------------------------------- weergave ---
+// Donker (standaard), licht of automatisch (zoals je toestel). Een keuze per toestel
+// (localStorage). Het echte omzetten gebeurt al heel vroeg in de <head>, anders zie je bij de
+// lichte weergave eerst een donkere flits; hier zit de knop in de kop en het onthouden van de keuze.
+var WEERGAVE_SLEUTEL = 'akkoordkast-weergave';
+var WEERGAVE_ORDE = ['donker', 'licht', 'auto'];
+var WEERGAVE_NAMEN = { donker: 'donker', licht: 'licht', auto: 'automatisch' };
+var WEERGAVE_ICONEN = {
+  donker: "<svg viewBox='0 0 24 24' width='16' height='16' fill='none' stroke='currentColor' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M20.6 14.2A8.2 8.2 0 0 1 9.8 3.4a8.2 8.2 0 1 0 10.8 10.8z'/></svg>",
+  licht: "<svg viewBox='0 0 24 24' width='16' height='16' fill='none' stroke='currentColor' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='4.2'/><path d='M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7'/></svg>",
+  auto: "<svg viewBox='0 0 24 24' width='16' height='16' fill='none' stroke='currentColor' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='8.2'/><path d='M12 3.8a8.2 8.2 0 0 1 0 16.4z' fill='currentColor' stroke='none'/></svg>"
+};
+
+function systeemDonker() {
+  return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+}
+
+function weergaveVoorkeur() {
+  try {
+    var v = localStorage.getItem(WEERGAVE_SLEUTEL);
+    return WEERGAVE_ORDE.indexOf(v) >= 0 ? v : 'donker';
+  } catch (e) { return 'donker'; }
+}
+
+function weergaveZet(keuze, bewaar) {
+  var donker = keuze === 'donker' || (keuze === 'auto' && systeemDonker());
+  document.documentElement.classList.toggle('licht', !donker);
+  var meta = document.querySelector('meta[name=theme-color]');
+  if (meta) meta.setAttribute('content', donker ? '#0f172a' : '#eef2f9');
+  if (bewaar) { try { localStorage.setItem(WEERGAVE_SLEUTEL, keuze); } catch (e) {} }
+  var knop = $('weergave-knop');
+  if (knop) {
+    var i = WEERGAVE_ORDE.indexOf(keuze);
+    var volgende = WEERGAVE_NAMEN[WEERGAVE_ORDE[(i + 1) % WEERGAVE_ORDE.length]];
+    knop.title = 'Weergave: ' + WEERGAVE_NAMEN[keuze] + ' — klik voor ' + volgende;
+    $('weergave-icoon').innerHTML = WEERGAVE_ICONEN[keuze];
+  }
+}
+
+function weergaveStart() {
+  weergaveZet(weergaveVoorkeur(), false);
+  // Staat de weergave op 'automatisch', dan hoort hij mee te veranderen zodra het toestel
+  // overschakelt (bijvoorbeeld 's avonds).
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').addEventListener) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+      if (weergaveVoorkeur() === 'auto') weergaveZet('auto', false);
+    });
+  }
+}
+
+$('weergave-knop').addEventListener('click', function () {
+  var i = WEERGAVE_ORDE.indexOf(weergaveVoorkeur());
+  weergaveZet(WEERGAVE_ORDE[(i + 1) % WEERGAVE_ORDE.length], true);
+});
+weergaveStart();
 
 // ---------------------------------------------------------------- weetje ---
 // Weetje van de dag: elke dag een ander weetje over gitaar, muziek en liedjes. De dag bepaalt welk

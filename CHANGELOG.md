@@ -3,6 +3,20 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.67.0] — 15 november 2026
+
+### Lichte of donkere weergave
+
+- De app is van huis uit donker; in de kop staat nu een knop die door drie standen schakelt:
+  **donker** (standaard), **licht** en **automatisch** (zoals je toestel). Handig buiten in de zon:
+  een licht scherm is dan veel beter leesbaar.
+- De keuze hoort bij dit toestel en blijft bewaard; in de stand automatisch verandert de app mee
+  zodra je toestel overschakelt. Om een flits te voorkomen wordt de keuze al vóór de eerste tekening
+  gelezen.
+- De lichte weergave raakt alles: kaarten, lijsten, formulieren, de notenbalk, tabulatuur én de
+  grependiagrammen. De pauze- en podiumdelen blijven bewust donker, en de printbladen blijven van
+  papier.
+
 ## [1.66.0] — 15 november 2026
 
 ### Weetje van de dag

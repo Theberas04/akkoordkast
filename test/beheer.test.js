@@ -197,7 +197,9 @@ test('het beheerdersprofiel zit achter een wachtwoordkaartje in de pagina', () =
   // Het kaartje moet vóór het script staan dat de knoppen koppelt; anders bestaat het nog niet als
   // de pagina het script uitvoert en valt de hele app om.
   const kaart = html.indexOf('id="profiel-slot"');
-  const script = html.indexOf('<script>\n');
+  // Het grote app-script begint met 'use strict'; het kleine weergave-script in de head telt hier
+  // niet mee (dat staat bewust vóór alles in de head).
+  const script = html.indexOf("<script>\n'use strict';");
   assert.ok(kaart > 0 && script > 0 && kaart < script, 'het kaartje hoort vóór het grote script te staan');
 });
 

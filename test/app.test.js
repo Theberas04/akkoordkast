@@ -55,7 +55,9 @@ test('healthz antwoordt ok met de app-marker', async () => {
 test('elk inline scriptblok compileert en elk scriptbestand bestaat', async () => {
   const html = await haal(omgeving.basis, '/');
   const blokken = html.data.match(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g) || [];
-  assert.equal(blokken.length, 1, 'de pagina hoort één inline scriptblok te hebben');
+  // Twee blokken: het kleine vroege weergave-script in de head (dat vóór de eerste tekening de
+  // lichte weergave aanzet) en het grote app-script onderaan. Beide horen te compileren.
+  assert.equal(blokken.length, 2, 'de pagina hoort twee inline scriptblokken te hebben');
   for (const blok of blokken) {
     const inhoud = blok.replace(/^<script[^>]*>/, '').replace(/<\/script>$/, '');
     new vm.Script(inhoud); // gooit bij een syntaxfout

@@ -71,6 +71,7 @@ de handleiding in de app zelf (knop **Handleiding openen**) · [installeren op P
 | ![jukebox](docs/img/akkoordkast-jukebox-nov-2026.png) | **Jukebox** — zet je favorieten of wat er nu in de lijst staat achter elkaar aan; de app maakt van elk liedje de begeleiding en speelt ze na elkaar, met vorige/volgende en een voortgangsbalk. |
 | ![showplan](docs/img/akkoordkast-showplan-nov-2026.png) | **Showplan met speeltijden** — zet de setlist op een tijdlijn: geschatte speeltijd per liedje (aan te passen), een praatje ertussen, hoe laat je begint en klaar bent — en of het in je tijd past. |
 | ![weetje](docs/img/akkoordkast-weetje-van-de-dag-nov-2026.png) | **Weetje van de dag** — elke dag een ander weetje over gitaar, muziek en liedjes, met een knop om door te schuiven; het werkt zonder internet. |
+| ![lichte weergave](docs/img/akkoordkast-lichte-weergave-liedjes-nov-2026.png) | **Lichte of donkere weergave** — de app is donker; voor buiten in de zon is er een lichte weergave, of laat hem je toestel volgen. De knop staat in de kop. |
 | ![akkoordenboek](docs/img/akkoordenboek.png) | **Akkoordenboek** — van elk akkoord alle posities over de hals, met het vaknummer en een uitleg, en een knop om er een grepenkaart van te printen. |
 | ![wachter](docs/img/wachter.png) | **Automatisch bijhouden** — de app kijkt zelf in je muziekmap en naar nieuwe versies op GitHub, en schrijft op wat er gedaan is. |
 | ![beheer](docs/img/beheer.png) | **Beheer en bijwerken** — welke versie er draait, of er iets nieuws klaarstaat op GitHub, en in één klik bijwerken als deze machine daarop is ingericht. |
@@ -219,6 +220,9 @@ in plaats van wav. Geen npm-afhankelijkheden.
 - **Weetje van de dag.** Elke dag een ander weetje over gitaar, muziek en liedjes, bovenaan het
   tabblad Leren — met **Nog een weetje** om door te schuiven. Dezelfde dag geeft hetzelfde weetje, en
   het werkt zonder internet.
+- **Lichte of donkere weergave.** De app is donker; met de knop in de kop zet je hem op **licht**
+  (fijn buiten in de zon) of op **automatisch**, zodat hij je toestel volgt. De keuze blijft per
+  toestel bewaard.
 - **PWA.** Installeerbaar op je telefoon, met de app-schil in de cache maar liedjes, audio en
   cast-status altijd live.
 
@@ -1032,11 +1036,11 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 407 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+node --test test/*.test.js          # 410 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
                                     # setlists, de offline-setlist en het liedboek offline, de slimme
                                     # oefensessie, nazingen, opnemen met begeleiding, de jukebox,
-                                    # het showplan, het weetje van de dag, akkoordenboek, de wachter,
-                                    # de cloudkoppelingen en de deploy-scripts
+                                    # het showplan, het weetje van de dag, de weergavekeuze,
+                                    # akkoordenboek, de wachter, de cloudkoppelingen en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL
 ```

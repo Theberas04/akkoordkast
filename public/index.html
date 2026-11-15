@@ -924,6 +924,14 @@
   .verzoek-regel .verzoek-titel{font-weight:700}
   .verzoek-regel .verzoek-van{color:var(--tekst2);font-size:.78rem}
   .verzoek-regel .verzoek-bericht{margin:6px 0 0;font-size:.85rem;color:var(--tekst2)}
+
+  /* De verzoeknummers-tool: zoeken en met één tik vragen. */
+  .vt-lijst{max-height:44vh;overflow:auto;margin-top:8px;border:1px solid var(--lijn);border-radius:var(--r-klein);background:var(--pane2)}
+  .vt-regel{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 11px;border-bottom:1px solid var(--lijn)}
+  .vt-regel:last-child{border-bottom:0}
+  .vt-regel .vt-titel{font-weight:600}
+  .vt-regel .vt-artiest{display:block;font-weight:400;color:var(--tekst2);font-size:.78rem}
+  #vt-zoek{width:100%;margin-top:8px}
   /* ==================== lichte weergave ====================
      De app is van huis uit donker: rustig 's avonds en op een podium. Maar buiten in de zon is een
      licht scherm veel beter leesbaar. Deze regels zetten alles om zodra <html> de klasse 'licht'
@@ -1098,6 +1106,7 @@
         <button class="knop zacht" id="filter-wis">Filters wissen</button>
         <button class="knop zacht" id="verras-knop" title="Een willekeurig liedje uit wat je nu gekozen hebt">Verras me</button>
         <button class="knop zacht" id="boek-printen" title="Alle liedjes van deze selectie als één document">Boek maken</button>
+        <button class="knop zacht" id="verzoek-tool-knop" title="Zoek liedjes en vraag ze met één tik aan bij de beheerder">Verzoeknummers</button>
         <span class="pilletje" id="lijst-teller">…</span>
       </div>
       <div class="melding" id="lijst-melding" hidden></div>
@@ -1673,8 +1682,9 @@
     <div class="kaart" id="verzoek-kaart">
       <h2>Verzoekjes <span class="pilletje" id="verzoek-teller" hidden></span></h2>
       <p class="meta">Liedjes waar iemand om vroeg — uit een ander profiel, of van iemand die even
-        meekeek. Iemand vraagt er eentje aan met de knop <strong>Verzoek</strong> bij het liedje;
-        hier zie je ze staan en vink je ze af als ze gedaan zijn.</p>
+        meekeek. Iemand vraagt er eentje aan met de knop <strong>Verzoek</strong> bij het liedje of
+        via <strong>Verzoeknummers</strong> in het tabblad Liedjes; hier zie je ze staan en vink je
+        ze af als ze gedaan zijn.</p>
       <div class="rij" style="margin:8px 0">
         <button class="knop zacht" id="verzoek-ververs" title="Opnieuw kijken of er nieuwe verzoekjes zijn">Verversen</button>
       </div>
@@ -2206,6 +2216,19 @@
   </div>
   <div id="boek-inhoud"></div>
 </section>
+
+<!-- De verzoeknummers-tool: zoeken in het liedboek en met één tik vragen, zonder het liedje te
+     openen. Meerdere na elkaar mag; de beheerder ziet ze bij de verzoekjes. -->
+<div id="verzoek-tool" class="slot" role="dialog" aria-modal="true" aria-labelledby="vt-kop">
+  <div class="slot-kaart" style="max-width:560px">
+    <h3 id="vt-kop">Verzoeknummers</h3>
+    <p class="meta">Zoek een liedje en tik het aan: het verzoekje komt bij de beheerder te staan. Je kunt er zo meerdere na elkaar vragen.</p>
+    <input id="vt-zoek" type="search" placeholder="Zoek op titel of artiest…" autocomplete="off">
+    <div class="melding" id="vt-melding" hidden></div>
+    <div class="vt-lijst" id="vt-lijst"></div>
+    <div class="rij" style="justify-content:flex-end"><button class="knop zacht" id="vt-sluiten">Sluiten</button></div>
+  </div>
+</div>
 
 <div id="profiel-slot" class="slot" role="dialog" aria-modal="true" aria-labelledby="slot-kop">
   <div class="slot-kaart">
@@ -9942,7 +9965,7 @@ function tekenVerzoeken(lijst) {
     teller.textContent = open.length === 1 ? '1 open' : open.length + ' open';
   }
   if (!lijst.length) {
-    houder.innerHTML = '<div class="meta">Er zijn nog geen verzoekjes. Iemand vraagt er eentje aan met de knop <strong>Verzoek</strong> bij een liedje.</div>';
+    houder.innerHTML = '<div class="meta">Er zijn nog geen verzoekjes. Iemand vraagt er eentje aan met de knop <strong>Verzoek</strong> bij een liedje, of via <strong>Verzoeknummers</strong> in het tabblad Liedjes.</div>';
     return;
   }
   houder.innerHTML = lijst.map(function (v) {
@@ -9977,7 +10000,8 @@ function laadVerzoeken(stil) {
   });
 }
 
-function verzoekVersturen(liedjeId, knop) {
+function verzoekVersturen(liedjeId, knop, opties) {
+  opties = opties || {};
   fetch('/api/verzoek', {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' },
@@ -9988,13 +10012,17 @@ function verzoekVersturen(liedjeId, knop) {
       return d;
     });
   }).then(function () {
-    toonMelding('speler-melding', 'Je verzoekje staat bij de beheerder — die ziet het vanzelf bij de verzoekjes.', 'goed');
+    toonMelding(opties.meldingId || 'speler-melding',
+      opties.tekst || 'Je verzoekje staat bij de beheerder — die ziet het vanzelf bij de verzoekjes.', 'goed');
     if (knop) {
       knop.textContent = 'Verzocht \u2713';
       knop.disabled = true;
-      setTimeout(function () { knop.textContent = 'Verzoek'; knop.disabled = false; }, 4000);
+      // In de verzoeknummers-tool blijft "Verzocht" staan (je doet er daar vaak meer); bij het
+      // liedje zelf springt de knop na vier seconden terug.
+      if (!opties.blijvend) setTimeout(function () { knop.textContent = 'Verzoek'; knop.disabled = false; }, 4000);
     }
-  }).catch(function (e) { toonMelding('speler-melding', e.message, 'fout'); });
+    if (typeof opties.klaar === 'function') opties.klaar();
+  }).catch(function (e) { toonMelding(opties.meldingId || 'speler-melding', e.message, 'fout'); });
 }
 
 function verzoekAfvinken(id, actie) {
@@ -10027,6 +10055,82 @@ $('verzoek-lijst').addEventListener('click', function (e) {
 });
 $('verzoek-ververs').addEventListener('click', function () { laadVerzoeken(); });
 laadVerzoeken(true);
+
+// De verzoeknummers-tool: een eigen scherm om in het liedboek te zoeken en met één tik te vragen —
+// zonder het liedje te openen, en gerust meerdere na elkaar (op een feestje bijvoorbeeld). Hij
+// herkent je al openstaande verzoekjes, zodat je ze niet dubbel doet.
+var VT = { open: [], laatste: [], zoekTimer: null };
+function vtOpen() {
+  var vak = $('verzoek-tool');
+  if (!vak) return;
+  vak.classList.add('aan');
+  $('vt-zoek').value = '';
+  toonMelding('vt-melding', '');
+  vtLaadOpen();
+  vtZoek('');
+  setTimeout(function () { var z = $('vt-zoek'); if (z) z.focus(); }, 60);
+}
+function vtSluit() {
+  var vak = $('verzoek-tool');
+  if (vak) vak.classList.remove('aan');
+}
+function vtLaadOpen() {
+  laadVerzoeken(true).then(function (d) {
+    if (!d) return;
+    VT.open = (d.verzoeken || []).filter(function (v) {
+      return !v.gedaan && v.profiel === actiefProfiel();
+    }).map(function (v) { return v.liedje; });
+    tekenVtLijst();
+  });
+}
+function tekenVtLijst() {
+  var houder = $('vt-lijst');
+  if (!houder) return;
+  var lijst = VT.laatste || [];
+  if (!lijst.length) {
+    houder.innerHTML = '<div class="meta" style="padding:10px 11px">Geen liedjes gevonden. Probeer een andere zoekterm.</div>';
+    return;
+  }
+  houder.innerHTML = lijst.map(function (l) {
+    var al = VT.open.indexOf(l.id) !== -1;
+    return '<div class="vt-regel">' +
+      '<span class="vt-titel">' + esc(l.titel) + '<span class="vt-artiest">' + esc(l.artiest || 'onbekend') + '</span></span>' +
+      '<button class="knop ' + (al ? 'zacht' : 'goed') + '" data-vt-liedje="' + l.id + '"' + (al ? ' disabled' : '') + '>' +
+        (al ? 'Verzocht \u2713' : 'Verzoek') + '</button>' +
+    '</div>';
+  }).join('');
+}
+function vtZoek(tekst) {
+  tekst = String(tekst || '').trim();
+  api('/api/liedjes?compact=1&aantal=30' + (tekst ? '&zoek=' + encodeURIComponent(tekst) : '')).then(function (d) {
+    VT.laatste = d.liedjes || [];
+    tekenVtLijst();
+  }).catch(function (e) { toonMelding('vt-melding', e.message, 'fout'); });
+}
+$('verzoek-tool-knop').addEventListener('click', vtOpen);
+$('vt-sluiten').addEventListener('click', vtSluit);
+$('verzoek-tool').addEventListener('click', function (e) { if (e.target === this) vtSluit(); });
+$('vt-zoek').addEventListener('input', function () {
+  var tekst = this.value;
+  clearTimeout(VT.zoekTimer);
+  VT.zoekTimer = setTimeout(function () { vtZoek(tekst); }, 250);
+});
+$('vt-lijst').addEventListener('click', function (e) {
+  var knop = e.target.closest ? e.target.closest('button[data-vt-liedje]') : null;
+  if (!knop || knop.disabled) return;
+  var id = Number(knop.getAttribute('data-vt-liedje') || 0);
+  if (!id) return;
+  var l = (VT.laatste || []).filter(function (x) { return x.id === id; })[0] || { titel: '' };
+  verzoekVersturen(id, knop, {
+    meldingId: 'vt-melding',
+    blijvend: true,
+    tekst: '\u201c' + (l.titel || 'Dat liedje') + '\u201d staat bij de beheerder \u2014 je kunt er zo n\u00f3g een vragen.',
+    klaar: function () { if (VT.open.indexOf(id) === -1) VT.open.push(id); }
+  });
+});
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && $('verzoek-tool').classList.contains('aan')) vtSluit();
+});
 
 // ----------------------------------------------------------------- showplan ---
 // Hoe lang duurt het optreden? Van de liedjes van de gekozen setlist maakt de app een tijdlijn: per

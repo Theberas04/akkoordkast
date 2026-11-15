@@ -3,6 +3,18 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.69.0] — 15 november 2026
+
+### Verzoeknummers: een eigen scherm om te vragen
+
+- In het tabblad **Liedjes** staat nu de knop **Verzoeknummers**: een eigen scherm waarin je zoekt
+  en met één tik een verzoekje doet — zonder eerst het liedje te openen. Je kunt er zo meerdere na
+  elkaar vragen (op een feestje bijvoorbeeld).
+- De tool onthoudt je al openstaande verzoekjes: die staan er meteen als *Verzocht ✓* — ook als je
+  het scherm sluit en opnieuw opent. In de tool blijft *Verzocht* staan; bij het liedje zelf springt
+  de knop na vier seconden zoals altijd terug.
+- De beheerder ziet alles bij elkaar in de kaart **Verzoekjes** in het tabblad Toevoegen.
+
 ## [1.68.1] — 15 november 2026
 
 ### Een bijwerking komt nu meteen door

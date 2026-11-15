@@ -73,6 +73,7 @@ de handleiding in de app zelf (knop **Handleiding openen**) · [installeren op P
 | ![weetje](docs/img/akkoordkast-weetje-van-de-dag-nov-2026.png) | **Weetje van de dag** — elke dag een ander weetje over gitaar, muziek en liedjes, met een knop om door te schuiven; het werkt zonder internet. |
 | ![lichte weergave](docs/img/akkoordkast-lichte-weergave-liedjes-nov-2026.png) | **Lichte of donkere weergave** — de app is donker; voor buiten in de zon is er een lichte weergave, of laat hem je toestel volgen. De knop staat in de kop. |
 | ![verzoekjes](docs/img/akkoordkast-verzoekjes-inbox-nov-2026.png) | **Verzoekjes** — met de knop *Verzoek* bij een liedje vraagt een ander profiel om een nummer; de beheerder ziet de verzoekjes in het tabblad Toevoegen en vinkt ze af of gooit ze weg. |
+| ![verzoeknummers](docs/img/akkoordkast-verzoeknummers-tool-nov-2026.png) | **Verzoeknummers** — een eigen scherm in het tabblad Liedjes: zoek een liedje en tik het aan om het bij de beheerder aan te vragen — meerdere na elkaar, zonder de liedjes te openen. |
 | ![akkoordenboek](docs/img/akkoordenboek.png) | **Akkoordenboek** — van elk akkoord alle posities over de hals, met het vaknummer en een uitleg, en een knop om er een grepenkaart van te printen. |
 | ![wachter](docs/img/wachter.png) | **Automatisch bijhouden** — de app kijkt zelf in je muziekmap en naar nieuwe versies op GitHub, en schrijft op wat er gedaan is. |
 | ![beheer](docs/img/beheer.png) | **Beheer en bijwerken** — welke versie er draait, of er iets nieuws klaarstaat op GitHub, en in één klik bijwerken als deze machine daarop is ingericht. |
@@ -227,6 +228,10 @@ in plaats van wav. Geen npm-afhankelijkheden.
 - **Verzoekjes.** Iemand met een eigen profiel vraagt met één knop bij het liedje om een nummer; de
   beheerder ziet de verzoekjes (met naam en tijd) in het tabblad Toevoegen en vinkt ze af of gooit
   ze weg. Vragen ze hetzelfde liedje nog eens, dan blijft het één verzoekje.
+- **Verzoeknummers.** Een eigen scherm in het tabblad Liedjes (knop *Verzoeknummers*): zoek een
+  liedje en tik het aan om het aan te vragen — zonder het liedje te openen, en gerust meerdere na
+  elkaar. Wat je al vroeg staat er meteen als *Verzocht ✓*; dat weet de tool ook na sluiten en
+  heropenen.
 - **PWA.** Installeerbaar op je telefoon, met de app-schil in de cache maar liedjes, audio en
   cast-status altijd live.
 
@@ -1040,12 +1045,12 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 416 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+node --test test/*.test.js          # 419 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
                                     # setlists, de offline-setlist en het liedboek offline, de slimme
                                     # oefensessie, nazingen, opnemen met begeleiding, de jukebox,
                                     # het showplan, het weetje van de dag, de weergavekeuze, de
-                                    # verzoekjes, akkoordenboek, de wachter, de cloudkoppelingen,
-                                    # de schil-inschrijving en de deploy-scripts
+                                    # verzoekjes, de verzoeknummers-tool, akkoordenboek, de wachter,
+                                    # de cloudkoppelingen, de schil-inschrijving en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL
 ```

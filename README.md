@@ -67,6 +67,7 @@ de handleiding in de app zelf (knop **Handleiding openen**) · [installeren op P
 | ![optreden](docs/img/optreden.png) | **Optredenmodus** — alleen het liedje van nu, met een balk erboven: welk nummer, vorige en volgende, en een pauzeklok voor de stilte tussen twee nummers. |
 | ![gehoor](docs/img/gehoor-trainer.png) | **Gehoor-trainer** — de app speelt een akkoord en jij zegt welk het is, of je hoort twee akkoorden en zegt of het tweede hoger of lager klonk. |
 | ![nazingen](docs/img/akkoordkast-nazingen-nov-2026.png) | **Nazingen & naspelen** — de app speelt een kort motiefje voor en jij speelt of zingt het na; de microfoon vertelt per noot wat goed ging. |
+| ![opnemen met begeleiding](docs/img/akkoordkast-opnemen-begeleiding-klaar-nov-2026.png) | **Opnemen mét begeleiding** — neem jezelf op terwijl de begeleiding speelt: je stem en de begeleiding komen via de mengtafel samen in één opname op je toestel. |
 | ![akkoordenboek](docs/img/akkoordenboek.png) | **Akkoordenboek** — van elk akkoord alle posities over de hals, met het vaknummer en een uitleg, en een knop om er een grepenkaart van te printen. |
 | ![wachter](docs/img/wachter.png) | **Automatisch bijhouden** — de app kijkt zelf in je muziekmap en naar nieuwe versies op GitHub, en schrijft op wat er gedaan is. |
 | ![beheer](docs/img/beheer.png) | **Beheer en bijwerken** — welke versie er draait, of er iets nieuws klaarstaat op GitHub, en in één klik bijwerken als deze machine daarop is ingericht. |
@@ -203,6 +204,9 @@ in plaats van wav. Geen npm-afhankelijkheden.
   jij zegt of het tweede hoger of lager klinkt. Je hoeft niets te zien.
 - **Nazingen & naspelen.** De app speelt een kort motiefje voor (drie tot vijf noten) en jij speelt of
   zingt het na; de microfoon vertelt per noot wat goed ging — van "Alles goed" tot "Bijna: 3 van de 4".
+- **Opnemen mét begeleiding.** Open een liedje en druk op één knop: de begeleiding speelt en je stem
+  (of gitaar) komt er in dezelfde opname bij. Hij stopt vanzelf als de begeleiding klaar is, en
+  terugluisteren, bewaren of weggooien blijft op dit toestel.
 - **PWA.** Installeerbaar op je telefoon, met de app-schil in de cache maar liedjes, audio en
   cast-status altijd live.
 
@@ -466,6 +470,9 @@ Daarnaast staat in hetzelfde tabblad:
 - **Neem jezelf op**: neem op met de microfoon (maximaal vijf minuten), luister het terug, bewaar het
   als bestand op je toestel of gooi het weg. De opname blijft in je eigen toestel; er gaat niets naar
   de server.
+- **Opnemen mét begeleiding**: open een liedje en druk op **Neem jezelf op met deze begeleiding** — de
+  begeleiding speelt en je stem (of gitaar) komt er via de mengtafel in dezelfde opname bij. Hij stopt
+  vanzelf als de begeleiding klaar is; terugluisteren, bewaren of weggooien blijft op dit toestel.
 - **Alle grepen** op één plek: klik op een greep en je hoort hem, en vink af wat je al kunt — met een
   voortgangsbalk en een knop die de grepen die je nog niet kent meteen in de akkoordentrainer zet.
 - **Op gehoor stemmen als de microfoon niet mag**: blokkeert je browser of toestel de microfoon
@@ -1011,9 +1018,9 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 392 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+node --test test/*.test.js          # 396 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
                                     # setlists, de offline-setlist en het liedboek offline, de slimme
-                                    # oefensessie, nazingen, akkoordenboek,
+                                    # oefensessie, nazingen, opnemen met begeleiding, akkoordenboek,
                                     # de wachter, de cloudkoppelingen en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL

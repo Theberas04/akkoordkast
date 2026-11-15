@@ -3318,6 +3318,7 @@ function openLiedje(id, opties) {
 
 function tekenLiedje(l) {
   if (MEES.loop || staat.meespelen) meespelStop();   // het oude liedje stopt met meespelen
+  if (typeof OPNB !== 'undefined' && OPNB.aan) opnbStop();  // een lopende opname hoort bij het oude blad
   MAAT_LAATSTE = null;                               // pijltjes beginnen weer bij de eerste maat
   $('spelen-leeg').hidden = true;
   var c = $('spelen-inhoud');
@@ -3552,6 +3553,21 @@ function tekenLiedje(l) {
         '<a class="knop zacht" id="download-mp3" download>mp3 downloaden</a>' +
         '<a class="knop zacht" href="' + esc(l.audio.youtube) + '" target="_blank" rel="noopener">Zoek de muziek online</a>' +
       '</div>' +
+      (l.akkoorden.length ?
+      '<div class="rij speel-knoppen" style="margin-top:10px">' +
+        '<button class="knop goed" id="opnb-start">Neem jezelf op met deze begeleiding</button>' +
+        '<button class="knop rood" id="opnb-stop" disabled>■ Stop</button>' +
+        '<span class="meta" id="opnb-tijd">0:00</span>' +
+      '</div>' +
+      '<div class="meta" id="opnb-stand" style="margin-top:6px">Gebruik oordopjes: dan hoort de microfoon de begeleiding niet via de speakers.</div>' +
+      '<div class="rij" style="margin-top:8px">' +
+        '<button class="knop zacht" id="opnb-speel" disabled>Terugluisteren</button>' +
+        '<a class="knop zacht" id="opnb-bewaar" download hidden>Bewaren op dit toestel</a>' +
+        '<button class="knop zacht" id="opnb-weg" disabled>Weggooien</button>' +
+      '</div>' +
+      '<audio id="opnb-audio" controls preload="none" hidden></audio>' +
+      '<div class="melding" id="opnb-melding"></div>'
+      : '') +
       '<div class="melding" id="speler-melding">De begeleiding wordt op deze server gemaakt met een gitaarsynthesizer (tokkels van de akkoordenreeks) — geen auteursrechtelijke opname.</div>' +
       // De muziek van het liedje: een bestand uit je eigen muziekmap (bijvoorbeeld op de NAS).
       // Daarmee speel je mee met de echte muziek in plaats van met de synthesizer. De app
@@ -3681,6 +3697,12 @@ function tekenLiedje(l) {
   $('trans-nul').addEventListener('click', function () { openLiedje(l.id, { transpose: 0, capo: 'auto' }); });
   $('beluister').addEventListener('click', function () { maakBegeleiding(l); });
   $('speler-tempo').addEventListener('change', function () { maakBegeleiding(l); });
+  if ($('opnb-start')) {
+    $('opnb-start').addEventListener('click', function () { opnbStart(l); });
+    $('opnb-stop').addEventListener('click', function () { opnbStop(); });
+    $('opnb-speel').addEventListener('click', opnbSpeel);
+    $('opnb-weg').addEventListener('click', opnbWeg);
+  }
   $('cast-dit').addEventListener('click', function () { castLiedje(l); });
   // spotify
   $('spotify-koppel').addEventListener('click', function () { spotifyKoppel(l, $('spotify-link').value); });
@@ -4553,7 +4575,7 @@ function maakBegeleiding(l) {
   if (reeks) p.set('reeks', reeks);
   var url = '/api/audio/preview?' + p.toString();
   toonMelding('speler-melding', 'De begeleiding wordt gemaakt… dit duurt een paar seconden.', '');
-  fetch(url).then(function (r) {
+  fetch(url, { headers: { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' } }).then(function (r) {
     if (!r.ok) return r.json().then(function (d) { throw new Error(d.fout || 'maken mislukt'); });
     return r.blob();
   }).then(function (blob) {
@@ -4574,9 +4596,9 @@ function uploadOpname(l) {
   if (bestand.size > 40 * 1024 * 1024) { toonMelding('speler-melding', 'Dit bestand is groter dan 40 MB.', 'fout'); return; }
   toonMelding('speler-melding', 'Opname wordt verstuurd…', '');
   fetch('/api/liedjes/' + l.id + '/audio', {
-      headers: { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' },
     method: 'POST',
-    headers: { 'content-type': bestand.type || 'audio/mpeg', 'x-bestandsnaam': bestand.name, 'x-audio-titel': bestand.name },
+    headers: { 'content-type': bestand.type || 'audio/mpeg', 'x-bestandsnaam': bestand.name,
+      'x-audio-titel': bestand.name, 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' },
     body: bestand
   }).then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.fout || 'upload mislukt'); return d; }); })
     .then(function () { toonMelding('speler-melding', 'Opname toegevoegd.', 'goed'); openLiedje(l.id); })
@@ -9305,6 +9327,208 @@ function opnWeg() {
   $('opn-stand').className = 'pilletje';
   $('opn-tijd').textContent = '0:00';
   toonMelding('opn-melding', 'Opname weggegooid.', '');
+}
+
+// ------------------------------------------ opnemen mét begeleiding ---
+// Jezelf opnemen terwijl de begeleiding speelt: de microfoon en de begeleiding komen via de
+// mengtafel van de WebAudio-kaart samen in één opname, zodat je precies hoort hoe het samen
+// klonk. De opname blijft op dit toestel; er gaat niets naar de server.
+var OPNB = { aan: false, stream: null, recorder: null, brokken: [], url: null, timer: null, soort: '',
+  bron: null, bronVoor: null, micBron: null, mixGain: null, start: 0 };
+var OPNB_MAX = 420;   // zeven minuten: ook een lang liedje met aftellen past erin
+
+// De begeleiding klaarzetten zonder hem al te spelen (spelen doen we pas als de opname loopt).
+function begeleidingZonderSpelen(l) {
+  var reeks = $('speler-reeks').value.trim();
+  var p = new URLSearchParams();
+  p.set('liedje', l.id);
+  p.set('capo', l.capo);
+  p.set('transpose', l.transpositie);
+  p.set('tempo', $('speler-tempo').value);
+  if (reeks) p.set('reeks', reeks);
+  return fetch('/api/audio/preview?' + p.toString(), {
+    headers: { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' }
+  }).then(function (r) {
+    if (!r.ok) return r.json().then(function (d) { throw new Error(d.fout || 'maken mislukt'); });
+    return r.blob();
+  }).then(function (blob) {
+    var bron = URL.createObjectURL(blob);
+    var sp = $('speler-audio');
+    sp.src = bron;
+    $('download-mp3').href = bron;
+    $('download-mp3').setAttribute('download', 'akkoordkast-' + l.id + '.mp3');
+  });
+}
+
+function opnbStart(l) {
+  if (OPNB.aan) return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    toonMelding('opnb-melding', 'Deze browser kan niet bij de microfoon.', 'fout');
+    return;
+  }
+  if (typeof window.MediaRecorder === 'undefined') {
+    toonMelding('opnb-melding', 'Deze browser kan geen geluid opnemen.', 'fout');
+    return;
+  }
+  if (!window.isSecureContext) {
+    toonMelding('opnb-melding', 'Opnemen met de microfoon werkt alleen op een beveiligd adres (https).', 'fout');
+    return;
+  }
+  var sp = $('speler-audio');
+  if (!sp) return;
+  $('opnb-start').disabled = true;
+  $('opnb-stop').disabled = true;
+  toonMelding('opnb-melding', 'Vraag om de microfoon…', '');
+  var klaar = sp.getAttribute('src')
+    ? Promise.resolve()
+    : (function () {
+        toonMelding('opnb-melding', 'Eerst wordt de begeleiding gemaakt…', '');
+        return begeleidingZonderSpelen(l);
+      })();
+  klaar.then(function () { return vraagMicrofoon(); }).then(function (stream) {
+    var ctx = leerCtx() || new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
+    // De speler en de microfoon samenbrengen: de begeleiding via de mengtafel (zodat je hem ook
+    // hoort), de microfoon erbij, en allebei naar de opname. Dat aanhaken mag maar één keer per
+    // element; daarna loopt de gewone weergave vanzelf door dezelfde weg. Bij een nieuw blad is
+    // de speler een nieuw element, dus dan haken we opnieuw aan.
+    if (!OPNB.bron || OPNB.bronVoor !== sp) {
+      OPNB.bron = ctx.createMediaElementSource(sp);
+      OPNB.bron.connect(ctx.destination);
+      OPNB.bronVoor = sp;
+    }
+    var mixGain = ctx.createGain();
+    mixGain.gain.value = 0.9;
+    OPNB.bron.connect(mixGain);
+    var micBron = ctx.createMediaStreamSource(stream);
+    var micGain = ctx.createGain();
+    micGain.gain.value = 1;
+    micBron.connect(micGain);
+    var mix = ctx.createMediaStreamDestination();
+    mixGain.connect(mix);
+    micGain.connect(mix);
+    OPNB.stream = stream;
+    OPNB.mixGain = mixGain;
+    OPNB.micBron = micBron;
+    OPNB.soort = (window.MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('audio/webm')) ? 'audio/webm' : '';
+    OPNB.recorder = OPNB.soort ? new MediaRecorder(mix.stream, { mimeType: OPNB.soort }) : new MediaRecorder(mix.stream);
+    OPNB.brokken = [];
+    OPNB.recorder.addEventListener('dataavailable', function (e) { if (e.data && e.data.size) OPNB.brokken.push(e.data); });
+    OPNB.recorder.addEventListener('stop', opnbKlaar);
+    OPNB.start = Date.now();
+    OPNB.aan = true;
+    sp.currentTime = 0;
+    sp.play().catch(function () {});
+    sp.addEventListener('ended', function () {
+      // Nog een halve tel doorlopen, dan stopt de opname vanzelf met de begeleiding.
+      setTimeout(function () { if (OPNB.aan) opnbStop(); }, 600);
+    }, { once: true });
+    OPNB.recorder.start();
+    OPNB.timer = setInterval(opnbTik, 200);
+    $('opnb-start').disabled = true;
+    $('opnb-stop').disabled = false;
+    $('opnb-weg').disabled = true;
+    $('opnb-stand').textContent = 'Ik neem op… speel of zing mee';
+    $('opnb-stand').className = 'pilletje goed';
+    toonMelding('opnb-melding', '', '');
+  }).catch(function (e) {
+    $('opnb-start').disabled = false;
+    $('opnb-stop').disabled = true;
+    // Niet elke fout is een microfoonfout: het maken van de begeleiding of de mengtafel kan ook
+    // stuklopen. Zeg dan eerlijk wat er misging in plaats van de microfoonhandleiding te tonen.
+    var micFout = e && /^(NotAllowedError|SecurityError|NotFoundError|NotReadableError|OverconstrainedError|DevicesNotFoundError|TrackStartError)$/.test(e.name || '');
+    var tekst = micFout ? microfoonUitleg(e)
+      : 'Er ging iets mis bij het starten van de opname: ' + ((e && e.message) || 'onbekende fout') + '.';
+    toonMelding('opnb-melding', tekst + ((e && e.name) ? ' (foutcode: ' + e.name + ')' : ''), 'fout');
+  });
+}
+
+function opnbTik() {
+  if (!OPNB.aan) return;
+  var seconden = (Date.now() - OPNB.start) / 1000;
+  var tijd = $('opnb-tijd');
+  if (tijd) tijd.textContent = opnTijd(seconden);
+  if (seconden >= OPNB_MAX) opnbStop();
+}
+
+function opnbStop() {
+  if (!OPNB.aan) return;
+  OPNB.aan = false;
+  clearInterval(OPNB.timer);
+  OPNB.timer = null;
+  var sp = $('speler-audio');
+  if (sp) { try { sp.pause(); } catch (e) {} }
+  try { OPNB.recorder.stop(); } catch (e) {}
+  try { OPNB.stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+  try { OPNB.micBron.disconnect(); } catch (e) {}
+  try { OPNB.mixGain.disconnect(); } catch (e) {}
+  OPNB.stream = null;
+  OPNB.micBron = null;
+  OPNB.mixGain = null;
+  var stopKnop = $('opnb-stop');
+  if (stopKnop) stopKnop.disabled = true;
+  var startKnop = $('opnb-start');
+  if (startKnop) startKnop.disabled = false;
+}
+
+function opnbKlaar() {
+  var soort = OPNB.soort || (OPNB.recorder && OPNB.recorder.mimeType) || 'audio/webm';
+  var blob = new Blob(OPNB.brokken, { type: soort });
+  OPNB.brokken = [];
+  var seconden = Math.max(1, Math.round((Date.now() - OPNB.start) / 1000));
+  var stand = $('opnb-stand');
+  if (!blob.size) {
+    if (stand) { stand.textContent = 'Gebruik oordopjes: dan hoort de microfoon de begeleiding niet via de speakers.'; stand.className = 'meta'; }
+    toonMelding('opnb-melding', 'De opname bleef leeg. Probeer het nog een keer.', 'fout');
+    return;
+  }
+  if (OPNB.url) { try { URL.revokeObjectURL(OPNB.url); } catch (e) {} }
+  OPNB.url = URL.createObjectURL(blob);
+  var speler = $('opnb-audio');
+  if (speler) { speler.src = OPNB.url; speler.hidden = false; }
+  var bewaar = $('opnb-bewaar');
+  if (bewaar) {
+    bewaar.href = OPNB.url;
+    bewaar.download = 'opname-met-begeleiding-' + new Date().toISOString().slice(0, 16).replace(/[:T]/g, '') +
+      (soort.indexOf('webm') >= 0 ? '.webm' : '.ogg');
+    bewaar.hidden = false;
+  }
+  var speel = $('opnb-speel');
+  if (speel) speel.disabled = false;
+  var weg = $('opnb-weg');
+  if (weg) weg.disabled = false;
+  if (stand) { stand.textContent = 'Opname klaar · ' + opnTijd(seconden); stand.className = 'pilletje goed'; }
+  var tijd = $('opnb-tijd');
+  if (tijd) tijd.textContent = opnTijd(seconden);
+  toonMelding('opnb-melding', 'Klaar! Luister het terug: dit is wat er op de kamer te horen was.', 'goed');
+  if (speler) speler.play().catch(function () {});
+}
+
+function opnbSpeel() {
+  var speler = $('opnb-audio');
+  if (!speler || !speler.src) return;
+  speler.hidden = false;
+  speler.currentTime = 0;
+  speler.play().catch(function () {});
+}
+
+function opnbWeg() {
+  if (OPNB.aan) opnbStop();
+  if (OPNB.url) { try { URL.revokeObjectURL(OPNB.url); } catch (e) {} }
+  OPNB.url = null;
+  var speler = $('opnb-audio');
+  if (speler) { speler.pause(); speler.removeAttribute('src'); speler.hidden = true; }
+  var bewaar = $('opnb-bewaar');
+  if (bewaar) bewaar.hidden = true;
+  var speel = $('opnb-speel');
+  if (speel) speel.disabled = true;
+  var weg = $('opnb-weg');
+  if (weg) weg.disabled = true;
+  var stand = $('opnb-stand');
+  if (stand) { stand.textContent = 'Gebruik oordopjes: dan hoort de microfoon de begeleiding niet via de speakers.'; stand.className = 'meta'; }
+  var tijd = $('opnb-tijd');
+  if (tijd) tijd.textContent = '0:00';
+  toonMelding('opnb-melding', 'Opname weggegooid.', '');
 }
 
 // ---------------------------------------------------------------- laden ---

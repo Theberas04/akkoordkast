@@ -3,6 +3,26 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.63.0] — 15 november 2026
+
+### Opnemen mét begeleiding
+
+- Op het blad van elk liedje staat nu **Neem jezelf op met deze begeleiding**: één knop en de
+  begeleiding speelt terwijl de microfoon meeloopt. Je stem (of gitaar) en de begeleiding komen via de
+  mengtafel van de WebAudio-kaart samen in één opname — je hoort precies hoe het samen klonk.
+- De opname stopt vanzelf als de begeleiding klaar is (met een halve tel nagalm); daarna kun je
+  terugluisteren, op dit toestel bewaren of weggooien. De app tipt oordopjes: dan hoort de microfoon
+  de begeleiding niet via de speakers.
+
+### Gerepareerd onderweg
+
+- De opname-upload op het blad stuurde zijn koppen in twee lijsten, waardoor het profiel en het
+  app-merk verdwenen (dezelfde fout die eerder de beheerder-upload blokkeerde); nu één lijst met alles
+  erin, met een proef erop.
+- De begeleiding-aanvraag stuurt nu ook profiel en app-merk mee, zoals elke aanvraag hoort te doen.
+- Mislukt het starten van een opname door iets anders dan de microfoon, dan zegt de app eerlijk wat er
+  misging in plaats van de microfoonhandleiding te tonen.
+
 ## [1.62.0] — 15 november 2026
 
 ### Nazingen & naspelen

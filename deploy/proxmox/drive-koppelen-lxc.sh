@@ -108,6 +108,18 @@ f=/etc/fuse.conf
 [ -f "$f" ] || : > "$f"
 grep -qE "^[[:space:]]*user_allow_other" "$f" || printf "user_allow_other\n" >> "$f"
 echo "   user_allow_other in /etc/fuse.conf staat aan."
+# De fuse3-postinst zet /usr/bin/fusermount3 normaal op 4755 (setuid). Zonder die bit kan een
+# niet-root gebruiker geen fuse koppelen ("mount failed: Operation not permitted"); op sommige
+# images raakt de bit kwijt. Zet hem goed als dat nodig is.
+if [ -e /usr/bin/fusermount3 ]; then
+  m="$(stat -c '%a' /usr/bin/fusermount3)"
+  if [ "$m" != "4755" ]; then
+    chmod 4755 /usr/bin/fusermount3
+    echo "   setuid-bit op fusermount3 stond op $m en is goedgezet (4755)."
+  else
+    echo "   setuid-bit op fusermount3 staat goed (4755)."
+  fi
+fi
 BINNENEOF
 pct push "$CTID" "$BINNEN" /root/akkoordkast-drive-voorbereiden.sh --perms 700 >/dev/null
 if ! pct exec "$CTID" -- bash /root/akkoordkast-drive-voorbereiden.sh; then
@@ -126,6 +138,12 @@ fi
 zeg "   /dev/fuse: aanwezig"
 pct exec "$CTID" -- rclone version | head -1 | sed 's/^/   /'
 zeg "   fuse: aanwezig"
+hulp="$(pct exec "$CTID" -- stat -c '%a' /usr/bin/fusermount3 2>/dev/null | tr -d '[:space:]')"
+if [ "$hulp" = "4755" ]; then
+  zeg "   fuse-hulp fusermount3: goed (mode 4755)"
+else
+  fout "   fuse-hulp fusermount3 staat op mode $hulp (hoort 4755 te zijn); draai dit script nog eens."
+fi
 
 cat <<KLAAR
 

@@ -577,6 +577,7 @@ Twee hulpscripts horen erbij:
 | [`deploy/proxmox/nas-mount-lxc.sh`](deploy/proxmox/nas-mount-lxc.sh) | **in de container**, als root | het containerdeel van route 1b: rclone koppelt de NAS-share |
 | [`deploy/proxmox/drive-koppelen.sh`](deploy/proxmox/drive-koppelen.sh) | **in de container**, als root | koppelt Google Drive met rclone, als systemd-dienst met een controletimer |
 | [`deploy/proxmox/drive-koppelen-lxc.sh`](deploy/proxmox/drive-koppelen-lxc.sh) | op de **Proxmox-host**, als root | zet het fuse-recht (fuse=1) in de container en installeert rclone en fuse3 — de eenmalige voorbereiding voor **Cloudopslag koppelen** in de app |
+| [`deploy/proxmox/fuse-proef-lxc.sh`](deploy/proxmox/fuse-proef-lxc.sh) | op de **Proxmox-host**, als root | loopt na waarom een fuse-koppeling niet opkomt (setuid-bit, no_new_privs, apparmor, proefkoppelingen als root en als de app-gebruiker) en herstelt de setuid-bit van fusermount3 |
 
 ### Route 1: een NAS in hetzelfde netwerk
 

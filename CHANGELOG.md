@@ -3,6 +3,34 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.57.0] — 15 november 2026
+
+### Cloudopslag koppelen vanuit de app
+
+- In **Downloaden als mp3** staat het blok **Cloudopslag koppelen (Google Drive of OneDrive)**: je plakt
+  één keer de sleutel van `rclone authorize`, kiest een map in de cloud en drukt op **Koppelen**. De app
+  zet de koppeling op (`rclone mount`), maakt meteen de downloadmap (`Gedownload`) aan en houdt de
+  verbinding in de gaten: valt hij weg, dan komt hij vanzelf terug; pas na vijf mislukte pogingen stopt
+  hij en zegt dat.
+- De aanmelding gaat naar `rclone.conf` van de app-gebruiker (rechten 600; eerst naar een tijdelijk
+  bestand en dan pas omgezet). De sleutel komt nooit in de app-database of in een antwoord van de
+  server terecht, en andere remotes in dat bestand blijven staan.
+- **Losmaken** ontkoppelt netjes (een dode koppeling wordt eerst opgeruimd) en laat de aanmelding
+  bewaard. Bij het herstarten of bijwerken van de app wordt de koppeling eerst losgemaakt, zodat er
+  geen dood hulpstuk achterblijft.
+- Knoppen **Als muziekmap gebruiken** (zet de map bij *Muziekmap scannen*) en **Als downloadbestemming
+  gebruiken** (kiest de map meteen in *Waar downloads worden bewaard*).
+- Ontbreekt rclone of fuse nog, dan toont het blok het eenmalige hostcommando
+  (`deploy/proxmox/drive-koppelen-lxc.sh`): dat geeft fuse door aan de container en installeert rclone
+  en fuse3. Daarna is dit script nooit meer nodig.
+- **Opgelost onderweg:** een lang pad in de mappenlijst (*Een hele muziekmap in één keer → Muziekmap
+  scannen*) maakte op een telefoon de hele pagina breder dan het scherm (390 → 747 px). De lijst bindt
+  zijn kolom nu aan de kaart en op mobiel vallen pad en knoppen onder elkaar; dezelfde correctie geldt
+  voor de lijst bij *Liedjes weghalen*.
+
+Nieuwe proef: `test/cloud.test.js` (koppelwizard, sleutelhygiëne, mobiel). De oudere route met
+`drive-koppelen.sh` (systemd-dienst in de container) blijft bestaan.
+
 ## [1.56.1] — 15 november 2026
 
 ### Kies waar nieuwe downloads worden opgeslagen

@@ -202,7 +202,8 @@
   .scan-regel .meta{color:var(--tekst2);font-size:.76rem;white-space:nowrap}
   .scan-regel.klaar{border-color:#2f6b4f}
   .scan-regel.fout{border-color:#7a3b3b}
-  .mappen-lijst{display:grid;gap:4px;margin:0 0 10px}
+  .mappen-lijst{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;margin:0 0 10px}
+  .mappen-lijst .map-regel{min-width:0}
   .map-regel{display:flex;gap:8px;align-items:center;background:var(--pane);border:1px solid var(--lijn);
     border-radius:8px;padding:6px 8px;font-size:.84rem}
   .map-regel .naam{font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -594,7 +595,7 @@
   .opn-niveau{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--groen),var(--amber),#d97b6c);transition:width .06s linear}
   audio#opn-audio{width:100%;margin-top:10px}
   /* Liedjes weghalen en filters beheren (alleen voor de beheerder) */
-  .weg-lijst, .flt-koppel-lijst{margin-top:10px;display:grid;gap:6px;max-height:320px;overflow:auto}
+  .weg-lijst, .flt-koppel-lijst{margin-top:10px;display:grid;grid-template-columns:minmax(0,1fr);gap:6px;max-height:320px;overflow:auto}
   .weg-rij{display:flex;align-items:center;gap:8px;background:#0d1526;border:1px solid var(--lijn);
     border-radius:10px;padding:7px 9px}
   /* Het aanvinkvakje hoort klein te blijven: de gewone formulieropmaak van de app maakt van een
@@ -855,6 +856,18 @@
 .download-bestemmingen .map-regel .naam{min-width:0}
 .download-bestemmingen .map-regel .meta{white-space:normal;overflow-wrap:anywhere}
 
+/* Cloudopslag koppelen: hetzelfde rustige kaartgevoel, met een eigen kleur. */
+.cloud-koppel{margin:14px 0 8px;padding:15px 16px;
+  border:1px solid rgba(90,170,255,.24);border-radius:var(--r);
+  background:linear-gradient(145deg,rgba(90,170,255,.055),rgba(255,255,255,.018))}
+.cloud-koppel > p{max-width:76ch;margin:0 0 12px}
+.cloud-koppel h3{margin:8px 0 10px}
+.cloud-koppel textarea{width:100%;background:rgba(255,255,255,.03);color:inherit;
+  border:1px solid var(--lijn-zacht);border-radius:var(--r-klein);padding:8px 10px;
+  font:inherit;font-size:.85rem;resize:vertical}
+.cloud-koppel .code-klein{white-space:normal;overflow-wrap:anywhere}
+.cloud-koppel .lijst-klein li{margin:4px 0}
+
 @media (min-width:761px){
     #filter-toggle{display:inline-flex}
     #meer-filters{display:none}
@@ -867,9 +880,14 @@
     main{padding:14px 14px 50px}
     .kaart{padding:14px;border-radius:var(--r)}
     .download-bestemmingen{padding:12px}
+    .cloud-koppel{padding:12px}
     .download-bestemmingen .map-regel{grid-template-columns:minmax(0,1fr) auto;gap:6px 10px}
     .download-bestemmingen .map-regel .naam,.download-bestemmingen .map-regel .meta{grid-column:1;overflow-wrap:anywhere}
     .download-bestemmingen .map-regel .knop{grid-column:2;grid-row:1/4;align-self:center}
+    /* De mappenlijst bij "Muziekmap scannen": een lang pad en twee knoppen horen op een telefoon
+       onder elkaar te vallen in plaats van de pagina breder te maken. */
+    #mappen-lijst .map-regel{flex-wrap:wrap}
+    #mappen-lijst .map-regel .naam,#mappen-lijst .map-regel .meta{flex:1 1 100%;min-width:0;white-space:normal;overflow-wrap:anywhere}
   }
   @media print{
     body::before{display:none}
@@ -1543,7 +1561,8 @@
         <h3>Waar downloads worden bewaard</h3>
         <p class="les-klein">Kies een beschikbare map. NAS, Google Drive en OneDrive moeten al in de LXC zijn
           gekoppeld en schrijfbaar zijn. Dit menu kiest de map; het logt niet in bij Google of Microsoft.
-          Voor cloudopslag gebruik je vooraf een rclone-koppeling. Dit geldt alleen voor nieuwe downloads;
+          Voor cloudopslag koppel je de map eerst — dat kan met <strong>Cloudopslag koppelen</strong> hieronder.
+          Dit geldt alleen voor nieuwe downloads;
           bestaande bestanden worden niet verplaatst.</p>
         <div class="veld2">
           <div><label for="download-bestemming-keuze">Downloadbestemming</label>
@@ -1567,6 +1586,54 @@
             <input id="download-bestemming-pad" type="text" placeholder="/pad/naar/Gedownload" autocomplete="off" spellcheck="false"></div>
         </div>
         <div class="rij"><button class="knop zacht" id="download-bestemming-toevoegen">Map toevoegen</button></div>
+      </div>
+      <div class="cloud-koppel" id="cloud-koppel">
+        <h3>Cloudopslag koppelen (Google Drive of OneDrive)</h3>
+        <p class="les-klein">Koppel je Google Drive of OneDrive hier in de app: de app zet de koppeling op
+          en houdt hem in de gaten — valt hij weg, dan komt hij terug. Vooraf is één keer het hostcommando
+          nodig dat hier verschijnt als rclone of fuse nog ontbreekt; dat zet die twee klaar op de machine.
+          Het aanmelden gebeurt daarna één keer met een sleutel die je hier plakt; die sleutel gaat naar
+          rclone op deze machine, niet in de app zelf.</p>
+        <div class="chips">
+          <span class="chip">rclone <span id="cloud-rclone">…</span></span>
+          <span class="chip">fuse <span id="cloud-fuse">…</span></span>
+          <span class="chip">aanmelding <span id="cloud-aanmelding">…</span></span>
+          <span class="chip">koppeling <span id="cloud-koppeling">…</span></span>
+        </div>
+        <div class="melding" id="cloud-melding" hidden></div>
+        <div class="code-klein" id="cloud-commando" hidden></div>
+        <details class="help">
+          <summary>Zo kom je aan de sleutel (eenmalig)</summary>
+          <ol class="lijst-klein">
+            <li>Download op je computer <strong>rclone</strong> van rclone.org/downloads en pak het uit.</li>
+            <li>Open een terminal in die map en draai: <code>rclone authorize "drive"</code> — of
+              <code>rclone authorize "onedrive"</code> voor OneDrive.</li>
+            <li>Er opent een venster van Google of Microsoft: log in en geef toestemming.</li>
+            <li>In de terminal verschijnt één regel die met <code>{"access_token"</code> begint. Kopieer
+              die hele regel en plak hem hieronder.</li>
+          </ol>
+        </details>
+        <label for="cloud-token">Sleutel van de aanmelding</label>
+        <textarea id="cloud-token" rows="3" spellcheck="false" autocomplete="off"
+          placeholder='{"access_token":"…","refresh_token":"…"}'></textarea>
+        <div class="veld2" style="margin-top:8px">
+          <div><label for="cloud-soort">Soort</label>
+            <select id="cloud-soort">
+              <option value="gdrive">Google Drive</option>
+              <option value="onedrive">OneDrive</option>
+            </select></div>
+          <div><label for="cloud-map">Map in de cloud (leeg = alles)</label>
+            <input id="cloud-map" type="text" value="Muziek" autocomplete="off" spellcheck="false"></div>
+        </div>
+        <div class="rij" style="margin-top:10px">
+          <button class="knop" id="cloud-aanmelden">Aanmelding opslaan</button>
+          <button class="knop zacht" id="cloud-koppel-aan">Koppelen</button>
+          <button class="knop zacht" id="cloud-koppel-uit">Losmaken</button>
+        </div>
+        <div class="rij" style="margin-top:8px">
+          <button class="knop zacht" id="cloud-als-muziekmap">Als muziekmap gebruiken</button>
+          <button class="knop zacht" id="cloud-als-download">Als downloadbestemming gebruiken</button>
+        </div>
       </div>
       <label for="mp3-wijze">Wat wil je ermee?</label>
       <select id="mp3-wijze">
@@ -5793,6 +5860,132 @@ function koppelDownloadBestemmingen() {
   });
 }
 
+// ------------------------------------------------------ cloudopslag koppelen ---
+// Het scherm voor de koppelwizard. De pagina stuurt alleen opdrachten naar /api/cloud; de server
+// controleert alles (en schrijft niets van dit scherm blind over).
+var CLOUD = { stand: null, bezig: false };
+
+function laadCloud() {
+  return api('/api/cloud').then(function (d) {
+    tekenCloud(d);
+  }).catch(function (e) {
+    toonMelding('cloud-melding', e.message, 'fout');
+  });
+}
+
+function tekenCloud(d) {
+  if (!d || !d.koppeling) return;
+  CLOUD.stand = d;
+  $('cloud-rclone').textContent = d.rclone.aanwezig
+    ? ('aanwezig' + (d.rclone.versie ? ' · ' + d.rclone.versie : '')) : 'ontbreekt';
+  $('cloud-fuse').textContent = d.fuse.aanwezig ? 'aanwezig' : 'ontbreekt';
+  $('cloud-aanmelding').textContent = d.aanmelding.klaar ? 'ingesteld' : 'nog niet';
+  $('cloud-koppeling').textContent = d.koppeling.gemount
+    ? ('gekoppeld' + (d.koppeling.pad ? ' · ' + d.koppeling.pad : ''))
+    : (d.koppeling.aan ? 'niet bereikbaar' : 'uit');
+  var mist = !d.rclone.aanwezig || !d.fuse.aanwezig;
+  $('cloud-commando').hidden = !mist;
+  if (mist) $('cloud-commando').textContent = 'Op je Proxmox-host (eenmalig): ' + d.hostcommando;
+  $('cloud-aanmelden').disabled = CLOUD.bezig || !d.rclone.aanwezig;
+  $('cloud-koppel-aan').disabled = CLOUD.bezig ||
+    !(d.rclone.aanwezig && d.fuse.aanwezig && d.aanmelding.klaar) || d.koppeling.gemount;
+  $('cloud-koppel-uit').disabled = CLOUD.bezig || !d.koppeling.gemount;
+  $('cloud-als-muziekmap').disabled = CLOUD.bezig || !d.koppeling.gemount;
+  $('cloud-als-download').disabled = CLOUD.bezig || !d.koppeling.gemount;
+  if (d.laatsteFout && $('cloud-melding').hidden) {
+    toonMelding('cloud-melding', 'Let op: ' + d.laatsteFout, 'fout');
+  }
+}
+
+function cloudStuur(body, bezigTekst, naGoed) {
+  if (CLOUD.bezig) return;
+  CLOUD.bezig = true;
+  if (CLOUD.stand) tekenCloud(CLOUD.stand);
+  toonMelding('cloud-melding', bezigTekst || 'Bezig…');
+  api('/api/cloud', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body)
+  }).then(function (antwoord) {
+    CLOUD.bezig = false;
+    if (antwoord.stand) tekenCloud(antwoord.stand);
+    if (antwoord.fout) {
+      toonMelding('cloud-melding', antwoord.fout, 'fout');
+    } else {
+      toonMelding('cloud-melding', antwoord.melding || 'Klaar.', 'goed');
+      if (naGoed) naGoed();
+    }
+    laadDownloadBestemmingen();
+    laadMappen();
+  }).catch(function (e) {
+    CLOUD.bezig = false;
+    toonMelding('cloud-melding', e.message, 'fout');
+    laadCloud();
+  });
+}
+
+function koppelCloud() {
+  var kaart = $('cloud-koppel');
+  if (!kaart || kaart.dataset.gekoppeld === '1') return;
+  kaart.dataset.gekoppeld = '1';
+  $('cloud-aanmelden').addEventListener('click', function () {
+    var token = $('cloud-token').value.trim();
+    if (!token) {
+      toonMelding('cloud-melding', 'Plak eerst de sleutel bij "Zo kom je aan de sleutel".', 'fout');
+      return;
+    }
+    cloudStuur({ actie: 'aanmelden', soort: $('cloud-soort').value, token: token },
+      'Bezig met aanmelden… dit wordt meteen bij Google of Microsoft gecontroleerd.',
+      function () { $('cloud-token').value = ''; });
+  });
+  $('cloud-koppel-aan').addEventListener('click', function () {
+    cloudStuur({ actie: 'koppelen', soort: $('cloud-soort').value, pad: $('cloud-map').value.trim() },
+      'Bezig met koppelen… de eerste keer kan dit een halve minuut duren.');
+  });
+  $('cloud-koppel-uit').addEventListener('click', function () {
+    cloudStuur({ actie: 'los' }, 'Bezig met losmaken…');
+  });
+  $('cloud-als-muziekmap').addEventListener('click', function () {
+    var d = CLOUD.stand;
+    if (!d || !d.koppeling || !d.koppeling.mount) return;
+    api('/api/mappen', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ pad: d.koppeling.mount })
+    }).then(function () {
+      toonMelding('cloud-melding', 'De map staat nu bij Muziekmap scannen. Gebruik daar "Kijk wat erin zit" en daarna "Alles omzetten".', 'goed');
+      laadMappen();
+    }).catch(function (e) { toonMelding('cloud-melding', e.message, 'fout'); });
+  });
+  $('cloud-als-download').addEventListener('click', function () {
+    var d = CLOUD.stand;
+    if (!d || !d.koppeling || !d.koppeling.gemount) return;
+    var pad = d.koppeling.downloadPad;
+    var type = d.koppeling.bestemmingType;
+    var naam = d.koppeling.naam;
+    var kies = function (antwoord) {
+      var doel = (antwoord.bestemmingen || []).filter(function (b) { return b.pad === pad; })[0];
+      if (!doel) return Promise.reject(new Error('De koppelmap staat niet in de keuzelijst.'));
+      return api('/api/downloadbestemmingen', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ actie: 'selecteer', id: doel.id })
+      }).then(function (gekozen) {
+        tekenDownloadBestemmingen(gekozen);
+        toonMelding('cloud-melding', 'Nieuwe downloads worden nu in ' + naam + ' bewaard.', 'goed');
+      });
+    };
+    api('/api/downloadbestemmingen').then(function (beeld) {
+      var bestaat = (beeld.bestemmingen || []).some(function (b) { return b.pad === pad; });
+      if (bestaat) return kies(beeld);
+      return api('/api/downloadbestemmingen', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ actie: 'toevoegen', naam: naam, type: type, pad: pad })
+      }).then(kies);
+    }).catch(function (e) {
+      toonMelding('cloud-melding', e.message, 'fout');
+      laadDownloadBestemmingen();
+    });
+  });
+}
+
 function laadMappen() {
   return api('/api/mappen').then(function (d) {
     var vak = $('mappen-lijst');
@@ -8775,6 +8968,8 @@ function tekenBeheer() {
     laadSchijf();
     koppelDownloadBestemmingen();
     laadDownloadBestemmingen();
+    koppelCloud();
+    laadCloud();
     return;
   }
   if (!BEHEER.ingesteld) {

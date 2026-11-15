@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+# Zet de eenmalige voorbereiding klaar voor een cloudkoppeling (Google Drive of OneDrive) in de
+# AkkoordKast-container. Daarna koppel je in de app zelf: Toevoegen -> Downloaden als mp3 ->
+# Cloudopslag koppelen. Dit script hoef je daarna nooit meer te draaien.
+#
+# Draai dit OP DE PROXMOX-HOST, als root:
+#
+#   CTID=106 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Theberas04/akkoordkast/main/deploy/proxmox/drive-koppelen-lxc.sh)"
+#
+# of, met dit bestand op de host:
+#
+#   CTID=106 bash deploy/proxmox/drive-koppelen-lxc.sh
+#
+# Wat het doet (alles eenmalig):
+#   1. geeft /dev/fuse door aan de container (twee regels in /etc/pve/lxc/<CTID>.conf; de oude
+#      configuratie wordt bewaard) en herstart de container één keer, alleen als dat nodig is;
+#   2. installeert in de container rclone en fuse3 (alleen als ze er nog niet zijn);
+#   3. zet user_allow_other in /etc/fuse.conf, zodat de koppeling ook voor andere gebruikers
+#      (zoals root) leesbaar is.
+#
+# De oudere route met drive-koppelen.sh (een systemd-dienst in de container) blijft bestaan,
+# maar is voor de koppelwizard in de app niet nodig.
+set -euo pipefail
+
+CTID="${CTID:-${1:-}}"
+HERSTART="${HERSTART:-ja}"
+
+zeg() { printf '%s\n' "$*"; }
+fout() { printf '%s\n' "$*" >&2; }
+stop() { fout "$*"; exit 1; }
+
+[ "$(id -u)" = "0" ] || stop "Draai dit als root op de Proxmox-host."
+command -v pct >/dev/null 2>&1 || stop "Dit script hoort op de Proxmox-host te draaien (pct ontbreekt)."
+[ -n "$CTID" ] || stop "Geef het container-id mee, bijvoorbeeld: CTID=106 bash $0"
+pct status "$CTID" >/dev/null 2>&1 || stop "Container $CTID bestaat niet op deze host."
+
+CONF="/etc/pve/lxc/$CTID.conf"
+[ -f "$CONF" ] || stop "Ik kan de configuratie van container $CTID niet vinden: $CONF"
+
+# --- /dev/fuse in de container ------------------------------------------------
+zeg "== Fuse doorgeven aan container $CTID"
+veranderd=0
+if ! grep -q "c 10:229" "$CONF"; then veranderd=1; fi
+if ! grep -q "dev/fuse" "$CONF"; then veranderd=1; fi
+
+if [ "$veranderd" = "1" ]; then
+  kopie="$CONF.bak-$(date +%Y%m%d-%H%M%S)"
+  cp -a "$CONF" "$kopie"
+  zeg "   Oude configuratie bewaard als $kopie (terugzetten: cp $kopie $CONF)"
+  grep -q "c 10:229" "$CONF" || printf '%s\n' "lxc.cgroup2.devices.allow: c 10:229 rwm" >> "$CONF"
+  grep -q "dev/fuse" "$CONF" || printf '%s\n' "lxc.mount.entry: /dev/fuse dev/fuse none bind,create=file,optional 0 0" >> "$CONF"
+  zeg "   Fuse toegevoegd aan $CONF."
+  if [ "$HERSTART" = "ja" ]; then
+    zeg "   De container moet een keer opnieuw opstarten om /dev/fuse te krijgen."
+    zeg "   De app is dan even niet bereikbaar. Bezig..."
+    pct reboot "$CTID" >/dev/null 2>&1 || pct stop "$CTID" >/dev/null 2>&1 || true
+    sleep 3
+    for _ in $(seq 1 30); do
+      if pct status "$CTID" 2>/dev/null | grep -q running; then break; fi
+      sleep 2
+    done
+    pct status "$CTID" 2>/dev/null | grep -q running || stop "Container $CTID wilde niet starten. Zet $kopie terug en probeer het opnieuw."
+    zeg "   Container is weer op."
+  else
+    fout "   HERSTART=nee: start de container zelf opnieuw op voordat de rest werkt."
+  fi
+else
+  zeg "   Fuse stond al in de configuratie; de container hoefde niet opnieuw te starten."
+fi
+
+# --- rclone en fuse3 in de container ------------------------------------------
+# Het containerdeel gaat als klein script mee: zo staan er geen ingewikkelde quotes in dit
+# bestand en is de uitvoering in de container precies wat hieronder staat.
+zeg "== rclone en fuse3 in de container"
+BINNEN="$(mktemp)"
+cat > "$BINNEN" <<'BINNENEOF'
+set -e
+if command -v rclone >/dev/null 2>&1 && command -v fusermount3 >/dev/null 2>&1; then
+  echo "   rclone en fuse3 staan er al."
+else
+  echo "   Installeren (even geduld)..."
+  DEBIAN_FRONTEND=noninteractive apt-get update -qq
+  DEBIAN_FRONTEND=noninteractive apt-get install -y -qq rclone fuse3
+fi
+f=/etc/fuse.conf
+[ -f "$f" ] || : > "$f"
+grep -qE "^[[:space:]]*user_allow_other" "$f" || printf "user_allow_other\n" >> "$f"
+echo "   user_allow_other in /etc/fuse.conf staat aan."
+BINNENEOF
+pct push "$CTID" "$BINNEN" /root/akkoordkast-drive-voorbereiden.sh --perms 700 >/dev/null
+if ! pct exec "$CTID" -- bash /root/akkoordkast-drive-voorbereiden.sh; then
+  pct exec "$CTID" -- rm -f /root/akkoordkast-drive-voorbereiden.sh >/dev/null 2>&1 || true
+  rm -f "$BINNEN"
+  stop "De voorbereiding in de container lukte niet; zie de regels hierboven."
+fi
+pct exec "$CTID" -- rm -f /root/akkoordkast-drive-voorbereiden.sh >/dev/null 2>&1 || true
+rm -f "$BINNEN"
+
+# --- controle ------------------------------------------------------------------
+zeg "== Controle in de container"
+if ! pct exec "$CTID" -- bash -c "test -e /dev/fuse && command -v rclone >/dev/null 2>&1 && command -v fusermount3 >/dev/null 2>&1"; then
+  stop "De controle vond een ontbrekend onderdeel (zoals /dev/fuse); zie de regels hierboven."
+fi
+zeg "   /dev/fuse: aanwezig"
+pct exec "$CTID" -- rclone version | head -1 | sed 's/^/   /'
+zeg "   fuse: aanwezig"
+
+cat <<KLAAR
+
+==============================================================
+ Eenmalige voorbereiding klaar
+==============================================================
+ Ga nu in AkkoordKast zelf verder:
+   1. Open de app en kies het profiel Admin (inloggen).
+   2. Ga naar Toevoegen -> Downloaden als mp3 -> Cloudopslag koppelen.
+   3. Op een computer met een browser: draai  rclone authorize "drive"
+      (of "onedrive"), log in, en plak de sleutel in de app.
+   4. Kies de map in de cloud (bijvoorbeeld Muziek) en druk op Koppelen.
+
+ Later controleren kan met:
+   pct exec $CTID -- mountpoint -q /home/akkoordkast/muziek && echo gekoppeld
+==============================================================
+KLAAR

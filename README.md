@@ -72,6 +72,7 @@ de handleiding in de app zelf (knop **Handleiding openen**) · [installeren op P
 | ![start/stop](docs/img/start-stop.png) | **Start en stop bij het spelen** — naast de speler staan twee gewone knoppen (Start en Stop) met de stand ernaast; Stop zet de muziek ook echt terug naar het begin. |
 | ![tekst](docs/img/liedjestekst-bij-opname.png) | **De liedjestekst erbij** — lijkt de bestandsnaam op een liedje uit de bibliotheek, dan krijg je de tekst van dat liedje erbij te lezen, met de akkoorden uit jouw opname erboven. |
 | ![downloadbestemming](docs/img/akkoordkast-downloadbestemming-nov-2026.png) | **Waar downloads worden bewaard** — kies als beheerder een lokale map, je NAS of een vooraf gemounte Drive/OneDrive-map; de keuze blijft staan en geldt alleen voor nieuwe downloads. |
+| ![cloudkoppeling](docs/img/akkoordkast-cloudkoppeling-gekoppeld-nov-2026.png) | **Cloudopslag koppelen** — hang je Google Drive of OneDrive in één keer aan de app: sleutel plakken, map kiezen, koppelen; de app houdt de verbinding in de gaten (valt hij weg, dan komt hij terug) en zet hem met één klik als muziekmap of downloadbestemming. |
 
 ## Rondleiding door de app
 
@@ -208,6 +209,7 @@ Het toevoeggereedschap zit in een **eigen profiel** (`Admin`), niet in je gewone
 | Liedjes uit de app halen (eigen liedjes echt, meegeleverde verbergen) | beheerder |
 | Filters beheren: talen en genres toevoegen, weghalen en liedjes eraan koppelen | beheerder |
 | Waar nieuwe downloads worden bewaard (lokale map, NAS of gemounte Drive/OneDrive) | beheerder |
+| Cloudopslag koppelen (Google Drive of OneDrive): aanmelden, koppelen en losmaken | beheerder |
 | Back-up, wachter, bijwerken, Spotify-sleutels | beheerder |
 
 **Je eigen bladmuziek.** In de kaart van een liedje kun je als beheerder je eigen foto of PDF van het
@@ -244,8 +246,9 @@ gebruiken.
 blok **Waar downloads worden bewaard**: kies een beschikbare lokale map, een NAS-koppeling of een
 vooraf gemounte Google Drive/OneDrive-map (via rclone) en druk op **Deze map gebruiken**. De keuze
 blijft na een herstart staan en geldt alleen voor nieuwe downloads; bestaande muziek wordt niet
-verplaatst. Het menu regelt géén OAuth of mount: een cloudmap moet in de LXC al gekoppeld en
-schrijfbaar zijn (daar is `deploy/proxmox/drive-koppelen.sh` voor). Valt de expliciet gekozen map weg
+verplaatst. Het menu logt zelf niet in; voor cloudopslag gebruik je het blok **Cloudopslag koppelen**
+eronder — dat zet de koppeling op en houdt hem in de gaten (de oudere route met
+`deploy/proxmox/drive-koppelen.sh` blijft bestaan). Valt de expliciet gekozen map weg
 of is hij niet schrijfbaar, dan **stopt een nieuwe download met een duidelijke melding** — hij valt
 niet stilzwijgend terug op lokale opslag.
 
@@ -526,6 +529,7 @@ Twee hulpscripts horen erbij:
 | [`deploy/proxmox/nas-koppelen-lxc.sh`](deploy/proxmox/nas-koppelen-lxc.sh) | op de **Proxmox-host**, als root | zet fuse in de container en laat de container de NAS zelf koppelen (route 1b) |
 | [`deploy/proxmox/nas-mount-lxc.sh`](deploy/proxmox/nas-mount-lxc.sh) | **in de container**, als root | het containerdeel van route 1b: rclone koppelt de NAS-share |
 | [`deploy/proxmox/drive-koppelen.sh`](deploy/proxmox/drive-koppelen.sh) | **in de container**, als root | koppelt Google Drive met rclone, als systemd-dienst met een controletimer |
+| [`deploy/proxmox/drive-koppelen-lxc.sh`](deploy/proxmox/drive-koppelen-lxc.sh) | op de **Proxmox-host**, als root | zet fuse door naar de container en installeert rclone en fuse3 — de eenmalige voorbereiding voor **Cloudopslag koppelen** in de app |
 
 ### Route 1: een NAS in hetzelfde netwerk
 
@@ -631,6 +635,10 @@ het verschil niet.
    dit ook zelf als je `NAS_PROTO=nfs` meegeeft, in plaats van iets te proberen wat niet kan.
 
 ### Route 2: Google Drive
+
+> Kan sinds 1.57.0 ook gewoon **in de app**: *Toevoegen → Downloaden als mp3 → Cloudopslag koppelen*.
+> Zet eenmalig fuse en rclone klaar op de host met `deploy/proxmox/drive-koppelen-lxc.sh`; daarna is het
+> plakken en klikken. De stappen hieronder blijven bestaan voor wie het liever zelf doet.
 
 1. In de container, als root:
    ```bash
@@ -939,8 +947,8 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 338 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
-                                    # setlists, akkoordenboek, de wachter en de deploy-scripts
+node --test test/*.test.js          # 350 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+                                    # setlists, akkoordenboek, de wachter, de cloudkoppeling en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL
 ```

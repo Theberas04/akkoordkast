@@ -1095,6 +1095,14 @@
 
   <!-- ------------------------------------------------------------- leren -->
   <section id="paneel-leren" class="paneel">
+    <div class="kaart" id="weetje-kaart">
+      <div class="rij" style="justify-content:space-between">
+        <h3 style="margin:0">Weetje van de dag <span class="les-klein" id="weetje-datum"></span></h3>
+        <span class="pilletje" id="weetje-teller"></span>
+        <button class="knop zacht" id="weetje-nog" title="Bekijk het volgende weetje uit de lijst">Nog een weetje</button>
+      </div>
+      <p id="weetje-tekst" style="margin:8px 0 0"></p>
+    </div>
     <div class="kaart">
       <div class="leren-kop">
         <div>
@@ -2101,6 +2109,7 @@
 <script src="/lib/sessie.js"></script>
 <script src="/lib/motiefjes.js"></script>
 <script src="/lib/showplan.js"></script>
+<script src="/lib/weetjes.js"></script>
 <script>
 'use strict';
 var staat = {
@@ -9928,6 +9937,48 @@ $('showplan-inhoud').addEventListener('input', function (ev) {
 ['showplan-start', 'showplan-praatje', 'showplan-slot'].forEach(function (veld) {
   $(veld).addEventListener('input', showplanHerreken);
 });
+
+// ---------------------------------------------------------------- weetje ---
+// Weetje van de dag: elke dag een ander weetje over gitaar, muziek en liedjes. De dag bepaalt welk
+// weetje je het eerst ziet; "Nog een weetje" schuift door de lijst. De stand staat per toestel
+// (localStorage) en begint vanzelf opnieuw als er een nieuwe dag is. De weetjes zelf staan in
+// lib/weetjes.js.
+var WEETJE_SLEUTEL = 'akkoordkast-weetje';
+
+function weetjeDatumSleutel() {
+  var n = new Date();
+  return n.getFullYear() + '-' + (n.getMonth() + 1 < 10 ? '0' : '') + (n.getMonth() + 1) + '-' +
+    (n.getDate() < 10 ? '0' : '') + n.getDate();
+}
+
+function leesWeetjeStand() {
+  try { return JSON.parse(localStorage.getItem(WEETJE_SLEUTEL) || 'null'); } catch (e) { return null; }
+}
+
+function weetjeToon() {
+  var n = new Date();
+  var vandaag = weetjeDatumSleutel();
+  var stand = leesWeetjeStand();
+  if (!stand || stand.datum !== vandaag) stand = { datum: vandaag, verspringing: 0 };
+  var w = weetjesRekenen.weetjeVanDag(n.getFullYear(), n.getMonth() + 1, n.getDate(), stand.verspringing);
+  $('weetje-datum').textContent = n.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' });
+  $('weetje-tekst').textContent = w.tekst;
+  $('weetje-teller').textContent = 'weetje ' + (w.index + 1) + ' van ' + w.totaal +
+    (stand.verspringing ? ' · doorgeschoven' : '');
+  try { localStorage.setItem(WEETJE_SLEUTEL, JSON.stringify(stand)); } catch (e) {}
+}
+
+function weetjeVolgende() {
+  var vandaag = weetjeDatumSleutel();
+  var stand = leesWeetjeStand();
+  if (!stand || stand.datum !== vandaag) stand = { datum: vandaag, verspringing: 0 };
+  stand.verspringing++;
+  try { localStorage.setItem(WEETJE_SLEUTEL, JSON.stringify(stand)); } catch (e) {}
+  weetjeToon();
+}
+
+$('weetje-nog').addEventListener('click', weetjeVolgende);
+weetjeToon();
 
 // ---------------------------------------------------------------- laden ---
 var lerenGeladen = false;

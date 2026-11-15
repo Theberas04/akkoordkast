@@ -78,6 +78,7 @@ FILES=(
   "lib/sessie.js"
   "lib/motiefjes.js"
   "lib/showplan.js"
+  "lib/weetjes.js"
   "lib/voorstel.js"
   "lib/lessen-uitgebreid.js"
   "lib/overgangen.js"

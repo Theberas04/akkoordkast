@@ -3,6 +3,17 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.66.0] — 15 november 2026
+
+### Weetje van de dag
+
+- Bovenaan het tabblad **Leren** staat nu een kaart **Weetje van de dag**: 73 weetjes over
+  gitaarspelen, muziektheorie en liedjes, elke dag een andere. Dezelfde dag geeft hetzelfde weetje,
+  met de datum erbij.
+- Met **Nog een weetje** schuif je door de lijst; die keuze blijft de rest van de dag bewaard (per
+  toestel) en begint morgen weer bij het weetje van die dag.
+- De weetjes staan in `lib/weetjes.js` (met eigen proeven) en werken zonder internet.
+
 ## [1.65.0] — 15 november 2026
 
 ### Showplan met speeltijden

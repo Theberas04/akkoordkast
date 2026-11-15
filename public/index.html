@@ -11002,8 +11002,15 @@ document.addEventListener('visibilitychange', function () {
 });
 
 if (navigator.serviceWorker) {
-  
-navigator.serviceWorker.register('/sw.js').catch(function () {});
+  // De schil inschrijven mét de versie (het commit-nummer) erachter: /sw.js kan anders uren in
+  // de cache van Cloudflare blijven hangen, waardoor een toestel de nieuwe app pas veel later
+  // ophaalt. Met de versie in het adres haalt de browser de nieuwe schil meteen op.
+  var schilInschrijven = function (v) {
+    navigator.serviceWorker.register('/sw.js' + (v ? '?v=' + encodeURIComponent(v) : '')).catch(function () {});
+  };
+  fetch('/api/versie?r=' + Date.now()).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+    schilInschrijven(d && d.commit ? d.commit : '');
+  }).catch(function () { schilInschrijven(''); });
 }
 </script>
 </body>

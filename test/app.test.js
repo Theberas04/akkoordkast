@@ -81,6 +81,14 @@ test('iedere id in de pagina is uniek', async () => {
   assert.deepEqual([...new Set(dubbel)], [], 'dubbele ids: ' + dubbel.join(', '));
 });
 
+test('de service worker wordt met de versie ingeschreven (langs Cloudflare-caches)', async () => {
+  const html = await haal(omgeving.basis, '/');
+  assert.match(html.data, /register\('\/sw\.js' \+ \(v \? '\?v=' \+ encodeURIComponent\(v\) : ''\)\)/,
+    'de schil hoort met een versie in het adres ingeschreven te worden');
+  assert.match(html.data, /fetch\('\/api\/versie\?r=' \+ Date\.now\(\)\)/,
+    'de versie hoort vers (met een tijdstempel) opgehaald te worden');
+});
+
 test('de PWA-assets worden geserveerd met het juiste type', async () => {
   const verwacht = {
     '/manifest.webmanifest': /manifest\+json/,

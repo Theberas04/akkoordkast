@@ -3,6 +3,15 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.68.1] — 15 november 2026
+
+### Een bijwerking komt nu meteen door
+
+- De app schrijft zijn app-schil (de service worker) in mét de versie erachter. Cloudflare bleek
+  `/sw.js` soms uren in zijn eigen cache te bewaren, waardoor een toestel na een bijwerking nog de
+  oude pagina kon blijven tonen. Met de versie in het adres haalt de browser de nieuwe schil meteen
+  op zodra er een nieuwe pagina is. Verder verandert er niets aan de app.
+
 ## [1.68.0] — 15 november 2026
 
 ### Verzoekjes

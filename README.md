@@ -1040,12 +1040,12 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 415 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+node --test test/*.test.js          # 416 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
                                     # setlists, de offline-setlist en het liedboek offline, de slimme
                                     # oefensessie, nazingen, opnemen met begeleiding, de jukebox,
                                     # het showplan, het weetje van de dag, de weergavekeuze, de
-                                    # verzoekjes, akkoordenboek, de wachter, de cloudkoppelingen en
-                                    # de deploy-scripts
+                                    # verzoekjes, akkoordenboek, de wachter, de cloudkoppelingen,
+                                    # de schil-inschrijving en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL
 ```

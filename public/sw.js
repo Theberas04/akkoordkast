@@ -5,7 +5,7 @@
 // alleen wat je zélf klaarzette, komt uit de voorraad (en wordt bij nieuwere data bijgewerkt).
 importScripts('/lib/offline.js');
 
-const CACHE = 'akkoordkast-v99';
+const CACHE = 'akkoordkast-v100';
 // Deze bestanden komen ALTIJD eerst van de server. Ze zijn klein, en zo zie je na een bijwerking meteen
 // de nieuwe versie in plaats van de oude uit de cache - dat kostte eerder een tweede keer laden, waardoor
 // een melding die al weg was toch bleef staan.

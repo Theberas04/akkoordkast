@@ -36,8 +36,8 @@ test('de bewaar-strategie per adres: muziek en beelden eerst uit de voorraad, ge
   assert.equal(offline.politiekVoor('/api/setlists/3/overgangen'), 'netwerk-eerst');
   assert.equal(offline.politiekVoor('/api/profielen'), 'netwerk-eerst');
   assert.equal(offline.politiekVoor('/api/versie'), 'netwerk-eerst');
-  // Alles wat er niet bij hoort, houdt het gewone gedrag (onderdelen van de schil, losse routes).
-  assert.equal(offline.politiekVoor('/api/liedjes'), null);
+  // De liedlijst hoort erbij (het hele liedboek offline); de rest van de losse routes niet.
+  assert.equal(offline.politiekVoor('/api/liedjes'), 'netwerk-eerst');
   assert.equal(offline.politiekVoor('/api/artiesten'), null);
   assert.equal(offline.politiekVoor('/index.html'), null);
 });
@@ -135,6 +135,48 @@ test('opruimen laat adressen staan die een andere setlist nog nodig heeft', () =
   assert.deepEqual(offline.opruimUrls(alle, 9), []);
 });
 
+test('heel het liedboek: alle liedjes leveren samen één adressenlijst op, zonder dubbelen', () => {
+  const lied1 = { id: 1, tempo: 100, capo: 0, transpositie: 0, audio: { preview: '/api/audio/preview?liedje=1&capo=0&transpose=0&tempo=100' } };
+  const lied2 = { id: 2, tempo: 90, capo: 2, transpositie: 0, audio: { preview: '/api/audio/preview?liedje=2&capo=2&transpose=0&tempo=90' } };
+  const urls = offline.urlsVoorBoek([lied1, lied2], { eigen: false });
+  assert.ok(urls.indexOf('/api/liedjes/1?') !== -1 && urls.indexOf('/api/liedjes/2?') !== -1);
+  assert.ok(urls.indexOf('/api/meespelen/audio?liedje=1&capo=0&transpose=0&tempo=100&aftellen=1&klik=0') !== -1);
+  assert.ok(urls.indexOf('/api/meespelen/audio?liedje=2&capo=2&transpose=0&tempo=90&aftellen=1&klik=0') !== -1);
+  assert.equal(urls.length, new Set(urls).size, 'geen dubbelen');
+  assert.deepEqual(offline.urlsVoorBoek(null), []);
+});
+
+test('de liedlijst van de app wordt per pagina bewaard, onder het adres dat de app vraagt', () => {
+  assert.equal(offline.liedjesLijstUrl(0), '/api/liedjes?compact=1&vanaf=0&aantal=200');
+  assert.equal(offline.liedjesLijstUrl(200), '/api/liedjes?compact=1&vanaf=200&aantal=200');
+});
+
+test('de boek-voorraad heeft een eigen sleutel en overleeft het opruimen van een setlist', () => {
+  const winkel = nepWinkel();
+  offline.bewaarMeta(winkel, { id: 4, naam: 'Kroeg', aantal: 2, bytes: 1, urls: ['/api/liedjes/7?', 'G'], moment: '2026-11-15T20:00:00.000Z' });
+  offline.bewaarMeta(winkel, { id: offline.BOEK_ID, naam: 'Heel het liedboek', aantal: 2, bytes: 1,
+    urls: ['/api/liedjes?compact=1&vanaf=0&aantal=200', '/api/liedjes/7?', 'H'], moment: '2026-11-15T21:00:00.000Z' });
+  const alle = offline.leesAlleMetas(winkel);
+  assert.equal(alle.length, 2);
+  assert.equal(offline.leesMeta(winkel, 'boek').naam, 'Heel het liedboek');
+  // De setlist weghalen raakt het liedboek niet: de liedlijst en de liedkaart blijven staan.
+  assert.deepEqual(offline.opruimUrls(alle, 4), ['G']);
+  // Het liedboek weghalen raakt de setlist niet: alleen wat nergens anders bij hoort gaat weg.
+  assert.deepEqual(offline.opruimUrls(alle, 'boek'), ['/api/liedjes?compact=1&vanaf=0&aantal=200', 'H']);
+});
+
+test('een bewaarde liedlijst beantwoordt alleen een ongefilterde pagina-vraag', () => {
+  const lijst = ['http://doos:8080/api/liedjes?compact=1&vanaf=0&aantal=200'];
+  const kaleVraag = 'http://doos:8080/api/liedjes?compact=1&vanaf=0&aantal=24';
+  assert.equal(offline.terugvalSleutel(kaleVraag, lijst), lijst[0]);
+  assert.equal(offline.terugvalSleutel(kaleVraag + '&zoek=kerst', lijst), null, 'een zoekvraag krijgt nooit zomaar de hele lijst');
+  assert.equal(offline.terugvalSleutel('http://doos:8080/api/liedjes?compact=1&vanaf=200&aantal=24', lijst), null,
+    'zonder bewaarde pagina 2 geen antwoord');
+  const paginas = lijst.concat(['http://doos:8080/api/liedjes?compact=1&vanaf=200&aantal=200']);
+  assert.equal(offline.terugvalSleutel('http://doos:8080/api/liedjes?compact=1&vanaf=200&aantal=24', paginas), paginas[1]);
+  assert.equal(offline.terugvalSleutel('http://doos:8080/api/liedjes/7?', lijst), null, 'een liedkaart valt niet terug op de lijst');
+});
+
 test('groottes in gewone taal', () => {
   assert.equal(offline.grootteTekst(0), '0 kB');
   assert.equal(offline.grootteTekst(812 * 1024), '812 kB');
@@ -156,7 +198,7 @@ test('de service worker gebruikt de offline-voorraad en gooit hem niet weg', () 
   assert.ok(sw.includes('politiekVoor'), 'de sw hoort per adres te kiezen hoe hij uitlevert');
   assert.ok(sw.includes('terugvalSleutel'), 'de sw hoort een net-anders-vraag op de bewaarde versie te laten vallen');
   assert.ok(sw.includes("'/lib/offline.js'"), 'de offline-rekenkunde hoort in de schil te zitten');
-  assert.ok(!sw.includes("'akkoordkast-v96'"), 'de cacheversie hoort opgehoogd te zijn');
+  assert.ok(!sw.includes("'akkoordkast-v99'"), 'de cacheversie hoort opgehoogd te zijn');
 });
 
 test('de setlistkaart heeft de offline-knoppen en de uitleg', () => {
@@ -169,4 +211,12 @@ test('de setlistkaart heeft de offline-knoppen en de uitleg', () => {
   assert.ok(html.includes('zonder wifi'), 'de uitleg hoort het podium te noemen');
   assert.ok(html.includes('<script src="/lib/offline.js"></script>'), 'de rekenkunde hoort in de pagina geladen te worden');
   assert.ok(html.includes('function zetOfflineSetlistKlaar('), 'de klaarzethulp hoort te bestaan');
+  assert.ok(html.includes('id="boek-offline"'), 'de knop voor het hele liedboek');
+  assert.ok(html.includes('id="boek-offline-wis"'), 'de wis-knop van het liedboek');
+  assert.ok(html.includes('id="boek-offline-status"'), 'de statusregel van het liedboek');
+  assert.ok(html.includes('id="boek-offline-melding"'), 'de meldingen van het liedboek');
+  assert.ok(html.includes('Heel het liedboek'), 'de kaart hoort gewone taal te spreken');
+  assert.ok(html.includes('function zetOfflineKlaar('), 'de gedeelde klaarzethulp hoort te bestaan');
+  assert.ok(html.includes('function wisOfflineKlaar('), 'de gedeelde wishulp hoort te bestaan');
+  assert.ok(html.includes('offlineRekenen.BOEK_ID'), 'de pagina hoort de boek-sleutel te gebruiken');
 });

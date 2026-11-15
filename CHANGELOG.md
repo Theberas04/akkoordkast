@@ -3,6 +3,20 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.61.0] — 15 november 2026
+
+### Heel het liedboek offline
+
+- Nieuwe kaart **Heel het liedboek offline** (tabblad Liedjes): zet in één klik **alle liedjes** op dit
+  toestel — de liedlijst, de liedkaarten met de grepen, de bladmuziek en de begeleiding. Daarna werkt
+  het hele liedboek zonder wifi: onderweg of op een podium zonder verbinding.
+- De schakelaar bepaalt of **je eigen muziek- en opnamebestanden** ook meegaan; **Offline wissen**
+  haalt de voorraad van dit toestel en laat losse offline-setlists staan.
+- Het klaarzetten toont de voortgang, is te onderbreken (nog een keer op de knop) en wat al binnen is
+  blijft bewaard. De voorraad overleeft een app-bijwerking, net als bij de offline-setlist.
+- Zonder verbinding komt de liedlijst uit de voorraad en speelt elk klaargezet liedje door; zoeken en
+  filteren hebben de server nodig. Opruimen raakt nooit adressen die een andere voorraad nog nodig heeft.
+
 ## [1.60.0] — 15 november 2026
 
 ### Twee cloudkoppelingen naast elkaar

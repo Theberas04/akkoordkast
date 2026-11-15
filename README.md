@@ -74,6 +74,7 @@ de handleiding in de app zelf (knop **Handleiding openen**) · [installeren op P
 | ![downloadbestemming](docs/img/akkoordkast-downloadbestemming-nov-2026.png) | **Waar downloads worden bewaard** — kies als beheerder een lokale map, je NAS of een vooraf gemounte Drive/OneDrive-map; de keuze blijft staan en geldt alleen voor nieuwe downloads. |
 | ![cloudkoppeling](docs/img/akkoordkast-cloudkoppeling-gekoppeld-nov-2026.png) | **Cloudopslag koppelen** — hang je Google Drive of OneDrive in één keer aan de app: sleutel plakken, map kiezen, koppelen; de app houdt de verbinding in de gaten (valt hij weg, dan komt hij terug) en zet hem met één klik als muziekmap of downloadbestemming. |
 | ![offline setlist](docs/img/akkoordkast-offline-setlist-nov-2026.png) | **Setlist offline klaarzetten** — neem je setlist mee naar een podium zonder wifi: teksten, grepen, bladmuziek en de begeleiding worden op het toestel bewaard en spelen gewoon door als er geen verbinding meer is. |
+| ![liedboek offline](docs/img/akkoordkast-liedboek-offline-nov-2026.png) | **Heel het liedboek offline** — zet in één klik álle liedjes op dit toestel: de liedlijst, teksten, grepen, bladmuziek en de begeleiding; daarna werkt het hele liedboek zonder wifi. |
 | ![slimme oefensessie](docs/img/akkoordkast-sessie-nov-2026.png) | **Slimme oefensessie** — de app stelt uit je oefencijfers en je liedjes een sessie samen: opwarmen, iets dat je lang niet deed, een uitdaging en een afsluiter; elk blok heeft een knop om meteen te spelen. |
 | ![twee koppelingen](docs/img/akkoordkast-cloud-twee-nov-2026.png) | **Twee cloudkoppelingen naast elkaar** — bijvoorbeeld Google Drive voor je muziek en OneDrive voor de back-up; elk met een eigen sleutel, een eigen map en een eigen waker, en losmaken van de ene raakt de andere niet. |
 
@@ -192,6 +193,8 @@ in plaats van wav. Geen npm-afhankelijkheden.
   door: groot beeld, alleen het liedje van nu, met de knoppen om verder te gaan en een pauzeklok.
 - **Een setlist offline klaarzetten.** Voor een podium zonder wifi bewaart het toestel de liedjes,
   de begeleiding en je bladmuziek van één setlist; daarna speelt alles gewoon door zonder verbinding.
+  Op dezelfde manier zet je in één klik **het hele liedboek** offline (zie *Zet je setlist offline
+  klaar*).
 - **Een slimme oefensessie.** Het tabblad Leren stelt uit je oefencijfers en je liedjes een sessie
   samen: even inkomen, iets dat je lang niet deed, een uitdaging en een afsluiter — jij kiest alleen
   hoe lang.
@@ -789,7 +792,17 @@ in de kop zie je dan *geen verbinding* staan, en verder merk je er niets van.
 - Het klaarzetten gebeurt per toestel en toont de voortgang; de begeleiding maken kan per liedje een
   paar seconden duren. Stoppen kan altijd — wat al binnen is blijft bewaard.
 
+**Heel het liedboek in één keer.** Op de kaart *Heel het liedboek offline* (in hetzelfde tabblad) doe je
+hetzelfde voor álle liedjes: de hele liedlijst, de teksten, de grepen, de bladmuziek en de begeleiding
+komen op dit toestel te staan. Handig onderweg of als je nooit precies weet wat je gaat spelen. Het is
+wel even werk en het kost meer ruimte dan één setlist. Zonder verbinding blader je gewoon door de
+bewaarde lijst en speelt elk liedje door; zoeken en filteren hebben de server nodig. Een losse
+offline-setlist en het liedboek laten elkaar met rust: opruimen haalt alleen weg wat nergens anders
+meer bij hoort.
+
 ![Setlist offline klaar](docs/img/akkoordkast-offline-setlist-nov-2026.png)
+
+![Heel het liedboek offline](docs/img/akkoordkast-liedboek-offline-nov-2026.png)
 
 ## Meespelen met de muziek van het liedje
 
@@ -987,15 +1000,16 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 | Muziektheorie | `lib/theorie.js` (transponeren en toonsoort-spelling), `lib/capo.js` (advies), `lib/grepen.js` (grepen en SVG-diagrammen) |
 | Bladmuziek | `lib/chordpro.js` parseert ChordPro naar een renderbaar model |
 | Audio | `lib/gitaar.js` synthetiseert tokkels naar WAV; `ffmpeg` zet dat om naar mp3 en die wordt gecachet |
-| Offline | `lib/offline.js` bepaalt welke adressen een klaargezette setlist nodig heeft (en hoe een vraag die nét anders is de bewaarde versie vindt); `public/sw.js` levert die voorraad uit als er geen verbinding is |
+| Offline | `lib/offline.js` bepaalt welke adressen een klaargezette setlist (of het hele liedboek) nodig heeft (en hoe een vraag die nét anders is de bewaarde versie vindt); `public/sw.js` levert die voorraad uit als er geen verbinding is |
 | Oefensessie | `lib/sessie.js` kiest de blokken en de liedjes (opwarmen, herhalen, uitdaging, afsluiter) uit moeilijkheid, favorieten en de speelgeschiedenis |
 | Casten | `scripts/cast-helper.py` met pychromecast, door de server aangeroepen; de pagina praat nooit rechtstreeks met de Chromecast |
 
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 375 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
-                                    # setlists, de offline-setlist, de slimme oefensessie, akkoordenboek,
+node --test test/*.test.js          # 379 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+                                    # setlists, de offline-setlist en het liedboek offline, de slimme
+                                    # oefensessie, akkoordenboek,
                                     # de wachter, de cloudkoppelingen en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL

@@ -123,6 +123,7 @@ test('de service worker haalt de pagina echt van de server, ook als de cache hem
   const cacheMap = new Map();
   const cache = {
     put: async (verzoek, antwoord) => { cacheMap.set(String(verzoek.url || verzoek), antwoord); },
+    match: async verzoek => cacheMap.get(String(verzoek.url || verzoek)),
     addAll: async () => {}
   };
   const nepCaches = {
@@ -156,14 +157,26 @@ test('de service worker haalt de pagina echt van de server, ook als de cache hem
   assert.deepEqual(opgehaald, ['https://proef/'],
     'de pagina hoort bij de server opgehaald te worden, ook als hij in de cache zit');
 
-  // En de liedjes en het geluid blijven altijd live, nooit uit de cache.
+  // De liedlijst gaat sinds het liedboek-offline langs de service worker — maar netwerk-eerst:
+  // online komt hij van de server, en pas zonder verbinding uit wat je zélf klaarzette.
+  opgehaald = [];
+  let onderschept = false;
+  gevat.fetch({
+    request: { method: 'GET', url: 'https://proef/api/liedjes?compact=1&vanaf=0&aantal=24' },
+    respondWith: () => { onderschept = true; }
+  });
+  assert.equal(onderschept, true, 'de liedlijst hoort door de service worker te gaan (voor het liedboek offline)');
+  assert.deepEqual(opgehaald, ['https://proef/api/liedjes?compact=1&vanaf=0&aantal=24'],
+    'maar online wel gewoon van de server, niet uit de cache');
+
+  // De rest van de API en het geluid blijven altijd live, nooit uit de cache.
   opgehaald = [];
   let geen = 'niets';
   gevat.fetch({
-    request: { method: 'GET', url: 'https://proef/api/liedjes' },
+    request: { method: 'GET', url: 'https://proef/api/artiesten' },
     respondWith: () => { geen = 'onderschept'; }
   });
-  assert.equal(geen, 'niets', 'de liedjes horen niet door de service worker te gaan');
+  assert.equal(geen, 'niets', 'de overige routes horen niet door de service worker te gaan');
   assert.deepEqual(opgehaald, [], 'en dus ook niet uit een cache te komen');
 });
 

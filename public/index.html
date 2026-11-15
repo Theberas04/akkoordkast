@@ -1010,6 +1010,22 @@
       <div class="melding" id="setlist-melding" hidden></div>
       <div class="melding" id="setlist-offline-melding" hidden></div>
     </div>
+    <div class="kaart" id="boek-offline-kaart">
+      <h3>Heel het liedboek offline</h3>
+      <p class="les-klein" style="margin:0 0 10px">Zet in één keer <strong>alle liedjes</strong> op dit toestel —
+        teksten, grepen, bladmuziek en de begeleiding. Daarna werkt het hele liedboek zonder wifi: handig
+        onderweg of op een podium zonder verbinding. Het klaarzetten is wel even werk en het kost ruimte op
+        dit toestel; alleen de liedjes van één setlist klaarzetten kan ook (zie de setlistkaart hierboven).</p>
+      <div class="rij">
+        <button class="knop zacht" id="boek-offline" title="Bewaar alle liedjes op dit toestel, zodat ze ook zonder wifi spelen">Alles klaarzetten</button>
+        <button class="knop zacht" id="boek-offline-wis" hidden title="Haal de bewaarde liedjes van dit toestel">Offline wissen</button>
+        <span class="pilletje" id="boek-offline-status" hidden></span>
+      </div>
+      <div class="les-klein" style="margin-top:6px">
+        <label class="mees-schakel"><input id="boek-offline-eigen" type="checkbox" checked> eigen muziek- en opnamebestanden meenemen</label>
+      </div>
+      <div class="melding" id="boek-offline-melding" hidden></div>
+    </div>
   </section>
 
   <!-- ------------------------------------------------ spelen -->
@@ -2210,7 +2226,7 @@ function laadLiedjes(ververs) {
       (e && (e.name === 'TypeError' || /fetch|network/i.test(e.message || '')));
     if (geenVerbinding) {
       $('kop-aantal').textContent = 'geen verbinding';
-      toonMelding('lijst-melding', 'Je bent offline. Een setlist die je offline klaarzette, speelt gewoon door.', '');
+      toonMelding('lijst-melding', 'Je bent offline. Wat je offline klaarzette — een setlist of je hele liedboek — speelt gewoon door.', '');
     } else {
       toonMelding('lijst-melding', e.message, 'fout');
     }
@@ -2816,11 +2832,11 @@ function verwijderSetlist() {
   }).catch(function (e) { toonMelding('setlist-melding', e.message, 'fout'); });
 }
 
-// ------------------------------------------------------- offline-setlist ---
-// Een setlist op dit toestel klaarzetten voor een podium zonder wifi: de liedkaarten, de
-// bladmuziek en de begeleiding gaan in een eigen voorraad (Cache Storage); de service worker
-// deelt die straks uit. Welke adressen, groottes en terugvalregels daarbij horen staat in
-// lib/offline.js — hier gebeurt alleen het ophalen en bewaren.
+// ------------------------------------------------ offline: setlist en boek ---
+// Een setlist — of het hele liedboek — op dit toestel klaarzetten voor een podium zonder wifi:
+// de liedkaarten, de bladmuziek en de begeleiding gaan in een eigen voorraad (Cache Storage);
+// de service worker deelt die straks uit. Welke adressen, groottes en terugvalregels daarbij
+// horen staat in lib/offline.js — hier gebeurt alleen het ophalen en bewaren.
 var OFFLINE_SETLIST = { bezig: false, stop: false };
 
 function offlineKoppen() {
@@ -2848,29 +2864,66 @@ function offlineStatus(id) {
   }
 }
 
-function zetOfflineSetlistKlaar() {
+// De kaart "Heel het liedboek offline": dezelfde status, maar dan voor de boek-sleutel.
+function boekOfflineStatus() {
+  var vak = $('boek-offline-status');
+  if (!vak) return;
+  var wis = $('boek-offline-wis');
+  var knop = $('boek-offline');
+  var m = window.localStorage ? offlineRekenen.leesMeta(window.localStorage, offlineRekenen.BOEK_ID) : null;
+  if (m) {
+    vak.hidden = false;
+    vak.textContent = 'offline · ' + m.aantal + (m.aantal === 1 ? ' liedje' : ' liedjes') + ' · ' + offlineRekenen.grootteTekst(m.bytes);
+    var wanneer = '';
+    try { wanneer = new Date(m.moment).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }); } catch (e) { wanneer = ''; }
+    vak.title = 'Klaargezet op dit toestel' + (wanneer ? ' op ' + wanneer : '');
+    if (wis) wis.hidden = false;
+    if (knop && !OFFLINE_SETLIST.bezig) knop.textContent = 'Alles bijwerken';
+  } else {
+    vak.hidden = true;
+    if (wis) wis.hidden = true;
+    if (knop && !OFFLINE_SETLIST.bezig) knop.textContent = 'Alles klaarzetten';
+  }
+}
+
+function zetOfflineSetlistKlaar() { return zetOfflineKlaar('setlist'); }
+function zetOfflineBoekKlaar() { return zetOfflineKlaar('boek'); }
+
+function zetOfflineKlaar(soort) {
+  var isBoek = soort === 'boek';
+  var meldingId = isBoek ? 'boek-offline-melding' : 'setlist-offline-melding';
+  var knopId = isBoek ? 'boek-offline' : 'setlist-offline';
+  var eigenId = isBoek ? 'boek-offline-eigen' : 'setlist-offline-eigen';
   if (OFFLINE_SETLIST.bezig) {
     OFFLINE_SETLIST.stop = true;
-    toonMelding('setlist-offline-melding', 'Stoppen na wat al binnen is…', '');
+    toonMelding(meldingId, 'Stoppen na wat al binnen is…', '');
     return;
   }
   if (!window.caches) {
-    toonMelding('setlist-offline-melding', 'Deze browser kan geen setlist offline bewaren. Open de app via https of op localhost.', 'fout');
+    toonMelding(meldingId, isBoek
+      ? 'Deze browser kan het liedboek niet offline bewaren. Open de app via https of op localhost.'
+      : 'Deze browser kan geen setlist offline bewaren. Open de app via https of op localhost.', 'fout');
     return;
   }
-  var id = staat.setlist && staat.setlist.id;
-  if (!id) { toonMelding('setlist-offline-melding', 'Open eerst een setlist.', 'fout'); return; }
-  var metEigen = $('setlist-offline-eigen') ? $('setlist-offline-eigen').checked : false;
+  var id = isBoek ? offlineRekenen.BOEK_ID : (staat.setlist && staat.setlist.id);
+  if (!id) { toonMelding(meldingId, 'Open eerst een setlist.', 'fout'); return; }
+  var metEigen = $(eigenId) ? $(eigenId).checked : false;
   OFFLINE_SETLIST.bezig = true;
   OFFLINE_SETLIST.stop = false;
-  $('setlist-offline').textContent = 'Bezig… (tik om te stoppen)';
-  toonMelding('setlist-offline-melding', 'Bezig: de setlist wordt op dit toestel bewaard. De begeleiding maken kan per liedje een paar seconden duren.', '');
+  $(knopId).textContent = 'Bezig… (tik om te stoppen)';
+  toonMelding(meldingId, isBoek
+    ? 'Bezig: alle liedjes worden op dit toestel bewaard. Dit kan een tijdje duren — de begeleiding maken is per liedje even werk.'
+    : 'Bezig: de setlist wordt op dit toestel bewaard. De begeleiding maken kan per liedje een paar seconden duren.', '');
   var bytes = 0;
   var mislukt = [];
   var cache = null;
 
   var bewaar = function (url) {
     return fetch(url, { headers: offlineKoppen() }).then(function (r) {
+      // Een liedje waar de app geen begeleiding voor kan maken (bijv. geen bekende akkoorden)
+      // antwoordt hier met "bestaat niet"; dat is geen fout maar een liedje zonder begeleiding —
+      // overslaan, en niet in de voorraadadministratie zetten.
+      if (r.status === 400 || r.status === 404) return 'overgeslagen';
       if (!r.ok) throw new Error('status ' + r.status);
       var maat = Number(r.headers.get('content-length')) || 0;
       var kloon = r.clone();
@@ -2879,28 +2932,53 @@ function zetOfflineSetlistKlaar() {
         if (!maat) {
           return r.blob().then(function (b) { bytes += b.size; });
         }
+      }).then(function () { return 'bewaard'; });
+    }).catch(function () { mislukt.push(url); return 'mislukt'; });
+  };
+
+  // De liedlijst van de Liedjes-tab hoort er bij het liedboek ook bij: in stukken van 200 bewaren,
+  // elk onder het adres dat de app straks ook echt vraagt.
+  var bewaarLiedlijst = function (vanaf, paginas, ids) {
+    var url = offlineRekenen.liedjesLijstUrl(vanaf);
+    return fetch(url, { headers: offlineKoppen() }).then(function (r) {
+      if (!r.ok) throw new Error('De liedlijst kon niet gelezen worden (status ' + r.status + ').');
+      var maat = Number(r.headers.get('content-length')) || 0;
+      var kloon = r.clone();
+      return r.json().then(function (d) {
+        return cache.put(url, kloon).then(function () {
+          bytes += maat;
+          paginas.push(url);
+          (d.liedjes || []).forEach(function (l) { ids.push(l.id); });
+          if (d.meer) return bewaarLiedlijst(vanaf + (Number(d.aantal) || 200), paginas, ids);
+          return { paginas: paginas, ids: ids };
+        });
       });
-    }).catch(function () { mislukt.push(url); });
+    });
   };
 
   caches.open(offlineRekenen.CACHE).then(function (c) {
     cache = c;
-    return fetch('/api/setlists/' + id, { headers: { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' } });
-  }).then(function (r) {
-    if (!r.ok) throw new Error('De setlist kon niet gelezen worden.');
-    var kloon = r.clone();
-    return r.json().then(function (d) {
-      return cache.put('/api/setlists/' + id, kloon).then(function () { return d; });
-    });
-  }).then(function (beeld) {
+    if (isBoek) return bewaarLiedlijst(0, [], []);
+    return fetch('/api/setlists/' + id, { headers: { 'x-profiel': String(actiefProfiel()), 'x-akkoordkast': 'app' } })
+      .then(function (r) {
+        if (!r.ok) throw new Error('De setlist kon niet gelezen worden.');
+        var kloon = r.clone();
+        return r.json().then(function (d) {
+          return cache.put('/api/setlists/' + id, kloon).then(function () { return d; });
+        });
+      });
+  }).then(function (bron) {
     // Eerst alle liedkaarten: die vertellen welke begeleiding, bladmuziek en muziek erbij horen.
-    var rijen = (beeld && beeld.liedjes) || [];
+    var rijen = isBoek
+      ? (bron.ids || []).filter(function (x, i, alle) { return alle.indexOf(x) === i; }).map(function (x) { return { id: x }; })
+      : ((bron && bron.liedjes) || []);
+    var naam = isBoek ? 'Heel het liedboek' : ((bron && bron.naam) || '');
     var liedkaarten = [];
     var keten = Promise.resolve();
     rijen.forEach(function (rij, i) {
       keten = keten.then(function () {
         if (OFFLINE_SETLIST.stop) return;
-        toonMelding('setlist-offline-melding', 'Bezig: lied ' + (i + 1) + ' van ' + rijen.length + ' ophalen…', '');
+        toonMelding(meldingId, 'Bezig: lied ' + (i + 1) + ' van ' + rijen.length + ' ophalen…', '');
         var url = offlineRekenen.liedjeUrl(rij.id);
         return fetch(url, { headers: offlineKoppen() }).then(function (r) {
           if (!r.ok) throw new Error('status ' + r.status);
@@ -2915,13 +2993,22 @@ function zetOfflineSetlistKlaar() {
       // Daarna alle adressen: begeleiding, bladmuziek, meespelen — en je eigen muziek als je wilt.
       // De profielenlijst, de setlistenlijst en het overgangenadvies horen er ook bij, zodat de
       // kaart en het optreden offline precies zo werken als gewoon.
-      var urls = ['/api/versie', '/api/profielen', '/api/setlists', '/api/setlists/' + id, '/api/setlists/' + id + '/overgangen'];
-      liedkaarten.forEach(function (lied) {
-        offlineRekenen.urlsVoorLiedje(lied, { eigen: metEigen }).forEach(function (u) {
+      var urls = ['/api/versie', '/api/profielen', '/api/setlists'];
+      if (isBoek) {
+        urls = urls.concat(bron.paginas || []);
+        offlineRekenen.urlsVoorBoek(liedkaarten, { eigen: metEigen }).forEach(function (u) {
           if (urls.indexOf(u) < 0) urls.push(u);
         });
-      });
+      } else {
+        urls.push('/api/setlists/' + id, '/api/setlists/' + id + '/overgangen');
+        liedkaarten.forEach(function (lied) {
+          offlineRekenen.urlsVoorLiedje(lied, { eigen: metEigen }).forEach(function (u) {
+            if (urls.indexOf(u) < 0) urls.push(u);
+          });
+        });
+      }
       var klaar = 0;
+      var bewaardUrls = [];
       var keten2 = Promise.resolve();
       urls.forEach(function (u) {
         keten2 = keten2.then(function () {
@@ -2931,12 +3018,16 @@ function zetOfflineSetlistKlaar() {
             : u.indexOf('/api/meespelen/audio') === 0 ? 'de meespeelversie'
             : (u.indexOf('/api/muziek') === 0 || u.indexOf('/media/') === 0) ? 'je muziek'
             : 'de gegevens';
-          toonMelding('setlist-offline-melding', 'Bezig: ' + klaar + ' van ' + urls.length + ' onderdelen (' + wat + ').', '');
-          return bewaar(u);
+          toonMelding(meldingId, 'Bezig: ' + klaar + ' van ' + urls.length + ' onderdelen (' + wat + ').', '');
+          return bewaar(u).then(function (uitkomst) {
+            if (uitkomst === 'bewaard') bewaardUrls.push(u);
+          });
         });
       });
       return keten2.then(function () {
-        return { urls: urls, aantal: rijen.length, naam: (beeld && beeld.naam) || '' };
+        // In de administratie komt alleen wat er écht staat; overgeslagen onderdelen (liedjes
+        // zonder begeleiding) horen er niet in en leveren offline dus ook geen misse zoektocht op.
+        return { urls: bewaardUrls, aantal: rijen.length, naam: naam };
       });
     });
     return keten;
@@ -2966,28 +3057,37 @@ function zetOfflineSetlistKlaar() {
   }).then(function () {
     OFFLINE_SETLIST.bezig = false;
     if (OFFLINE_SETLIST.stop) {
-      toonMelding('setlist-offline-melding', 'Gestopt. Wat al binnen was, blijft bewaard — zet de setlist gerust nog eens klaar om hem af te maken.', '');
+      toonMelding(meldingId, 'Gestopt. Wat al binnen was, blijft bewaard — zet het gerust nog eens klaar om het af te maken.', '');
     } else if (mislukt.length) {
-      toonMelding('setlist-offline-melding', 'Bijna klaar: ' + mislukt.length + ' onderdelen konden niet meegenomen worden. Zet de setlist nog eens klaar om het recht te zetten.', 'fout');
+      toonMelding(meldingId, 'Bijna klaar: ' + mislukt.length + ' onderdelen konden niet meegenomen worden. Zet het nog eens klaar om het recht te zetten.', 'fout');
     } else {
       var m2 = offlineRekenen.leesMeta(window.localStorage, id);
       var aantal = m2 ? m2.aantal : 0;
-      toonMelding('setlist-offline-melding', 'Klaar: deze setlist speelt nu ook zonder wifi — ' + aantal + (aantal === 1 ? ' liedje' : ' liedjes') + ', ' + offlineRekenen.grootteTekst(bytes) + ' op dit toestel.', 'goed');
+      if (isBoek) {
+        toonMelding(meldingId, 'Klaar: je hele liedboek speelt nu ook zonder wifi — ' + aantal + ' liedjes, ' + offlineRekenen.grootteTekst(bytes) + ' op dit toestel.', 'goed');
+      } else {
+        toonMelding(meldingId, 'Klaar: deze setlist speelt nu ook zonder wifi — ' + aantal + (aantal === 1 ? ' liedje' : ' liedjes') + ', ' + offlineRekenen.grootteTekst(bytes) + ' op dit toestel.', 'goed');
+      }
     }
-    offlineStatus(id);
+    if (isBoek) boekOfflineStatus(); else offlineStatus(id);
   }).catch(function (e) {
     OFFLINE_SETLIST.bezig = false;
-    toonMelding('setlist-offline-melding', e.message || 'Er ging iets mis.', 'fout');
-    offlineStatus(id);
+    toonMelding(meldingId, e.message || 'Er ging iets mis.', 'fout');
+    if (isBoek) boekOfflineStatus(); else offlineStatus(id);
   });
 }
 
-function wisOfflineSetlist() {
-  var id = staat.setlist && staat.setlist.id;
+function wisOfflineSetlist() { return wisOfflineKlaar('setlist'); }
+function wisOfflineBoek() { return wisOfflineKlaar('boek'); }
+
+function wisOfflineKlaar(soort) {
+  var isBoek = soort === 'boek';
+  var meldingId = isBoek ? 'boek-offline-melding' : 'setlist-offline-melding';
+  var id = isBoek ? offlineRekenen.BOEK_ID : (staat.setlist && staat.setlist.id);
   if (!id || !window.caches) return;
   var m = offlineRekenen.leesMeta(window.localStorage, id);
   if (!m) return;
-  if (!window.confirm('De bewaarde versie van "' + m.naam + '" van dit toestel halen?')) return;
+  if (!window.confirm('De bewaarde versie van "' + (m.naam || (isBoek ? 'het liedboek' : 'deze setlist')) + '" van dit toestel halen?')) return;
   caches.open(offlineRekenen.CACHE).then(function (cache) {
     var alles = offlineRekenen.leesAlleMetas(window.localStorage);
     var weg = offlineRekenen.opruimUrls(alles, id);
@@ -2995,10 +3095,10 @@ function wisOfflineSetlist() {
     weg.forEach(function (u) { keten = keten.then(function () { return cache.delete(u).catch(function () {}); }); });
     return keten.then(function () { offlineRekenen.wisMeta(window.localStorage, id); });
   }).then(function () {
-    offlineStatus(id);
-    toonMelding('setlist-offline-melding', 'De bewaarde versie is van dit toestel gehaald.', 'goed');
+    if (isBoek) boekOfflineStatus(); else offlineStatus(id);
+    toonMelding(meldingId, 'De bewaarde versie is van dit toestel gehaald.', 'goed');
   }).catch(function (e) {
-    toonMelding('setlist-offline-melding', e.message || 'Er ging iets mis.', 'fout');
+    toonMelding(meldingId, e.message || 'Er ging iets mis.', 'fout');
   });
 }
 
@@ -3165,6 +3265,8 @@ $('setlist-printen').addEventListener('click', printSetlist);
 $('setlist-verwijder').addEventListener('click', verwijderSetlist);
 $('setlist-offline').addEventListener('click', zetOfflineSetlistKlaar);
 $('setlist-offline-wis').addEventListener('click', wisOfflineSetlist);
+$('boek-offline').addEventListener('click', zetOfflineBoekKlaar);
+$('boek-offline-wis').addEventListener('click', wisOfflineBoek);
 
 // ---------------------------------------------------- liedje openen/spelen ---
 function openLiedje(id, opties) {
@@ -6598,6 +6700,7 @@ koppelMp3Tool();   // het gereedschap "Downloaden als mp3" in het tabblad Toevoe
 koppelReeks();     // en "Een hele artiest of afspeellijst"
 beheerVraag();   // wie is de beheerder? (bepaalt wat je in Toevoegen ziet)
 laadMijnSetlists();
+boekOfflineStatus();   // staat er al een liedboek-voorraad op dit toestel?
 laadWachter();
 laadAkkoordenboek();
 api('/api/instellingen').then(function (s) {

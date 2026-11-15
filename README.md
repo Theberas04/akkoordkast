@@ -573,10 +573,10 @@ Twee hulpscripts horen erbij:
 | Script | Waar het draait | Wat het doet |
 | --- | --- | --- |
 | [`deploy/proxmox/nas-koppelen.sh`](deploy/proxmox/nas-koppelen.sh) | op de **Proxmox-host**, als root | koppelt een NAS-map (SMB of NFS) en hangt die in de container |
-| [`deploy/proxmox/nas-koppelen-lxc.sh`](deploy/proxmox/nas-koppelen-lxc.sh) | op de **Proxmox-host**, als root | zet fuse in de container en laat de container de NAS zelf koppelen (route 1b) |
+| [`deploy/proxmox/nas-koppelen-lxc.sh`](deploy/proxmox/nas-koppelen-lxc.sh) | op de **Proxmox-host**, als root | zet het fuse-recht in de container en laat de container de NAS zelf koppelen (route 1b) |
 | [`deploy/proxmox/nas-mount-lxc.sh`](deploy/proxmox/nas-mount-lxc.sh) | **in de container**, als root | het containerdeel van route 1b: rclone koppelt de NAS-share |
 | [`deploy/proxmox/drive-koppelen.sh`](deploy/proxmox/drive-koppelen.sh) | **in de container**, als root | koppelt Google Drive met rclone, als systemd-dienst met een controletimer |
-| [`deploy/proxmox/drive-koppelen-lxc.sh`](deploy/proxmox/drive-koppelen-lxc.sh) | op de **Proxmox-host**, als root | zet fuse door naar de container en installeert rclone en fuse3 — de eenmalige voorbereiding voor **Cloudopslag koppelen** in de app |
+| [`deploy/proxmox/drive-koppelen-lxc.sh`](deploy/proxmox/drive-koppelen-lxc.sh) | op de **Proxmox-host**, als root | zet het fuse-recht (fuse=1) in de container en installeert rclone en fuse3 — de eenmalige voorbereiding voor **Cloudopslag koppelen** in de app |
 
 ### Route 1: een NAS in hetzelfde netwerk
 
@@ -1046,7 +1046,7 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 421 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+node --test test/*.test.js          # 422 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
                                     # setlists, de offline-setlist en het liedboek offline, de slimme
                                     # oefensessie, nazingen, opnemen met begeleiding, de jukebox,
                                     # het showplan, het weetje van de dag, de weergavekeuze, de

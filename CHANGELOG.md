@@ -3,6 +3,20 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.71.1] — 15 november 2026
+
+### De cloudkoppeling: het fuse-recht in de container
+
+- Een koppeling kon op sommige machines afketsen met **"fusermount: mount failed: Operation not
+  permitted"**. Oorzaak: de container miste het **fuse-recht** — de losse `/dev/fuse`-regel die het
+  hostscript neerzette was niet genoeg; PVE heeft ook een AppArmor-regel nodig die het koppelen
+  toestaat. Het hostcommando zet nu allebei in één keer goed (de vlag **`fuse=1`** in de
+  containeropties) en ruimt de oude losse regel op. Draai je het script opnieuw, dan regelt het
+  zichzelf; de container start daarbij één keer opnieuw op.
+- De app herkent deze fout nu en zegt er meteen bij wat je moet doen; de kaart toont dan ook het
+  hostcommando.
+- Hetzelfde fuse-recht is nu ook geregeld in het NAS-koppelscript (route 1b).
+
 ## [1.71.0] — 15 november 2026
 
 ### Verzoeknummers is nu een eigen tabblad

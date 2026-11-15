@@ -40,7 +40,7 @@ const CAST_HELPER = process.env.CAST_HELPER
   : path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.71.0';
+const VERSIE = '1.71.1';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -2045,7 +2045,18 @@ async function cloudKoppelAan(koppeling) {
     try { kind.kill('SIGTERM'); } catch (e) {}
     if (CLOUD_KIND[slot] === kind) CLOUD_KIND[slot] = null;
     const reden = String(fout || '').split('\n').map(r => r.trim()).filter(Boolean).slice(-2).join(' ');
-    return { ok: false, fout: 'De koppeling kwam niet op' + (reden ? ': ' + reden.slice(0, 240) : '. Probeer het nog een keer; blijft het misgaan, kijk dan op de machine met "journalctl -u akkoordkast -n 30".') };
+    // De bekende fuse-weigering ("fusermount: mount failed: Operation not permitted") komt doordat
+    // de container het fuse-recht nog mist; het hostcommando zet dat goed (fuse=1). Zeg dat erbij,
+    // en bewaar de melding zodat de kaart het hostcommando meteen kan tonen.
+    const fuseRecht = /fusermount/i.test(fout) && /(not permitted|denied)/i.test(fout);
+    const raad = fuseRecht
+      ? ' Het fuse-recht ontbreekt nog in de container: draai op je Proxmox-host het hostcommando uit dit blok opnieuw (dat zet fuse=1 in de container) en probeer het daarna weer.'
+      : '';
+    const bericht = 'De koppeling kwam niet op' +
+      (reden ? ': ' + reden.slice(0, 240) : '. Probeer het nog een keer; blijft het misgaan, kijk dan op de machine met "journalctl -u akkoordkast -n 30".') +
+      raad;
+    CLOUD_LAATSTE_FOUT[slot] = bericht;
+    return { ok: false, fout: bericht };
   }
   staat.aan = true;
   bewaarCloudKoppeling(staat);

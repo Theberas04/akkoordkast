@@ -15,7 +15,7 @@
 #   (dat mag alleen in de begingebruikersruimte van de host). Nas-koppelen.sh koppelt
 #   de map daarom op de host en hangt hem met een bind-mount in de container.
 #   Deze variant laat de container het zelf doen met fuse: op de host zetten we
-#   eenmalig /dev/fuse in de container, in de container koppelt rclone de NAS-share.
+#   eenmalig het fuse-recht (fuse=1) in de container, in de container koppelt rclone de NAS-share.
 #   Voordeel: geen map op de host, geen bind-mount, en de NAS is alleen voor deze
 #   container. Nadeel: rclone doet het lees- en schrijfwerk, dus voor heel grote
 #   mappen is de host-koppeling van nas-koppelen.sh sneller.
@@ -113,26 +113,43 @@ if command -v ping >/dev/null 2>&1; then
   fi
 fi
 
-# --- /dev/fuse in de container ------------------------------------------------
-zeg "== Fuse doorgeven aan container $CTID"
+# --- het fuse-recht in de container --------------------------------------------
+# Een koppeling is een gebruikersbestandssysteem (fuse): de container heeft /dev/fuse én de
+# AppArmor-regel nodig die het koppelen toestaat. PVE regelt dat allebei met de vlag 'fuse=1'
+# in de containeropties (features); zonder die vlag weigert de koppeling met
+# "fusermount: mount failed: Operation not permitted".
+zeg "== Het fuse-recht doorgeven aan container $CTID"
 kopie="$CONF.bak-$(date +%Y%m%d-%H%M%S)"
 cp -a "$CONF" "$kopie"
 zeg "   Oude configuratie bewaard als $kopie (terugzetten: cp $kopie $CONF)"
 
 veranderd=0
-if ! grep -q "c 10:229" "$CONF"; then
-  printf '%s\n' "lxc.cgroup2.devices.allow: c 10:229 rwm" >> "$CONF"
+if grep -q '^features:.*fuse=1' "$CONF"; then
+  zeg "   fuse=1 staat al in de containeropties."
+else
+  nieuw="fuse=1"
+  if grep -q '^features:' "$CONF"; then
+    bestaand="$(grep '^features:' "$CONF" | head -1 | sed 's/^features:[[:space:]]*//; s/[[:space:]]*$//')"
+    [ -n "$bestaand" ] && nieuw="$bestaand,fuse=1"
+  fi
+  pct set "$CTID" -features "$nieuw"
   veranderd=1
+  zeg "   fuse=1 toegevoegd (features: $nieuw)."
 fi
-if ! grep -q "dev/fuse" "$CONF"; then
-  printf '%s\n' "lxc.mount.entry: /dev/fuse dev/fuse none bind,create=file,optional 0 0" >> "$CONF"
+grep -q '^features:.*fuse=1' "$CONF" || stop "De vlag fuse=1 kwam niet in $CONF; kijk daar even naar."
+# De losse /dev/fuse-regel van eerdere versies van dit script is met fuse=1 dubbelop; opruimen.
+if grep -q '^lxc.mount.entry: /dev/fuse' "$CONF"; then
+  tijd="$(mktemp)"
+  grep -v '^lxc.mount.entry: /dev/fuse' "$CONF" > "$tijd"
+  cat "$tijd" > "$CONF"
+  rm -f "$tijd"
   veranderd=1
+  zeg "   Oude losse /dev/fuse-regel opgeruimd (fuse=1 regelt dat nu zelf)."
 fi
 
 if [ "$veranderd" = "1" ]; then
-  zeg "   Fuse toegevoegd aan $CONF."
   if [ "$HERSTART" = "ja" ]; then
-    zeg "   De container moet een keer opnieuw opstarten om /dev/fuse te krijgen."
+    zeg "   De container moet een keer opnieuw opstarten om het fuse-recht te krijgen."
     zeg "   De app is dan even niet bereikbaar. Bezig..."
     pct reboot "$CTID" >/dev/null 2>&1 || pct stop "$CTID" >/dev/null 2>&1 || true
     sleep 3
@@ -140,13 +157,13 @@ if [ "$veranderd" = "1" ]; then
       if pct status "$CTID" 2>/dev/null | grep -q running; then break; fi
       sleep 2
     done
-    pct status "$CTID" 2>/dev/null | grep -q running || stop "Container $CTID wilde niet starten. Zet $kopie terug en probeer het opnieuw."
+    pct status "$CTID" 2>/dev/null | grep -q running || stop "Container $CTID wilde niet starten. Controleer $CONF en probeer het opnieuw."
     zeg "   Container is weer op."
   else
     fout "   HERSTART=nee: start de container zelf opnieuw op voordat de rest werkt."
   fi
 else
-  zeg "   Fuse stond al in de configuratie; de container hoefde niet opnieuw te starten."
+  zeg "   Het fuse-recht stond al goed; de container hoefde niet opnieuw te starten."
 fi
 
 # --- gegevens naar de container ----------------------------------------------

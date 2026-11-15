@@ -253,6 +253,45 @@ test('een koppeling die niet opkomt wordt eerlijk gemeld en niet als gelukt onth
   }
 });
 
+test('een fusermount-weigering verwijst meteen naar het hostcommando', async () => {
+  const w = maakProefwereld();
+  // Deze nep-rclone laat de mount stuklopen met de echte fusermount-melding (het fuse-recht
+  // ontbreekt dan in de container). De app hoort dat te herkennen en de hoststap te noemen.
+  fs.writeFileSync(w.nepRclone, [
+    '#!/bin/sh',
+    'printf "%s\\n" "$*" >> "' + w.log + '"',
+    'case "$1" in',
+    '  version) echo "rclone v1.99.0-proef"; exit 0;;',
+    '  mount)',
+    '    echo "mount helper error: fusermount: mount failed: Operation not permitted" >&2',
+    '    echo "Fatal error: failed to mount FUSE fs: fusermount: exit status 1" >&2',
+    '    exit 1;;',
+    'esac',
+    'exit 0',
+    ''
+  ].join('\n'), { mode: 0o755 });
+  const herstel = zetOmgeving(w, { CLOUD_WACHT_MS: '700' });
+  zetConfKlaar(w);
+  const omgeving = await hulp.start();
+  try {
+    const baas = await hulp.alsBeheerder(omgeving.basis, 'proefwachtwoord-cloud-fuse');
+    const antwoord = await baas.post('/api/cloud', { actie: 'koppelen', pad: 'Muziek' });
+    assert.equal(antwoord.status, 409, JSON.stringify(antwoord.data));
+    assert.match(antwoord.data.fout, /fusermount/, 'de rauwe rclone-melding hoort erbij te staan');
+    assert.match(antwoord.data.fout, /fuse-recht/, 'de app hoort het ontbrekende fuse-recht te benoemen');
+    assert.match(antwoord.data.fout, /hostcommando/, 'en te verwijzen naar het hostcommando');
+    assert.match(antwoord.data.fout, /fuse=1/, 'met de vlag die het recht goedzet');
+    // De kaart toont daarna het hostcommando (de stand onthoudt de laatste fout).
+    const stand = await baas.haal('/api/cloud');
+    assert.match(stand.data.slots[0].laatsteFout, /fuse-recht/,
+      'de laatste fout hoort in de stand te staan zodat de kaart het commando kan tonen');
+  } finally {
+    await omgeving.stop();
+    herstel();
+    fs.rmSync(w.wortel, { recursive: true, force: true });
+  }
+});
+
 test('losmaken ontkoppelt, wist de toestand en laat de aanmelding staan', async () => {
   const w = maakProefwereld();
   const herstel = zetOmgeving(w);

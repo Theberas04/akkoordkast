@@ -6550,8 +6550,10 @@ function tekenCloud(d) {
     $('cloud-soort').value = s.soort;
   }
   var mist = !d.rclone.aanwezig || !d.fuse.aanwezig;
-  $('cloud-commando').hidden = !mist;
+  var fuseRecht = !!(s.laatsteFout && s.laatsteFout.indexOf('fuse-recht') !== -1);
+  $('cloud-commando').hidden = !(mist || fuseRecht);
   if (mist) $('cloud-commando').textContent = 'Op je Proxmox-host (eenmalig): ' + d.hostcommando;
+  else if (fuseRecht) $('cloud-commando').textContent = 'Op je Proxmox-host (nog één keer; zet fuse=1 in de container): ' + d.hostcommando;
   $('cloud-aanmelden').disabled = CLOUD.bezig || !d.rclone.aanwezig;
   $('cloud-koppel-aan').disabled = CLOUD.bezig ||
     !(d.rclone.aanwezig && d.fuse.aanwezig && s.aanmelding.klaar) || s.gemount;

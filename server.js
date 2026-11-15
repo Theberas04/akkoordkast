@@ -40,7 +40,7 @@ const CAST_HELPER = process.env.CAST_HELPER
   : path.join(__dirname, 'scripts', 'cast-helper.py');
 const EIGEN_START = 900000;
 const GESTART = new Date().toISOString();
-const VERSIE = '1.61.0';
+const VERSIE = '1.62.0';
 // Een update-script binnen de container mag alleen als het er echt staat en
 // uitvoerbaar is; standaard is dat niet zo, want bijwerken hoort op de host te
 // gebeuren (daar zit pct en systemctl).
@@ -5845,9 +5845,12 @@ async function verwerk(req, res) {
     const rest = pad.replace(/^\/+/, '');
     if (rest.includes('..') || rest.includes('\0')) { json(res, 400, { fout: 'Ongeldige bestandsnaam' }); return; }
     // Naast public/ is er één map die de browser ook mag lezen: lib/. Daar staat de
-    // rekenkunde die zowel de server als de app gebruikt (bijvoorbeeld de metronoom).
+    // rekenkunde die zowel de server als de app gebruikt (bijvoorbeeld de metronoom). Deze
+    // bestanden horen na een bijwerking meteen vers te zijn, net als de pagina zelf — anders
+    // zie je tot vijf minuten een oude versie (dat gebeurde echt toen een nieuw rekenbestand
+    // en de pagina samen veranderden).
     if (/^lib\/[a-z0-9-]+\.js$/.test(rest)) {
-      stuurBestand(req, res, path.join(__dirname, rest), MIME['.js'], { 'cache-control': 'public, max-age=300' });
+      stuurBestand(req, res, path.join(__dirname, rest), MIME['.js'], { 'cache-control': 'no-cache' });
       return;
     }
     // De handleiding hoort bij een map met een eigen pagina: /handleiding/ opent hem. Hij zit niet meer
@@ -5872,7 +5875,11 @@ async function verwerk(req, res) {
     const bestand = path.join(__dirname, 'public', rest);
     if (!bestand.startsWith(path.join(__dirname, 'public'))) { json(res, 400, { fout: 'Ongeldige bestandsnaam' }); return; }
     if (Object.prototype.hasOwnProperty.call(MIME, path.extname(bestand).toLowerCase()) && fs.existsSync(bestand) && fs.statSync(bestand).isFile()) {
-      stuurBestand(req, res, bestand);
+      // De schil van de app (de service worker en het manifest) hoort na een bijwerking meteen
+      // vers te zijn; alleen beeld en geluid mogen kort uit de cache komen (dat scheelt op een
+      // podium megabytes). De pagina zelf heeft al dezelfde regel.
+      const schil = (rest === 'sw.js' || rest === 'manifest.webmanifest');
+      stuurBestand(req, res, bestand, undefined, schil ? { 'cache-control': 'no-cache' } : undefined);
       return;
     }
   }

@@ -3,6 +3,27 @@
 Alles wat de app in huis heeft staat in de [README](README.md); hier staat per versie wat er
 nieuw is, wat er veranderd is en wat er gerepareerd is.
 
+## [1.62.0] — 15 november 2026
+
+### Nazingen & naspelen
+
+- Nieuwe kaart **Nazingen & naspelen** in het tabblad Leren: de app speelt een kort motiefje voor
+  (3–5 noten in de toonsoort die je kiest) en jij speelt of zingt het na. De microfoon vertelt wat hij
+  hoorde — per noot een ✓ of ✗, met "Alles goed", "Bijna: 3 van de 4" of "probeer het nog eens".
+- Het rekenwerk staat in `lib/motiefjes.js`: motiefjes blijven in de majeurtoonladder, dezelfde kiem
+  geeft hetzelfde motiefje (fijn voor de proeven) en een uitslag geeft een halve toon speling — maar
+  een fout wordt niet weggemoffeld door een volgende poging (aanslagen ver uit elkaar horen bij een
+  nieuwe ronde).
+- Gebruikt de microfoon die de app al heeft (net als de stemmer en de ritme-trainer); zonder
+  toestemming of op een niet-beveiligd adres zegt de app dat netjes.
+
+### De schil van de app blijft nooit vijf minuten oud
+
+- `/lib/*.js`, `sw.js` en het manifest kwamen tot vijf minuten uit de browsercache. Daardoor kon na
+  een bijwerking een nieuwe pagina met oude rekenkunde draaien (de proef van het nazingen liep daar
+  precies tegenaan). De schil wordt nu altijd opnieuw gecontroleerd; alleen beeld en geluid mogen
+  kort gecachet blijven.
+
 ## [1.61.0] — 15 november 2026
 
 ### Heel het liedboek offline

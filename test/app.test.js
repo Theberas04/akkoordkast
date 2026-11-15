@@ -32,6 +32,19 @@ test('de pagina komt uit de app zelf, met de app-marker', async () => {
   assert.equal(r.headers.get('cache-control'), 'no-cache');
 });
 
+test('de schil van de app hoort altijd vers: geen oude rekenbestanden of service worker', async () => {
+  for (const bestand of ['/lib/motiefjes.js', '/lib/ritme.js', '/sw.js', '/manifest.webmanifest']) {
+    const r = await haal(omgeving.basis, bestand);
+    assert.equal(r.status, 200, bestand);
+    assert.equal(r.headers.get('cache-control'), 'no-cache',
+      bestand + ' hoort niet vijf minuten in de browser te blijven staan');
+  }
+  // Beeld en geluid mogen wél kort uit de cache komen (dat scheelt op een podium megabytes).
+  const png = await haal(omgeving.basis, '/icon-192.png');
+  assert.match(png.headers.get('cache-control') || '', /max-age=300/,
+    'losse bestanden mogen kort gecachet blijven');
+});
+
 test('healthz antwoordt ok met de app-marker', async () => {
   const r = await haal(omgeving.basis, '/healthz');
   assert.equal(r.status, 200);

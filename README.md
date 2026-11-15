@@ -66,6 +66,7 @@ de handleiding in de app zelf (knop **Handleiding openen**) · [installeren op P
 | ![setlist delen](docs/img/delen-setlist.png) | **Een setlist delen** — één knop maakt een link waarmee iemand anders alleen die setlist leest: titels, toonaard, capo en de akkoorden boven de tekst, met een printfine erbij. De rest van de app blijft buiten beeld. |
 | ![optreden](docs/img/optreden.png) | **Optredenmodus** — alleen het liedje van nu, met een balk erboven: welk nummer, vorige en volgende, en een pauzeklok voor de stilte tussen twee nummers. |
 | ![gehoor](docs/img/gehoor-trainer.png) | **Gehoor-trainer** — de app speelt een akkoord en jij zegt welk het is, of je hoort twee akkoorden en zegt of het tweede hoger of lager klonk. |
+| ![nazingen](docs/img/akkoordkast-nazingen-nov-2026.png) | **Nazingen & naspelen** — de app speelt een kort motiefje voor en jij speelt of zingt het na; de microfoon vertelt per noot wat goed ging. |
 | ![akkoordenboek](docs/img/akkoordenboek.png) | **Akkoordenboek** — van elk akkoord alle posities over de hals, met het vaknummer en een uitleg, en een knop om er een grepenkaart van te printen. |
 | ![wachter](docs/img/wachter.png) | **Automatisch bijhouden** — de app kijkt zelf in je muziekmap en naar nieuwe versies op GitHub, en schrijft op wat er gedaan is. |
 | ![beheer](docs/img/beheer.png) | **Beheer en bijwerken** — welke versie er draait, of er iets nieuws klaarstaat op GitHub, en in één klik bijwerken als deze machine daarop is ingericht. |
@@ -200,6 +201,8 @@ in plaats van wav. Geen npm-afhankelijkheden.
   hoe lang.
 - **Gehoor-trainer.** De app speelt een akkoord en jij zegt welk het is; of ze speelt er twee en
   jij zegt of het tweede hoger of lager klinkt. Je hoeft niets te zien.
+- **Nazingen & naspelen.** De app speelt een kort motiefje voor (drie tot vijf noten) en jij speelt of
+  zingt het na; de microfoon vertelt per noot wat goed ging — van "Alles goed" tot "Bijna: 3 van de 4".
 - **PWA.** Installeerbaar op je telefoon, met de app-schil in de cache maar liedjes, audio en
   cast-status altijd live.
 
@@ -1002,14 +1005,15 @@ het gele pilletje in de kaart. Met **Nu kijken** forceer je een ronde.
 | Audio | `lib/gitaar.js` synthetiseert tokkels naar WAV; `ffmpeg` zet dat om naar mp3 en die wordt gecachet |
 | Offline | `lib/offline.js` bepaalt welke adressen een klaargezette setlist (of het hele liedboek) nodig heeft (en hoe een vraag die nét anders is de bewaarde versie vindt); `public/sw.js` levert die voorraad uit als er geen verbinding is |
 | Oefensessie | `lib/sessie.js` kiest de blokken en de liedjes (opwarmen, herhalen, uitdaging, afsluiter) uit moeilijkheid, favorieten en de speelgeschiedenis |
+| Nazingen | `lib/motiefjes.js` bedenkt een kort motiefje in de gekozen toonsoort en beoordeelt wat de microfoon hoorde (per noot, met halve-toonspeling maar zonder dat een nieuwe poging een fout toedekt) |
 | Casten | `scripts/cast-helper.py` met pychromecast, door de server aangeroepen; de pagina praat nooit rechtstreeks met de Chromecast |
 
 ## Tests
 
 ```bash
-node --test test/*.test.js          # 379 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
+node --test test/*.test.js          # 392 tests: muziektheorie, API, pagina, datasets, persoonlijke laag,
                                     # setlists, de offline-setlist en het liedboek offline, de slimme
-                                    # oefensessie, akkoordenboek,
+                                    # oefensessie, nazingen, akkoordenboek,
                                     # de wachter, de cloudkoppelingen en de deploy-scripts
 python3 scripts/check-deploy-file-lists.py            # bestandslijsten van de deploy
 python3 scripts/check-deploy-file-lists.py --remote   # ook HTTP 200 op elke ruwe URL

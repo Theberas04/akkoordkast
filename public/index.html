@@ -1236,6 +1236,39 @@
       <div class="les-klein" id="gehoor-melding" style="margin-top:6px"></div>
     </div>
 
+    <div class="kaart" id="motief-kaart">
+      <h2>Nazingen &amp; naspelen</h2>
+      <p class="les-klein" style="margin:0 0 12px">De app speelt een kort motiefje voor — drie tot vijf noten.
+        Speel (of zing) het daarna na, en de microfoon vertelt wat hij hoorde en wat goed ging. Zo oefen je
+        je gehoor en je vingers tegelijk. Doe het in een stille kamer en gebruik een beveiligd adres
+        (<code>https</code>).</p>
+      <div class="rij">
+        <label for="motief-toonsoort">Toonsoort</label>
+        <select id="motief-toonsoort" style="width:auto;min-width:70px">
+          <option value="C" selected>C</option>
+          <option value="D">D</option>
+          <option value="E">E</option>
+          <option value="G">G</option>
+          <option value="A">A</option>
+        </select>
+        <label for="motief-aantal">Noten</label>
+        <select id="motief-aantal" style="width:auto;min-width:70px">
+          <option value="3">3</option>
+          <option value="4" selected>4</option>
+          <option value="5">5</option>
+        </select>
+        <button class="knop zacht" id="motief-nieuw">Nieuw motiefje</button>
+        <button class="knop" id="motief-horen">Laat horen</button>
+        <button class="knop" id="motief-jij">Nu jij</button>
+      </div>
+      <div class="rij" style="margin-top:8px">
+        <span class="les-klein">Het motiefje:</span>
+        <span id="motief-doel"></span>
+      </div>
+      <div class="rij" style="margin-top:4px"><span id="motief-uitslag"></span></div>
+      <div class="les-klein" id="motief-melding" style="margin-top:6px"></div>
+    </div>
+
     <div class="kaart">
       <h2>Stemmen</h2>
       <p class="les-klein" style="margin:0 0 12px">Klik op een snaar om de toon te horen. Stem de dikste snaar eerst, dan de rest.
@@ -2010,6 +2043,7 @@
 <script src="/lib/noten.js"></script>
 <script src="/lib/offline.js"></script>
 <script src="/lib/sessie.js"></script>
+<script src="/lib/motiefjes.js"></script>
 <script>
 'use strict';
 var staat = {
@@ -8667,6 +8701,157 @@ function rtIJkStand() {
   if (zet) zet.disabled = !RT.ijk && !(RT.uitslag && RT.uitslag.aantal);
 }
 
+// ------------------------------------------------ nazingen & naspelen ---
+// Een kort motiefje voor, jij na: de app luistert met de microfoon en vergelijkt wat er kwam.
+// Het rekenwerk (motiefje bedenken en beoordelen) staat in lib/motiefjes.js; hier zit het geluid.
+var MOTIEF = {
+  doel: [], gehoord: [], aan: false, seed: null, ctx: null, stream: null, analyser: null,
+  beeld: null, vorigBeeld: null, punten: [], laatsteSlag: 0, leesOp: [], timer: null,
+  einde: 0, gemeld: -1
+};
+var MOTIEF_PUNTEN_MAX = 600;
+var MOTIEF_LUISTER_SECONDEN = 12;
+
+function motiefReken() { return window.motiefRekenen || null; }
+
+function motiefNieuw() {
+  var reken = motiefReken();
+  if (!reken || !$('motief-toonsoort')) return;
+  MOTIEF.doel = reken.motiefNoten({
+    toonsoort: $('motief-toonsoort').value,
+    aantal: Number($('motief-aantal').value) || 4,
+    seed: MOTIEF.seed
+  });
+  $('motief-doel').innerHTML = MOTIEF.doel.map(function (m) {
+    return '<span class="chip">' + reken.naamVan(m) + '</span>';
+  }).join('');
+  $('motief-uitslag').innerHTML = '';
+  toonMelding('motief-melding', 'Druk op Laat horen en daarna op Nu jij.', '');
+}
+
+function motiefHoren() {
+  if (!MOTIEF.doel.length) motiefNieuw();
+  MOTIEF.doel.forEach(function (m, i) {
+    speelToon(m, 0.15 + i * 0.85, 0.7, 0.16);
+  });
+  toonMelding('motief-melding', 'Luister goed… en speel (of zing) het daarna na met Nu jij.', '');
+}
+
+function motiefJij() {
+  if (MOTIEF.aan) { stopMotiefLuister('Gestopt. Zet het nog eens op als je er klaar voor bent.'); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    toonMelding('motief-melding', 'Deze browser kan niet bij de microfoon.', 'fout');
+    return;
+  }
+  if (!window.isSecureContext) {
+    toonMelding('motief-melding', 'De microfoon werkt alleen op een beveiligd adres (https).', 'fout');
+    return;
+  }
+  if (!MOTIEF.doel.length) motiefNieuw();
+  $('motief-jij').disabled = true;
+  toonMelding('motief-melding', 'Vraag om de microfoon…', '');
+  vraagMicrofoon().then(function (stream) {
+    MOTIEF.stream = stream;
+    MOTIEF.ctx = leerCtx() || new (window.AudioContext || window.webkitAudioContext)();
+    var bron = MOTIEF.ctx.createMediaStreamSource(stream);
+    var analyser = MOTIEF.ctx.createAnalyser();
+    analyser.fftSize = 4096;
+    bron.connect(analyser);
+    MOTIEF.analyser = analyser;
+    MOTIEF.beeld = new Uint8Array(analyser.frequencyBinCount);
+    MOTIEF.vorigBeeld = new Uint8Array(analyser.frequencyBinCount);
+    MOTIEF.punten = [];
+    MOTIEF.gehoord = [];
+    MOTIEF.leesOp = [];
+    MOTIEF.laatsteSlag = 0;
+    MOTIEF.gemeld = -1;
+    MOTIEF.aan = true;
+    MOTIEF.einde = MOTIEF.ctx.currentTime + MOTIEF_LUISTER_SECONDEN;
+    $('motief-jij').disabled = false;
+    $('motief-jij').textContent = 'Stop met luisteren';
+    toonMelding('motief-melding', 'Ik luister… speel of zing het motiefje na.', '');
+    MOTIEF.timer = requestAnimationFrame(motiefLoop);
+  }).catch(function (e) {
+    $('motief-jij').disabled = false;
+    var code = (e && e.name) ? ' (foutcode: ' + e.name + ')' : '';
+    toonMelding('motief-melding', microfoonUitleg(e) + code, 'fout');
+  });
+}
+
+// De luisterlus: per beeldje kijken waar een aanslag zit (dezelfde rekenkunde als de
+// ritme-trainer) en even later de toonhoogte lezen (dezelfde rekenkunde als de stemmer).
+function motiefLoop() {
+  if (!MOTIEF.aan) return;
+  var ritme = window.ritmeRekenen;
+  var ctx = MOTIEF.ctx, analyser = MOTIEF.analyser;
+  analyser.getByteFrequencyData(MOTIEF.beeld);
+  if (ritme && ritme.slagenUitFlux) {
+    MOTIEF.punten.push({ tijd: ctx.currentTime, flux: ritme.fluxTussen(MOTIEF.beeld, MOTIEF.vorigBeeld) });
+    if (MOTIEF.punten.length > MOTIEF_PUNTEN_MAX) MOTIEF.punten.shift();
+    ritme.slagenUitFlux(MOTIEF.punten).forEach(function (slag) {
+      // Dezelfde aanslag is in de beeldjes daarna nog te zien; vraag hem maar één keer op.
+      if (slag.tijd > MOTIEF.laatsteSlag + ritme.MIN_AFSTAND) {
+        MOTIEF.laatsteSlag = slag.tijd;
+        MOTIEF.leesOp.push({ tijd: slag.tijd + 0.08, gedaan: false });
+      }
+    });
+  }
+  if (window.stemmenRekenen && MOTIEF.leesOp.length) {
+    MOTIEF.leesOp = MOTIEF.leesOp.filter(function (vraag) {
+      if (ctx.currentTime < vraag.tijd) return true;
+      var monsters = new Float32Array(analyser.fftSize);
+      analyser.getFloatTimeDomainData(monsters);
+      var toon = window.stemmenRekenen.toonhoogteUit(monsters, ctx.sampleRate);
+      var reken = motiefReken();
+      if (toon && toon.duidelijkheid >= 0.5 && reken) {
+        var midi = reken.midiVanFrequentie(toon.frequentie);
+        if (midi !== null && MOTIEF.gehoord.length < 12) MOTIEF.gehoord.push({ midi: midi, tijd: ctx.currentTime });
+      }
+      return false;
+    });
+  }
+  if (MOTIEF.gehoord.length !== MOTIEF.gemeld && MOTIEF.gehoord.length) {
+    MOTIEF.gemeld = MOTIEF.gehoord.length;
+    toonMelding('motief-melding', 'Ik luister… al ' + MOTIEF.gehoord.length + ' van ' + MOTIEF.doel.length + ' noten gehoord.', '');
+  }
+  if (ctx.currentTime >= MOTIEF.einde) { motiefKlaar(); return; }
+  MOTIEF.vorigBeeld = Uint8Array.from(MOTIEF.beeld);
+  MOTIEF.timer = requestAnimationFrame(motiefLoop);
+}
+
+function motiefKlaar() {
+  var gehoord = MOTIEF.gehoord.slice();
+  stopMotiefLuister('');
+  var reken = motiefReken();
+  if (!reken) return;
+  var uitslag = reken.vergelijk(MOTIEF.doel, gehoord);
+  var oordeel = uitslag.oordeel === 'goed' ? 'Alles goed — knap!'
+    : uitslag.oordeel === 'bijna' ? 'Bijna: ' + uitslag.goed + ' van de ' + uitslag.totaal + ' goed.'
+    : uitslag.goed ? 'Al ' + uitslag.goed + ' van de ' + uitslag.totaal + ' goed — probeer het nog eens rustig.'
+    : 'Dat klopte nog niet — druk op Laat horen en probeer het rustig opnieuw.';
+  var wat = gehoord.length
+    ? ' Dit hoorde ik: ' + gehoord.map(function (m) { return reken.naamVan(m.midi); }).join(' · ') + '.'
+    : ' Ik hoorde niets — staat je microfoon aan en speel je dichtbij genoeg?';
+  toonMelding('motief-melding', oordeel + wat, uitslag.oordeel === 'goed' ? 'goed' : '');
+  $('motief-uitslag').innerHTML = uitslag.per.map(function (p) {
+    return '<span class="chip" title="' + (p.goed ? 'goed gespeeld' : 'deze miste ik of klopte niet') + '">' +
+      (p.goed ? '✓' : '✗') + ' ' + reken.naamVan(p.doel) + '</span>';
+  }).join(' ');
+}
+
+function stopMotiefLuister(bericht) {
+  MOTIEF.aan = false;
+  if (MOTIEF.timer) { cancelAnimationFrame(MOTIEF.timer); MOTIEF.timer = null; }
+  if (MOTIEF.stream) {
+    MOTIEF.stream.getTracks().forEach(function (t) { t.stop(); });
+    MOTIEF.stream = null;
+  }
+  MOTIEF.analyser = null;
+  var knop = $('motief-jij');
+  if (knop) { knop.textContent = 'Nu jij'; knop.disabled = false; }
+  if (bericht) toonMelding('motief-melding', bericht, '');
+}
+
 function stopRt() {
   if (!RT.aan) return;
   RT.aan = false;
@@ -9771,6 +9956,13 @@ function laadLeren() {
     if (laadLadderKeuzes()) tekenLadder();
   });
   laadRekenbestand('/lib/oefenplan.js', 'oefenplanRekenen');
+  // Nazingen & naspelen
+  laadRekenbestand('/lib/motiefjes.js', 'motiefRekenen').then(function () { motiefNieuw(); });
+  $('motief-nieuw').addEventListener('click', motiefNieuw);
+  $('motief-horen').addEventListener('click', motiefHoren);
+  $('motief-jij').addEventListener('click', motiefJij);
+  $('motief-toonsoort').addEventListener('change', motiefNieuw);
+  $('motief-aantal').addEventListener('change', motiefNieuw);
   $('leren-naar-trainer').addEventListener('click', function () {
     $('trein-set').scrollIntoView({ block: 'center' });
   });
